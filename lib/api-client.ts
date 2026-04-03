@@ -1,0 +1,159 @@
+// API client with built-in token handling
+
+export class APIClient {
+  private baseURL = '/api';
+
+  private clearAuthState() {
+    if (typeof window === 'undefined') return;
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('authUser');
+  }
+
+  private getToken(): string | null {
+    if (typeof window === 'undefined') return null;
+    return localStorage.getItem('authToken');
+  }
+
+  private getHeaders(isFormData = false): Record<string, string> {
+    const headers: Record<string, string> = {};
+    const token = this.getToken();
+
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    if (!isFormData) {
+      headers['Content-Type'] = 'application/json';
+    }
+
+    return headers;
+  }
+
+  async request<T>(
+    path: string,
+    options: RequestInit & { params?: Record<string, any> } = {}
+  ): Promise<T> {
+    const { params, ...requestOptions } = options;
+
+    let url = `${this.baseURL}${path}`;
+    if (params) {
+      const queryString = new URLSearchParams(params).toString();
+      url = `${url}?${queryString}`;
+    }
+
+    const response = await fetch(url, {
+      ...requestOptions,
+      headers: {
+        ...this.getHeaders(),
+        ...requestOptions.headers,
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      const message = error.error || `API error: ${response.status}`;
+
+      // If token is stale (for example after JWT secret rotation), clear auth and force re-login.
+      if (response.status === 401 && /invalid token|unauthorized|jwt/i.test(String(message))) {
+        this.clearAuthState();
+        if (typeof window !== 'undefined') {
+          window.location.href = '/auth/login';
+        }
+      }
+
+      throw new Error(message);
+    }
+
+    return response.json();
+  }
+
+  // Product methods
+  async getProducts(filters?: Record<string, any>) {
+    return this.request('/products', { params: filters });
+  }
+
+  async getProduct(id: string) {
+    return this.request(`/products/${id}`);
+  }
+
+  async createProduct(productData: any) {
+    return this.request('/products', {
+      method: 'POST',
+      body: JSON.stringify(productData),
+    });
+  }
+
+  async updateProduct(id: string, productData: any) {
+    return this.request(`/products/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(productData),
+    });
+  }
+
+  async deleteProduct(id: string) {
+    return this.request(`/products/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Order methods
+  async createOrder(orderData: any) {
+    return this.request('/orders', {
+      method: 'POST',
+      body: JSON.stringify(orderData),
+    });
+  }
+
+  async getOrders() {
+    return this.request('/orders');
+  }
+
+  async getOrder(id: string) {
+    return this.request(`/orders/${id}`);
+  }
+
+  async updateOrderStatus(id: string, status: string, notes?: string) {
+    return this.request(`/orders/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status, notes }),
+    });
+  }
+
+  // Vendor approval methods
+  async getVendors() {
+    return this.request('/vendors');
+  }
+
+  async updateVendorStatus(id: string, action: 'approve' | 'reject') {
+    return this.request(`/vendors/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ action }),
+    });
+  }
+
+  // Admin methods
+  async getAdminOrders() {
+    return this.request('/admin', { params: { type: 'orders' } });
+  }
+
+  async getAdminUsers() {
+    return this.request('/admin', { params: { type: 'users' } });
+  }
+
+  async getAdminOverview() {
+    return this.request('/admin', { params: { type: 'all' } });
+  }
+
+  async promoteUserToAdmin(payload: { email?: string; userId?: string; action?: 'promote' | 'demote' }) {
+    return this.request('/admin/promote', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async removeAdminRole(payload: { email?: string; userId?: string }) {
+    return this.promoteUserToAdmin({ ...payload, action: 'demote' });
+  }
+}
+
+export const apiClient = new APIClient();
