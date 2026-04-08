@@ -17,7 +17,7 @@ export default function MobileDock() {
 
   return (
     <nav className="fixed bottom-4 inset-x-0 z-[1000] px-4 md:hidden">
-      <div className="mx-auto max-w-md rounded-2xl border border-white/40 bg-blue-500/30 backdrop-blur-xl shadow-[0_12px_35px_rgba(30,64,175,0.35)] px-2 py-1.5">
+      <div className="mx-auto max-w-md rounded-2xl border border-gray-200 bg-white/90 backdrop-blur-xl shadow-[0_12px_35px_rgba(0,0,0,0.1)] px-2 py-1.5">
         <ul className="grid grid-cols-4 gap-1">
           {items.map((item) => {
             const Icon = item.icon;
@@ -26,7 +26,7 @@ export default function MobileDock() {
                 <Link
                   href={item.href}
                   className={`flex flex-col items-center justify-center rounded-xl py-2 text-[11px] font-semibold transition-colors ${
-                    item.active ? 'bg-white/70 text-blue-700' : 'text-blue-700/85 hover:bg-white/35 hover:text-blue-800'
+                    item.active ? 'bg-blue-50 text-blue-600' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'
                   }`}
                 >
                   <Icon className="h-4 w-4 mb-1" />
