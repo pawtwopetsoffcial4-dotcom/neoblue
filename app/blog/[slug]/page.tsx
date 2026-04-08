@@ -3,6 +3,8 @@ import { connectDB } from '@/lib/db';
 import Blog from '@/lib/models/Blog';
 import { notFound } from 'next/navigation';
 
+export const dynamic = 'force-dynamic';
+
 type BlogDetail = {
   _id: string;
   title: string;
