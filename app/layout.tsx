@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Neoblue",
+  title: "NEOBLUE",
   description: "Fish Selling Ecommerce",
 };
 

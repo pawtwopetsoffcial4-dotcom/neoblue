@@ -154,6 +154,35 @@ export class APIClient {
   async removeAdminRole(payload: { email?: string; userId?: string }) {
     return this.promoteUserToAdmin({ ...payload, action: 'demote' });
   }
+
+  // Blog methods
+  async getBlogs(filters?: Record<string, any>) {
+    return this.request('/blogs', { params: filters });
+  }
+
+  async getBlog(idOrSlug: string) {
+    return this.request(`/blogs/${idOrSlug}`);
+  }
+
+  async createBlog(blogData: any) {
+    return this.request('/blogs', {
+      method: 'POST',
+      body: JSON.stringify(blogData),
+    });
+  }
+
+  async updateBlog(id: string, blogData: any) {
+    return this.request(`/blogs/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(blogData),
+    });
+  }
+
+  async deleteBlog(id: string) {
+    return this.request(`/blogs/${id}`, {
+      method: 'DELETE',
+    });
+  }
 }
 
 export const apiClient = new APIClient();

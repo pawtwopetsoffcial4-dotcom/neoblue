@@ -54,7 +54,7 @@ export default function VendorDashboardPage() {
         </div>
         <div className="rounded-2xl bg-white border border-blue-100 p-5">
           <p className="text-sm text-slate-500">Revenue</p>
-          <p className="text-3xl font-black text-slate-900 mt-1">${revenue.toFixed(2)}</p>
+          <p className="text-3xl font-black text-slate-900 mt-1">₹{revenue.toFixed(2)}</p>
         </div>
       </div>
 

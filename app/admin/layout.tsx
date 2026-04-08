@@ -3,12 +3,13 @@
 import React, { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, Users, ClipboardList, LogOut } from 'lucide-react';
+import { LayoutDashboard, Users, ClipboardList, LogOut, BookOpen } from 'lucide-react';
 import { useAuth } from '@/lib/hooks/useAuth';
 
 const navItems = [
   { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/products', label: 'Products', icon: ClipboardList },
+  { href: '/admin/blogs', label: 'Blogs', icon: BookOpen },
   { href: '/admin/vendors', label: 'Vendors', icon: Users },
   { href: '/admin/orders', label: 'Orders', icon: ClipboardList },
   { href: '/admin/users', label: 'Users', icon: Users },

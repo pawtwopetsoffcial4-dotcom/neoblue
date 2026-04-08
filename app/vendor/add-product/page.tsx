@@ -17,7 +17,7 @@ export default function VendorAddProductPage() {
     title: '',
     description: '',
     price: '',
-    category: 'Fish',
+    category: 'Guppies',
     waterType: 'Freshwater',
     tag: 'Standard',
     scientific: '',
@@ -136,10 +136,13 @@ export default function VendorAddProductPage() {
             value={form.category}
             onChange={(e) => setForm((prev) => ({ ...prev, category: e.target.value }))}
           >
-            <option value="Fish">Fish</option>
-            <option value="Coral">Coral</option>
-            <option value="Invertebrate">Invertebrate</option>
-            <option value="Plant">Plant</option>
+            <option value="Guppies">Guppies</option>
+            <option value="Betta">Betta</option>
+            <option value="Angel's">Angel's</option>
+            <option value="Discuss">Discuss</option>
+            <option value="Platy">Platy</option>
+            <option value="Exotic Molly">Exotic Molly</option>
+            <option value="Zebra">Zebra</option>
           </select>
 
           <select

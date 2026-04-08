@@ -2,8 +2,9 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Menu, X, ShoppingBag, Search, Waves } from 'lucide-react';
+import { Menu, X, ShoppingBag, Search } from 'lucide-react';
 import { useCart } from '@/lib/hooks/useCart';
 import { useAuth } from '@/lib/hooks/useAuth';
 
@@ -30,24 +31,32 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
     { href: '/', label: 'Home' },
     { href: '/categories', label: 'Categories' },
     { href: '/products', label: 'View Products' },
+    { href: '/blog', label: 'Blog' },
     { href: '/#trending', label: 'Trending' },
+    ...(user ? [{ href: '/profile', label: 'Profile' }] : []),
     ...(user?.role === 'admin' ? [{ href: '/admin/dashboard', label: 'Dashboard' }] : []),
-    { href: '/profile', label: 'Profile' },
   ];
 
   return (
-    <header className="sticky top-0 z-50 bg-blue-600/95 backdrop-blur-2xl border-b border-blue-500">
-      <nav className="w-full max-w-6xl mx-auto px-4 md:px-6 py-3 flex items-center justify-between gap-3">
+    <header className="sticky top-0 z-50 bg-blue-600/95 backdrop-blur-md border-b border-blue-500 shadow-sm">
+      <nav className="w-full max-w-7xl mx-auto px-4 md:px-6 py-4 flex items-center justify-between gap-4">
         <div className="flex items-center gap-2">
-          <Link href="/" className="flex items-center gap-2">
-            <Waves className="h-6 w-6 text-white" />
-            <span className="font-black text-xl tracking-tighter text-white">
-              NEO<span className="text-blue-100 text-shadow-glow">BLUE</span>
+          <Link href="/" className="flex items-center gap-2 group">
+            <Image 
+              src="/logo.png" 
+              alt="NEOBLUE Logo" 
+              width={40} 
+              height={40} 
+              className="h-9 w-auto object-contain hover:opacity-90 transition-opacity"
+              priority
+            />
+            <span className="font-extrabold text-xl tracking-widest text-white uppercase ml-1">
+              NEOBLUE
             </span>
           </Link>
         </div>
 
-        <div className="hidden lg:flex items-center space-x-8 text-sm font-medium tracking-widest uppercase text-blue-100">
+        <div className="hidden lg:flex flex-1 items-center justify-center space-x-8 text-sm font-medium text-blue-100">
           {navLinks.map((link) => (
             <Link key={link.href} href={link.href} className="hover:text-white transition-colors">
               {link.label}
@@ -55,46 +64,47 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
           ))}
         </div>
 
-        <div className="flex items-center gap-2 md:gap-4">
-          <Link href="/products" className="h-9 w-9 md:h-10 md:w-10 rounded-full bg-white/20 text-white flex items-center justify-center hover:bg-white/30 transition-all border border-white/30">
-            <Search className="h-4 w-4 md:h-5 md:w-5" />
+        <div className="flex items-center justify-end gap-3 flex-none">
+          <Link href="/products" className="h-[38px] w-[38px] rounded-full text-blue-100 flex items-center justify-center hover:bg-white/10 hover:text-white transition-colors">
+            <Search className="h-5 w-5" />
           </Link>
+          
           {user && (
             <button
               type="button"
               onClick={handleLogout}
-              className="hidden md:block h-10 px-4 rounded-full border border-white/30 text-white font-semibold hover:bg-white/10 transition-all"
+              className="hidden md:flex h-[38px] px-4 rounded-full border border-white/20 text-blue-50 text-sm font-medium items-center justify-center hover:bg-white/10 transition-colors"
             >
               Logout
             </button>
           )}
-          <Link href="/checkout" className="h-9 px-3 md:h-10 md:px-5 rounded-full bg-white text-blue-700 flex items-center gap-1.5 hover:bg-blue-50 transition-all shadow-[0_0_20px_rgba(255,255,255,0.25)]">
-            <ShoppingBag className="h-4 w-4 md:h-5 md:w-5" />
-            <span className="hidden md:inline text-sm font-bold">Cart ({visibleCartCount})</span>
-            <span className="md:hidden text-sm font-bold">{visibleCartCount}</span>
+
+          <Link href="/checkout" className="h-[38px] px-4 rounded-full bg-white text-blue-600 flex items-center gap-2 hover:bg-blue-50 transition-colors shadow-sm">
+            <ShoppingBag className="h-4 w-4" />
+            <span className="text-sm font-bold">{visibleCartCount}</span>
           </Link>
 
           <button
             type="button"
             onClick={() => setIsMenuOpen((value) => !value)}
-            className="lg:hidden h-9 w-9 md:h-10 md:w-10 ml-1 rounded-full bg-white/20 text-white flex items-center justify-center hover:bg-white/30 transition-all border border-white/30"
+            className="lg:hidden h-[38px] w-[38px] rounded-full text-blue-100 flex items-center justify-center hover:bg-white/10 hover:text-white transition-colors"
             aria-expanded={isMenuOpen}
             aria-label="Toggle navigation menu"
           >
-            {isMenuOpen ? <X className="h-4 w-4 md:h-5 md:w-5" /> : <Menu className="h-4 w-4 md:h-5 md:w-5" />}
+            {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
         </div>
       </nav>
 
       {isMenuOpen && (
-        <div className="lg:hidden border-t border-white/15 bg-blue-700/95 backdrop-blur-xl absolute w-full left-0 shadow-lg">
-          <div className="max-w-6xl mx-auto px-4 md:px-6 py-4 flex flex-col gap-2 text-sm font-semibold uppercase tracking-widest text-blue-100">
+        <div className="lg:hidden border-t border-blue-500 bg-blue-700/95 backdrop-blur-md absolute w-full left-0 shadow-lg top-full">
+          <div className="px-4 py-4 flex flex-col gap-1 text-sm font-medium text-blue-50">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
                 onClick={closeMenu}
-                className="rounded-xl px-4 py-3 hover:bg-white/10 hover:text-white transition-colors"
+                className="rounded-lg px-4 py-3 hover:bg-white/10 hover:text-white transition-colors"
               >
                 {link.label}
               </Link>
@@ -103,9 +113,9 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
               <button
                 type="button"
                 onClick={handleLogout}
-                className="rounded-xl px-4 py-3 text-left hover:bg-white/10 hover:text-white transition-colors"
+                className="rounded-lg px-4 py-3 text-left hover:bg-white/10 hover:text-white transition-colors"
               >
-                LOGOUT
+                Logout
               </button>
             )}
           </div>

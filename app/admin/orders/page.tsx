@@ -41,7 +41,7 @@ export default function AdminOrdersPage() {
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
               <div>
                 <p className="font-bold text-slate-900">Order #{order._id.slice(-6).toUpperCase()}</p>
-                <p className="text-sm text-slate-500 mt-1">${order.totalAmount.toFixed(2)} • {new Date(order.createdAt).toLocaleString()}</p>
+                <p className="text-sm text-slate-500 mt-1">₹{order.totalAmount.toFixed(2)} • {new Date(order.createdAt).toLocaleString()}</p>
                 <p className="text-xs text-slate-600 mt-2">User: {order.userId?.name ?? order.userId?.email ?? 'N/A'}</p>
                 <p className="text-xs text-slate-600">Vendor: {order.vendorId?.name ?? order.vendorId?.email ?? 'N/A'}</p>
               </div>

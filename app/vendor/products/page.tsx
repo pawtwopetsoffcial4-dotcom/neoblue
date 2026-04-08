@@ -58,7 +58,7 @@ export default function VendorProductsPage() {
               <tr key={product._id} className="border-t border-blue-100">
                 <td className="px-5 py-4 font-semibold text-slate-900">{product.title}</td>
                 <td className="px-5 py-4 text-slate-600">{product.category}</td>
-                <td className="px-5 py-4 text-slate-900">${product.price.toFixed(2)}</td>
+                <td className="px-5 py-4 text-slate-900">₹{product.price.toFixed(2)}</td>
                 <td className="px-5 py-4 text-slate-600">{product.inStock ? 'In stock' : 'Out of stock'}</td>
                 <td className="px-5 py-4 text-right">
                   <button

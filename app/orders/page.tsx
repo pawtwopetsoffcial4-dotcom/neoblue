@@ -51,7 +51,7 @@ export default function OrdersPage() {
                 <p className="text-sm text-slate-500 mt-1">{new Date(order.createdAt).toLocaleString()}</p>
               </div>
               <div className="text-right">
-                <p className="text-xl font-black text-slate-900">${order.totalAmount.toFixed(2)}</p>
+                <p className="text-xl font-black text-slate-900">₹{order.totalAmount.toFixed(2)}</p>
                 <p className="text-sm font-semibold text-blue-700 capitalize">{order.status}</p>
               </div>
             </div>

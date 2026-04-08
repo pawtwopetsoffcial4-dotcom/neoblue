@@ -10,7 +10,7 @@ type ProductDetailProps = {
   params: Promise<{ id: string }>;
 };
 
-const formatPrice = (price: number) => `$${price.toFixed(2)}`;
+const formatPrice = (price: number) => `₹${price.toFixed(2)}`;
 
 export default function ProductDetailPage({ params }: ProductDetailProps) {
   const [id, setId] = useState('');
@@ -71,7 +71,7 @@ export default function ProductDetailPage({ params }: ProductDetailProps) {
           <section className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div className="rounded-3xl overflow-hidden border border-blue-100 bg-white">
               <img
-                src={product.images?.[0] ?? '/api/placeholder/900/700'}
+                src={product.images?.[0] ?? 'https://images.stockcake.com/public/1/9/4/194f4315-a8d9-422b-b237-18b1e224b7a1_large/colorful-tropical-fish-stockcake.jpg'}
                 alt={product.title}
                 className="w-full aspect-[4/3] object-cover"
               />

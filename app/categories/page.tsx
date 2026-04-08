@@ -14,24 +14,39 @@ type UICategory = {
 };
 
 const CATEGORY_META: Record<string, Omit<UICategory, 'slug'>> = {
-  Fish: {
-    name: 'Fish',
-    description: 'Fresh and saltwater fish selected for health, color, and compatibility.',
+  Guppies: {
+    name: 'Guppies',
+    description: 'Colorful guppy strains selected for active behavior and hardy adaptation.',
     image: 'https://img.freepik.com/free-photo/beautiful-fish-undersea_23-2150737797.jpg?w=800',
   },
-  Coral: {
-    name: 'Coral',
-    description: 'Hardy and collector coral frags to bring reef tanks to life.',
+  Betta: {
+    name: 'Betta',
+    description: 'Premium bettas with vivid fins and strong health standards.',
     image: 'https://img.freepik.com/free-photo/beautiful-fish-undersea_23-2150737797.jpg?w=800',
   },
-  Invertebrate: {
-    name: 'Invertebrates',
-    description: 'Shrimps and cleanup crew species for healthy ecosystems.',
+  "Angel's": {
+    name: "Angel's",
+    description: 'Elegant angelfish varieties curated for home and display aquariums.',
     image: 'https://img.freepik.com/free-photo/beautiful-fish-undersea_23-2150737797.jpg?w=800',
   },
-  Plant: {
-    name: 'Plants',
-    description: 'Aquatic plants for natural aquascapes and oxygen-rich tanks.',
+  Discuss: {
+    name: 'Discuss',
+    description: 'High-grade discus fish selected for pattern, color, and vitality.',
+    image: 'https://img.freepik.com/free-photo/beautiful-fish-undersea_23-2150737797.jpg?w=800',
+  },
+  Platy: {
+    name: 'Platy',
+    description: 'Community-friendly platies available in bright and rare color mixes.',
+    image: 'https://img.freepik.com/free-photo/beautiful-fish-undersea_23-2150737797.jpg?w=800',
+  },
+  'Exotic Molly': {
+    name: 'Exotic Molly',
+    description: 'Exotic molly lines known for vibrant patterns and stable breeding stock.',
+    image: 'https://img.freepik.com/free-photo/beautiful-fish-undersea_23-2150737797.jpg?w=800',
+  },
+  Zebra: {
+    name: 'Zebra',
+    description: 'Distinct zebra-pattern fish collections with strong compatibility profiles.',
     image: 'https://img.freepik.com/free-photo/beautiful-fish-undersea_23-2150737797.jpg?w=800',
   },
 };

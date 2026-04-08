@@ -11,11 +11,13 @@ type CategoryPageProps = {
 };
 
 const fromSlugToCategory: Record<string, MarketplaceProduct['category']> = {
-  fish: 'Fish',
-  coral: 'Coral',
-  invertebrate: 'Invertebrate',
-  plants: 'Plant',
-  plant: 'Plant',
+  guppies: 'Guppies',
+  betta: 'Betta',
+  angels: "Angel's",
+  platy: 'Platy',
+  discuss: 'Discuss',
+  'exotic-molly': 'Exotic Molly',
+  zebra: 'Zebra',
 };
 
 export default function CategoryDetailPage({ params }: CategoryPageProps) {
@@ -63,8 +65,6 @@ export default function CategoryDetailPage({ params }: CategoryPageProps) {
 
   const categoryTitle = isWaterFilter
     ? normalizedSlug.charAt(0).toUpperCase() + normalizedSlug.slice(1)
-    : mappedCategory === 'Invertebrate'
-    ? 'Invertebrates'
     : mappedCategory ?? 'Category';
 
 
@@ -101,7 +101,7 @@ export default function CategoryDetailPage({ params }: CategoryPageProps) {
                 <h2 className="text-xl font-bold text-slate-900">{product.title}</h2>
                 <p className="text-slate-600 text-sm italic mt-1">{product.scientific ?? 'Aquatic premium stock'}</p>
                 <div className="mt-4 flex items-center justify-between">
-                  <span className="text-xl font-black text-slate-900">${product.price.toFixed(2)}</span>
+                  <span className="text-xl font-black text-slate-900">₹{product.price.toFixed(2)}</span>
                   <Link href={`/products/${product._id}`} className="inline-flex items-center gap-2 text-blue-600 font-semibold hover:text-blue-700">
                     View <ArrowUpRight className="h-4 w-4" />
                   </Link>

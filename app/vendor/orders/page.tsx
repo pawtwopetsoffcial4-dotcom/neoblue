@@ -50,7 +50,7 @@ export default function VendorOrdersPage() {
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div>
                 <p className="font-bold text-slate-900">Order #{order._id.slice(-6).toUpperCase()}</p>
-                <p className="text-sm text-slate-500 mt-1">${order.totalAmount.toFixed(2)} • {new Date(order.createdAt).toLocaleString()}</p>
+                <p className="text-sm text-slate-500 mt-1">₹{order.totalAmount.toFixed(2)} • {new Date(order.createdAt).toLocaleString()}</p>
               </div>
 
               <div className="flex items-center gap-3">

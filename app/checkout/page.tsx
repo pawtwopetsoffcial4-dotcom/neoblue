@@ -102,7 +102,7 @@ export default function CheckoutPage() {
               <img src={item.image} alt={item.title} className="h-20 w-20 rounded-xl object-cover" />
               <div className="flex-1">
                 <p className="font-bold text-slate-900">{item.title}</p>
-                <p className="text-sm text-slate-500">${item.price.toFixed(2)} each</p>
+                <p className="text-sm text-slate-500">₹{item.price.toFixed(2)} each</p>
               </div>
               <div className="flex items-center gap-2">
                 <button onClick={() => updateQuantity(item.productId, item.quantity - 1)} className="h-8 w-8 rounded-full border border-blue-200">-</button>
@@ -125,7 +125,7 @@ export default function CheckoutPage() {
 
           <div className="pt-2 border-t border-blue-200">
             <p className="text-sm text-slate-600">Total</p>
-            <p className="text-3xl font-black text-slate-900">${totalAmount.toFixed(2)}</p>
+            <p className="text-3xl font-black text-slate-900">₹{totalAmount.toFixed(2)}</p>
           </div>
 
           <button

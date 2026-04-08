@@ -5,7 +5,7 @@ export interface IProduct extends Document {
   description: string;
   price: number;
   images: string[];
-  category: 'Fish' | 'Coral' | 'Invertebrate' | 'Plant';
+  category: 'Guppies' | 'Betta' | "Angel's" | 'Discuss' | 'Platy' | 'Exotic Molly' | 'Zebra';
   waterType: 'Freshwater' | 'Saltwater' | 'Brackish';
   vendorId: mongoose.Types.ObjectId;
   tag: string;
@@ -38,7 +38,7 @@ const productSchema = new Schema<IProduct>(
     },
     category: {
       type: String,
-      enum: ['Fish', 'Coral', 'Invertebrate', 'Plant'],
+      enum: ['Guppies', 'Betta', "Angel's", 'Discuss', 'Platy', 'Exotic Molly', 'Zebra'],
       required: true,
     },
     waterType: {

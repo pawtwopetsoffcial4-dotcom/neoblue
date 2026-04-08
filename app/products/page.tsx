@@ -7,7 +7,7 @@ import MobileDock from '../components/MobileDock';
 import type { MarketplaceProduct } from '@/lib/types/marketplace';
 import { useCart } from '@/lib/hooks/useCart';
 
-const formatPrice = (price: number) => `$${price.toFixed(2)}`;
+const formatPrice = (price: number) => `₹${price.toFixed(2)}`;
 
 export default function ProductsPage() {
   const { addToCart } = useCart();
@@ -205,7 +205,7 @@ export default function ProductsPage() {
               >
                 <div className="relative aspect-[4/3] overflow-hidden">
                   <img
-                    src={product.images?.[0] ?? '/api/placeholder/400/300'}
+                    src={product.images?.[0] ?? 'https://images.stockcake.com/public/1/9/4/194f4315-a8d9-422b-b237-18b1e224b7a1_large/colorful-tropical-fish-stockcake.jpg'}
                     alt={product.title}
                     className="absolute inset-0 h-full w-full object-cover opacity-75 group-hover:scale-105 group-hover:opacity-100 transition-all duration-500"
                   />

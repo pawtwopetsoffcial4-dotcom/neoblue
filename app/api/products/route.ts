@@ -1,5 +1,6 @@
 import { connectDB } from '@/lib/db';
 import Product from '@/lib/models/Product';
+import User from '@/lib/models/User';
 import { createErrorResponse, createSuccessResponse, getTokenFromRequest, verifyToken } from '@/lib/utils/auth';
 import { NextRequest } from 'next/server';
 

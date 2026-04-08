@@ -11,7 +11,7 @@ type AdminProduct = {
   description: string;
   price: number;
   images: string[];
-  category: 'Fish' | 'Coral' | 'Invertebrate' | 'Plant' | string;
+  category: 'Guppies' | 'Betta' | "Angel's" | 'Discuss' | 'Platy' | 'Exotic Molly' | 'Zebra' | string;
   waterType: 'Freshwater' | 'Saltwater' | 'Brackish' | string;
   tag: string;
   inStock: boolean;
@@ -236,7 +236,7 @@ export default function AdminProductsPage() {
                   <p className="text-sm text-slate-500 mt-2">
                     Vendor: {product.vendorId?.name ?? product.vendorId?.email ?? 'Unknown'}
                   </p>
-                  <p className="text-sm text-slate-500">${product.price.toFixed(2)} • {product.category} • {product.waterType}</p>
+                  <p className="text-sm text-slate-500">₹{product.price.toFixed(2)} • {product.category} • {product.waterType}</p>
                   <p className="text-xs mt-2 font-semibold text-blue-700 uppercase tracking-wider">{status}</p>
                 </div>
 
@@ -330,10 +330,13 @@ export default function AdminProductsPage() {
                   value={editForm.category}
                   onChange={(event) => setEditForm((current) => current ? { ...current, category: event.target.value } : current)}
                 >
-                  <option value="Fish">Fish</option>
-                  <option value="Coral">Coral</option>
-                  <option value="Invertebrate">Invertebrate</option>
-                  <option value="Plant">Plant</option>
+                  <option value="Guppies">Guppies</option>
+                  <option value="Betta">Betta</option>
+                  <option value="Angel's">Angel's</option>
+                  <option value="Discuss">Discuss</option>
+                  <option value="Platy">Platy</option>
+                  <option value="Exotic Molly">Exotic Molly</option>
+                  <option value="Zebra">Zebra</option>
                 </select>
 
                 <select

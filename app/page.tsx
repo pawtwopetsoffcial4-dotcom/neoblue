@@ -16,7 +16,7 @@ const fallbackFeaturedFishes = [
     scientific: 'Pomacanthus imperator',
     price: 129,
     span: 'col-span-12 md:col-span-8 row-span-2',
-    img: '/api/placeholder/800/600',
+    img: 'https://images.stockcake.com/public/1/9/4/194f4315-a8d9-422b-b237-18b1e224b7a1_large/colorful-tropical-fish-stockcake.jpg',
     tag: 'Rare',
   },
   {
@@ -25,7 +25,7 @@ const fallbackFeaturedFishes = [
     scientific: 'Synchiropus splendidus',
     price: 45,
     span: 'col-span-12 md:col-span-4 row-span-1',
-    img: '/api/placeholder/400/300',
+    img: 'https://images.stockcake.com/public/1/9/4/194f4315-a8d9-422b-b237-18b1e224b7a1_large/colorful-tropical-fish-stockcake.jpg',
     tag: 'Vibrant',
   },
   {
@@ -34,7 +34,7 @@ const fallbackFeaturedFishes = [
     scientific: 'Pterois',
     price: 85,
     span: 'col-span-12 md:col-span-4 row-span-1',
-    img: '/api/placeholder/400/300',
+    img: 'https://images.stockcake.com/public/1/9/4/194f4315-a8d9-422b-b237-18b1e224b7a1_large/colorful-tropical-fish-stockcake.jpg',
     tag: 'Exotic',
   },
 ];
@@ -55,7 +55,7 @@ export default function NeoBlueImmersive() {
 
   const approvedFish = useMemo(() => {
     return products
-      .filter((product) => (product.approvalStatus ?? 'approved') === 'approved' && product.category === 'Fish')
+      .filter((product) => (product.approvalStatus ?? 'approved') === 'approved')
       .sort((a, b) => b.rating - a.rating || b.price - a.price);
   }, [products]);
 
@@ -64,9 +64,9 @@ export default function NeoBlueImmersive() {
       id: product._id,
       name: product.title,
       scientific: product.scientific ?? 'Aquatic premium stock',
-      price: `$${product.price.toFixed(2)}`,
+      price: `₹${product.price.toFixed(2)}`,
       span: fallbackFeaturedFishes[index]?.span ?? 'col-span-12 md:col-span-4 row-span-1',
-      img: product.images?.[0] ?? fallbackFeaturedFishes[index]?.img ?? '/api/placeholder/400/300',
+      img: product.images?.[0] ?? fallbackFeaturedFishes[index]?.img ?? 'https://images.stockcake.com/public/1/9/4/194f4315-a8d9-422b-b237-18b1e224b7a1_large/colorful-tropical-fish-stockcake.jpg',
       tag: product.tag || fallbackFeaturedFishes[index]?.tag || 'Featured',
     }));
 
@@ -151,7 +151,7 @@ export default function NeoBlueImmersive() {
               </div>
               <div className="relative aspect-4/3">
                 <img
-                  src="/api/placeholder/900/700"
+                  src="https://images.stockcake.com/public/1/9/4/194f4315-a8d9-422b-b237-18b1e224b7a1_large/colorful-tropical-fish-stockcake.jpg"
                   alt="Promotional Fish Offer"
                   className="absolute inset-0 h-full w-full object-cover"
                 />
@@ -159,7 +159,7 @@ export default function NeoBlueImmersive() {
               <div className="p-6 flex items-center justify-between">
                 <div>
                   <p className="text-xs text-slate-500 uppercase tracking-wider">Ad Price</p>
-                  <p className="text-3xl font-black text-blue-700">$84.00</p>
+                  <p className="text-3xl font-black text-blue-700">₹84.00</p>
                 </div>
                 <Link
                   href="/products"
@@ -257,7 +257,7 @@ export default function NeoBlueImmersive() {
             <article key={product._id} className="group rounded-3xl overflow-hidden border border-blue-100 bg-white hover:border-blue-400 transition-colors shadow-sm">
               <div className="relative aspect-4/3 overflow-hidden">
                 <img
-                  src={product.images?.[0] ?? '/api/placeholder/400/300'}
+                  src={product.images?.[0] ?? 'https://images.stockcake.com/public/1/9/4/194f4315-a8d9-422b-b237-18b1e224b7a1_large/colorful-tropical-fish-stockcake.jpg'}
                   alt={product.title}
                   className="w-full h-full object-cover opacity-70 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
                 />
@@ -273,7 +273,7 @@ export default function NeoBlueImmersive() {
                 <h3 className="text-2xl font-bold text-slate-900 mb-1">{product.title}</h3>
                 <p className="text-slate-600 text-sm italic mb-4">{product.scientific ?? 'Aquatic premium stock'}</p>
                 <div className="flex items-center justify-between">
-                  <span className="text-2xl font-black text-slate-900">${product.price.toFixed(2)}</span>
+                  <span className="text-2xl font-black text-slate-900">₹{product.price.toFixed(2)}</span>
                   <Link href={`/products/${product._id}`} className="h-10 px-4 rounded-full bg-blue-600 text-white hover:bg-blue-700 transition-colors font-semibold text-sm inline-flex items-center">
                     View
                   </Link>
@@ -281,34 +281,6 @@ export default function NeoBlueImmersive() {
               </div>
             </article>
           ))}
-        </div>
-      </section>
-
-      {/* NEW: Ethos / Typography Break */}
-      <section className="relative z-20 py-24 bg-blue-600 overflow-hidden">
-        {/* Subtle grid pattern background */}
-        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at center, white 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
-        
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <h2 className="text-5xl md:text-8xl font-black uppercase tracking-tighter text-white/90 leading-tight">
-            Ethically Sourced. <br/>
-            <span className="text-blue-900">Expertly Quarantined.</span> <br/>
-            Delivered Alive.
-          </h2>
-          <div className="mt-12 flex flex-wrap gap-8">
-            <div className="flex items-center gap-3">
-              <div className="h-2 w-2 rounded-full bg-cyan-300 animate-pulse"></div>
-              <span className="text-blue-100 font-medium tracking-wide">100% Survival Guarantee</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="h-2 w-2 rounded-full bg-cyan-300 animate-pulse"></div>
-              <span className="text-blue-100 font-medium tracking-wide">30-Day Conditioning</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="h-2 w-2 rounded-full bg-cyan-300 animate-pulse"></div>
-              <span className="text-blue-100 font-medium tracking-wide">Vet-Certified Health</span>
-            </div>
-          </div>
         </div>
       </section>
 
