@@ -2,12 +2,12 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { ArrowUpRight, Search, SlidersHorizontal } from 'lucide-react';
+import { Search, SlidersHorizontal, Heart, ChevronDown, Share } from 'lucide-react';
 import MobileDock from '../components/MobileDock';
 import type { MarketplaceProduct } from '@/lib/types/marketplace';
 import { useCart } from '@/lib/hooks/useCart';
 
-const formatPrice = (price: number) => `₹${price.toFixed(2)}`;
+const formatPrice = (price: number) => `₹${price}`;
 
 export default function ProductsPage() {
   const { addToCart } = useCart();
@@ -94,164 +94,146 @@ export default function ProductsPage() {
   }, [searchTerm, category, waterType, tag, inStockOnly, sortBy]);
 
   return (
-    <div className="min-h-screen bg-white text-slate-900 selection:bg-blue-500 selection:text-white">
-      <main className="pt-20 md:pt-28 pb-28 md:pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div className="mb-10 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div>
-            <p className="text-blue-600 text-xs font-bold tracking-[0.25em] uppercase mb-3">Catalog</p>
-            <h1 className="text-4xl md:text-6xl font-black tracking-tight">All Products</h1>
-          </div>
-          <Link href="/" className="inline-flex items-center gap-2 text-sm uppercase tracking-widest text-slate-500 hover:text-blue-700 transition-colors">
-            Back Home <ArrowUpRight className="h-4 w-4" />
+    <div className="min-h-screen bg-slate-50 text-slate-900 pb-20 font-sans selection:bg-blue-100">
+      {/* Top Header - Mobile App Like */}
+      <header className="bg-white sticky top-0 z-40 border-b border-slate-100 px-4 py-3 flex items-center justify-between shadow-sm">
+        <div className="flex items-center gap-3">
+          <Link href="/" className="p-1.5 -ml-1.5 text-slate-700 hover:text-slate-900 transition-colors">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
           </Link>
+          <div>
+            <h1 className="text-lg font-bold text-slate-900 leading-tight">All Products</h1>
+            <button className="text-[11px] text-blue-600 font-bold flex items-center gap-1 uppercase tracking-wide mt-0.5">
+              Delivering to : Home <ChevronDown className="h-3 w-3" />
+            </button>
+          </div>
         </div>
+        <div className="flex items-center gap-2">
+          <button className="p-2.5 bg-slate-50 hover:bg-slate-100 transition-colors rounded-full text-slate-700">
+            <Search className="h-4 w-4" />
+          </button>
+          <button className="p-2.5 bg-slate-50 hover:bg-slate-100 transition-colors rounded-full text-slate-700">
+            <Share className="h-4 w-4" />
+          </button>
+        </div>
+      </header>
 
-        <section className="rounded-3xl border border-blue-100 bg-blue-50/60 backdrop-blur-xl p-5 md:p-7 mb-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
-            <label className="lg:col-span-2 flex items-center gap-3 rounded-2xl border border-blue-100 bg-white px-4 py-3">
-              <Search className="h-4 w-4 text-slate-500" />
-              <input
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search by name, scientific name, or tag"
-                className="w-full bg-transparent outline-none text-sm placeholder:text-slate-400"
-              />
-            </label>
-
-            <label className="flex items-center gap-2 rounded-2xl border border-blue-100 bg-white px-4 py-3 text-sm">
-              <SlidersHorizontal className="h-4 w-4 text-slate-500" />
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="w-full bg-transparent outline-none"
-              >
-                <option value="featured" className="bg-white">Featured</option>
-                <option value="price-asc" className="bg-white">Price: Low to High</option>
-                <option value="price-desc" className="bg-white">Price: High to Low</option>
-                <option value="name-asc" className="bg-white">Name: A to Z</option>
-                <option value="rating-desc" className="bg-white">Top Rated</option>
+      {/* Main Layout - Content Only */}
+      <div className="flex h-[calc(100vh-65px)] overflow-hidden">
+        
+        {/* Main Content Area */}
+        <main className="flex-1 bg-[#F5F7FA] overflow-y-auto px-4 py-4">
+          
+          {/* Filters Bar */}
+          <div className="flex gap-2.5 overflow-x-auto hide-scrollbar pb-4 mb-2 sticky top-0 bg-[#F5F7FA] z-10 -mx-4 px-4">
+            <button className="flex-shrink-0 flex items-center gap-2 px-3.5 py-2 bg-white border border-slate-200 hover:border-blue-200 transition-colors rounded-lg text-sm font-semibold text-slate-700 shadow-sm">
+              <SlidersHorizontal className="h-3.5 w-3.5 text-slate-500" /> Filters <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
+            </button>
+            <div className="flex-shrink-0 flex items-center gap-2 px-3.5 py-2 bg-white border border-slate-200 hover:border-blue-200 transition-colors rounded-lg text-sm font-semibold text-slate-700 shadow-sm relative">
+              <span className="text-[11px] text-blue-500">↑↓</span> Sort <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
+              <select className="absolute opacity-0 inset-0 w-full cursor-pointer" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+                 <option value="featured">Featured</option>
+                 <option value="price-asc">Price: Low to High</option>
+                 <option value="price-desc">Price: High to Low</option>
+                 <option value="rating-desc">Top Rated</option>
               </select>
-            </label>
-
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="rounded-2xl border border-blue-100 bg-white px-4 py-3 text-sm outline-none"
-            >
-              {categories.map((value) => (
-                <option key={value} value={value} className="bg-white">{value}</option>
-              ))}
-            </select>
-
-            <select
-              value={waterType}
-              onChange={(e) => setWaterType(e.target.value)}
-              className="rounded-2xl border border-blue-100 bg-white px-4 py-3 text-sm outline-none"
-            >
-              {waterTypes.map((value) => (
-                <option key={value} value={value} className="bg-white">{value}</option>
-              ))}
-            </select>
-
-            <select
-              value={tag}
-              onChange={(e) => setTag(e.target.value)}
-              className="rounded-2xl border border-blue-100 bg-white px-4 py-3 text-sm outline-none"
-            >
-              {tags.map((value) => (
-                <option key={value} value={value} className="bg-white">{value}</option>
-              ))}
-            </select>
+            </div>
+            <button className="flex-shrink-0 flex items-center gap-2 px-3.5 py-2 bg-white border border-slate-200 hover:border-blue-200 transition-colors rounded-lg text-sm font-semibold text-slate-700 shadow-sm relative">
+              Type <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
+               <select className="absolute opacity-0 inset-0 w-full cursor-pointer" value={waterType} onChange={(e) => setWaterType(e.target.value)}>
+                {waterTypes.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </button>
           </div>
 
-          <label className="mt-4 inline-flex items-center gap-3 text-sm text-slate-700">
-            <input
-              type="checkbox"
-              checked={inStockOnly}
-              onChange={(e) => setInStockOnly(e.target.checked)}
-              className="h-4 w-4 accent-blue-500"
-            />
-            In-stock only
-          </label>
-        </section>
+          {isLoading && (
+            <div className="py-12 flex flex-col items-center justify-center space-y-3">
+              <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+              <p className="text-slate-500 text-sm font-medium">Loading products...</p>
+            </div>
+          )}
 
-        <div className="mb-6 text-sm text-slate-500">
-          Showing {filteredProducts.length} of {products.length} products
-        </div>
-
-        {isLoading && (
-          <div className="rounded-3xl border border-blue-100 bg-blue-50/50 p-12 text-center">
-            <p className="text-lg font-semibold text-slate-900">Loading products...</p>
-          </div>
-        )}
-
-        {loadError && (
-          <div className="rounded-3xl border border-rose-200 bg-rose-50 p-12 text-center">
-            <p className="text-lg font-semibold text-rose-700">{loadError}</p>
-          </div>
-        )}
-
-        {!isLoading && !loadError && filteredProducts.length === 0 ? (
-          <div className="rounded-3xl border border-blue-100 bg-blue-50/50 p-12 text-center">
-            <p className="text-2xl font-bold text-slate-900 mb-2">No products found</p>
-            <p className="text-slate-600">Try broadening your search or clearing one of the filters.</p>
-          </div>
-        ) : (
-          !isLoading && !loadError && <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredProducts.map((product) => (
-              <article
-                key={product._id}
-                className="group rounded-3xl overflow-hidden border border-blue-100 bg-white hover:border-blue-400 transition-colors shadow-sm"
-              >
-                <div className="relative aspect-[4/3] overflow-hidden">
-                  <img
-                    src={product.images?.[0] ?? 'https://images.stockcake.com/public/1/9/4/194f4315-a8d9-422b-b237-18b1e224b7a1_large/colorful-tropical-fish-stockcake.jpg'}
-                    alt={product.title}
-                    className="absolute inset-0 h-full w-full object-cover opacity-75 group-hover:scale-105 group-hover:opacity-100 transition-all duration-500"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900/75 via-slate-900/35 to-transparent" />
-                  <span className="absolute top-4 left-4 rounded-full bg-white/90 border border-blue-200 px-3 py-1 text-xs font-bold tracking-wide text-blue-700">
-                    {product.tag}
-                  </span>
-                  {!product.inStock && (
-                    <span className="absolute top-4 right-4 rounded-full bg-rose-500/20 border border-rose-400/25 px-3 py-1 text-xs font-bold tracking-wide text-rose-200">
-                      Out of stock
-                    </span>
-                  )}
-                </div>
-
-                <div className="p-5">
-                  <p className="text-xs text-blue-700 uppercase tracking-wider mb-2">
-                    {product.category} • {product.waterType}
-                  </p>
-                  <h2 className="text-2xl font-bold text-slate-900 leading-tight">{product.title}</h2>
-                  <p className="text-slate-600 italic text-sm mt-1">{product.scientific ?? 'Aquatic premium stock'}</p>
-
-                  <div className="mt-5 flex items-center justify-between">
-                    <div>
-                      <p className="text-2xl font-black text-slate-900">{formatPrice(product.price)}</p>
-                      <p className="text-xs text-blue-600">Rating {product.rating.toFixed(1)} / 5</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => addToCart(product)}
-                        className="h-11 px-5 rounded-full bg-blue-600 text-white font-bold hover:bg-blue-700 transition-colors"
-                      >
-                        Add
+          {!isLoading && !loadError && filteredProducts.length === 0 ? (
+            <div className="py-16 flex flex-col items-center text-center">
+              <div className="bg-white p-4 rounded-full mb-4 shadow-sm border border-slate-100">
+                <Search className="h-6 w-6 text-slate-300" />
+              </div>
+              <h3 className="text-slate-800 font-bold mb-1">No products found</h3>
+              <p className="text-slate-500 text-sm max-w-[200px]">Try adjusting your filters or searching for something else.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 pb-24">
+              {filteredProducts.map((product) => (
+                <Link
+                  href={`/products/${product._id}`}
+                  key={product._id}
+                  className="flex flex-col bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_20px_-8px_rgba(0,0,0,0.1)] transition-all duration-300 group relative"
+                >
+                  {/* Image Section */}
+                  <div className="relative aspect-square bg-gradient-to-b from-slate-50 to-slate-100/50 p-5 flex flex-col justify-center items-center">
+                    <img
+                      src={product.images?.[0] ?? 'https://images.stockcake.com/public/1/9/4/194f4315-a8d9-422b-b237-18b1e224b7a1_large/colorful-tropical-fish-stockcake.jpg'}
+                      alt={product.title}
+                      className="absolute inset-0 h-full w-full object-contain mix-blend-multiply group-hover:scale-110 p-4 transition-transform duration-500 ease-out"
+                    />
+                    
+                    {/* Favorite Button */}
+                    <div className="absolute top-2 right-2 z-20">
+                      <button className="h-8 w-8 rounded-full bg-white/90 backdrop-blur-sm shadow-sm flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-all pointer-events-auto" onClick={(e) => { e.preventDefault(); }}>
+                        <Heart className="h-4 w-4" />
                       </button>
-                      <Link href={`/products/${product._id}`} className="h-11 px-5 rounded-full border border-blue-200 text-blue-700 font-bold hover:bg-blue-50 transition-colors inline-flex items-center">
-                        View
-                      </Link>
+                    </div>
+
+                    {/* Stock badge */}
+                    {!product.inStock && (
+                      <span className="absolute top-3 left-3 z-10 rounded-md bg-slate-800/90 backdrop-blur-md px-2 py-1 text-[10px] font-bold tracking-wider text-white uppercase shadow-sm">
+                        Out of stock
+                      </span>
+                    )}
+
+                    {/* Quick Add Button */}
+                    <div className="absolute -bottom-3.5 z-20 w-full px-4 flex justify-center pointer-events-auto">
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          addToCart(product);
+                        }}
+                        className="h-8 w-24 bg-white border border-green-200 rounded-lg text-green-600 font-bold uppercase tracking-wider text-[11px] shadow-[0_4px_10px_-2px_rgba(22,163,74,0.15)] hover:bg-green-50 hover:border-green-300 transition-all flex items-center justify-center"
+                      >
+                        ADD
+                      </button>
                     </div>
                   </div>
-                </div>
-              </article>
-            ))}
-          </section>
-        )}
-      </main>
 
-      <MobileDock />
+                  {/* Content Section */}
+                  <div className="p-3.5 pt-6 flex flex-col flex-grow z-10 pointer-events-none bg-white">
+                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1.5">
+                      {product.category}
+                    </span>
+                    
+                    <h2 className="text-[13px] md:text-sm font-semibold text-slate-800 leading-snug line-clamp-2 mb-3 group-hover:text-blue-600 transition-colors">
+                      {product.title}
+                    </h2>
+                    
+                    <div className="mt-auto flex items-baseline gap-2">
+                      <p className="text-[15px] font-black text-slate-900 tracking-tight">
+                        {formatPrice(product.price)}
+                      </p>
+                      <p className="text-[11px] font-medium text-slate-400 line-through">
+                        MRP {formatPrice(product.price * 1.25)}
+                      </p>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+        </main>
+      </div>
+
+      <div className="fixed bottom-0 left-0 right-0 z-50">
+        <MobileDock />
+      </div>
     </div>
   );
 }
