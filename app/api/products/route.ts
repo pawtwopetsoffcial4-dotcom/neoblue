@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const category = searchParams.get('category');
     const waterType = searchParams.get('waterType');
-    const limit = parseInt(searchParams.get('limit') || '50');
+    const limit = parseInt(searchParams.get('limit') || '500'); // Increased limit to fetch all typical products
     const page = parseInt(searchParams.get('page') || '1');
 
     let query: any = {};

@@ -6,11 +6,13 @@ import { Search, SlidersHorizontal, Heart, ChevronDown, Share } from 'lucide-rea
 import MobileDock from '../components/MobileDock';
 import type { MarketplaceProduct } from '@/lib/types/marketplace';
 import { useCart } from '@/lib/hooks/useCart';
+import { useAuth } from '@/lib/hooks/useAuth';
 
 const formatPrice = (price: number) => `₹${price}`;
 
 export default function ProductsPage() {
   const { addToCart } = useCart();
+  const { isAuthenticated } = useAuth();
   const [products, setProducts] = useState<MarketplaceProduct[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -44,32 +46,33 @@ export default function ProductsPage() {
     fetchProducts();
   }, []);
 
-  const categories = useMemo(
+  const categoriesList = useMemo(
     () => ['All', ...Array.from(new Set(products.map((product) => product.category)))],
-    []
+    [products]
   );
-  const waterTypes = useMemo(
+  const waterTypesList = useMemo(
     () => ['All', ...Array.from(new Set(products.map((product) => product.waterType)))],
-    []
+    [products]
   );
-  const tags = useMemo(
-    () => ['All', ...Array.from(new Set(products.map((product) => product.tag)))],
-    []
+  const tagsList = useMemo(
+    () => ['All', ...Array.from(new Set(products.map((product) => product.tag || 'Standard')))],
+    [products]
   );
 
   const filteredProducts = useMemo(() => {
     const normalizedQuery = searchTerm.trim().toLowerCase();
 
     const filtered = products.filter((product) => {
+      const titleMatch = product.title?.toLowerCase().includes(normalizedQuery) || false;
+      const scientificMatch = product.scientific?.toLowerCase().includes(normalizedQuery) || false;
+      const tagMatch = (product.tag || 'Standard').toLowerCase().includes(normalizedQuery) || false;
+
       const matchesSearch =
-        normalizedQuery.length === 0 ||
-        product.title.toLowerCase().includes(normalizedQuery) ||
-        (product.scientific ?? '').toLowerCase().includes(normalizedQuery) ||
-        product.tag.toLowerCase().includes(normalizedQuery);
+        normalizedQuery.length === 0 || titleMatch || scientificMatch || tagMatch;
 
       const matchesCategory = category === 'All' || product.category === category;
       const matchesWaterType = waterType === 'All' || product.waterType === waterType;
-      const matchesTag = tag === 'All' || product.tag === tag;
+      const matchesTag = tag === 'All' || (product.tag || 'Standard') === tag;
       const matchesStock = !inStockOnly || product.inStock;
 
       return matchesSearch && matchesCategory && matchesWaterType && matchesTag && matchesStock;
@@ -109,6 +112,11 @@ export default function ProductsPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          {!isAuthenticated && (
+            <Link href="/auth/login" className="px-3 py-1.5 bg-blue-600 text-white rounded-md text-xs font-semibold uppercase tracking-wider shadow-sm hover:bg-blue-700 transition-colors">
+              Login
+            </Link>
+          )}
           <button className="p-2.5 bg-slate-50 hover:bg-slate-100 transition-colors rounded-full text-slate-700">
             <Search className="h-4 w-4" />
           </button>
@@ -141,7 +149,7 @@ export default function ProductsPage() {
             <button className="flex-shrink-0 flex items-center gap-2 px-3.5 py-2 bg-white border border-slate-200 hover:border-blue-200 transition-colors rounded-lg text-sm font-semibold text-slate-700 shadow-sm relative">
               Type <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
                <select className="absolute opacity-0 inset-0 w-full cursor-pointer" value={waterType} onChange={(e) => setWaterType(e.target.value)}>
-                {waterTypes.map(c => <option key={c} value={c}>{c}</option>)}
+                {waterTypesList.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </button>
           </div>

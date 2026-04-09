@@ -10,6 +10,7 @@ export type MarketplaceProduct = {
   tag: string;
   rating: number;
   inStock: boolean;
+  approvalStatus?: 'pending' | 'approved' | 'rejected';
   scientific?: string;
   createdAt?: string;
   updatedAt?: string;
