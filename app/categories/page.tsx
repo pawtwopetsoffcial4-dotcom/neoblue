@@ -17,7 +17,7 @@ const CATEGORY_META: Record<string, Omit<UICategory, 'slug'>> = {
   Guppies: {
     name: 'Guppies',
     description: 'Colorful guppy strains selected for active behavior and hardy adaptation.',
-    image: 'https://img.freepik.com/free-photo/beautiful-fish-undersea_23-2150737797.jpg?w=800',
+    image: '/fishes_cat_cover/Guppies.jpeg',
   },
   Betta: {
     name: 'Betta',
@@ -49,6 +49,16 @@ const CATEGORY_META: Record<string, Omit<UICategory, 'slug'>> = {
     description: 'Distinct zebra-pattern fish collections with strong compatibility profiles.',
     image: 'https://img.freepik.com/free-photo/beautiful-fish-undersea_23-2150737797.jpg?w=800',
   },
+  Rams: {
+    name: 'Rams',
+    description: 'Beautiful Ram Cichlids with vibrant coloration and active personalities.',
+    image: '/fishes_cat_cover/Rams.jpeg',
+  },
+  Shrimps: {
+    name: 'Shrimps',
+    description: 'Fascinating freshwater shrimp for clean-up crews and planted tanks.',
+    image: '/fishes_cat_cover/Shrips.jpeg',
+  },
 };
 
 const toSlug = (value: string) => value.toLowerCase().replace(/\s+/g, '-');
@@ -74,8 +84,12 @@ export default function CategoriesPage() {
   }, []);
 
   const categories: UICategory[] = useMemo(() => {
-    const uniqueCategories = Array.from(new Set(products.map((item) => item.category)));
-    return uniqueCategories.map((category) => ({
+    const allCategories = new Set([
+      ...Object.keys(CATEGORY_META),
+      ...products.map((item) => item.category),
+    ]);
+
+    return Array.from(allCategories).map((category) => ({
       slug: toSlug(category),
       ...(CATEGORY_META[category] ?? {
         name: category,
@@ -86,34 +100,59 @@ export default function CategoriesPage() {
   }, [products]);
 
   return (
-    <div className="min-h-screen bg-white text-slate-900 selection:bg-blue-500 selection:text-white pb-24 md:pb-0">
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 md:pt-28 pb-10">
-        <div className="flex items-end justify-between mb-8">
-          <div>
-            <p className="text-xs font-bold tracking-[0.2em] uppercase text-blue-600 mb-2">Browse</p>
-            <h1 className="text-3xl md:text-5xl font-black tracking-tight">Categories</h1>
+    <div className="min-h-screen bg-white text-slate-900 selection:bg-blue-500 selection:text-white pb-24 md:pb-0 font-sans">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 md:pt-28 pb-16">
+        {/* Header Section */}
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-12">
+          <div className="max-w-2xl">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-xs font-bold tracking-widest uppercase mb-4">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+              </span>
+              Browse
+            </div>
+            <h1 className="text-4xl md:text-5xl font-black tracking-tight text-slate-900">
+              Categories
+            </h1>
           </div>
-          <Link href="/products" className="hidden sm:inline-flex items-center gap-2 text-blue-600 font-semibold hover:text-blue-700">
-            View All Products <ArrowUpRight className="h-4 w-4" />
+          <Link 
+            href="/products" 
+            className="inline-flex items-center gap-2 text-sm text-blue-600 font-bold hover:text-blue-700 transition-colors group"
+          >
+            View All Products 
+            <ArrowUpRight className="h-4 w-4 transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
           </Link>
         </div>
 
         {isLoading && (
-          <div className="rounded-3xl border border-blue-100 bg-blue-50/60 p-8 text-center text-slate-700 font-semibold mb-6">
+          <div className="rounded-2xl border border-slate-100 bg-slate-50 p-8 text-center text-slate-500 animate-pulse">
             Loading categories...
           </div>
         )}
 
-        <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+        {/* Categories Grid - Circular Style */}
+        <section className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-x-4 gap-y-8 sm:gap-x-6 sm:gap-y-10">
           {categories.map((category) => (
-            <Link key={category.slug} href={`/categories/${category.slug}`} className="group relative flex flex-col items-center justify-center p-3 sm:p-6 border border-blue-100 bg-white shadow-sm hover:border-blue-300 transition-all rounded-full aspect-square text-center overflow-hidden hover:scale-105">
-              <div className="absolute inset-0 z-0">
-                <img src={category.image} alt={category.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                <div className="absolute inset-0 bg-black/40 group-hover:bg-black/50 transition-colors"></div>
+            <Link 
+              key={category.slug} 
+              href={`/categories/${category.slug}`} 
+              className="group flex flex-col items-center outline-none"
+            >
+              {/* Circular Image Container */}
+              <div className="w-full aspect-square rounded-full bg-[#eef6f9] p-1 sm:p-2 overflow-hidden flex items-center justify-center transition-transform active:scale-95 group-hover:bg-[#e4f0f4] mb-3 sm:mb-4 shadow-sm group-hover:shadow-md border-2 border-transparent group-hover:border-blue-100">
+                <img 
+                  src={category.image} 
+                  alt={category.name} 
+                  className="w-full h-full object-cover rounded-full group-hover:scale-110 transition-transform duration-500"
+                />
               </div>
-              <div className="relative z-10 flex flex-col items-center justify-center h-full">
-                <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-white drop-shadow-md">{category.name}</h2>
-                <p className="mt-1 sm:mt-2 text-xs sm:text-sm text-blue-50 max-w-[90%] sm:max-w-[80%] mx-auto line-clamp-2 drop-shadow-md hidden sm:block">{category.description}</p>
+              
+              {/* Text Content Below Box */}
+              <div className="text-center px-1">
+                <h2 className="text-xs sm:text-sm md:text-base font-semibold text-slate-800 leading-tight tracking-tight group-hover:text-blue-600 transition-colors">
+                  {category.name}
+                </h2>
               </div>
             </Link>
           ))}
