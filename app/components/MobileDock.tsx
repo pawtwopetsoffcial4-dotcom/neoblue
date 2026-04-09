@@ -11,7 +11,7 @@ export default function MobileDock() {
   const items = [
     { href: '/', label: 'Home', icon: Home, active: pathname === '/' },
     { href: '/categories', label: 'Categories', icon: Grid2X2, active: pathname === '/categories' || pathname.startsWith('/categories/') },
-    { href: '/products', label: 'Cart', icon: ShoppingCart, active: pathname === '/products' },
+    { href: '/checkout', label: 'Cart', icon: ShoppingCart, active: pathname === '/checkout' },
     { href: '/profile', label: 'Account', icon: User, active: pathname === '/profile' },
   ];
 

@@ -9,6 +9,20 @@ type HomeProduct = MarketplaceProduct & {
   approvalStatus?: 'pending' | 'approved' | 'rejected';
 };
 
+const defaultOfferConfig = {
+  offerBadge: 'Limited Time Offer',
+  offerTitle: 'Save Up To 35% On\\nPremium Aquatic Stock',
+  offerDescription: 'Weekend special: handpicked marine and freshwater species, overnight transit care, and live-arrival protection included.',
+  offerButtonText: 'Shop The Offer',
+  offerButtonLink: '/products',
+  stat1Value: '500+',
+  stat1Label: 'Species Curated',
+  stat2Value: '24h',
+  stat2Label: 'Priority Dispatch',
+  stat3Value: '100%',
+  stat3Label: 'Live Arrival Cover',
+};
+
 const fallbackFeaturedFishes = [
   {
     id: 'fallback-1',
@@ -41,6 +55,22 @@ const fallbackFeaturedFishes = [
 
 export default function NeoBlueImmersive() {
   const [products, setProducts] = useState<HomeProduct[]>([]);
+  const [offerConfig, setOfferConfig] = useState(defaultOfferConfig);
+
+  useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const response = await fetch('/api/config', { cache: 'no-store' });
+        if (response.ok) {
+          const data = await response.json();
+          setOfferConfig(data);
+        }
+      } catch (err) {
+        console.error('Failed to fetch config', err);
+      }
+    };
+    fetchConfig();
+  }, []);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -84,7 +114,27 @@ export default function NeoBlueImmersive() {
   }, [approvedFish]);
 
   const trendingProducts = useMemo(() => {
-    return approvedFish.slice(0, 3);
+    const liveTrending = approvedFish.slice(0, 3) as (HomeProduct & { tag?: string; scientific?: string })[];
+    if (liveTrending.length >= 3) return liveTrending;
+
+    const fallbacks = fallbackFeaturedFishes.map((fish, index) => ({
+      _id: fish.id,
+      title: fish.name,
+      description: 'Trending premium stock',
+      price: fish.price,
+      images: [fish.img],
+      category: 'Exotic' as const,
+      waterType: 'Freshwater' as const,
+      scientific: fish.scientific,
+      tag: fish.tag,
+      rating: 5,
+      inStock: true,
+      vendorId: { name: 'Neoblue', email: 'support@neoblue.com' },
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    })) as unknown as (HomeProduct & { tag?: string; scientific?: string })[];
+
+    return [...liveTrending, ...fallbacks.slice(liveTrending.length)];
   }, [approvedFish]);
 
   return (
@@ -97,54 +147,57 @@ export default function NeoBlueImmersive() {
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
-            <div className="lg:col-span-7 rounded-4xl bg-linear-to-br from-blue-700 to-blue-500 p-8 md:p-12 text-white shadow-[0_30px_80px_rgba(37,99,235,0.25)]">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/15 border border-white/30 text-xs font-bold tracking-widest uppercase mb-6">
-                <Sparkles className="h-3.5 w-3.5" /> Limited Time Offer
+            <div className="lg:col-span-7 rounded-3xl md:rounded-4xl bg-white border border-gray-100 p-6 md:p-12 text-slate-800 shadow-sm">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full bg-blue-50 text-blue-600 text-[10px] md:text-xs font-bold tracking-widest uppercase mb-4 md:mb-6">
+                <Sparkles className="h-3 md:h-3.5 w-3 md:w-3.5" /> {offerConfig.offerBadge}
               </div>
 
-              <h1 className="text-4xl md:text-6xl font-black tracking-tight leading-[1.05] mb-5">
-                Save Up To 35% On
-                <br />
-                Premium Aquatic Stock
+              <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight leading-[1.1] mb-3 md:mb-5 text-gray-900">
+                {offerConfig.offerTitle.split('\\n').map((line, i) => (
+                  <React.Fragment key={i}>
+                    {line}
+                    <br />
+                  </React.Fragment>
+                ))}
               </h1>
 
-              <p className="text-blue-100 text-base md:text-lg max-w-2xl mb-8">
-                Weekend ad special: handpicked marine and freshwater species, overnight transit care, and live-arrival protection included.
+              <p className="text-slate-500 text-sm md:text-lg max-w-2xl mb-6 md:mb-8">
+                {offerConfig.offerDescription}
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
                 <Link
-                  href="/products"
-                  className="h-12 px-7 rounded-full bg-white text-blue-700 hover:bg-blue-50 transition-colors font-bold inline-flex items-center justify-center gap-2"
+                  href={offerConfig.offerButtonLink}
+                  className="h-11 md:h-12 px-6 md:px-7 rounded-full bg-blue-600 text-white hover:bg-blue-700 transition-colors font-semibold inline-flex items-center justify-center gap-2 shadow-sm"
                 >
-                  Shop The Offer <ArrowUpRight className="h-5 w-5" />
+                  {offerConfig.offerButtonText} <ArrowUpRight className="h-4 md:h-5 w-4 md:w-5" />
                 </Link>
                 <Link
                   href="/#trending"
-                  className="h-12 px-7 rounded-full border border-white/40 hover:bg-white/10 transition-colors font-semibold inline-flex items-center justify-center"
+                  className="h-11 md:h-12 px-6 md:px-7 rounded-full border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors font-medium inline-flex items-center justify-center"
                 >
                   See Trending
                 </Link>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-9">
-                <div className="rounded-2xl bg-white/10 border border-white/20 px-4 py-3">
-                  <p className="text-2xl font-black">500+</p>
-                  <p className="text-xs text-blue-100 uppercase tracking-wider">Species Curated</p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 md:gap-4 mt-6 md:mt-9">
+                <div className="rounded-2xl bg-gray-50 border border-gray-100 px-3 md:px-4 py-3">
+                  <p className="text-xl md:text-2xl font-bold text-gray-900">{offerConfig.stat1Value}</p>
+                  <p className="text-[10px] md:text-xs text-gray-500 uppercase tracking-wider font-semibold mt-1">{offerConfig.stat1Label}</p>
                 </div>
-                <div className="rounded-2xl bg-white/10 border border-white/20 px-4 py-3">
-                  <p className="text-2xl font-black">24h</p>
-                  <p className="text-xs text-blue-100 uppercase tracking-wider">Priority Dispatch</p>
+                <div className="rounded-2xl bg-gray-50 border border-gray-100 px-3 md:px-4 py-3">
+                  <p className="text-xl md:text-2xl font-bold text-gray-900">{offerConfig.stat2Value}</p>
+                  <p className="text-[10px] md:text-xs text-gray-500 uppercase tracking-wider font-semibold mt-1">{offerConfig.stat2Label}</p>
                 </div>
-                <div className="rounded-2xl bg-white/10 border border-white/20 px-4 py-3 col-span-2 sm:col-span-1">
-                  <p className="text-2xl font-black">100%</p>
-                  <p className="text-xs text-blue-100 uppercase tracking-wider">Live Arrival Cover</p>
+                <div className="rounded-2xl bg-gray-50 border border-gray-100 px-3 md:px-4 py-3 col-span-2 sm:col-span-1">
+                  <p className="text-xl md:text-2xl font-bold text-gray-900">{offerConfig.stat3Value}</p>
+                  <p className="text-[10px] md:text-xs text-gray-500 uppercase tracking-wider font-semibold mt-1">{offerConfig.stat3Label}</p>
                 </div>
               </div>
             </div>
 
-            <div className="lg:col-span-5 rounded-4xl border border-blue-100 bg-white shadow-xl overflow-hidden">
-              <div className="p-6 border-b border-blue-100 bg-blue-50/60">
+            <div className="lg:col-span-5 rounded-3xl md:rounded-4xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+              <div className="p-6 border-b border-gray-50 bg-gray-50/50">
                 <p className="text-xs font-bold tracking-[0.2em] uppercase text-blue-700">Featured Ad Pick</p>
                 <h2 className="text-2xl font-black text-slate-900 mt-2">Emperor Angelfish Bundle</h2>
                 <p className="text-slate-600 mt-2">Includes acclimation kit + feeding starter pack.</p>

@@ -104,18 +104,18 @@ export default function CategoriesPage() {
           </div>
         )}
 
-        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
           {categories.map((category) => (
-            <article key={category.slug} className="rounded-3xl overflow-hidden border border-blue-100 bg-white shadow-sm hover:border-blue-300 transition-colors">
-              <img src={category.image} alt={category.name} className="w-full aspect-4/3 object-cover" />
-              <div className="p-5">
-                <h2 className="text-xl font-bold text-slate-900">{category.name}</h2>
-                <p className="mt-2 text-sm text-slate-600">{category.description}</p>
-                <Link href={`/categories/${category.slug}`} className="mt-4 inline-flex items-center gap-2 text-blue-600 font-semibold hover:text-blue-700">
-                  Explore <ArrowUpRight className="h-4 w-4" />
-                </Link>
+            <Link key={category.slug} href={`/categories/${category.slug}`} className="group relative flex flex-col items-center justify-center p-3 sm:p-6 border border-blue-100 bg-white shadow-sm hover:border-blue-300 transition-all rounded-full aspect-square text-center overflow-hidden hover:scale-105">
+              <div className="absolute inset-0 z-0">
+                <img src={category.image} alt={category.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                <div className="absolute inset-0 bg-black/40 group-hover:bg-black/50 transition-colors"></div>
               </div>
-            </article>
+              <div className="relative z-10 flex flex-col items-center justify-center h-full">
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-white drop-shadow-md">{category.name}</h2>
+                <p className="mt-1 sm:mt-2 text-xs sm:text-sm text-blue-50 max-w-[90%] sm:max-w-[80%] mx-auto line-clamp-2 drop-shadow-md hidden sm:block">{category.description}</p>
+              </div>
+            </Link>
           ))}
         </section>
       </main>
