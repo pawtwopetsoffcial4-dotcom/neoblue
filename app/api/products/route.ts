@@ -4,6 +4,8 @@ import User from '@/lib/models/User';
 import { createErrorResponse, createSuccessResponse, getTokenFromRequest, verifyToken } from '@/lib/utils/auth';
 import { NextRequest } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+
 // GET all products
 export async function GET(request: NextRequest) {
   try {
@@ -59,7 +61,7 @@ export async function POST(request: NextRequest) {
       return createErrorResponse('Only vendors can create products', 403);
     }
 
-    const { title, description, price, images, category, waterType, tag, scientific } = await request.json();
+    const { title, description, price, images, category, subcategory, waterType, tag, scientific } = await request.json();
 
     // Validate required fields
     if (!title || !description || !price || !images || !category || !waterType) {
@@ -72,6 +74,7 @@ export async function POST(request: NextRequest) {
       price,
       images,
       category,
+      subcategory: subcategory || '',
       waterType,
       tag: tag || 'Standard',
       scientific,

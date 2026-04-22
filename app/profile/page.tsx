@@ -4,7 +4,6 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { CreditCard, MapPin, Package, UserRound, LayoutDashboard, Fish, PlusCircle, PackageCheck, LogOut } from 'lucide-react';
-import MobileDock from '../components/MobileDock';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { apiClient } from '@/lib/api-client';
 import type { MarketplaceProduct } from '@/lib/types/marketplace';
@@ -61,7 +60,7 @@ export default function ProfilePage() {
     const revenue = orders.reduce((sum, order) => sum + order.totalAmount, 0);
 
     return (
-      <div className="min-h-screen bg-slate-50 text-slate-900 pt-20 md:pt-24">
+      <div className="min-h-screen bg-slate-50 text-slate-900 pt-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10 grid grid-cols-1 md:grid-cols-[260px_1fr] gap-6">
           <aside className="rounded-3xl bg-white border border-blue-100 p-4 md:p-5 h-fit shadow-sm">
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue-600 mb-4">Vendor Panel</p>
@@ -141,8 +140,6 @@ export default function ProfilePage() {
             </div>
           </section>
         </div>
-
-        <MobileDock />
       </div>
     );
   }
@@ -150,7 +147,7 @@ export default function ProfilePage() {
   // For non-vendors (customers), show regular profile
   return (
     <div className="min-h-screen bg-white text-slate-900 selection:bg-blue-500 selection:text-white pb-24 md:pb-0">
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 md:pt-28 pb-10">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 md:pt-10 pb-10">
         <div className="mb-8">
           <p className="text-xs font-bold tracking-[0.2em] uppercase text-blue-600 mb-2">Account</p>
           <h1 className="text-3xl md:text-5xl font-black tracking-tight">My Profile</h1>
@@ -222,8 +219,6 @@ export default function ProfilePage() {
           </article>
         </section>
       </main>
-
-      <MobileDock />
     </div>
   );
 }

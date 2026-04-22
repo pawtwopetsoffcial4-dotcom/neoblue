@@ -38,7 +38,7 @@ export default async function BlogPage() {
   const blogs = await getBlogs();
 
   return (
-    <main className="min-h-screen bg-white text-slate-900 pt-20 md:pt-28 pb-20">
+    <main className="min-h-screen bg-white text-slate-900 pt-6 md:pt-10 pb-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-10">
           <p className="text-xs font-bold uppercase tracking-[0.25em] text-blue-600 mb-3">Insights</p>

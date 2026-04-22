@@ -2,7 +2,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { ArrowUpRight, Sparkles, Waves, Leaf, Shield, ArrowRight } from 'lucide-react';
-import MobileDock from './components/MobileDock';
 import type { MarketplaceProduct } from '@/lib/types/marketplace';
 
 type HomeProduct = MarketplaceProduct & {
@@ -140,7 +139,7 @@ export default function NeoBlueImmersive() {
   return (
     <div className="min-h-screen bg-white text-slate-800 font-sans selection:bg-blue-500 selection:text-white flex flex-col pb-24 md:pb-0">
       {/* Ad-Style Hero Section */}
-      <section className="relative overflow-hidden pt-20 md:pt-28 pb-16 md:pb-24">
+      <section className="relative overflow-hidden pt-6 md:pt-10 pb-16 md:pb-24">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-blue-100 via-white to-white z-0"></div>
         <div className="absolute -top-20 -right-20 w-80 h-80 bg-blue-200/40 rounded-full blur-[100px] pointer-events-none"></div>
         <div className="absolute -bottom-24 -left-16 w-72 h-72 bg-cyan-200/40 rounded-full blur-[110px] pointer-events-none"></div>
@@ -476,9 +475,6 @@ export default function NeoBlueImmersive() {
 
         </div>
       </footer>
-
-      <MobileDock />
-
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { X } from 'lucide-react';
 import { CldUploadWidget } from 'next-cloudinary';
 import { apiClient } from '@/lib/api-client';
+import { PRODUCT_CATEGORIES, getSubcategoriesForCategory } from '@/lib/catalog';
 
 export default function VendorAddProductPage() {
   const router = useRouter();
@@ -18,6 +19,7 @@ export default function VendorAddProductPage() {
     description: '',
     price: '',
     category: 'Guppies',
+    subcategory: '',
     waterType: 'Freshwater',
     tag: 'Standard',
     scientific: '',
@@ -45,6 +47,7 @@ export default function VendorAddProductPage() {
         price: Number(form.price),
         images: [imageUrl],
         category: form.category,
+        subcategory: form.subcategory,
         waterType: form.waterType,
         tag: form.tag,
         scientific: form.scientific,
@@ -134,15 +137,33 @@ export default function VendorAddProductPage() {
           <select
             className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
             value={form.category}
-            onChange={(e) => setForm((prev) => ({ ...prev, category: e.target.value }))}
+            onChange={(e) =>
+              setForm((prev) => ({
+                ...prev,
+                category: e.target.value,
+                subcategory: '',
+              }))
+            }
           >
-            <option value="Guppies">Guppies</option>
-            <option value="Betta">Betta</option>
-            <option value="Angel's">Angel's</option>
-            <option value="Discuss">Discuss</option>
-            <option value="Platy">Platy</option>
-            <option value="Exotic Molly">Exotic Molly</option>
-            <option value="Zebra">Zebra</option>
+            {PRODUCT_CATEGORIES.map((category) => (
+              <option key={category} value={category}>
+                {category}
+              </option>
+            ))}
+          </select>
+
+          <select
+            className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
+            value={form.subcategory}
+            onChange={(e) => setForm((prev) => ({ ...prev, subcategory: e.target.value }))}
+            disabled={!getSubcategoriesForCategory(form.category).length}
+          >
+            <option value="">Subcategory</option>
+            {getSubcategoriesForCategory(form.category).map((subcategory) => (
+              <option key={subcategory} value={subcategory}>
+                {subcategory}
+              </option>
+            ))}
           </select>
 
           <select

@@ -3,8 +3,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, ArrowUpRight } from 'lucide-react';
-import MobileDock from '../../components/MobileDock';
 import type { MarketplaceProduct } from '@/lib/types/marketplace';
+import { getSubcategoriesForCategory } from '@/lib/catalog';
 
 type CategoryPageProps = {
   params: Promise<{ slug: string }>;
@@ -12,6 +12,8 @@ type CategoryPageProps = {
 
 const fromSlugToCategory: Record<string, MarketplaceProduct['category']> = {
   guppies: 'Guppies',
+  crayfish: 'Crayfish',
+  kribensis: 'Kribensis',
   betta: 'Betta',
   angels: "Angel's",
   platy: 'Platy',
@@ -63,15 +65,14 @@ export default function CategoryDetailPage({ params }: CategoryPageProps) {
     return [];
   }, [slug, isWaterFilter, normalizedSlug, mappedCategory, products]);
 
+  const subcategories = mappedCategory ? getSubcategoriesForCategory(mappedCategory) : [];
+
   const categoryTitle = isWaterFilter
     ? normalizedSlug.charAt(0).toUpperCase() + normalizedSlug.slice(1)
     : mappedCategory ?? 'Category';
-
-
-
   return (
     <div className="min-h-screen bg-white text-slate-900 selection:bg-blue-500 selection:text-white pb-24 md:pb-0">
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 md:pt-28 pb-10">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 md:pt-10 pb-10">
         <Link href="/categories" className="inline-flex items-center gap-2 text-blue-600 font-semibold hover:text-blue-700 mb-5">
           <ArrowLeft className="h-4 w-4" /> Back to Categories
         </Link>
@@ -79,6 +80,18 @@ export default function CategoryDetailPage({ params }: CategoryPageProps) {
         <div className="rounded-3xl border border-blue-100 bg-blue-50/60 p-6 md:p-8 mb-8">
           <h1 className="text-3xl md:text-5xl font-black tracking-tight">{categoryTitle}</h1>
           <p className="mt-3 text-slate-600 max-w-3xl">Curated live inventory for this category.</p>
+          {subcategories.length > 0 && (
+            <div className="mt-5 flex flex-wrap gap-2">
+              {subcategories.map((subcategory) => (
+                <span
+                  key={subcategory}
+                  className="inline-flex items-center rounded-full border border-blue-100 bg-white px-3 py-1 text-xs font-semibold text-slate-700"
+                >
+                  {subcategory}
+                </span>
+              ))}
+            </div>
+          )}
           <p className="mt-4 text-sm font-semibold text-blue-700">
             {filteredProducts.length} product{filteredProducts.length === 1 ? '' : 's'} available
           </p>
@@ -111,8 +124,6 @@ export default function CategoryDetailPage({ params }: CategoryPageProps) {
           ))}
         </section>}
       </main>
-
-      <MobileDock />
     </div>
   );
 }

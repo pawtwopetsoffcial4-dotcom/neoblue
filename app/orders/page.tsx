@@ -36,7 +36,7 @@ export default function OrdersPage() {
   }, [isAuthenticated, router]);
 
   return (
-    <div className="min-h-screen bg-white text-slate-900 pt-20 md:pt-28 pb-10 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
+    <div className="min-h-screen bg-white text-slate-900 pt-6 md:pt-10 pb-10 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
       <div className="mb-8">
         <p className="text-xs font-bold tracking-[0.2em] uppercase text-blue-600 mb-2">Orders</p>
         <h1 className="text-3xl md:text-5xl font-black tracking-tight">My Orders</h1>

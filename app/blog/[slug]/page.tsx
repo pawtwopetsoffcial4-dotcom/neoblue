@@ -52,7 +52,7 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ slu
   const paragraphs = blog.content.split(/\n\s*\n/).filter(Boolean);
 
   return (
-    <main className="min-h-screen bg-white text-slate-900 pt-20 md:pt-28 pb-20">
+    <main className="min-h-screen bg-white text-slate-900 pt-6 md:pt-10 pb-20">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <Link href="/blog" className="inline-flex items-center gap-2 text-blue-600 font-semibold hover:text-blue-700 mb-6">
           Back to Blog

@@ -34,7 +34,7 @@ export default function VendorLayout({ children }: { children: React.ReactNode }
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 pt-20 md:pt-24">
+    <div className="min-h-screen bg-slate-50 text-slate-900 pt-0">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10 grid grid-cols-1 md:grid-cols-[260px_1fr] gap-6">
         <aside className="rounded-3xl bg-white border border-blue-100 p-4 md:p-5 h-fit shadow-sm">
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue-600 mb-4">Vendor Panel</p>

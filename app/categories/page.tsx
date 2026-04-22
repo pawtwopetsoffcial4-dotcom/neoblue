@@ -3,14 +3,15 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
-import MobileDock from '../components/MobileDock';
 import type { MarketplaceProduct } from '@/lib/types/marketplace';
+import { PRODUCT_CATALOG } from '@/lib/catalog';
 
 type UICategory = {
   slug: string;
   name: string;
   description: string;
   image: string;
+  subcategories: string[];
 };
 
 const CATEGORY_META: Record<string, Omit<UICategory, 'slug'>> = {
@@ -18,46 +19,67 @@ const CATEGORY_META: Record<string, Omit<UICategory, 'slug'>> = {
     name: 'Guppies',
     description: 'Colorful guppy strains selected for active behavior and hardy adaptation.',
     image: '/fishes_cat_cover/Guppies.jpeg',
+    subcategories: [...PRODUCT_CATALOG.Guppies],
+  },
+  Crayfish: {
+    name: 'Crayfish',
+    description: 'Freshwater crayfish varieties for collectors and planted setups.',
+    image: 'https://img.freepik.com/free-photo/beautiful-fish-undersea_23-2150737797.jpg?w=800',
+    subcategories: [...PRODUCT_CATALOG.Crayfish],
+  },
+  Kribensis: {
+    name: 'Kribensis',
+    description: 'Compact cichlids with strong color and calm community appeal.',
+    image: 'https://img.freepik.com/free-photo/beautiful-fish-undersea_23-2150737797.jpg?w=800',
+    subcategories: [...PRODUCT_CATALOG.Kribensis],
   },
   Betta: {
     name: 'Betta',
     description: 'Premium bettas with vivid fins and strong health standards.',
     image: 'https://img.freepik.com/free-photo/beautiful-fish-undersea_23-2150737797.jpg?w=800',
+    subcategories: [],
   },
   "Angel's": {
     name: "Angel's",
     description: 'Elegant angelfish varieties curated for home and display aquariums.',
     image: 'https://img.freepik.com/free-photo/beautiful-fish-undersea_23-2150737797.jpg?w=800',
+    subcategories: [],
   },
   Discuss: {
     name: 'Discuss',
     description: 'High-grade discus fish selected for pattern, color, and vitality.',
     image: 'https://img.freepik.com/free-photo/beautiful-fish-undersea_23-2150737797.jpg?w=800',
+    subcategories: [],
   },
   Platy: {
     name: 'Platy',
     description: 'Community-friendly platies available in bright and rare color mixes.',
     image: 'https://img.freepik.com/free-photo/beautiful-fish-undersea_23-2150737797.jpg?w=800',
+    subcategories: [],
   },
   'Exotic Molly': {
     name: 'Exotic Molly',
     description: 'Exotic molly lines known for vibrant patterns and stable breeding stock.',
     image: 'https://img.freepik.com/free-photo/beautiful-fish-undersea_23-2150737797.jpg?w=800',
+    subcategories: [],
   },
   Zebra: {
     name: 'Zebra',
     description: 'Distinct zebra-pattern fish collections with strong compatibility profiles.',
     image: 'https://img.freepik.com/free-photo/beautiful-fish-undersea_23-2150737797.jpg?w=800',
+    subcategories: [],
   },
   Rams: {
     name: 'Rams',
     description: 'Beautiful Ram Cichlids with vibrant coloration and active personalities.',
     image: '/fishes_cat_cover/Rams.jpeg',
+    subcategories: [],
   },
   Shrimps: {
     name: 'Shrimps',
     description: 'Fascinating freshwater shrimp for clean-up crews and planted tanks.',
     image: '/fishes_cat_cover/Shrips.jpeg',
+    subcategories: [],
   },
 };
 
@@ -95,13 +117,14 @@ export default function CategoriesPage() {
         name: category,
         description: `Browse premium ${category.toLowerCase()} products.`,
         image: 'https://img.freepik.com/free-photo/beautiful-fish-undersea_23-2150737797.jpg?w=800',
+        subcategories: [],
       }),
     }));
   }, [products]);
 
   return (
     <div className="min-h-screen bg-white text-slate-900 selection:bg-blue-500 selection:text-white pb-24 md:pb-0 font-sans">
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 md:pt-28 pb-16">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 md:pt-10 pb-16">
         {/* Header Section */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-12">
           <div className="max-w-2xl">
@@ -153,13 +176,17 @@ export default function CategoriesPage() {
                 <h2 className="text-xs sm:text-sm md:text-base font-semibold text-slate-800 leading-tight tracking-tight group-hover:text-blue-600 transition-colors">
                   {category.name}
                 </h2>
+                {category.subcategories.length > 0 && (
+                  <p className="mt-1 text-[10px] text-slate-500 line-clamp-2">
+                    {category.subcategories.slice(0, 3).join(' • ')}
+                    {category.subcategories.length > 3 ? ' …' : ''}
+                  </p>
+                )}
               </div>
             </Link>
           ))}
         </section>
       </main>
-
-      <MobileDock />
     </div>
   );
 }

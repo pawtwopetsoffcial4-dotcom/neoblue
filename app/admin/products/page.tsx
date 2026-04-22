@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { X } from 'lucide-react';
 import { CldUploadWidget } from 'next-cloudinary';
 import { apiClient } from '@/lib/api-client';
+import { PRODUCT_CATEGORIES, getSubcategoriesForCategory } from '@/lib/catalog';
 
 type AdminProduct = {
   _id: string;
@@ -11,7 +12,18 @@ type AdminProduct = {
   description: string;
   price: number;
   images: string[];
-  category: 'Guppies' | 'Betta' | "Angel's" | 'Discuss' | 'Platy' | 'Exotic Molly' | 'Zebra' | string;
+  category:
+    | 'Guppies'
+    | 'Crayfish'
+    | 'Kribensis'
+    | 'Betta'
+    | "Angel's"
+    | 'Discuss'
+    | 'Platy'
+    | 'Exotic Molly'
+    | 'Zebra'
+    | string;
+  subcategory?: string;
   waterType: 'Freshwater' | 'Saltwater' | 'Brackish' | string;
   tag: string;
   inStock: boolean;
@@ -25,6 +37,7 @@ type EditFormState = {
   description: string;
   price: string;
   category: AdminProduct['category'];
+  subcategory: string;
   waterType: AdminProduct['waterType'];
   tag: string;
   scientific: string;
@@ -86,6 +99,7 @@ export default function AdminProductsPage() {
       description: product.description,
       price: String(product.price),
       category: product.category,
+      subcategory: product.subcategory || '',
       waterType: product.waterType,
       tag: product.tag || 'Standard',
       scientific: product.scientific || '',
@@ -138,6 +152,7 @@ export default function AdminProductsPage() {
         price,
         images: editForm.images,
         category: editForm.category,
+        subcategory: editForm.subcategory,
         waterType: editForm.waterType,
         tag: editForm.tag,
         scientific: editForm.scientific,
@@ -328,15 +343,33 @@ export default function AdminProductsPage() {
                 <select
                   className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
                   value={editForm.category}
-                  onChange={(event) => setEditForm((current) => current ? { ...current, category: event.target.value } : current)}
+                  onChange={(event) =>
+                    setEditForm((current) =>
+                      current
+                        ? { ...current, category: event.target.value, subcategory: '' }
+                        : current
+                    )
+                  }
                 >
-                  <option value="Guppies">Guppies</option>
-                  <option value="Betta">Betta</option>
-                  <option value="Angel's">Angel's</option>
-                  <option value="Discuss">Discuss</option>
-                  <option value="Platy">Platy</option>
-                  <option value="Exotic Molly">Exotic Molly</option>
-                  <option value="Zebra">Zebra</option>
+                  {PRODUCT_CATEGORIES.map((category) => (
+                    <option key={category} value={category}>
+                      {category}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
+                  value={editForm.subcategory}
+                  onChange={(event) => setEditForm((current) => current ? { ...current, subcategory: event.target.value } : current)}
+                  disabled={!getSubcategoriesForCategory(editForm.category).length}
+                >
+                  <option value="">Subcategory</option>
+                  {getSubcategoriesForCategory(editForm.category).map((subcategory) => (
+                    <option key={subcategory} value={subcategory}>
+                      {subcategory}
+                    </option>
+                  ))}
                 </select>
 
                 <select

@@ -1,11 +1,22 @@
 import mongoose, { Schema, Document } from 'mongoose';
+import { PRODUCT_CATEGORIES } from '@/lib/catalog';
 
 export interface IProduct extends Document {
   title: string;
   description: string;
   price: number;
   images: string[];
-  category: 'Guppies' | 'Betta' | "Angel's" | 'Discuss' | 'Platy' | 'Exotic Molly' | 'Zebra';
+  category:
+    | 'Guppies'
+    | 'Crayfish'
+    | 'Kribensis'
+    | 'Betta'
+    | "Angel's"
+    | 'Discuss'
+    | 'Platy'
+    | 'Exotic Molly'
+    | 'Zebra';
+  subcategory?: string;
   waterType: 'Freshwater' | 'Saltwater' | 'Brackish';
   vendorId: mongoose.Types.ObjectId;
   tag: string;
@@ -38,8 +49,12 @@ const productSchema = new Schema<IProduct>(
     },
     category: {
       type: String,
-      enum: ['Guppies', 'Betta', "Angel's", 'Discuss', 'Platy', 'Exotic Molly', 'Zebra'],
+      enum: PRODUCT_CATEGORIES,
       required: true,
+    },
+    subcategory: {
+      type: String,
+      default: '',
     },
     waterType: {
       type: String,

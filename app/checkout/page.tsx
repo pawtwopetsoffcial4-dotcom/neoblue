@@ -93,7 +93,7 @@ export default function CheckoutPage() {
       <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="afterInteractive" />
 
       {/* Header section */}
-      <div className="bg-white border-b border-gray-200 pt-24 pb-8 md:pt-32 md:pb-12 shadow-sm">
+      <div className="bg-white border-b border-gray-200 pt-8 pb-8 md:pt-12 md:pb-12 shadow-sm">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-2 text-sm text-gray-500 mb-4 font-medium">
             <Link href="/" className="hover:text-blue-600 transition-colors">Home</Link>
@@ -110,7 +110,7 @@ export default function CheckoutPage() {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 md:mt-12">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 md:mt-10">
         {items.length === 0 ? (
           <div className="bg-white rounded-3xl border border-gray-200 p-12 text-center shadow-sm max-w-2xl mx-auto mt-12">
             <div className="w-24 h-24 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-6">
