@@ -22,7 +22,7 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: Helvetica, 'Helvetica Neue', Arial, sans-serif;
 }
 
 input,
@@ -35,4 +35,49 @@ input::placeholder,
 textarea::placeholder {
   color: #64748b;
   opacity: 1;
+}
+
+/* ===== HORIZONTAL SCROLL ROW ===== */
+.scroll-row {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.scroll-row::-webkit-scrollbar {
+  display: none;
+}
+.scroll-row > * {
+  scroll-snap-align: start;
+  flex: 0 0 auto;
+}
+
+/* ===== CAROUSEL FADE TRANSITION ===== */
+.carousel-slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.8s ease-in-out;
+  pointer-events: none;
+}
+.carousel-slide.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ===== CAROUSEL DOT INDICATOR ===== */
+.carousel-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.4);
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 0;
+}
+.carousel-dot.active {
+  background: white;
+  width: 24px;
 }
