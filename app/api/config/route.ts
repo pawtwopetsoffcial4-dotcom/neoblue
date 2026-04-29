@@ -26,13 +26,15 @@ export async function GET() {
 export async function PUT(request: Request) {
   try {
     await connectDB();
-    const data = await request.json();
-    let config = await StoreConfig.findOne({});
-    if (!config) {
-      config = await StoreConfig.create(data);
-    } else {
-      config = await StoreConfig.findOneAndUpdate({}, data, { new: true });
+    const raw = await request.json();
+
+    const data: any = { ...raw };
+    if (Array.isArray(raw?.categories)) {
+      data.categories = raw.categories.map((c: any) => String(c).trim()).filter((c: string) => c.length > 0);
     }
+
+    const config = await StoreConfig.findOneAndUpdate({}, { $set: data }, { new: true, upsert: true });
+
     return NextResponse.json(config);
   } catch (error) {
     console.error('Config PUT error:', error);

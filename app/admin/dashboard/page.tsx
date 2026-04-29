@@ -42,14 +42,9 @@ export default function AdminDashboardPage() {
     const loadConfig = async () => {
       try {
         setConfigLoading(true);
-        const response = await fetch('/api/config', { cache: 'no-store' });
-        if (!response.ok) {
-          throw new Error('Failed to load config');
-        }
-
-        const data = (await response.json()) as AdminConfig;
+        const data = (await apiClient.request<AdminConfig>('/config')) as AdminConfig;
         setCategories(Array.isArray(data.categories) ? data.categories : []);
-      } catch {
+      } catch (err) {
         setCategories([]);
       } finally {
         setConfigLoading(false);
@@ -83,17 +78,11 @@ export default function AdminDashboardPage() {
       setConfigSaving(true);
       setConfigMessage(null);
 
-      const response = await fetch('/api/config', {
+      const data = (await apiClient.request<AdminConfig>('/config', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ categories: uniqueCategories }),
-      });
+      })) as AdminConfig;
 
-      if (!response.ok) {
-        throw new Error('Failed to save categories');
-      }
-
-      const data = (await response.json()) as AdminConfig;
       setCategories(Array.isArray(data.categories) ? data.categories : uniqueCategories);
       setConfigMessage('Categories saved.');
     } catch (error: any) {
