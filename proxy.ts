@@ -16,7 +16,8 @@ export async function proxy(request: NextRequest) {
     pathname === '/api/auth/vendor/login' ||
     pathname === '/api/auth/vendor/signup';
   const isPublicProductsGet = pathname.startsWith('/api/products') && method === 'GET';
-  if (isPublicAuthRoute || isPublicProductsGet) {
+  const isPublicCategoriesGet = pathname.startsWith('/api/categories') && method === 'GET';
+  if (isPublicAuthRoute || isPublicProductsGet || isPublicCategoriesGet) {
     return NextResponse.next();
   }
 
