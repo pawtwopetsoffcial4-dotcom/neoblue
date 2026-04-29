@@ -1,4 +1,4 @@
-import { connectDB } from '@/lib/db';
+import { connectDB, isDatabaseConnectivityError } from '@/lib/db';
 import Product from '@/lib/models/Product';
 import User from '@/lib/models/User';
 import { createErrorResponse, createSuccessResponse, getTokenFromRequest, verifyToken } from '@/lib/utils/auth';
@@ -40,7 +40,25 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error: any) {
+    const isDbConnectivityIssue = isDatabaseConnectivityError(error);
+
+    if (isDbConnectivityIssue) {
+      console.warn('Get products warning:', error?.message || 'Database connection is temporarily unavailable.');
+
+      return createSuccessResponse({
+        products: [],
+        pagination: {
+          total: 0,
+          pages: 0,
+          currentPage: 1,
+          limit: 0,
+        },
+        warning: 'Database connection is temporarily unavailable.',
+      });
+    }
+
     console.error('Get products error:', error);
+
     return createErrorResponse(error.message || 'Failed to fetch products', 500);
   }
 }
