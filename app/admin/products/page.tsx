@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { X } from 'lucide-react';
 import { CldUploadWidget } from 'next-cloudinary';
 import { apiClient } from '@/lib/api-client';
-import { PRODUCT_CATEGORIES, getSubcategoriesForCategory } from '@/lib/catalog';
+import { getSubcategoriesForCategory } from '@/lib/catalog';
 
 type AdminProduct = {
   _id: string;
@@ -48,6 +48,7 @@ type EditFormState = {
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<AdminProduct[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
@@ -70,6 +71,22 @@ export default function AdminProductsPage() {
 
   useEffect(() => {
     loadProducts();
+  }, []);
+
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const response = await fetch('/api/categories', { cache: 'no-store' });
+        if (!response.ok) return;
+
+        const data = await response.json();
+        setCategories(Array.isArray(data.categories) ? data.categories : []);
+      } catch {
+        setCategories([]);
+      }
+    };
+
+    loadCategories();
   }, []);
 
   const filteredProducts = useMemo(() => {
@@ -351,7 +368,7 @@ export default function AdminProductsPage() {
                     )
                   }
                 >
-                  {PRODUCT_CATEGORIES.map((category) => (
+                  {categories.map((category) => (
                     <option key={category} value={category}>
                       {category}
                     </option>

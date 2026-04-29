@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { X } from 'lucide-react';
 import { CldUploadWidget } from 'next-cloudinary';
 import { apiClient } from '@/lib/api-client';
-import { PRODUCT_CATEGORIES, getSubcategoriesForCategory } from '@/lib/catalog';
+import { getSubcategoriesForCategory } from '@/lib/catalog';
 
 export default function VendorAddProductPage() {
   const router = useRouter();
@@ -14,6 +14,7 @@ export default function VendorAddProductPage() {
   const [imageUrl, setImageUrl] = useState<string>('');
   const [uploadError, setUploadError] = useState<string>('');
   const [submitError, setSubmitError] = useState<string>('');
+  const [categories, setCategories] = useState<string[]>([]);
   const [form, setForm] = useState({
     title: '',
     description: '',
@@ -25,6 +26,22 @@ export default function VendorAddProductPage() {
     scientific: '',
   });
   const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'neoblue_products';
+
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const response = await fetch('/api/categories', { cache: 'no-store' });
+        if (!response.ok) return;
+
+        const data = await response.json();
+        setCategories(Array.isArray(data.categories) ? data.categories : []);
+      } catch {
+        setCategories([]);
+      }
+    };
+
+    loadCategories();
+  }, []);
 
   const removeImage = () => {
     setImageUrl('');
@@ -145,7 +162,7 @@ export default function VendorAddProductPage() {
               }))
             }
           >
-            {PRODUCT_CATEGORIES.map((category) => (
+            {categories.map((category) => (
               <option key={category} value={category}>
                 {category}
               </option>

@@ -83,10 +83,11 @@ const CATEGORY_META: Record<string, Omit<UICategory, 'slug'>> = {
   },
 };
 
-const toSlug = (value: string) => value.toLowerCase().replace(/\s+/g, '-');
+const toSlug = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 
 export default function CategoriesPage() {
   const [products, setProducts] = useState<MarketplaceProduct[]>([]);
+  const [availableCategories, setAvailableCategories] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -105,9 +106,26 @@ export default function CategoriesPage() {
     fetchProducts();
   }, []);
 
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch('/api/categories', { cache: 'no-store' });
+        if (!response.ok) return;
+
+        const data = await response.json();
+        setAvailableCategories(Array.isArray(data.categories) ? data.categories : []);
+      } catch {
+        setAvailableCategories([]);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
   const categories: UICategory[] = useMemo(() => {
     const allCategories = new Set([
       ...Object.keys(CATEGORY_META),
+      ...availableCategories,
       ...products.map((item) => item.category),
     ]);
 
@@ -120,7 +138,7 @@ export default function CategoriesPage() {
         subcategories: [],
       }),
     }));
-  }, [products]);
+  }, [availableCategories, products]);
 
   return (
     <div className="min-h-screen bg-white text-slate-900 selection:bg-blue-500 selection:text-white pb-24 md:pb-0 font-sans">

@@ -4,16 +4,7 @@ export type MarketplaceProduct = {
   description: string;
   price: number;
   images: string[];
-  category:
-    | 'Guppies'
-    | 'Crayfish'
-    | 'Kribensis'
-    | 'Betta'
-    | "Angel's"
-    | 'Discuss'
-    | 'Platy'
-    | 'Exotic Molly'
-    | 'Zebra';
+  category: string;
   subcategory?: string;
   waterType: 'Freshwater' | 'Saltwater' | 'Brackish';
   vendorId: string;

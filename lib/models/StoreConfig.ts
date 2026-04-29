@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { PRODUCT_CATEGORIES } from '@/lib/catalog';
 
 export interface IStoreConfig {
   offerBadge: string;
@@ -6,6 +7,7 @@ export interface IStoreConfig {
   offerDescription: string;
   offerButtonText: string;
   offerButtonLink: string;
+  categories: string[];
   stat1Value: string;
   stat1Label: string;
   stat2Value: string;
@@ -21,6 +23,7 @@ const StoreConfigSchema = new mongoose.Schema<IStoreConfig>(
     offerDescription: { type: String, default: 'Weekend special: handpicked marine and freshwater species, overnight transit care, and live-arrival protection included.' },
     offerButtonText: { type: String, default: 'Shop The Offer' },
     offerButtonLink: { type: String, default: '/products' },
+    categories: { type: [String], default: PRODUCT_CATEGORIES },
     stat1Value: { type: String, default: '500+' },
     stat1Label: { type: String, default: 'Species Curated' },
     stat2Value: { type: String, default: '24h' },

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Search, Heart, ChevronDown, ShoppingBag, Sparkles, Star, X } from 'lucide-react';
 import type { MarketplaceProduct } from '@/lib/types/marketplace';
 import { useCart } from '@/lib/hooks/useCart';
-import { PRODUCT_CATEGORIES, getSubcategoriesForCategory } from '@/lib/catalog';
+import { getSubcategoriesForCategory } from '@/lib/catalog';
 
 const formatPrice = (price: number) => `₹${price}`;
 
@@ -48,6 +48,7 @@ export default function ProductsPage() {
   const [waterType, setWaterType] = useState('All');
   const [tag, setTag] = useState('All');
   const [inStockOnly, setInStockOnly] = useState(false);
+  const [availableCategories, setAvailableCategories] = useState<string[]>([]);
 
   const fetchProducts = async () => {
     try {
@@ -73,6 +74,22 @@ export default function ProductsPage() {
     fetchProducts();
   }, []);
 
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch('/api/categories', { cache: 'no-store' });
+        if (!response.ok) return;
+
+        const data = await response.json();
+        setAvailableCategories(Array.isArray(data.categories) ? data.categories : []);
+      } catch {
+        setAvailableCategories([]);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
   const clearFilters = () => {
     setSearchTerm('');
     setSortBy('featured');
@@ -84,8 +101,8 @@ export default function ProductsPage() {
   };
 
   const categoriesList = useMemo(
-    () => ['All', ...Array.from(new Set([...PRODUCT_CATEGORIES, ...products.map((product) => product.category)]))],
-    [products]
+    () => ['All', ...Array.from(new Set([...availableCategories, ...products.map((product) => product.category)]))],
+    [availableCategories, products]
   );
 
   const subcategoriesList = useMemo(

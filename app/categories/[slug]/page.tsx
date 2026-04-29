@@ -22,8 +22,11 @@ const fromSlugToCategory: Record<string, MarketplaceProduct['category']> = {
   zebra: 'Zebra',
 };
 
+const toSlug = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+
 export default function CategoryDetailPage({ params }: CategoryPageProps) {
   const [slug, setSlug] = useState<string>('');
+  const [availableCategories, setAvailableCategories] = useState<string[]>([]);
   const [products, setProducts] = useState<MarketplaceProduct[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -48,9 +51,26 @@ export default function CategoryDetailPage({ params }: CategoryPageProps) {
     fetchProducts();
   }, [slug]);
 
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch('/api/categories', { cache: 'no-store' });
+        if (!response.ok) return;
+
+        const data = await response.json();
+        setAvailableCategories(Array.isArray(data.categories) ? data.categories : []);
+      } catch {
+        setAvailableCategories([]);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
   const normalizedSlug = slug.toLowerCase();
   const mappedCategory = fromSlugToCategory[normalizedSlug];
   const isWaterFilter = normalizedSlug === 'freshwater' || normalizedSlug === 'saltwater';
+  const customCategory = availableCategories.find((category) => toSlug(category) === normalizedSlug);
 
   const filteredProducts = useMemo(() => {
     if (!slug) return [];
@@ -58,18 +78,18 @@ export default function CategoryDetailPage({ params }: CategoryPageProps) {
       return products.filter((product) => product.waterType.toLowerCase() === normalizedSlug);
     }
 
-    if (mappedCategory) {
-      return products.filter((product) => product.category === mappedCategory);
+    if (mappedCategory || customCategory) {
+      return products.filter((product) => product.category === (mappedCategory || customCategory));
     }
 
     return [];
-  }, [slug, isWaterFilter, normalizedSlug, mappedCategory, products]);
+  }, [slug, isWaterFilter, normalizedSlug, mappedCategory, customCategory, products]);
 
   const subcategories = mappedCategory ? getSubcategoriesForCategory(mappedCategory) : [];
 
   const categoryTitle = isWaterFilter
     ? normalizedSlug.charAt(0).toUpperCase() + normalizedSlug.slice(1)
-    : mappedCategory ?? 'Category';
+    : mappedCategory ?? customCategory ?? 'Category';
   return (
     <div className="min-h-screen bg-white text-slate-900 selection:bg-blue-500 selection:text-white pb-24 md:pb-0">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 md:pt-10 pb-10">

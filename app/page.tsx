@@ -215,21 +215,6 @@ export default function NeoBlueMobileOptimized() {
 
   return (
     <div className="min-h-screen bg-white text-blue-950 font-sans pb-20 md:pb-0 selection:bg-blue-100">
-      
-      {/* 1. MINIMAL HEADER */}
-      <header className="sticky top-0 w-full bg-white/80 backdrop-blur-xl z-40 border-b border-blue-50">
-        <div className="px-5 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Waves className="h-5 w-5 text-blue-600" />
-            <span className="font-extrabold text-lg tracking-tighter uppercase text-blue-950">
-              Neo<span className="text-blue-600">Blue</span>
-            </span>
-          </div>
-          <button className="h-10 w-10 flex items-center justify-end text-blue-950">
-            <Search className="h-5 w-5" />
-          </button>
-        </div>
-      </header>
 
       {/* 2. AD BANNER (Hero) - Blue & White strictly */}
       <section className="px-4 pt-4 pb-2 bg-white">

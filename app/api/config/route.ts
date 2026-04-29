@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
+import { PRODUCT_CATEGORIES } from '@/lib/catalog';
 import StoreConfig from '@/lib/models/StoreConfig';
 
 export async function GET() {
@@ -9,7 +10,13 @@ export async function GET() {
     if (!config) {
       config = await StoreConfig.create({});
     }
-    return NextResponse.json(config);
+
+    const payload = config.toObject ? config.toObject() : config;
+
+    return NextResponse.json({
+      ...payload,
+      categories: Array.isArray(payload.categories) && payload.categories.length ? payload.categories : PRODUCT_CATEGORIES,
+    });
   } catch (error) {
     console.error('Config GET error:', error);
     return NextResponse.json({ message: 'Error fetching config' }, { status: 500 });
