@@ -401,18 +401,11 @@ export default function ProductsPage() {
                         className="absolute inset-0 h-full w-full object-contain p-5 mix-blend-multiply transition-transform duration-700 ease-out group-hover:scale-[1.08]"
                       />
 
-                      <div className="absolute left-3 top-3 flex flex-col gap-2">
-                        {product.tag && (
-                          <span className="inline-flex w-fit items-center rounded-full bg-white/90 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-blue-700 shadow-sm backdrop-blur">
-                            {product.tag}
-                          </span>
-                        )}
-                        {!product.inStock && (
-                          <span className="inline-flex w-fit items-center rounded-full bg-slate-950 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white shadow-sm">
-                            Sold out
-                          </span>
-                        )}
-                      </div>
+                      {!product.inStock && (
+                        <div className="absolute left-3 top-3 text-[10px] font-bold uppercase tracking-[0.18em] text-white bg-slate-950/90 px-2 py-1">
+                          Sold out
+                        </div>
+                      )}
 
                       <button
                         type="button"
@@ -450,7 +443,7 @@ export default function ProductsPage() {
                             {product.title}
                           </h3>
                         </div>
-                        <div className="flex items-center gap-1 rounded-full bg-amber-50 px-2 py-1 text-[11px] font-semibold text-amber-700">
+                        <div className="flex items-center gap-1 text-[11px] font-semibold text-amber-700">
                           <Star className="h-3.5 w-3.5 fill-current" />
                           {rating.toFixed(1)}
                         </div>

@@ -17,6 +17,8 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
   const { user, logout } = useAuth();
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const visibleCartCount = contextCartCount || cartCount;
 
   const handleLogout = () => {
@@ -26,6 +28,15 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
   };
 
   const closeMenu = () => setIsMenuOpen(false);
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
+      setIsSearchOpen(false);
+      setSearchQuery('');
+    }
+  };
 
   const navLinks = [
     { href: '/', label: 'Home' },
@@ -65,9 +76,14 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
         </div>
 
         <div className="flex items-center justify-end gap-3 flex-none">
-          <Link href="/products" className="h-[38px] w-[38px] rounded-full text-blue-100 flex items-center justify-center hover:bg-white/10 hover:text-white transition-colors">
+          <button
+            type="button"
+            onClick={() => setIsSearchOpen(!isSearchOpen)}
+            className="h-[38px] w-[38px] rounded-full text-blue-100 flex items-center justify-center hover:bg-white/10 hover:text-white transition-colors"
+            aria-label="Search products"
+          >
             <Search className="h-5 w-5" />
-          </Link>
+          </button>
           
           {user && (
             <button
@@ -119,6 +135,34 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
               </button>
             )}
           </div>
+        </div>
+      )}
+
+      {isSearchOpen && (
+        <div className="border-t border-blue-500 bg-blue-700/95 backdrop-blur-md px-4 py-4">
+          <form onSubmit={handleSearchSubmit} className="max-w-7xl mx-auto flex gap-2">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search products..."
+              className="flex-1 px-4 py-2 rounded-full text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+              autoFocus
+            />
+            <button
+              type="submit"
+              className="px-6 py-2 rounded-full bg-white text-blue-600 font-medium text-sm hover:bg-blue-50 transition-colors"
+            >
+              Search
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsSearchOpen(false)}
+              className="px-4 py-2 rounded-full text-blue-100 hover:bg-white/10 transition-colors"
+            >
+              Cancel
+            </button>
+          </form>
         </div>
       )}
     </header>

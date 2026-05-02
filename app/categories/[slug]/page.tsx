@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, ArrowUpRight } from 'lucide-react';
+import { ArrowLeft, ArrowUpRight, ChevronDown } from 'lucide-react';
 import type { MarketplaceProduct } from '@/lib/types/marketplace';
 import { getSubcategoriesForCategory } from '@/lib/catalog';
 
@@ -29,6 +29,7 @@ export default function CategoryDetailPage({ params }: CategoryPageProps) {
   const [availableCategories, setAvailableCategories] = useState<string[]>([]);
   const [products, setProducts] = useState<MarketplaceProduct[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSubcategoryOpen, setIsSubcategoryOpen] = useState(false);
 
   useEffect(() => {
     params.then((data) => setSlug(data.slug));
@@ -101,15 +102,33 @@ export default function CategoryDetailPage({ params }: CategoryPageProps) {
           <h1 className="text-3xl md:text-5xl font-black tracking-tight">{categoryTitle}</h1>
           <p className="mt-3 text-slate-600 max-w-3xl">Curated live inventory for this category.</p>
           {subcategories.length > 0 && (
-            <div className="mt-5 flex flex-wrap gap-2">
-              {subcategories.map((subcategory) => (
-                <span
-                  key={subcategory}
-                  className="inline-flex items-center rounded-full border border-blue-100 bg-white px-3 py-1 text-xs font-semibold text-slate-700"
-                >
-                  {subcategory}
+            <div className="mt-5 max-w-xl">
+              <button
+                type="button"
+                onClick={() => setIsSubcategoryOpen((current) => !current)}
+                className="inline-flex w-full items-center justify-between gap-3 rounded-2xl border border-blue-100 bg-white px-4 py-3 text-left shadow-sm transition-colors hover:border-blue-300"
+                aria-expanded={isSubcategoryOpen}
+              >
+                <span className="text-sm font-semibold text-slate-800">
+                  Subcategories <span className="text-slate-500">({subcategories.length})</span>
                 </span>
-              ))}
+                <ChevronDown className={`h-4 w-4 text-slate-500 transition-transform ${isSubcategoryOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {isSubcategoryOpen && (
+                <div className="mt-3 rounded-2xl border border-blue-100 bg-white p-3 shadow-sm">
+                  <div className="flex flex-wrap gap-2">
+                    {subcategories.map((subcategory) => (
+                      <span
+                        key={subcategory}
+                        className="inline-flex items-center rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-semibold text-slate-700"
+                      >
+                        {subcategory}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
           <p className="mt-4 text-sm font-semibold text-blue-700">

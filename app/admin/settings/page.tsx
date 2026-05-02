@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
+import { CldUploadWidget } from 'next-cloudinary';
 import { Save, Loader2, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -13,6 +14,8 @@ export default function AdminSettingsPage() {
     offerDescription: '',
     offerButtonText: '',
     offerButtonLink: '',
+    categories: [] as string[],
+    categoryImages: {} as Record<string, string>,
     stat1Value: '',
     stat1Label: '',
     stat2Value: '',
@@ -191,7 +194,79 @@ export default function AdminSettingsPage() {
             </div>
           </div>
         </div>
+        
+        <div className="mt-8 pt-6 border-t border-gray-100">
+          <h3 className="text-lg font-bold text-gray-800 mb-4">Categories</h3>
+
+          <div className="space-y-4">
+            {(config.categories || []).map((cat) => (
+              <div key={cat} className="flex items-center gap-4 bg-gray-50 p-3 rounded-lg border border-gray-200">
+                <div className="w-20 h-12 bg-white rounded-md overflow-hidden border">
+                  {config.categoryImages && config.categoryImages[cat] ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={config.categoryImages[cat]} alt={cat} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-sm text-gray-400">No image</div>
+                  )}
+                </div>
+                <div className="flex-1">
+                  <div className="font-semibold text-gray-800">{cat}</div>
+                </div>
+                <div>
+                  <CldUploadWidget uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'neoblue_products'} options={{ sources: ['local', 'camera', 'url'], multiple: false, resourceType: 'image' }} onSuccess={(result: any) => {
+                    const secureUrl = result?.info?.secure_url;
+                    if (secureUrl) {
+                      setConfig((prev) => ({ ...(prev as any), categoryImages: { ...(prev as any).categoryImages, [cat]: String(secureUrl) } }));
+                    }
+                  }}>
+                    {({ open }) => <button type="button" onClick={() => open()} className="h-9 px-3 rounded-md border border-blue-200 text-blue-700 font-semibold hover:bg-blue-50">Upload</button>}
+                  </CldUploadWidget>
+                </div>
+              </div>
+            ))}
+
+            <AddCategoryRow config={config} setConfig={setConfig} />
+          </div>
+        </div>
       </div>
+    </div>
+  );
+}
+
+function AddCategoryRow({ config, setConfig }: { config: any; setConfig: any }) {
+  const [name, setName] = useState('');
+  const [preview, setPreview] = useState<string | null>(null);
+
+  const addCategory = () => {
+    const trimmed = String(name || '').trim();
+    if (!trimmed) return;
+    const existing = Array.isArray(config.categories) ? config.categories : [];
+    if (existing.includes(trimmed)) {
+      setName('');
+      return;
+    }
+    const newCategories = [...existing, trimmed];
+    const newImages = { ...(config.categoryImages || {}) };
+    if (preview) newImages[trimmed] = preview;
+    setConfig((prev: any) => ({ ...prev, categories: newCategories, categoryImages: newImages }));
+    setName('');
+    setPreview(null);
+  };
+
+  return (
+    <div className="flex gap-3 items-center">
+      <input value={name} onChange={(e) => setName(e.target.value)} placeholder="New category name" className="px-3 py-2 border rounded-lg w-72" />
+      <CldUploadWidget uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'neoblue_products'} options={{ sources: ['local', 'camera', 'url'], multiple: false, resourceType: 'image' }} onSuccess={(res: any) => {
+        const url = res?.info?.secure_url;
+        if (url) setPreview(String(url));
+      }}>
+        {({ open }) => <button type="button" onClick={() => open()} className="h-9 px-3 rounded-md border border-blue-200 text-blue-700 font-semibold hover:bg-blue-50">Upload Image</button>}
+      </CldUploadWidget>
+      <button type="button" onClick={addCategory} className="h-9 px-4 rounded-md bg-blue-600 text-white font-semibold">Add</button>
+      {preview ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={preview} alt="preview" className="w-12 h-8 object-cover rounded-md border" />
+      ) : null}
     </div>
   );
 }

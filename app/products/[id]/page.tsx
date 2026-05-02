@@ -17,7 +17,8 @@ export default function ProductDetailPage({ params }: ProductDetailProps) {
   const [product, setProduct] = useState<MarketplaceProduct | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'description' | 'specifications' | 'reviews'>('description');
+  const [activeTab, setActiveTab] = useState<'description' | 'specifications' | 'faq' | 'reviews'>('description');
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const { addToCart } = useCart();
 
@@ -27,6 +28,7 @@ export default function ProductDetailPage({ params }: ProductDetailProps) {
 
   useEffect(() => {
     if (!id) return;
+    setActiveImageIndex(0);
 
     const fetchProduct = async () => {
       try {
@@ -85,6 +87,12 @@ export default function ProductDetailPage({ params }: ProductDetailProps) {
     { id: 3, user: "Rahul S.", rating: 5, date: "2 weeks ago", comment: "Perfect addition to my tank. Acclimated very well.", avatar: "R" },
   ];
 
+  const productImages =
+    product.images && product.images.length > 0
+      ? product.images
+      : ['https://images.stockcake.com/public/1/9/4/194f4315-a8d9-422b-b237-18b1e224b7a1_large/colorful-tropical-fish-stockcake.jpg'];
+  const activeImage = productImages[Math.min(activeImageIndex, productImages.length - 1)];
+
   return (
     <div className="min-h-screen bg-[#F5F7FA] text-slate-900 selection:bg-blue-100 pb-24 md:pb-12">
       {/* Navigation / Breadcrumb */}
@@ -110,12 +118,12 @@ export default function ProductDetailPage({ params }: ProductDetailProps) {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
           
           {/* Image Gallery */}
-          <div className="lg:col-span-7 flex flex-col gap-4">
-             <div className="relative aspect-square md:aspect-[4/3] w-full rounded-3xl bg-white border border-slate-100 shadow-sm overflow-hidden group">
+           <div className="lg:col-span-7 -mx-4 sm:mx-0 flex flex-col gap-4">
+             <div className="relative aspect-square min-h-[62vh] md:min-h-0 w-full rounded-none sm:rounded-3xl bg-slate-900 sm:border sm:border-slate-100 sm:shadow-sm overflow-hidden group">
                  <img
-                  src={product.images?.[0] ?? 'https://images.stockcake.com/public/1/9/4/194f4315-a8d9-422b-b237-18b1e224b7a1_large/colorful-tropical-fish-stockcake.jpg'}
+                src={activeImage}
                   alt={product.title}
-                  className="absolute inset-0 h-full w-full object-contain p-8 mix-blend-multiply group-hover:scale-105 transition-transform duration-700 ease-in-out"
+                className="absolute inset-0 h-full w-full object-cover group-hover:scale-105 transition-transform duration-700 ease-in-out"
                 />
                  {/* Badges */}
                  <div className="absolute top-6 left-6 flex flex-col gap-2">
@@ -133,10 +141,15 @@ export default function ProductDetailPage({ params }: ProductDetailProps) {
              </div>
              {/* Thumbnail placeholders */}
              <div className="flex gap-4 overflow-x-auto hide-scrollbar pb-2">
-                {[1, 2, 3].map((_, i) => (
-                  <div key={i} className={`flex-shrink-0 w-20 h-20 md:w-24 md:h-24 rounded-2xl bg-white border cursor-pointer overflow-hidden ${i === 0 ? 'border-blue-500 shadow-md ring-2 ring-blue-500/20' : 'border-slate-200 hover:border-blue-300'} transition-all`}>
-                      <img src={product.images?.[0] ?? 'https://images.stockcake.com/public/1/9/4/194f4315-a8d9-422b-b237-18b1e224b7a1_large/colorful-tropical-fish-stockcake.jpg'} alt="thumbnail" className="w-full h-full object-contain p-2 mix-blend-multiply" />
-                  </div>
+                {productImages.map((image, i) => (
+                  <button
+                    type="button"
+                    onClick={() => setActiveImageIndex(i)}
+                    key={`${image}-${i}`}
+                    className={`shrink-0 w-20 h-20 md:w-24 md:h-24 rounded-2xl bg-white border cursor-pointer overflow-hidden ${i === activeImageIndex ? 'border-blue-500 shadow-md ring-2 ring-blue-500/20' : 'border-slate-200 hover:border-blue-300'} transition-all`}
+                  >
+                      <img src={image} alt="thumbnail" className="w-full h-full object-cover" />
+                  </button>
                 ))}
              </div>
           </div>
@@ -151,6 +164,9 @@ export default function ProductDetailPage({ params }: ProductDetailProps) {
                  <h1 className="text-3xl md:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight leading-[1.1] mb-2">{product.title}</h1>
                  <p className="text-lg text-slate-500 italic font-serif flex items-center gap-2">
                    {product.scientific ?? 'Premium Aquatic Specimen'}
+                 </p>
+                 <p className="mt-4 text-sm md:text-base text-slate-600 leading-relaxed line-clamp-4">
+                   {product.description || 'Healthy, quarantine-tested livestock sourced for stable acclimation and long-term tank vitality.'}
                  </p>
                  
                  {/* Ratings */}
@@ -235,6 +251,7 @@ export default function ProductDetailPage({ params }: ProductDetailProps) {
               {[
                 { id: 'description', icon: Info, label: 'Description' },
                 { id: 'specifications', icon: Thermometer, label: 'Care & Specs' },
+                { id: 'faq', icon: MessageSquare, label: 'FAQ' },
                 { id: 'reviews', icon: MessageSquare, label: 'Reviews (128)' }
               ].map((tab) => (
                 <button
@@ -252,7 +269,7 @@ export default function ProductDetailPage({ params }: ProductDetailProps) {
            </div>
 
            {/* Tab Content */}
-           <div className="bg-white rounded-3xl p-6 md:p-10 shadow-sm border border-slate-100 min-h-[400px]">
+           <div className="bg-white rounded-3xl p-6 md:p-10 shadow-sm border border-slate-100 min-h-100">
               {activeTab === 'description' && (
                 <div className="max-w-3xl animate-in fade-in slide-in-from-bottom-4 duration-500">
                    <h3 className="text-2xl font-bold text-slate-900 mb-6">About this {product.title}</h3>
@@ -330,7 +347,7 @@ export default function ProductDetailPage({ params }: ProductDetailProps) {
                         <div key={review.id} className="p-6 rounded-2xl border border-slate-100 bg-white hover:border-blue-100 transition-colors shadow-sm">
                            <div className="flex justify-between items-start mb-4">
                               <div className="flex items-center gap-3">
-                                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center font-bold text-lg shadow-inner">
+                                 <div className="w-10 h-10 rounded-full bg-linear-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center font-bold text-lg shadow-inner">
                                    {review.avatar}
                                  </div>
                                  <div>
@@ -358,6 +375,43 @@ export default function ProductDetailPage({ params }: ProductDetailProps) {
                      Load More Reviews <ChevronRight className="h-4 w-4" />
                    </button>
                  </div>
+              )}
+
+              {activeTab === 'faq' && (
+                <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-4xl">
+                  <h3 className="text-2xl font-bold text-slate-900 mb-8">Frequently Asked Questions</h3>
+                  <div className="space-y-4">
+                    {[
+                      {
+                        q: 'How should I acclimate this fish after delivery?',
+                        a: 'Float the bag for 20 to 30 minutes to equalize temperature, then drip acclimate gradually before introducing into your tank.',
+                      },
+                      {
+                        q: 'What tank conditions are recommended?',
+                        a: `Maintain stable ${product.waterType.toLowerCase()} parameters, avoid sudden pH/temperature shifts, and provide proper filtration and oxygenation.`,
+                      },
+                      {
+                        q: 'Is this suitable for community tanks?',
+                        a: 'Compatibility depends on temperament and size. Match tank mates by behavior, adult size, and water requirements.',
+                      },
+                      {
+                        q: 'What if the fish arrives stressed?',
+                        a: 'Keep lights low for the first few hours, reduce handling, and monitor breathing/activity. Contact support promptly if recovery is delayed.',
+                      },
+                    ].map((item) => (
+                      <details
+                        key={item.q}
+                        className="group rounded-2xl border border-slate-200 bg-slate-50/70 px-5 py-4 open:bg-white open:border-blue-200"
+                      >
+                        <summary className="cursor-pointer list-none flex items-center justify-between gap-4">
+                          <span className="font-semibold text-slate-900">{item.q}</span>
+                          <ChevronRight className="h-4 w-4 text-slate-400 transition-transform group-open:rotate-90" />
+                        </summary>
+                        <p className="pt-3 text-sm leading-6 text-slate-600">{item.a}</p>
+                      </details>
+                    ))}
+                  </div>
+                </div>
               )}
            </div>
         </div>
