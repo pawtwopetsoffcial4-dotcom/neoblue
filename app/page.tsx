@@ -114,11 +114,7 @@ function MobileCard({ product }: { product: any }) {
           alt={product.title}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
         />
-        {product.tag && (
-          <span className="absolute top-2 left-2 text-[9px] uppercase tracking-wider bg-white/90 backdrop-blur-sm text-blue-700 px-2 py-1 rounded-full font-bold">
-            {product.tag}
-          </span>
-        )}
+        {/* product tag capsule removed */}
       </div>
       <div className="p-3">
         <h3 className="text-sm font-semibold text-blue-950 truncate mb-1">{product.title}</h3>
@@ -223,9 +219,7 @@ export default function NeoBlueMobileOptimized() {
           <div className="absolute -left-10 -bottom-10 w-32 h-32 bg-white/10 rounded-full blur-xl" />
           
           <div className="relative z-10">
-            <span className="inline-block px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-sm text-white text-[10px] font-bold tracking-widest uppercase mb-3">
-              Limited Offer
-            </span>
+            {/* hero capsule removed */}
             <h1 className="text-2xl font-black text-white leading-tight mb-2">
               Save 35% on All<br/>Premium Stock
             </h1>

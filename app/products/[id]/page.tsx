@@ -157,10 +157,7 @@ export default function ProductDetailPage({ params }: ProductDetailProps) {
           {/* Product Info Setup */}
           <div className="lg:col-span-5 flex flex-col">
               <div className="mb-6">
-                 <div className="flex items-center gap-2 mb-3">
-                   <span className="text-xs font-semibold text-blue-600 uppercase tracking-wider px-2.5 py-1 bg-blue-50 rounded-lg">{product.category}</span>
-                   <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">{product.waterType}</span>
-                 </div>
+                 <p className="text-sm text-slate-500 mb-3">{product.category} • {product.waterType}</p>
                  <h1 className="text-3xl md:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight leading-[1.1] mb-2">{product.title}</h1>
                  <p className="text-lg text-slate-500 italic font-serif flex items-center gap-2">
                    {product.scientific ?? 'Premium Aquatic Specimen'}
