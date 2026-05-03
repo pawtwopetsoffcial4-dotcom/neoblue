@@ -14,6 +14,8 @@ export default function CheckoutPage() {
   const { user, isAuthenticated } = useAuth();
   const { items, totalAmount, updateQuantity, removeFromCart, clearCart } = useCart();
   const [isPaying, setIsPaying] = useState(false);
+  const [shippingPerPiece, setShippingPerPiece] = useState(0);
+  const [shippingPerWeight, setShippingPerWeight] = useState(0);
   const [address, setAddress] = useState({ street: '', city: '', state: '', zipcode: '' });
 
   useEffect(() => {
@@ -21,6 +23,26 @@ export default function CheckoutPage() {
       router.replace('/auth/login');
     }
   }, [isAuthenticated, router]);
+
+  useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const res = await fetch('/api/config');
+        if (!res.ok) return;
+        const data = await res.json();
+        setShippingPerPiece(Number(data?.shippingPerPiece) || 0);
+        setShippingPerWeight(Number(data?.shippingPerWeight) || 0);
+      } catch (error) {
+        console.error('Error fetching shipping config:', error);
+      }
+    };
+
+    fetchConfig();
+  }, []);
+
+  const cartQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
+  const shippingAmount = cartQuantity <= 1 ? shippingPerPiece : shippingPerWeight * cartQuantity;
+  const orderTotal = totalAmount + shippingAmount;
 
   const handlePayNow = async () => {
     if (!user || user.role !== 'user') {
@@ -47,7 +69,7 @@ export default function CheckoutPage() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${localStorage.getItem('authToken') ?? ''}`,
         },
-        body: JSON.stringify({ amount: totalAmount }),
+        body: JSON.stringify({ amount: orderTotal }),
       }).then((res) => res.json());
 
       const options = {
@@ -70,6 +92,7 @@ export default function CheckoutPage() {
           await apiClient.createOrder({
             products: items.map((item) => ({ productId: item.productId, quantity: item.quantity })),
             address,
+            shippingAmount,
             paymentId: response.razorpay_payment_id,
             razorpayOrderId: response.razorpay_order_id,
           });
@@ -250,16 +273,16 @@ export default function CheckoutPage() {
                       <span>Subtotal ({items.reduce((a, b) => a + b.quantity, 0)} items)</span>
                       <span className="text-gray-900">₹{totalAmount.toFixed(2)}</span>
                     </div>
-                    <div className="flex justify-between items-center text-green-600">
-                      <span>Shipping</span>
-                      <span>Free</span>
+                    <div className="flex justify-between items-center text-gray-700">
+                      <span>Shipping ({items.reduce((a, b) => a + b.quantity, 0) <= 1 ? 'per piece' : 'by weight'})</span>
+                      <span>₹{shippingAmount.toFixed(2)}</span>
                     </div>
                   </div>
 
-                  <div className="flex justify-between items-center items-end py-2">
+                  <div className="flex justify-between items-end py-2">
                     <span className="text-lg font-bold text-gray-900">Total Price</span>
                     <div className="text-right">
-                      <span className="text-3xl font-black text-gray-900 block leading-none">₹{totalAmount.toFixed(2)}</span>
+                      <span className="text-3xl font-black text-gray-900 block leading-none">₹{orderTotal.toFixed(2)}</span>
                       <span className="text-xs text-gray-500 mt-1 block">Includes Live Arrival protection</span>
                     </div>
                   </div>

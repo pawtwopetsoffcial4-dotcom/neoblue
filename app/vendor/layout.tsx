@@ -3,7 +3,7 @@
 import React, { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, Fish, PlusCircle, PackageCheck, LogOut } from 'lucide-react';
+import { LayoutDashboard, Fish, PlusCircle, PackageCheck, LogOut, Settings } from 'lucide-react';
 import { useAuth } from '@/lib/hooks/useAuth';
 
 const navItems = [
@@ -11,6 +11,7 @@ const navItems = [
   { href: '/vendor/products', label: 'Products', icon: Fish },
   { href: '/vendor/add-product', label: 'Add Product', icon: PlusCircle },
   { href: '/vendor/orders', label: 'Orders', icon: PackageCheck },
+  { href: '/vendor/settings', label: 'Settings', icon: Settings },
 ];
 
 export default function VendorLayout({ children }: { children: React.ReactNode }) {

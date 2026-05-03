@@ -55,6 +55,9 @@ export default function AdminProductsPage() {
   const [editingProduct, setEditingProduct] = useState<AdminProduct | null>(null);
   const [editForm, setEditForm] = useState<EditFormState | null>(null);
   const [isSavingEdit, setIsSavingEdit] = useState(false);
+  const [quickEditingPrice, setQuickEditingPrice] = useState<string | null>(null);
+  const [quickPriceValue, setQuickPriceValue] = useState<string>('');
+  const [isSavingPrice, setIsSavingPrice] = useState(false);
 
   const loadProducts = async () => {
     try {
@@ -130,6 +133,40 @@ export default function AdminProductsPage() {
     setEditingProduct(null);
     setEditForm(null);
     setIsSavingEdit(false);
+  };
+
+  const openQuickEditPrice = (product: AdminProduct) => {
+    setQuickEditingPrice(product._id);
+    setQuickPriceValue(String(product.price));
+  };
+
+  const closeQuickEditPrice = () => {
+    setQuickEditingPrice(null);
+    setQuickPriceValue('');
+    setIsSavingPrice(false);
+  };
+
+  const saveQuickPrice = async () => {
+    if (!quickEditingPrice) return;
+
+    const price = Number(quickPriceValue);
+    if (Number.isNaN(price) || price < 0) {
+      setMessage('Price must be a valid positive number');
+      return;
+    }
+
+    try {
+      setMessage(null);
+      setIsSavingPrice(true);
+      await apiClient.updateProduct(quickEditingPrice, { price });
+      await loadProducts();
+      setMessage('Price updated successfully');
+      closeQuickEditPrice();
+    } catch (error: any) {
+      setMessage(error.message || 'Failed to update price');
+    } finally {
+      setIsSavingPrice(false);
+    }
   };
 
   const addEditImage = (imageUrl: string) => {
@@ -268,7 +305,15 @@ export default function AdminProductsPage() {
                   <p className="text-sm text-slate-500 mt-2">
                     Vendor: {product.vendorId?.name ?? product.vendorId?.email ?? 'Unknown'}
                   </p>
-                  <p className="text-sm text-slate-500">₹{product.price.toFixed(2)} • {product.category} • {product.waterType}</p>
+                  <div className="flex items-center gap-2 mt-2">
+                    <p className="text-sm text-slate-500">₹{product.price.toFixed(2)} • {product.category} • {product.waterType}</p>
+                    <button
+                      onClick={() => openQuickEditPrice(product)}
+                      className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-700 font-semibold hover:bg-blue-200 transition-colors"
+                    >
+                      Edit Price
+                    </button>
+                  </div>
                   <p className="text-xs mt-2 font-semibold text-blue-700 uppercase tracking-wider">{status}</p>
                 </div>
 
@@ -495,6 +540,51 @@ export default function AdminProductsPage() {
                   className="h-11 px-5 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-700 disabled:opacity-60"
                 >
                   {isSavingEdit ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {quickEditingPrice && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 px-4">
+          <div className="w-full max-w-sm rounded-2xl bg-white shadow-2xl border border-blue-100">
+            <div className="border-b border-blue-100 px-6 py-4">
+              <h2 className="text-xl font-bold text-slate-900">Edit Price</h2>
+              <p className="text-sm text-slate-500 mt-1">Update the product price</p>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">Price (₹)</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={quickPriceValue}
+                  onChange={(e) => setQuickPriceValue(e.target.value)}
+                  className="w-full h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="0.00"
+                  autoFocus
+                />
+              </div>
+
+              <div className="flex gap-3 justify-end pt-2">
+                <button
+                  type="button"
+                  onClick={closeQuickEditPrice}
+                  className="h-10 px-4 rounded-full border border-slate-200 text-slate-700 font-semibold hover:bg-slate-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={saveQuickPrice}
+                  disabled={isSavingPrice}
+                  className="h-10 px-6 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-700 disabled:opacity-60"
+                >
+                  {isSavingPrice ? 'Saving...' : 'Save'}
                 </button>
               </div>
             </div>

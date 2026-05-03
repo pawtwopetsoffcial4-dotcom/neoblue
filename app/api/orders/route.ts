@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
       return createErrorResponse('Only users can create orders', 403);
     }
 
-    const { products, address, paymentId, razorpayOrderId } = await request.json();
+    const { products, address, paymentId, razorpayOrderId, shippingAmount = 0 } = await request.json();
 
     if (!products || !Array.isArray(products) || products.length === 0) {
       return createErrorResponse('Please provide products', 400);
@@ -89,13 +89,16 @@ export async function POST(request: NextRequest) {
 
     // For now, assume all products from same vendor (simplify)
     const vendorId = dbProducts[0].vendorId;
+    const normalizedShippingAmount = Number(shippingAmount);
+    const validShippingAmount = Number.isFinite(normalizedShippingAmount) && normalizedShippingAmount >= 0 ? normalizedShippingAmount : 0;
 
     // Create order
     const order = await Order.create({
       userId: payload.userId,
       vendorId,
       products: orderProducts,
-      totalAmount,
+      totalAmount: totalAmount + validShippingAmount,
+      shippingAmount: validShippingAmount,
       address,
       paymentId,
       razorpayOrderId,

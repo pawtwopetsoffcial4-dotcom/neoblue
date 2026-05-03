@@ -125,10 +125,9 @@ export default function ProductDetailPage({ params }: ProductDetailProps) {
                   alt={product.title}
                 className="absolute inset-0 h-full w-full object-cover group-hover:scale-105 transition-transform duration-700 ease-in-out"
                 />
-                 {/* Badges */}
                  <div className="absolute top-6 left-6 flex flex-col gap-2">
                     {product.tag && (
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-blue-500 text-white shadow-sm w-fit">
+                      <span className="hidden md:inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-blue-500 text-white shadow-sm w-fit">
                         {product.tag}
                       </span>
                     )}

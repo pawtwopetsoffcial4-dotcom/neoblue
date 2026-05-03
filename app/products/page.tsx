@@ -116,7 +116,7 @@ export default function ProductsPage() {
   );
 
   const tagsList = useMemo(
-    () => ['All', ...Array.from(new Set(products.map((product) => product.tag || 'Standard')))],
+    () => ['All', ...Array.from(new Set(products.map((product) => product.tag).filter(Boolean)))],
     [products]
   );
 
@@ -146,13 +146,13 @@ export default function ProductsPage() {
     const filtered = products.filter((product) => {
       const titleMatch = product.title?.toLowerCase().includes(normalizedQuery) || false;
       const scientificMatch = product.scientific?.toLowerCase().includes(normalizedQuery) || false;
-      const tagMatch = (product.tag || 'Standard').toLowerCase().includes(normalizedQuery) || false;
+      const tagMatch = (product.tag ?? '').toLowerCase().includes(normalizedQuery) || false;
 
       const matchesSearch = normalizedQuery.length === 0 || titleMatch || scientificMatch || tagMatch;
       const matchesCategory = category === 'All' || product.category === category;
       const matchesSubcategory = subcategory === 'All' || !subcategory || product.subcategory === subcategory;
       const matchesWaterType = waterType === 'All' || product.waterType === waterType;
-      const matchesTag = tag === 'All' || (product.tag || 'Standard') === tag;
+      const matchesTag = tag === 'All' || (product.tag ?? '') === tag;
       const matchesStock = !inStockOnly || product.inStock;
 
       return matchesSearch && matchesCategory && matchesSubcategory && matchesWaterType && matchesTag && matchesStock;
@@ -455,7 +455,7 @@ export default function ProductsPage() {
 
                       <div className="mt-auto flex items-center justify-between gap-2 pt-2 text-xs font-semibold text-slate-500">
                         <span>{product.waterType}</span>
-                        <span>{product.subcategory ?? 'Standard care'}</span>
+                        <span>{product.subcategory || ''}</span>
                       </div>
                     </div>
                   </Link>

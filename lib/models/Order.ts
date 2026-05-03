@@ -9,6 +9,7 @@ export interface IOrder extends Document {
     price: number;
   }>;
   totalAmount: number;
+  shippingAmount?: number;
   address: {
     street: string;
     city: string;
@@ -56,6 +57,11 @@ const orderSchema = new Schema<IOrder>(
     totalAmount: {
       type: Number,
       required: true,
+      min: 0,
+    },
+    shippingAmount: {
+      type: Number,
+      default: 0,
       min: 0,
     },
     address: {

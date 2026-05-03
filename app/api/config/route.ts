@@ -32,6 +32,8 @@ export async function PUT(request: Request) {
     if (Array.isArray(raw?.categories)) {
       data.categories = raw.categories.map((c: any) => String(c).trim()).filter((c: string) => c.length > 0);
     }
+    data.shippingPerPiece = Number(raw?.shippingPerPiece) >= 0 ? Number(raw.shippingPerPiece) : 0;
+    data.shippingPerWeight = Number(raw?.shippingPerWeight) >= 0 ? Number(raw.shippingPerWeight) : 0;
 
     const config = await StoreConfig.findOneAndUpdate({}, { $set: data }, { new: true, upsert: true });
 
