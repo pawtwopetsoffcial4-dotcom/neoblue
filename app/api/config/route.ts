@@ -22,7 +22,8 @@ export async function GET() {
     });
   } catch (error) {
     console.error('Config GET error:', error);
-    return NextResponse.json({ error: String(error?.message || 'Error fetching config') }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Error fetching config';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
@@ -43,6 +44,7 @@ export async function PUT(request: Request) {
     return NextResponse.json(config);
   } catch (error) {
     console.error('Config PUT error:', error);
-    return NextResponse.json({ error: String(error?.message || 'Error saving config') }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Error saving config';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
