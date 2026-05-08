@@ -29,7 +29,12 @@ export default function AdminSettingsPage() {
   useEffect(() => {
     const fetchConfig = async () => {
       try {
-        const res = await fetch('/api/config');
+        const token = localStorage.getItem('authToken') ?? '';
+        const res = await fetch('/api/config', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
         if (res.ok) {
           const data = await res.json();
           setConfig(data);
@@ -61,10 +66,14 @@ export default function AdminSettingsPage() {
         shippingPerPiece: normalizeShippingValue(config.shippingPerPiece),
         shippingPerWeight: normalizeShippingValue(config.shippingPerWeight),
       };
+      const token = localStorage.getItem('authToken') ?? '';
 
       const res = await fetch('/api/config', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify(payload),
       });
       if (res.ok) {

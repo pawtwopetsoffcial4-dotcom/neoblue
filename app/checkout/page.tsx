@@ -28,7 +28,12 @@ export default function CheckoutPage() {
   useEffect(() => {
     const fetchConfig = async () => {
       try {
-        const res = await fetch('/api/config');
+        const token = localStorage.getItem('authToken') ?? '';
+        const res = await fetch('/api/config', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
         if (!res.ok) return;
         const data = await res.json();
         setShippingPerPiece(Number(data?.shippingPerPiece) || 0);

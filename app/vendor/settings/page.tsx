@@ -14,7 +14,12 @@ export default function VendorShippingSettingsPage() {
   useEffect(() => {
     const fetchConfig = async () => {
       try {
-        const res = await fetch('/api/config');
+        const token = localStorage.getItem('authToken') ?? '';
+        const res = await fetch('/api/config', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
         if (!res.ok) return;
         const data = await res.json();
         setConfig({
@@ -38,10 +43,14 @@ export default function VendorShippingSettingsPage() {
         shippingPerPiece: Number(config.shippingPerPiece) >= 0 ? Number(config.shippingPerPiece) : 0,
         shippingPerWeight: Number(config.shippingPerWeight) >= 0 ? Number(config.shippingPerWeight) : 0,
       };
+      const token = localStorage.getItem('authToken') ?? '';
 
       const res = await fetch('/api/config', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify(payload),
       });
 
