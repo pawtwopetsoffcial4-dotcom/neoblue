@@ -1,7 +1,9 @@
 import { connectDB } from '@/lib/db';
 import Order from '@/lib/models/Order';
 import Product from '@/lib/models/Product';
+import StoreConfig from '@/lib/models/StoreConfig';
 import { createErrorResponse, createSuccessResponse, getTokenFromRequest, verifyToken } from '@/lib/utils/auth';
+import { calculateShippingAmount } from '@/lib/utils/shipping';
 import { NextRequest } from 'next/server';
 
 // GET orders (user sees their orders, vendor sees their vendor orders, admin sees all)
@@ -58,7 +60,7 @@ export async function POST(request: NextRequest) {
       return createErrorResponse('Only users can create orders', 403);
     }
 
-    const { products, address, paymentId, razorpayOrderId, shippingAmount = 0 } = await request.json();
+    const { products, address, paymentId, razorpayOrderId } = await request.json();
 
     if (!products || !Array.isArray(products) || products.length === 0) {
       return createErrorResponse('Please provide products', 400);
@@ -76,7 +78,13 @@ export async function POST(request: NextRequest) {
       return createErrorResponse('Some products not found', 404);
     }
 
+    const storeConfig = await StoreConfig.findOne({});
+    if (!storeConfig) {
+      return createErrorResponse('Shipping configuration is not available', 500);
+    }
+
     let totalAmount = 0;
+    const cartQuantity = products.reduce((sum: number, item: any) => sum + Number(item.quantity || 0), 0);
     const orderProducts = products.map((p: any) => {
       const product = dbProducts.find((dp) => dp._id.toString() === p.productId);
       totalAmount += product.price * p.quantity;
@@ -89,16 +97,15 @@ export async function POST(request: NextRequest) {
 
     // For now, assume all products from same vendor (simplify)
     const vendorId = dbProducts[0].vendorId;
-    const normalizedShippingAmount = Number(shippingAmount);
-    const validShippingAmount = Number.isFinite(normalizedShippingAmount) && normalizedShippingAmount >= 0 ? normalizedShippingAmount : 0;
+    const shippingAmount = calculateShippingAmount(cartQuantity, storeConfig.shippingPerPiece, storeConfig.shippingPerWeight);
 
     // Create order
     const order = await Order.create({
       userId: payload.userId,
       vendorId,
       products: orderProducts,
-      totalAmount: totalAmount + validShippingAmount,
-      shippingAmount: validShippingAmount,
+      totalAmount: totalAmount + shippingAmount,
+      shippingAmount,
       address,
       paymentId,
       razorpayOrderId,

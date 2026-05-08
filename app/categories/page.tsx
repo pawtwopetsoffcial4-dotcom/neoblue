@@ -4,7 +4,6 @@ import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
 import type { MarketplaceProduct } from '@/lib/types/marketplace';
-import { PRODUCT_CATALOG } from '@/lib/catalog';
 
 type UICategory = {
   slug: string;
@@ -14,74 +13,7 @@ type UICategory = {
   subcategories: string[];
 };
 
-const CATEGORY_META: Record<string, Omit<UICategory, 'slug'>> = {
-  Guppies: {
-    name: 'Guppies',
-    description: 'Colorful guppy strains selected for active behavior and hardy adaptation.',
-    image: '/fishes_cat_cover/Guppies.jpeg',
-    subcategories: [...PRODUCT_CATALOG.Guppies],
-  },
-  Crayfish: {
-    name: 'Crayfish',
-    description: 'Freshwater crayfish varieties for collectors and planted setups.',
-    image: 'https://img.freepik.com/free-photo/beautiful-fish-undersea_23-2150737797.jpg?w=800',
-    subcategories: [...PRODUCT_CATALOG.Crayfish],
-  },
-  Kribensis: {
-    name: 'Kribensis',
-    description: 'Compact cichlids with strong color and calm community appeal.',
-    image: 'https://img.freepik.com/free-photo/beautiful-fish-undersea_23-2150737797.jpg?w=800',
-    subcategories: [...PRODUCT_CATALOG.Kribensis],
-  },
-  Betta: {
-    name: 'Betta',
-    description: 'Premium bettas with vivid fins and strong health standards.',
-    image: 'https://img.freepik.com/free-photo/beautiful-fish-undersea_23-2150737797.jpg?w=800',
-    subcategories: [],
-  },
-  "Angel's": {
-    name: "Angel's",
-    description: 'Elegant angelfish varieties curated for home and display aquariums.',
-    image: 'https://img.freepik.com/free-photo/beautiful-fish-undersea_23-2150737797.jpg?w=800',
-    subcategories: [],
-  },
-  Discuss: {
-    name: 'Discuss',
-    description: 'High-grade discus fish selected for pattern, color, and vitality.',
-    image: 'https://img.freepik.com/free-photo/beautiful-fish-undersea_23-2150737797.jpg?w=800',
-    subcategories: [],
-  },
-  Platy: {
-    name: 'Platy',
-    description: 'Community-friendly platies available in bright and rare color mixes.',
-    image: 'https://img.freepik.com/free-photo/beautiful-fish-undersea_23-2150737797.jpg?w=800',
-    subcategories: [],
-  },
-  'Exotic Molly': {
-    name: 'Exotic Molly',
-    description: 'Exotic molly lines known for vibrant patterns and stable breeding stock.',
-    image: 'https://img.freepik.com/free-photo/beautiful-fish-undersea_23-2150737797.jpg?w=800',
-    subcategories: [],
-  },
-  Zebra: {
-    name: 'Zebra',
-    description: 'Distinct zebra-pattern fish collections with strong compatibility profiles.',
-    image: 'https://img.freepik.com/free-photo/beautiful-fish-undersea_23-2150737797.jpg?w=800',
-    subcategories: [],
-  },
-  Rams: {
-    name: 'Rams',
-    description: 'Beautiful Ram Cichlids with vibrant coloration and active personalities.',
-    image: '/fishes_cat_cover/Rams.jpeg',
-    subcategories: [],
-  },
-  Shrimps: {
-    name: 'Shrimps',
-    description: 'Fascinating freshwater shrimp for clean-up crews and planted tanks.',
-    image: '/fishes_cat_cover/Shrips.jpeg',
-    subcategories: [],
-  },
-};
+// CATEGORY_META removed: category metadata will be derived from DB and products at runtime.
 
 const toSlug = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 
@@ -123,21 +55,25 @@ export default function CategoriesPage() {
   }, []);
 
   const categories: UICategory[] = useMemo(() => {
-    const allCategories = new Set([
-      ...Object.keys(CATEGORY_META),
+    const allCategories = new Set<string>([
       ...availableCategories,
-      ...products.map((item) => item.category),
+      ...products.map((item) => item.category).filter(Boolean),
     ]);
 
-    return Array.from(allCategories).map((category) => ({
-      slug: toSlug(category),
-      ...(CATEGORY_META[category] ?? {
-        name: category,
-        description: `Browse premium ${category.toLowerCase()} products.`,
-        image: 'https://img.freepik.com/free-photo/beautiful-fish-undersea_23-2150737797.jpg?w=800',
-        subcategories: [],
-      }),
-    }));
+    return Array.from(allCategories).map((category) => {
+      const cleaned = String(category);
+      const categoryProducts = products.filter((p) => p.category === cleaned);
+      const subcategories = Array.from(new Set(categoryProducts.map((p) => p.subcategory).filter(Boolean)));
+      const image = categoryProducts.find((p) => Array.isArray(p.images) && p.images.length > 0)?.images?.[0] ?? 'https://img.freepik.com/free-photo/beautiful-fish-undersea_23-2150737797.jpg?w=800';
+
+      return {
+        slug: toSlug(cleaned),
+        name: cleaned,
+        description: `Browse premium ${cleaned.toLowerCase()} products.`,
+        image,
+        subcategories,
+      } as UICategory;
+    });
   }, [availableCategories, products]);
 
   return (

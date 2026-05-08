@@ -119,7 +119,7 @@ export default function ProductDetailPage({ params }: ProductDetailProps) {
           
           {/* Image Gallery */}
            <div className="lg:col-span-7 -mx-4 sm:mx-0 flex flex-col gap-4">
-             <div className="relative aspect-square min-h-[62vh] md:min-h-0 w-full rounded-none sm:rounded-3xl bg-slate-900 sm:border sm:border-slate-100 sm:shadow-sm overflow-hidden group">
+             <div className="relative aspect-square w-full rounded-none sm:rounded-3xl bg-slate-900 sm:border sm:border-slate-100 sm:shadow-sm overflow-hidden group">
                  <img
                 src={activeImage}
                   alt={product.title}

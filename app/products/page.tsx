@@ -49,6 +49,7 @@ export default function ProductsPage() {
   const [tag, setTag] = useState('All');
   const [inStockOnly, setInStockOnly] = useState(false);
   const [availableCategories, setAvailableCategories] = useState<string[]>([]);
+  const [filterModalOpen, setFilterModalOpen] = useState(false);
 
   const fetchProducts = async () => {
     try {
@@ -179,181 +180,34 @@ export default function ProductsPage() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 pb-20 font-sans selection:bg-blue-100">
       <div className="flex h-screen overflow-hidden">
-        <main className="flex-1 overflow-y-auto bg-[#F5F7FA] px-4 py-4">
-          <section className="relative mb-4 overflow-hidden rounded-3xl border border-blue-100 bg-white px-5 py-6 shadow-sm md:px-7 md:py-7">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.12),transparent_38%),radial-gradient(circle_at_bottom_right,rgba(14,165,233,0.12),transparent_34%)]" />
-            <div className="relative grid gap-6 lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
-              <div className="space-y-4">
-                <div className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.2em] text-blue-700">
-                  <Sparkles className="h-3.5 w-3.5" /> Live catalog
-                </div>
-                <div className="space-y-2">
-                  <h1 className="text-3xl font-black tracking-tight text-slate-950 md:text-4xl lg:text-5xl">
-                    Browse fish with faster filtering and cleaner decisions.
-                  </h1>
-                  <p className="max-w-2xl text-sm leading-6 text-slate-600 md:text-base">
-                    Search by species, narrow by category, and spot stock availability before you open a product page.
-                  </p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-3">
-                <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-                  <p className="text-2xl font-black text-slate-950">{products.length}</p>
-                  <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">Products</p>
-                </div>
-                <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-                  <p className="text-2xl font-black text-slate-950">{inStockCount}</p>
-                  <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">In stock</p>
-                </div>
-                <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-                  <p className="text-2xl font-black text-slate-950">{featuredCount}</p>
-                  <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">Top rated</p>
-                </div>
-              </div>
+        <main className="flex-1 overflow-y-auto bg-white px-3 py-2">
+          {/* Minimal Floating Search Bar */}
+          <div className="sticky top-0 z-20 mb-3 flex gap-2 bg-white py-2">
+            <div className="flex-1 relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <input
+                type="search"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search fish..."
+                className="w-full h-9 rounded-full border border-slate-300 bg-white pl-9 pr-3 text-xs font-medium text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-200"
+              />
             </div>
-          </section>
+            <button
+              onClick={() => setFilterModalOpen(true)}
+              className={`h-9 px-3 rounded-full font-semibold text-xs whitespace-nowrap transition-colors ${
+                activeFilterCount > 0
+                  ? 'bg-blue-600 text-white'
+                  : 'border border-slate-300 bg-white text-slate-700 hover:border-slate-400'
+              }`}
+            >
+              {activeFilterCount > 0 ? `${activeFilterCount} Filter${activeFilterCount !== 1 ? 's' : ''}` : 'Filters'}
+            </button>
+          </div>
 
-          <section className="sticky top-0 z-10 mb-2 rounded-3xl border border-slate-200 bg-white/90 px-4 py-4 shadow-sm backdrop-blur-xl md:px-5">
-            <div className="grid gap-3 lg:grid-cols-[1.25fr_repeat(5,minmax(0,1fr))_auto] lg:items-end">
-              <label className="block">
-                <span className="mb-2 block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">Search</span>
-                <div className="relative">
-                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                  <input
-                    type="search"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder="Search by fish name or scientific name"
-                    className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 pl-10 pr-4 text-sm font-medium text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-blue-300 focus:bg-white"
-                  />
-                </div>
-              </label>
-
-              <div className="shrink-0">
-                <span className="mb-2 block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">Sort</span>
-                <div className="relative">
-                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                  <select
-                    className="h-12 w-full appearance-none rounded-2xl border border-slate-200 bg-slate-50 px-4 pr-9 text-sm font-medium text-slate-900 outline-none transition-colors focus:border-blue-300 focus:bg-white"
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value)}
-                  >
-                    <option value="featured">Featured</option>
-                    <option value="price-asc">Price: Low to High</option>
-                    <option value="price-desc">Price: High to Low</option>
-                    <option value="rating-desc">Top Rated</option>
-                    <option value="name-asc">Name: A to Z</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="shrink-0">
-                <span className="mb-2 block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">Category</span>
-                <div className="relative">
-                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                  <select
-                    className="h-12 w-full appearance-none rounded-2xl border border-slate-200 bg-slate-50 px-4 pr-9 text-sm font-medium text-slate-900 outline-none transition-colors focus:border-blue-300 focus:bg-white"
-                    value={category}
-                    onChange={(e) => {
-                      setCategory(e.target.value);
-                      setSubcategory('All');
-                    }}
-                  >
-                    {categoriesList.map((item) => (
-                      <option key={item} value={item}>
-                        {item}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="shrink-0">
-                <span className="mb-2 block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">Type</span>
-                <div className="relative">
-                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                  <select
-                    className="h-12 w-full appearance-none rounded-2xl border border-slate-200 bg-slate-50 px-4 pr-9 text-sm font-medium text-slate-900 outline-none transition-colors focus:border-blue-300 focus:bg-white"
-                    value={waterType}
-                    onChange={(e) => setWaterType(e.target.value)}
-                  >
-                    {waterTypesList.map((item) => (
-                      <option key={item} value={item}>
-                        {item}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="shrink-0">
-                <span className="mb-2 block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">Tag</span>
-                <div className="relative">
-                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                  <select
-                    className="h-12 w-full appearance-none rounded-2xl border border-slate-200 bg-slate-50 px-4 pr-9 text-sm font-medium text-slate-900 outline-none transition-colors focus:border-blue-300 focus:bg-white"
-                    value={tag}
-                    onChange={(e) => setTag(e.target.value)}
-                  >
-                    {tagsList.map((item) => (
-                      <option key={item} value={item}>
-                        {item}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="shrink-0">
-                <span className="mb-2 block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">Subcategory</span>
-                <select
-                  className="h-12 min-w-44 rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm font-medium text-slate-900 outline-none transition-colors focus:border-blue-300 focus:bg-white disabled:cursor-not-allowed disabled:bg-slate-100"
-                  value={subcategory}
-                  onChange={(e) => setSubcategory(e.target.value)}
-                  disabled={category === 'All'}
-                >
-                  {subcategoriesList.map((item) => (
-                    <option key={item} value={item}>
-                      {item}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-2 lg:justify-end">
-                <button
-                  type="button"
-                  onClick={() => setInStockOnly((value) => !value)}
-                  className={`inline-flex h-12 items-center gap-2 rounded-full border px-4 text-sm font-semibold transition-colors ${
-                    inStockOnly
-                      ? 'border-blue-200 bg-blue-50 text-blue-700'
-                      : 'border-slate-200 bg-white text-slate-700 hover:border-blue-200'
-                  }`}
-                >
-                  <span className={`h-2 w-2 rounded-full ${inStockOnly ? 'bg-blue-600' : 'bg-slate-300'}`} />
-                  In stock only
-                </button>
-                <button
-                  type="button"
-                  onClick={clearFilters}
-                  className="inline-flex h-12 items-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition-colors hover:border-slate-300 hover:text-slate-950"
-                >
-                  <X className="h-4 w-4" /> Clear
-                </button>
-              </div>
-            </div>
-          </section>
-
-          <div className="mb-2 flex items-center justify-between gap-3">
-            <p className="text-sm font-medium text-slate-500">
-              {filteredProducts.length} product{filteredProducts.length === 1 ? '' : 's'} visible
-            </p>
-            {activeFilterCount > 0 && (
-              <p className="text-sm font-medium text-blue-700">
-                {activeFilterCount} active filter{activeFilterCount === 1 ? '' : 's'}
-              </p>
-            )}
+          {/* Product count badge */}
+          <div className="mb-2 text-xs font-medium text-slate-500">
+            {filteredProducts.length} product{filteredProducts.length === 1 ? '' : 's'}
           </div>
 
           {isLoading && (
@@ -465,6 +319,142 @@ export default function ProductsPage() {
           )}
         </main>
       </div>
+
+      {/* Filter Modal */}
+      {filterModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 py-6">
+          <div className="w-full max-w-md rounded-2xl bg-white shadow-xl">
+            <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
+              <h2 className="text-sm font-bold text-slate-950">Filters</h2>
+              <button
+                onClick={() => setFilterModalOpen(false)}
+                className="rounded-lg hover:bg-slate-100 p-1.5 transition-colors"
+              >
+                <X className="h-4 w-4 text-slate-600" />
+              </button>
+            </div>
+
+            <div className="max-h-[70vh] overflow-y-auto px-4 py-4 space-y-4">
+              {/* Sort */}
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wide text-slate-600 mb-2">Sort</label>
+                <select
+                  className="w-full h-9 rounded-lg border border-slate-300 bg-white px-3 text-xs font-medium text-slate-900 outline-none transition-colors focus:border-blue-500 focus:ring-1 focus:ring-blue-200"
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                >
+                  <option value="featured">Featured</option>
+                  <option value="price-asc">Price: Low to High</option>
+                  <option value="price-desc">Price: High to Low</option>
+                  <option value="rating-desc">Top Rated</option>
+                  <option value="name-asc">Name: A to Z</option>
+                </select>
+              </div>
+
+              {/* Category */}
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wide text-slate-600 mb-2">Category</label>
+                <select
+                  className="w-full h-9 rounded-lg border border-slate-300 bg-white px-3 text-xs font-medium text-slate-900 outline-none transition-colors focus:border-blue-500 focus:ring-1 focus:ring-blue-200"
+                  value={category}
+                  onChange={(e) => {
+                    setCategory(e.target.value);
+                    setSubcategory('All');
+                  }}
+                >
+                  {categoriesList.map((item) => (
+                    <option key={item} value={item}>
+                      {item}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Water Type */}
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wide text-slate-600 mb-2">Water Type</label>
+                <select
+                  className="w-full h-9 rounded-lg border border-slate-300 bg-white px-3 text-xs font-medium text-slate-900 outline-none transition-colors focus:border-blue-500 focus:ring-1 focus:ring-blue-200"
+                  value={waterType}
+                  onChange={(e) => setWaterType(e.target.value)}
+                >
+                  {waterTypesList.map((item) => (
+                    <option key={item} value={item}>
+                      {item}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Tag */}
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wide text-slate-600 mb-2">Tag</label>
+                <select
+                  className="w-full h-9 rounded-lg border border-slate-300 bg-white px-3 text-xs font-medium text-slate-900 outline-none transition-colors focus:border-blue-500 focus:ring-1 focus:ring-blue-200"
+                  value={tag}
+                  onChange={(e) => setTag(e.target.value)}
+                >
+                  {tagsList.map((item) => (
+                    <option key={item} value={item}>
+                      {item}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Subcategory */}
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wide text-slate-600 mb-2">Subcategory</label>
+                <select
+                  className="w-full h-9 rounded-lg border border-slate-300 bg-white px-3 text-xs font-medium text-slate-900 outline-none transition-colors focus:border-blue-500 focus:ring-1 focus:ring-blue-200 disabled:cursor-not-allowed disabled:bg-slate-100"
+                  value={subcategory}
+                  onChange={(e) => setSubcategory(e.target.value)}
+                  disabled={category === 'All'}
+                >
+                  {subcategoriesList.map((item) => (
+                    <option key={item} value={item}>
+                      {item}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* In Stock Only */}
+              <div className="flex items-center gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setInStockOnly((value) => !value)}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-xs font-semibold transition-colors ${
+                    inStockOnly
+                      ? 'border-blue-500 bg-blue-50 text-blue-700'
+                      : 'border-slate-300 bg-white text-slate-700'
+                  }`}
+                >
+                  <span className={`h-2.5 w-2.5 rounded ${inStockOnly ? 'bg-blue-600' : 'bg-slate-300'}`} />
+                  In stock only
+                </button>
+              </div>
+            </div>
+
+            <div className="flex gap-2 border-t border-slate-200 px-4 py-3">
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="flex-1 h-9 rounded-lg border border-slate-300 bg-white text-xs font-bold text-slate-700 transition-colors hover:bg-slate-50"
+              >
+                Clear All
+              </button>
+              <button
+                type="button"
+                onClick={() => setFilterModalOpen(false)}
+                className="flex-1 h-9 rounded-lg bg-blue-600 text-xs font-bold text-white transition-colors hover:bg-blue-700"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

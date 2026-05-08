@@ -8,6 +8,7 @@ import { useCart } from '@/lib/hooks/useCart';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { apiClient } from '@/lib/api-client';
 import { Trash2, Plus, Minus, MapPin, ShoppingBag, ArrowRight, ShieldCheck, ArrowLeft } from 'lucide-react';
+import { calculateShippingAmount } from '@/lib/utils/shipping';
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -41,7 +42,7 @@ export default function CheckoutPage() {
   }, []);
 
   const cartQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
-  const shippingAmount = cartQuantity <= 1 ? shippingPerPiece : shippingPerWeight * cartQuantity;
+  const shippingAmount = calculateShippingAmount(cartQuantity, shippingPerPiece, shippingPerWeight);
   const orderTotal = totalAmount + shippingAmount;
 
   const handlePayNow = async () => {
@@ -63,13 +64,15 @@ export default function CheckoutPage() {
     try {
       setIsPaying(true);
 
+        const products = items.map((item) => ({ productId: item.productId, quantity: item.quantity }));
+
       const razorpayOrder = await fetch('/api/checkout/create-order', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${localStorage.getItem('authToken') ?? ''}`,
         },
-        body: JSON.stringify({ amount: orderTotal }),
+          body: JSON.stringify({ products }),
       }).then((res) => res.json());
 
       const options = {
@@ -90,9 +93,8 @@ export default function CheckoutPage() {
           razorpay_signature: string;
         }) => {
           await apiClient.createOrder({
-            products: items.map((item) => ({ productId: item.productId, quantity: item.quantity })),
+            products,
             address,
-            shippingAmount,
             paymentId: response.razorpay_payment_id,
             razorpayOrderId: response.razorpay_order_id,
           });
@@ -274,7 +276,7 @@ export default function CheckoutPage() {
                       <span className="text-gray-900">₹{totalAmount.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between items-center text-gray-700">
-                      <span>Shipping ({items.reduce((a, b) => a + b.quantity, 0) <= 1 ? 'per piece' : 'by weight'})</span>
+                      <span>Shipping ({cartQuantity === 1 ? 'per piece' : 'by weight'})</span>
                       <span>₹{shippingAmount.toFixed(2)}</span>
                     </div>
                   </div>

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { PRODUCT_CATEGORIES } from '@/lib/catalog';
 import StoreConfig from '@/lib/models/StoreConfig';
+import { normalizeShippingRate } from '@/lib/utils/shipping';
 
 export async function GET() {
   try {
@@ -15,6 +16,8 @@ export async function GET() {
 
     return NextResponse.json({
       ...payload,
+      shippingPerPiece: normalizeShippingRate(payload.shippingPerPiece),
+      shippingPerWeight: normalizeShippingRate(payload.shippingPerWeight),
       categories: Array.isArray(payload.categories) && payload.categories.length ? payload.categories : PRODUCT_CATEGORIES,
     });
   } catch (error) {
@@ -32,8 +35,8 @@ export async function PUT(request: Request) {
     if (Array.isArray(raw?.categories)) {
       data.categories = raw.categories.map((c: any) => String(c).trim()).filter((c: string) => c.length > 0);
     }
-    data.shippingPerPiece = Number(raw?.shippingPerPiece) >= 0 ? Number(raw.shippingPerPiece) : 0;
-    data.shippingPerWeight = Number(raw?.shippingPerWeight) >= 0 ? Number(raw.shippingPerWeight) : 0;
+    data.shippingPerPiece = normalizeShippingRate(raw?.shippingPerPiece);
+    data.shippingPerWeight = normalizeShippingRate(raw?.shippingPerWeight);
 
     const config = await StoreConfig.findOneAndUpdate({}, { $set: data }, { new: true, upsert: true });
 
