@@ -49,9 +49,9 @@ export default async function BlogPage() {
         <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {blogs.map((blog) => (
             <article key={blog._id} className="group rounded-3xl overflow-hidden border border-blue-100 bg-white shadow-sm hover:border-blue-300 transition-colors">
-              <div className="relative aspect-[4/3] overflow-hidden">
+              <div className="relative aspect-4/3 overflow-hidden">
                 <img src={blog.coverImage} alt={blog.title} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-950/15 to-transparent" />
+                <div className="absolute inset-0 bg-linear-to-t from-slate-950/70 via-slate-950/15 to-transparent" />
                 {blog.featured && <span className="absolute top-4 left-4 rounded-full bg-blue-600 text-white px-3 py-1 text-xs font-bold uppercase tracking-wide">Featured</span>}
               </div>
 
