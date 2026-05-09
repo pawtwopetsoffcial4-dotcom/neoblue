@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { X } from 'lucide-react';
+import { ArrowRight, Fish, Sparkles, X } from 'lucide-react';
 import { CldUploadWidget } from 'next-cloudinary';
 import { apiClient } from '@/lib/api-client';
 import { FISH_NAMES } from '@/lib/catalog';
@@ -85,13 +85,33 @@ export default function VendorAddProductPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue-600 mb-2">Inventory</p>
-        <h1 className="text-3xl md:text-4xl font-black tracking-tight">Add Product</h1>
-      </div>
+      <section className="rounded-[2rem] bg-linear-to-br from-blue-600 via-cyan-600 to-slate-950 p-6 text-white shadow-[0_24px_80px_-40px_rgba(2,132,199,0.6)] sm:p-8">
+        <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.35em] text-blue-100 mb-2">Inventory</p>
+            <h1 className="text-3xl font-black tracking-tight sm:text-4xl">Add Product</h1>
+            <p className="mt-4 max-w-2xl text-sm leading-7 text-blue-50/90 sm:text-base">
+              Add a new listing with faster product naming, clear pricing, and a cleaner publishing flow.
+            </p>
+          </div>
 
-      <form onSubmit={handleSubmit} className="rounded-2xl bg-white border border-blue-100 p-6 space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3 rounded-3xl bg-white/10 p-4 ring-1 ring-white/15 backdrop-blur">
+            <div className="rounded-2xl bg-white/10 px-4 py-3">
+              <Fish className="h-5 w-5 text-blue-100" />
+              <p className="mt-3 text-xs font-bold uppercase tracking-[0.25em] text-blue-100">Fish names</p>
+              <p className="mt-1 text-sm text-white">Autocomplete ready</p>
+            </div>
+            <div className="rounded-2xl bg-white/10 px-4 py-3">
+              <Sparkles className="h-5 w-5 text-blue-100" />
+              <p className="mt-3 text-xs font-bold uppercase tracking-[0.25em] text-blue-100">Pricing</p>
+              <p className="mt-1 text-sm text-white">Piece + pair</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <form onSubmit={handleSubmit} className="rounded-[2rem] border border-blue-100 bg-white p-5 space-y-5 shadow-sm sm:p-6">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <input
             list="fish-name-autofill"
             className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
@@ -230,7 +250,7 @@ export default function VendorAddProductPage() {
         )}
 
         {imageUrl && (
-          <div className="relative w-32 h-32 rounded-xl overflow-hidden border border-blue-200 shadow-sm">
+          <div className="relative w-32 h-32 rounded-2xl overflow-hidden border border-blue-200 shadow-sm">
             <img src={imageUrl} alt="Preview" className="w-full h-full object-cover" />
             <button
               type="button"
@@ -253,9 +273,9 @@ export default function VendorAddProductPage() {
         <button
           type="submit"
           disabled={isSaving || isUploading}
-          className="h-11 px-6 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors disabled:opacity-60"
+          className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-blue-600 px-6 font-semibold text-white transition-colors hover:bg-blue-700 disabled:opacity-60"
         >
-          {isSaving ? 'Saving...' : 'Create Product'}
+          {isSaving ? 'Saving...' : 'Create Product'} <ArrowRight className="h-4 w-4" />
         </button>
       </form>
     </div>

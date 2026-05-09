@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { X } from 'lucide-react';
+import { ArrowRight, PackageSearch, PlusCircle, X } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
 import { FISH_NAMES } from '@/lib/catalog';
 import type { MarketplaceProduct } from '@/lib/types/marketplace';
@@ -122,24 +122,24 @@ export default function VendorProductsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 rounded-3xl bg-linear-to-br from-blue-600 to-slate-950 p-5 text-white shadow-lg sm:flex-row sm:items-end sm:justify-between sm:p-6">
+      <section className="flex flex-col gap-4 rounded-[2rem] bg-linear-to-br from-blue-600 via-cyan-600 to-slate-950 p-5 text-white shadow-[0_24px_80px_-40px_rgba(2,132,199,0.6)] sm:flex-row sm:items-end sm:justify-between sm:p-6">
         <div>
-          <p className="text-xs font-bold uppercase tracking-[0.3em] text-blue-100 mb-2">Inventory</p>
-          <h1 className="text-3xl md:text-4xl font-black tracking-tight">Your Products</h1>
+          <p className="text-xs font-bold uppercase tracking-[0.35em] text-blue-100 mb-2">Inventory</p>
+          <h1 className="text-3xl font-black tracking-tight sm:text-4xl">Your Products</h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-blue-50/90">
             Review stock, check pricing, and remove products quickly from one screen.
           </p>
         </div>
-        <Link href="/vendor/add-product" className="inline-flex h-11 items-center justify-center rounded-full bg-white px-6 font-semibold text-blue-700 transition-colors hover:bg-blue-50 sm:shrink-0">
-          Add Product
+        <Link href="/vendor/add-product" className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-white px-6 font-semibold text-blue-700 transition-colors hover:bg-blue-50 sm:shrink-0">
+          <PlusCircle className="h-4 w-4" /> Add Product
         </Link>
-      </div>
+      </section>
 
-      <div className="rounded-3xl border border-blue-100 bg-white shadow-sm overflow-hidden">
+      <div className="rounded-[2rem] border border-blue-100 bg-white shadow-sm overflow-hidden">
         {products.length === 0 ? (
-          <div className="px-6 py-16 text-center">
-            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-blue-50 text-blue-600">
-              <span className="text-2xl font-black">0</span>
+          <div className="px-6 py-16 text-center sm:px-10">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+              <PackageSearch className="h-7 w-7" />
             </div>
             <h2 className="text-lg font-bold text-slate-900">No products yet</h2>
             <p className="mt-2 text-sm leading-6 text-slate-500">
@@ -153,7 +153,7 @@ export default function VendorProductsPage() {
           <>
             <div className="grid gap-3 p-4 sm:p-5 md:hidden">
               {products.map((product) => (
-                <article key={product._id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4 shadow-sm">
+                <article key={product._id} className="rounded-3xl border border-slate-200 bg-slate-50 p-4 shadow-sm">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <h2 className="truncate text-base font-bold text-slate-900">{product.title}</h2>
@@ -179,9 +179,9 @@ export default function VendorProductsPage() {
                     <div className="flex gap-2">
                       <button
                         onClick={() => openEdit(product)}
-                        className="h-10 rounded-full border border-blue-200 px-4 text-sm font-semibold text-blue-700 transition-colors hover:bg-blue-50"
+                        className="inline-flex h-10 items-center gap-2 rounded-full border border-blue-200 px-4 text-sm font-semibold text-blue-700 transition-colors hover:bg-blue-50"
                       >
-                        Edit
+                        Edit <ArrowRight className="h-4 w-4" />
                       </button>
                       <button
                         onClick={() => handleDelete(product._id)}
@@ -214,12 +214,12 @@ export default function VendorProductsPage() {
                       <td className="px-5 py-4 text-slate-900">₹{product.price.toFixed(2)}</td>
                       <td className="px-5 py-4 text-slate-600">{product.inStock ? 'In stock' : 'Out of stock'}</td>
                       <td className="px-5 py-4 text-right">
-                        <div className="inline-flex gap-2">
+                          <div className="inline-flex gap-2">
                           <button
                             onClick={() => openEdit(product)}
-                            className="h-9 px-4 rounded-full border border-blue-200 text-blue-700 hover:bg-blue-50 transition-colors font-semibold"
+                              className="inline-flex h-9 items-center gap-2 rounded-full border border-blue-200 px-4 font-semibold text-blue-700 transition-colors hover:bg-blue-50"
                           >
-                            Edit
+                              Edit <ArrowRight className="h-4 w-4" />
                           </button>
                           <button
                             onClick={() => handleDelete(product._id)}
@@ -240,7 +240,7 @@ export default function VendorProductsPage() {
 
       {editingProduct && editForm && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/60 px-0 py-0 backdrop-blur-sm md:items-center md:px-4 md:py-6">
-          <div className="w-full max-w-4xl max-h-[92vh] overflow-y-auto rounded-t-3xl bg-white shadow-2xl border border-blue-100 md:rounded-3xl">
+          <div className="w-full max-w-4xl max-h-[92vh] overflow-y-auto rounded-t-[2rem] bg-white shadow-2xl border border-blue-100 md:rounded-[2rem]">
             <div className="sticky top-0 z-10 flex items-center justify-between border-b border-blue-100 bg-white px-5 py-4 md:px-6">
               <div>
                 <p className="text-xs font-bold uppercase tracking-[0.25em] text-blue-600 mb-1">Edit Product</p>

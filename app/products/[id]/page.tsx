@@ -180,8 +180,26 @@ export default function ProductDetailPage({ params }: ProductDetailProps) {
 
               {/* Price & Cart Actions */}
               <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 mb-8">
-                 <div className="flex items-end gap-3 mb-6">
-                    <p className="text-4xl font-black text-slate-900 leading-none">{formatPrice(product.price)}</p>
+                 <div className="flex items-start gap-3 mb-6">
+                    <div className="flex-1 space-y-2">
+                      <p className="text-xs font-bold uppercase tracking-[0.3em] text-blue-600">Pricing</p>
+                      <p className="text-4xl font-black text-slate-900 leading-none">{formatPrice(product.price)}</p>
+                      <div className="flex flex-col gap-1 text-sm text-slate-600">
+                        {typeof product.perPiecePrice === 'number' && (
+                          <span>
+                            <span className="font-semibold text-slate-900">{formatPrice(product.perPiecePrice)}</span> per piece
+                          </span>
+                        )}
+                        {typeof product.perPairPrice === 'number' && (
+                          <span>
+                            <span className="font-semibold text-slate-900">{formatPrice(product.perPairPrice)}</span> per pair
+                          </span>
+                        )}
+                        {typeof product.perPiecePrice !== 'number' && typeof product.perPairPrice !== 'number' && (
+                          <span className="text-slate-400">Per-piece and per-pair pricing will appear here when available.</span>
+                        )}
+                      </div>
+                    </div>
                     <p className="text-lg font-medium text-slate-400 line-through mb-1">{formatPrice(product.price * 1.25)}</p>
                     <span className="ml-auto inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-100">
                       Save 20%

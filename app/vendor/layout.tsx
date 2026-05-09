@@ -36,64 +36,71 @@ export default function VendorLayout({ children }: { children: React.ReactNode }
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 pt-0">
-      <div className="md:hidden bg-white border-b border-blue-100 px-4 py-4 shadow-sm">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue-600">Vendor Panel</p>
-            <h1 className="text-lg font-bold text-slate-900">Navigation</h1>
-          </div>
-          <button
-            type="button"
-            onClick={() => setMobileMenuOpen((current) => !current)}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-blue-200 text-blue-700 hover:bg-blue-50 transition-colors"
-            aria-expanded={mobileMenuOpen}
-            aria-label="Toggle vendor navigation"
-          >
-            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
-        </div>
-
-        {mobileMenuOpen && (
-          <div className="mt-4 rounded-2xl border border-blue-100 bg-slate-50 p-3 shadow-sm">
-            <div className="space-y-2">
-              {navItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = pathname === item.href;
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${
-                      isActive ? 'bg-blue-600 text-white' : 'bg-white text-slate-700 hover:bg-blue-50'
-                    }`}
-                  >
-                    <Icon className="h-4 w-4" />
-                    <span className="font-semibold text-sm flex-1 text-left">{item.label}</span>
-                    {isActive ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                  </Link>
-                );
-              })}
-              <button
-                type="button"
-                onClick={() => {
-                  logout();
-                  router.push('/auth/login');
-                }}
-                className="mt-3 w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-blue-200 text-blue-700 font-semibold hover:bg-blue-50 transition-colors"
-              >
-                <LogOut className="h-4 w-4" /> Logout
-              </button>
+    <div className="min-h-screen bg-[#f5f8ff] text-slate-900">
+      <div className="sticky top-0 z-40 border-b border-blue-100/80 bg-white/90 backdrop-blur-xl md:hidden">
+        <div className="px-4 py-4">
+          <div className="flex items-center justify-between gap-4 rounded-2xl bg-linear-to-r from-blue-600 to-slate-950 px-4 py-4 text-white shadow-lg">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.35em] text-blue-100">Vendor Panel</p>
+              <h1 className="mt-1 text-lg font-black tracking-tight">NeoBlue Studio</h1>
             </div>
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen((current) => !current)}
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
+              aria-expanded={mobileMenuOpen}
+              aria-label="Toggle vendor navigation"
+            >
+              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
           </div>
-        )}
+
+          {mobileMenuOpen && (
+            <div className="mt-4 rounded-3xl border border-blue-100 bg-white p-3 shadow-sm">
+              <div className="space-y-2">
+                {navItems.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = pathname === item.href;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={`flex items-center gap-3 rounded-2xl px-4 py-3 transition-colors ${
+                        isActive ? 'bg-blue-600 text-white' : 'bg-slate-50 text-slate-700 hover:bg-blue-50'
+                      }`}
+                    >
+                      <Icon className="h-4 w-4" />
+                      <span className="flex-1 text-left text-sm font-semibold">{item.label}</span>
+                      {isActive ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                    </Link>
+                  );
+                })}
+                <button
+                  type="button"
+                  onClick={() => {
+                    logout();
+                    router.push('/auth/login');
+                  }}
+                  className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl border border-blue-200 px-4 py-3 font-semibold text-blue-700 transition-colors hover:bg-blue-50"
+                >
+                  <LogOut className="h-4 w-4" /> Logout
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10 grid grid-cols-1 md:grid-cols-[260px_1fr] gap-6">
-        <aside className="hidden md:block rounded-3xl bg-white border border-blue-100 p-4 md:p-5 h-fit shadow-sm">
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue-600 mb-4">Vendor Panel</p>
-          <nav className="space-y-2">
+      <div className="mx-auto grid max-w-7xl grid-cols-1 gap-6 px-4 pb-10 pt-4 sm:px-6 lg:grid-cols-[280px_1fr] lg:px-8 lg:pt-6">
+        <aside className="hidden rounded-[2rem] border border-blue-100 bg-white p-5 shadow-sm lg:block lg:h-fit lg:sticky lg:top-6">
+          <div className="rounded-3xl bg-linear-to-br from-blue-600 to-slate-950 p-5 text-white shadow-lg">
+            <p className="text-[10px] font-bold uppercase tracking-[0.35em] text-blue-100">Vendor Panel</p>
+            <h2 className="mt-2 text-2xl font-black tracking-tight">NeoBlue Studio</h2>
+            <p className="mt-2 text-sm leading-6 text-blue-50/90">Manage products, orders, and shipping from one clean workspace.</p>
+          </div>
+
+          <nav className="mt-5 space-y-2">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
@@ -101,12 +108,12 @@ export default function VendorLayout({ children }: { children: React.ReactNode }
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${
-                    isActive ? 'bg-blue-600 text-white' : 'text-slate-700 hover:bg-blue-50'
+                  className={`flex items-center gap-3 rounded-2xl px-4 py-3 transition-colors ${
+                    isActive ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/15' : 'text-slate-700 hover:bg-blue-50'
                   }`}
                 >
                   <Icon className="h-4 w-4" />
-                  <span className="font-semibold text-sm">{item.label}</span>
+                  <span className="text-sm font-semibold">{item.label}</span>
                 </Link>
               );
             })}
@@ -117,13 +124,13 @@ export default function VendorLayout({ children }: { children: React.ReactNode }
               logout();
               router.push('/auth/login');
             }}
-            className="mt-6 w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-blue-200 text-blue-700 font-semibold hover:bg-blue-50 transition-colors"
+            className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl border border-blue-200 px-4 py-3 font-semibold text-blue-700 transition-colors hover:bg-blue-50"
           >
             <LogOut className="h-4 w-4" /> Logout
           </button>
         </aside>
 
-        <section>{children}</section>
+        <section className="min-w-0">{children}</section>
       </div>
     </div>
   );
