@@ -79,11 +79,26 @@ export async function POST(request: NextRequest) {
       return createErrorResponse('Only vendors can create products', 403);
     }
 
-    const { title, description, price, images, category, subcategory, waterType, tag, scientific } = await request.json();
+    const { title, description, price, images, category, subcategory, waterType, tag, scientific, originalPrice, discountPercentage, perPiecePrice, perPairPrice } = await request.json();
 
     // Validate required fields
-    if (!title || !description || !price || !images || !category || !waterType) {
+    if (!title || !description || price == null || !images || !category || !waterType) {
       return createErrorResponse('Please provide all required fields', 400);
+    }
+
+    // Validate optional discount fields
+    const safeOriginalPrice = originalPrice == null ? undefined : Number(originalPrice);
+    const safeDiscount = discountPercentage == null ? undefined : Number(discountPercentage);
+    const safePerPiecePrice = perPiecePrice == null ? undefined : Number(perPiecePrice);
+    const safePerPairPrice = perPairPrice == null ? undefined : Number(perPairPrice);
+    if (safeDiscount != null && (isNaN(safeDiscount) || safeDiscount < 0 || safeDiscount > 100)) {
+      return createErrorResponse('Invalid discountPercentage (0-100)', 400);
+    }
+    if (safePerPiecePrice != null && (isNaN(safePerPiecePrice) || safePerPiecePrice < 0)) {
+      return createErrorResponse('Invalid perPiecePrice', 400);
+    }
+    if (safePerPairPrice != null && (isNaN(safePerPairPrice) || safePerPairPrice < 0)) {
+      return createErrorResponse('Invalid perPairPrice', 400);
     }
 
     const product = await Product.create({
@@ -96,6 +111,10 @@ export async function POST(request: NextRequest) {
       waterType,
       tag: tag || 'Standard',
       scientific,
+      originalPrice: safeOriginalPrice,
+      discountPercentage: safeDiscount,
+      perPiecePrice: safePerPiecePrice,
+      perPairPrice: safePerPairPrice,
       vendorId: payload.userId,
       inStock: true,
       approvalStatus: 'pending',

@@ -14,6 +14,10 @@ export interface IProduct extends Document {
   inStock: boolean;
   approvalStatus: 'pending' | 'approved' | 'rejected';
   scientific?: string;
+  originalPrice?: number;
+  discountPercentage?: number;
+  perPiecePrice?: number;
+  perPairPrice?: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -75,6 +79,23 @@ const productSchema = new Schema<IProduct>(
       default: 'pending',
     },
     scientific: String,
+    originalPrice: {
+      type: Number,
+      min: 0,
+    },
+    discountPercentage: {
+      type: Number,
+      min: 0,
+      max: 100,
+    },
+    perPiecePrice: {
+      type: Number,
+      min: 0,
+    },
+    perPairPrice: {
+      type: Number,
+      min: 0,
+    },
   },
   { timestamps: true }
 );

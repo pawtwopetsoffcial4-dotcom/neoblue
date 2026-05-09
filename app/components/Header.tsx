@@ -43,6 +43,9 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
     { href: '/categories', label: 'Categories' },
     { href: '/products', label: 'View Products' },
     { href: '/blog', label: 'Blog' },
+    { href: '/about', label: 'About' },
+    { href: '/privacy-policy', label: 'Privacy Policy' },
+    { href: '/return-refund-policy', label: 'Return & Refund' },
     { href: '/#trending', label: 'Trending' },
     ...(user ? [{ href: '/profile', label: 'Profile' }] : []),
     ...(user?.role === 'admin' ? [{ href: '/admin/dashboard', label: 'Dashboard' }] : []),
@@ -79,7 +82,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
           <button
             type="button"
             onClick={() => setIsSearchOpen(!isSearchOpen)}
-            className="h-[38px] w-[38px] rounded-full text-blue-100 flex items-center justify-center hover:bg-white/10 hover:text-white transition-colors"
+            className="h-9.5 w-9.5 rounded-full text-blue-100 flex items-center justify-center hover:bg-white/10 hover:text-white transition-colors"
             aria-label="Search products"
           >
             <Search className="h-5 w-5" />
@@ -89,13 +92,13 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
             <button
               type="button"
               onClick={handleLogout}
-              className="hidden md:flex h-[38px] px-4 rounded-full border border-white/20 text-blue-50 text-sm font-medium items-center justify-center hover:bg-white/10 transition-colors"
+              className="hidden md:flex h-9.5 px-4 rounded-full border border-white/20 text-blue-50 text-sm font-medium items-center justify-center hover:bg-white/10 transition-colors"
             >
               Logout
             </button>
           )}
 
-          <Link href="/checkout" className="h-[38px] px-4 rounded-full bg-white text-blue-600 flex items-center gap-2 hover:bg-blue-50 transition-colors shadow-sm">
+          <Link href="/checkout" className="h-9.5 px-4 rounded-full bg-white text-blue-600 flex items-center gap-2 hover:bg-blue-50 transition-colors shadow-sm">
             <ShoppingBag className="h-4 w-4" />
             <span className="text-sm font-bold">{visibleCartCount}</span>
           </Link>
@@ -103,7 +106,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
           <button
             type="button"
             onClick={() => setIsMenuOpen((value) => !value)}
-            className="lg:hidden h-[38px] w-[38px] rounded-full text-blue-100 flex items-center justify-center hover:bg-white/10 hover:text-white transition-colors"
+            className="lg:hidden h-9.5 w-9.5 rounded-full text-blue-100 flex items-center justify-center hover:bg-white/10 hover:text-white transition-colors"
             aria-expanded={isMenuOpen}
             aria-label="Toggle navigation menu"
           >

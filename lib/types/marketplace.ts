@@ -13,6 +13,10 @@ export type MarketplaceProduct = {
   inStock: boolean;
   approvalStatus?: 'pending' | 'approved' | 'rejected';
   scientific?: string;
+  originalPrice?: number;
+  discountPercentage?: number;
+  perPiecePrice?: number;
+  perPairPrice?: number;
   createdAt?: string;
   updatedAt?: string;
 };

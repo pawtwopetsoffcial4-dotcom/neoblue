@@ -37,5 +37,7 @@ export type ProductSubcategory = (typeof PRODUCT_CATALOG)[ProductCategory][numbe
 
 export const PRODUCT_CATEGORIES = Object.keys(PRODUCT_CATALOG) as ProductCategory[];
 
+export const FISH_NAMES = Array.from(new Set(Object.values(PRODUCT_CATALOG).flat()));
+
 export const getSubcategoriesForCategory = (category: string) =>
   (PRODUCT_CATALOG as Record<string, readonly string[]>)[category] ?? [];

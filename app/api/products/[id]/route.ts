@@ -61,6 +61,12 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
     }
 
     const updateData = await request.json();
+    if ('perPiecePrice' in updateData && updateData.perPiecePrice != null) {
+      updateData.perPiecePrice = Number(updateData.perPiecePrice);
+    }
+    if ('perPairPrice' in updateData && updateData.perPairPrice != null) {
+      updateData.perPairPrice = Number(updateData.perPairPrice);
+    }
     const updatedProduct = await Product.findByIdAndUpdate(id, updateData, {
       new: true,
       runValidators: true,

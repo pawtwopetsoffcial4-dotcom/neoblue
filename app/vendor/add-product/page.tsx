@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { X } from 'lucide-react';
 import { CldUploadWidget } from 'next-cloudinary';
 import { apiClient } from '@/lib/api-client';
-import { getSubcategoriesForCategory } from '@/lib/catalog';
+import { FISH_NAMES } from '@/lib/catalog';
 
 export default function VendorAddProductPage() {
   const router = useRouter();
@@ -19,11 +19,14 @@ export default function VendorAddProductPage() {
     title: '',
     description: '',
     price: '',
+    perPiecePrice: '',
+    perPairPrice: '',
     category: 'Guppies',
-    subcategory: '',
     waterType: 'Freshwater',
     tag: 'Standard',
     scientific: '',
+    originalPrice: '',
+    discountPercentage: '',
   });
   const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'neoblue_products';
 
@@ -64,10 +67,13 @@ export default function VendorAddProductPage() {
         price: Number(form.price),
         images: [imageUrl],
         category: form.category,
-        subcategory: form.subcategory,
         waterType: form.waterType,
         tag: form.tag,
         scientific: form.scientific,
+        originalPrice: form.originalPrice ? Number(form.originalPrice) : undefined,
+        discountPercentage: form.discountPercentage ? Number(form.discountPercentage) : undefined,
+        perPiecePrice: form.perPiecePrice ? Number(form.perPiecePrice) : undefined,
+        perPairPrice: form.perPairPrice ? Number(form.perPairPrice) : undefined,
       });
       router.push('/vendor/products');
     } catch (error: any) {
@@ -87,6 +93,7 @@ export default function VendorAddProductPage() {
       <form onSubmit={handleSubmit} className="rounded-2xl bg-white border border-blue-100 p-6 space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <input
+            list="fish-name-autofill"
             className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Product title"
             value={form.title}
@@ -107,6 +114,40 @@ export default function VendorAddProductPage() {
             value={form.price}
             onChange={(e) => setForm((prev) => ({ ...prev, price: e.target.value }))}
             required
+          />
+          <input
+            type="number"
+            className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Per piece price"
+            min={0}
+            value={form.perPiecePrice}
+            onChange={(e) => setForm((prev) => ({ ...prev, perPiecePrice: e.target.value }))}
+          />
+          <input
+            type="number"
+            className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Per pair price"
+            min={0}
+            value={form.perPairPrice}
+            onChange={(e) => setForm((prev) => ({ ...prev, perPairPrice: e.target.value }))}
+          />
+          <input
+            type="number"
+            className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Original price (optional)"
+            min={0}
+            value={form.originalPrice}
+            onChange={(e) => setForm((prev) => ({ ...prev, originalPrice: e.target.value }))}
+          />
+
+          <input
+            type="number"
+            className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Discount % (optional)"
+            min={0}
+            max={100}
+            value={form.discountPercentage}
+            onChange={(e) => setForm((prev) => ({ ...prev, discountPercentage: e.target.value }))}
           />
           
           <CldUploadWidget
@@ -154,31 +195,11 @@ export default function VendorAddProductPage() {
           <select
             className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
             value={form.category}
-            onChange={(e) =>
-              setForm((prev) => ({
-                ...prev,
-                category: e.target.value,
-                subcategory: '',
-              }))
-            }
+            onChange={(e) => setForm((prev) => ({ ...prev, category: e.target.value }))}
           >
             {categories.map((category) => (
               <option key={category} value={category}>
                 {category}
-              </option>
-            ))}
-          </select>
-
-          <select
-            className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
-            value={form.subcategory}
-            onChange={(e) => setForm((prev) => ({ ...prev, subcategory: e.target.value }))}
-            disabled={!getSubcategoriesForCategory(form.category).length}
-          >
-            <option value="">Subcategory</option>
-            {getSubcategoriesForCategory(form.category).map((subcategory) => (
-              <option key={subcategory} value={subcategory}>
-                {subcategory}
               </option>
             ))}
           </select>
@@ -193,6 +214,12 @@ export default function VendorAddProductPage() {
             <option value="Brackish">Brackish</option>
           </select>
         </div>
+
+        <datalist id="fish-name-autofill">
+          {FISH_NAMES.map((fishName) => (
+            <option key={fishName} value={fishName} />
+          ))}
+        </datalist>
 
         {uploadError && (
           <p className="text-sm text-rose-600 font-medium">{uploadError}</p>
