@@ -33,7 +33,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
-      .populate('replies', '', { isApproved: true });
+      .populate({ path: 'replies', match: { isApproved: true } });
 
     const total = await BlogComment.countDocuments(query);
     const pages = Math.ceil(total / limit);

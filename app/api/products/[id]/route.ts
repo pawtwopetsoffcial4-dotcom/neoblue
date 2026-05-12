@@ -61,12 +61,35 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
     }
 
     const updateData = await request.json();
-    if ('perPiecePrice' in updateData && updateData.perPiecePrice != null) {
-      updateData.perPiecePrice = Number(updateData.perPiecePrice);
+    const hasPerPieceKey = 'perPiecePrice' in updateData;
+    const hasPerPairKey = 'perPairPrice' in updateData;
+
+    if (hasPerPieceKey || hasPerPairKey) {
+      const nextPerPiece = hasPerPieceKey
+        ? (updateData.perPiecePrice == null ? undefined : Number(updateData.perPiecePrice))
+        : (product.perPiecePrice == null ? undefined : Number(product.perPiecePrice));
+      const nextPerPair = hasPerPairKey
+        ? (updateData.perPairPrice == null ? undefined : Number(updateData.perPairPrice))
+        : (product.perPairPrice == null ? undefined : Number(product.perPairPrice));
+
+      if (nextPerPiece != null && (isNaN(nextPerPiece) || nextPerPiece < 0)) {
+        return createErrorResponse('Invalid perPiecePrice', 400);
+      }
+
+      if (nextPerPair != null && (isNaN(nextPerPair) || nextPerPair < 0)) {
+        return createErrorResponse('Invalid perPairPrice', 400);
+      }
+
+      const hasPerPiece = nextPerPiece != null;
+      const hasPerPair = nextPerPair != null;
+      if (hasPerPiece === hasPerPair) {
+        return createErrorResponse('Provide exactly one unit price: perPiecePrice or perPairPrice', 400);
+      }
+
+      updateData.perPiecePrice = hasPerPiece ? nextPerPiece : null;
+      updateData.perPairPrice = hasPerPair ? nextPerPair : null;
     }
-    if ('perPairPrice' in updateData && updateData.perPairPrice != null) {
-      updateData.perPairPrice = Number(updateData.perPairPrice);
-    }
+
     const updatedProduct = await Product.findByIdAndUpdate(id, updateData, {
       new: true,
       runValidators: true,

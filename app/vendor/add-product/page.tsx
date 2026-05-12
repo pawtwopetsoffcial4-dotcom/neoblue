@@ -19,8 +19,8 @@ export default function VendorAddProductPage() {
     title: '',
     description: '',
     price: '',
-    perPiecePrice: '',
-    perPairPrice: '',
+    pricingType: 'piece' as 'piece' | 'pair',
+    unitPrice: '',
     category: 'Guppies',
     waterType: 'Freshwater',
     tag: 'Standard',
@@ -72,8 +72,8 @@ export default function VendorAddProductPage() {
         scientific: form.scientific,
         originalPrice: form.originalPrice ? Number(form.originalPrice) : undefined,
         discountPercentage: form.discountPercentage ? Number(form.discountPercentage) : undefined,
-        perPiecePrice: form.perPiecePrice ? Number(form.perPiecePrice) : undefined,
-        perPairPrice: form.perPairPrice ? Number(form.perPairPrice) : undefined,
+        perPiecePrice: form.pricingType === 'piece' ? Number(form.unitPrice) : null,
+        perPairPrice: form.pricingType === 'pair' ? Number(form.unitPrice) : null,
       });
       router.push('/vendor/products');
     } catch (error: any) {
@@ -85,7 +85,7 @@ export default function VendorAddProductPage() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-[2rem] bg-linear-to-br from-blue-600 via-cyan-600 to-slate-950 p-6 text-white shadow-[0_24px_80px_-40px_rgba(2,132,199,0.6)] sm:p-8">
+      <section className="rounded-4xl bg-linear-to-br from-blue-600 via-cyan-600 to-slate-950 p-6 text-white shadow-[0_24px_80px_-40px_rgba(2,132,199,0.6)] sm:p-8">
         <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.35em] text-blue-100 mb-2">Inventory</p>
@@ -104,13 +104,13 @@ export default function VendorAddProductPage() {
             <div className="rounded-2xl bg-white/10 px-4 py-3">
               <Sparkles className="h-5 w-5 text-blue-100" />
               <p className="mt-3 text-xs font-bold uppercase tracking-[0.25em] text-blue-100">Pricing</p>
-              <p className="mt-1 text-sm text-white">Piece + pair</p>
+              <p className="mt-1 text-sm text-white">Piece or pair</p>
             </div>
           </div>
         </div>
       </section>
 
-      <form onSubmit={handleSubmit} className="rounded-[2rem] border border-blue-100 bg-white p-5 space-y-5 shadow-sm sm:p-6">
+      <form onSubmit={handleSubmit} className="rounded-4xl border border-blue-100 bg-white p-5 space-y-5 shadow-sm sm:p-6">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <input
             list="fish-name-autofill"
@@ -135,21 +135,22 @@ export default function VendorAddProductPage() {
             onChange={(e) => setForm((prev) => ({ ...prev, price: e.target.value }))}
             required
           />
+          <select
+            className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
+            value={form.pricingType}
+            onChange={(e) => setForm((prev) => ({ ...prev, pricingType: e.target.value as 'piece' | 'pair' }))}
+          >
+            <option value="piece">Price per piece</option>
+            <option value="pair">Price per pair</option>
+          </select>
           <input
             type="number"
             className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Per piece price"
+            placeholder={form.pricingType === 'piece' ? 'Per piece price' : 'Per pair price'}
             min={0}
-            value={form.perPiecePrice}
-            onChange={(e) => setForm((prev) => ({ ...prev, perPiecePrice: e.target.value }))}
-          />
-          <input
-            type="number"
-            className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Per pair price"
-            min={0}
-            value={form.perPairPrice}
-            onChange={(e) => setForm((prev) => ({ ...prev, perPairPrice: e.target.value }))}
+            value={form.unitPrice}
+            onChange={(e) => setForm((prev) => ({ ...prev, unitPrice: e.target.value }))}
+            required
           />
           <input
             type="number"

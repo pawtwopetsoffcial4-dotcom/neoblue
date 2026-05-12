@@ -1,21 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server';
-import Razorpay from 'razorpay';
-import { createErrorResponse } from '@/lib/utils/auth';
+import { createErrorResponse, getTokenFromRequest, verifyToken } from '@/lib/utils/auth';
 import { connectDB } from '@/lib/db';
 import Product from '@/lib/models/Product';
 import StoreConfig from '@/lib/models/StoreConfig';
 import { calculateShippingAmount } from '@/lib/utils/shipping';
 
-const keyId = process.env.RAZORPAY_KEY_ID;
-const keySecret = process.env.RAZORPAY_KEY_SECRET;
+const appId = process.env.CASHFREE_APP_ID;
+const secretKey = process.env.CASHFREE_SECRET_KEY;
+const cashfreeEnv = process.env.CASHFREE_ENV === 'production' ? 'production' : 'sandbox';
+const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+
+const getCashfreeBaseUrl = () => (cashfreeEnv === 'production' ? 'https://api.cashfree.com' : 'https://sandbox.cashfree.com');
 
 export async function POST(request: NextRequest) {
   try {
-    if (!keyId || !keySecret) {
-      return createErrorResponse('Razorpay keys are not configured', 500);
+    if (!appId || !secretKey) {
+      return createErrorResponse('Cashfree keys are not configured', 500);
     }
 
     await connectDB();
+
+    const token = getTokenFromRequest(request);
+    if (!token) {
+      return createErrorResponse('Unauthorized', 401);
+    }
+
+    const payload = verifyToken(token);
+    if (!payload || payload.role !== 'user') {
+      return createErrorResponse('Only users can create checkout orders', 403);
+    }
 
     const { products } = await request.json();
     if (!products || !Array.isArray(products) || products.length === 0) {
@@ -52,25 +65,44 @@ export async function POST(request: NextRequest) {
       return createErrorResponse('Invalid amount', 400);
     }
 
-    const razorpay = new Razorpay({
-      key_id: keyId,
-      key_secret: keySecret,
+    const orderId = `neo_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const cashfreeResponse = await fetch(`${getCashfreeBaseUrl()}/pg/orders`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-client-id': appId,
+        'x-client-secret': secretKey,
+        'x-api-version': '2023-08-01',
+      },
+      body: JSON.stringify({
+        order_id: orderId,
+        order_amount: Number(amount.toFixed(2)),
+        order_currency: 'INR',
+        customer_details: {
+          customer_id: payload.userId,
+          customer_email: payload.email,
+          customer_phone: '9999999999',
+        },
+        order_meta: {
+          return_url: `${appUrl}/checkout?cashfree_order_id={order_id}`,
+        },
+      }),
     });
 
-    const order = await razorpay.orders.create({
-      amount: Math.round(Number(amount) * 100),
-      currency: 'INR',
-      receipt: `neo_${Date.now()}`,
-      payment_capture: true,
-    });
+    const order = await cashfreeResponse.json();
+    if (!cashfreeResponse.ok) {
+      return createErrorResponse(order?.message || 'Failed to create Cashfree order', cashfreeResponse.status);
+    }
 
     return NextResponse.json({
-      orderId: order.id,
-      amount: order.amount,
-      currency: order.currency,
-      keyId,
+      orderId: order.order_id,
+      amount,
+      currency: 'INR',
+      paymentSessionId: order.payment_session_id,
+      paymentLink: order.payment_link,
+      environment: cashfreeEnv,
     });
   } catch (error: any) {
-    return createErrorResponse(error.message || 'Failed to create Razorpay order', 500);
+    return createErrorResponse(error.message || 'Failed to create Cashfree order', 500);
   }
 }

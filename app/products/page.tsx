@@ -200,8 +200,10 @@ export default function ProductsPage() {
               {filteredProducts.map((product) => {
                 const rating = Number(product.rating) || 4.2;
                 const reviewCount = getFakeReviewCount(product._id || product.title);
-                const hasPerPiecePrice = typeof product.perPiecePrice === 'number';
-                const hasPerPairPrice = typeof product.perPairPrice === 'number';
+                const unitPrice = typeof product.perPairPrice === 'number'
+                  ? product.perPairPrice
+                  : (typeof product.perPiecePrice === 'number' ? product.perPiecePrice : null);
+                const unitLabel = typeof product.perPairPrice === 'number' ? 'pair' : 'piece';
 
                 return (
                   <Link
@@ -263,9 +265,11 @@ export default function ProductsPage() {
 
                       {/* Pricing Row */}
                       <div className="mt-1.5 flex flex-col gap-0.5 text-[11px] text-slate-600 font-sans">
-                        {hasPerPiecePrice && <span><span className="font-semibold text-slate-900">₹{product.perPiecePrice}</span> per piece</span>}
-                        {hasPerPairPrice && <span><span className="font-semibold text-slate-900">₹{product.perPairPrice}</span> per pair</span>}
-                        {!hasPerPiecePrice && !hasPerPairPrice && <span className="text-slate-400">Pricing not set</span>}
+                        {unitPrice != null ? (
+                          <span><span className="font-semibold text-slate-900">₹{unitPrice}</span> per {unitLabel}</span>
+                        ) : (
+                          <span className="text-slate-400">Pricing not set</span>
+                        )}
                       </div>
                     </div>
                   </Link>

@@ -19,6 +19,7 @@ export interface IOrder extends Document {
   status: 'placed' | 'accepted' | 'preparing' | 'completed' | 'cancelled';
   paymentId?: string;
   razorpayOrderId?: string;
+  cashfreeOrderId?: string;
   notes?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -77,6 +78,7 @@ const orderSchema = new Schema<IOrder>(
     },
     paymentId: String,
     razorpayOrderId: String,
+    cashfreeOrderId: String,
     notes: String,
   },
   { timestamps: true }

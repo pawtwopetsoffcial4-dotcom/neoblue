@@ -11,8 +11,8 @@ type EditProductForm = {
   title: string;
   description: string;
   price: string;
-  perPiecePrice: string;
-  perPairPrice: string;
+  pricingType: 'piece' | 'pair';
+  unitPrice: string;
   category: string;
   waterType: 'Freshwater' | 'Saltwater' | 'Brackish';
   tag: string;
@@ -61,8 +61,11 @@ export default function VendorProductsPage() {
       title: product.title ?? '',
       description: product.description ?? '',
       price: String(product.price ?? ''),
-      perPiecePrice: product.perPiecePrice != null ? String(product.perPiecePrice) : '',
-      perPairPrice: product.perPairPrice != null ? String(product.perPairPrice) : '',
+      pricingType: typeof product.perPairPrice === 'number' ? 'pair' : 'piece',
+      unitPrice:
+        typeof product.perPairPrice === 'number'
+          ? String(product.perPairPrice)
+          : (product.perPiecePrice != null ? String(product.perPiecePrice) : ''),
       category: product.category ?? 'Guppies',
       waterType: product.waterType ?? 'Freshwater',
       tag: product.tag ?? 'Standard',
@@ -91,8 +94,11 @@ export default function VendorProductsPage() {
 
     const originalPrice = editForm.originalPrice ? Number(editForm.originalPrice) : undefined;
     const discountPercentage = editForm.discountPercentage ? Number(editForm.discountPercentage) : undefined;
-    const perPiecePrice = editForm.perPiecePrice ? Number(editForm.perPiecePrice) : undefined;
-    const perPairPrice = editForm.perPairPrice ? Number(editForm.perPairPrice) : undefined;
+    const unitPrice = Number(editForm.unitPrice);
+    if (Number.isNaN(unitPrice) || unitPrice < 0) {
+      setEditError('Unit price must be a valid positive number');
+      return;
+    }
 
     try {
       setIsSavingEdit(true);
@@ -107,8 +113,8 @@ export default function VendorProductsPage() {
         scientific: editForm.scientific,
         originalPrice,
         discountPercentage,
-        perPiecePrice,
-        perPairPrice,
+        perPiecePrice: editForm.pricingType === 'piece' ? unitPrice : null,
+        perPairPrice: editForm.pricingType === 'pair' ? unitPrice : null,
         inStock: editForm.inStock,
       });
       await loadProducts();
@@ -122,7 +128,7 @@ export default function VendorProductsPage() {
 
   return (
     <div className="space-y-6">
-      <section className="flex flex-col gap-4 rounded-[2rem] bg-linear-to-br from-blue-600 via-cyan-600 to-slate-950 p-5 text-white shadow-[0_24px_80px_-40px_rgba(2,132,199,0.6)] sm:flex-row sm:items-end sm:justify-between sm:p-6">
+      <section className="flex flex-col gap-4 rounded-4xl bg-linear-to-br from-blue-600 via-cyan-600 to-slate-950 p-5 text-white shadow-[0_24px_80px_-40px_rgba(2,132,199,0.6)] sm:flex-row sm:items-end sm:justify-between sm:p-6">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.35em] text-blue-100 mb-2">Inventory</p>
           <h1 className="text-3xl font-black tracking-tight sm:text-4xl">Your Products</h1>
@@ -135,7 +141,7 @@ export default function VendorProductsPage() {
         </Link>
       </section>
 
-      <div className="rounded-[2rem] border border-blue-100 bg-white shadow-sm overflow-hidden">
+      <div className="rounded-4xl border border-blue-100 bg-white shadow-sm overflow-hidden">
         {products.length === 0 ? (
           <div className="px-6 py-16 text-center sm:px-10">
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-50 text-blue-600">
@@ -240,7 +246,7 @@ export default function VendorProductsPage() {
 
       {editingProduct && editForm && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/60 px-0 py-0 backdrop-blur-sm md:items-center md:px-4 md:py-6">
-          <div className="w-full max-w-4xl max-h-[92vh] overflow-y-auto rounded-t-[2rem] bg-white shadow-2xl border border-blue-100 md:rounded-[2rem]">
+          <div className="w-full max-w-4xl max-h-[92vh] overflow-y-auto rounded-t-4xl bg-white shadow-2xl border border-blue-100 md:rounded-4xl">
             <div className="sticky top-0 z-10 flex items-center justify-between border-b border-blue-100 bg-white px-5 py-4 md:px-6">
               <div>
                 <p className="text-xs font-bold uppercase tracking-[0.25em] text-blue-600 mb-1">Edit Product</p>
@@ -279,21 +285,21 @@ export default function VendorProductsPage() {
                   value={editForm.price}
                   onChange={(event) => setEditForm((current) => current ? { ...current, price: event.target.value } : current)}
                 />
+                <select
+                  className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
+                  value={editForm.pricingType}
+                  onChange={(event) => setEditForm((current) => current ? { ...current, pricingType: event.target.value as EditProductForm['pricingType'] } : current)}
+                >
+                  <option value="piece">Price per piece</option>
+                  <option value="pair">Price per pair</option>
+                </select>
                 <input
                   type="number"
                   className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Per piece price"
+                  placeholder={editForm.pricingType === 'piece' ? 'Per piece price' : 'Per pair price'}
                   min={0}
-                  value={editForm.perPiecePrice}
-                  onChange={(event) => setEditForm((current) => current ? { ...current, perPiecePrice: event.target.value } : current)}
-                />
-                <input
-                  type="number"
-                  className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Per pair price"
-                  min={0}
-                  value={editForm.perPairPrice}
-                  onChange={(event) => setEditForm((current) => current ? { ...current, perPairPrice: event.target.value } : current)}
+                  value={editForm.unitPrice}
+                  onChange={(event) => setEditForm((current) => current ? { ...current, unitPrice: event.target.value } : current)}
                 />
                 <input
                   type="number"

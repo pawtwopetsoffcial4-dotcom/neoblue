@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
       return createErrorResponse('Please provide all required fields', 400);
     }
 
-    // Validate optional discount fields
+    // Validate optional discount and unit pricing fields
     const safeOriginalPrice = originalPrice == null ? undefined : Number(originalPrice);
     const safeDiscount = discountPercentage == null ? undefined : Number(discountPercentage);
     const safePerPiecePrice = perPiecePrice == null ? undefined : Number(perPiecePrice);
@@ -101,6 +101,12 @@ export async function POST(request: NextRequest) {
       return createErrorResponse('Invalid perPairPrice', 400);
     }
 
+    const hasPerPiece = safePerPiecePrice != null;
+    const hasPerPair = safePerPairPrice != null;
+    if (hasPerPiece === hasPerPair) {
+      return createErrorResponse('Provide exactly one unit price: perPiecePrice or perPairPrice', 400);
+    }
+
     const product = await Product.create({
       title,
       description,
@@ -113,8 +119,8 @@ export async function POST(request: NextRequest) {
       scientific,
       originalPrice: safeOriginalPrice,
       discountPercentage: safeDiscount,
-      perPiecePrice: safePerPiecePrice,
-      perPairPrice: safePerPairPrice,
+      perPiecePrice: hasPerPiece ? safePerPiecePrice : null,
+      perPairPrice: hasPerPair ? safePerPairPrice : null,
       vendorId: payload.userId,
       inStock: true,
       approvalStatus: 'pending',

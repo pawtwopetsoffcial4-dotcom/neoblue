@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
       return createErrorResponse('Only users can create orders', 403);
     }
 
-    const { products, address, paymentId, razorpayOrderId } = await request.json();
+    const { products, address, paymentId, razorpayOrderId, cashfreeOrderId } = await request.json();
 
     if (!products || !Array.isArray(products) || products.length === 0) {
       return createErrorResponse('Please provide products', 400);
@@ -109,6 +109,7 @@ export async function POST(request: NextRequest) {
       address,
       paymentId,
       razorpayOrderId,
+      cashfreeOrderId,
       status: 'placed',
     });
 

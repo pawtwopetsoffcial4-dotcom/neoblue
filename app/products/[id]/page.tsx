@@ -185,18 +185,16 @@ export default function ProductDetailPage({ params }: ProductDetailProps) {
                       <p className="text-xs font-bold uppercase tracking-[0.3em] text-blue-600">Pricing</p>
                       <p className="text-4xl font-black text-slate-900 leading-none">{formatPrice(product.price)}</p>
                       <div className="flex flex-col gap-1 text-sm text-slate-600">
-                        {typeof product.perPiecePrice === 'number' && (
-                          <span>
-                            <span className="font-semibold text-slate-900">{formatPrice(product.perPiecePrice)}</span> per piece
-                          </span>
-                        )}
-                        {typeof product.perPairPrice === 'number' && (
+                        {typeof product.perPairPrice === 'number' ? (
                           <span>
                             <span className="font-semibold text-slate-900">{formatPrice(product.perPairPrice)}</span> per pair
                           </span>
-                        )}
-                        {typeof product.perPiecePrice !== 'number' && typeof product.perPairPrice !== 'number' && (
-                          <span className="text-slate-400">Per-piece and per-pair pricing will appear here when available.</span>
+                        ) : typeof product.perPiecePrice === 'number' ? (
+                          <span>
+                            <span className="font-semibold text-slate-900">{formatPrice(product.perPiecePrice)}</span> per piece
+                          </span>
+                        ) : (
+                          <span className="text-slate-400">Unit pricing will appear here when available.</span>
                         )}
                       </div>
                     </div>
