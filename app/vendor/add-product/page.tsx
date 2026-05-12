@@ -18,7 +18,6 @@ export default function VendorAddProductPage() {
   const [form, setForm] = useState({
     title: '',
     description: '',
-    price: '',
     pricingType: 'piece' as 'piece' | 'pair',
     unitPrice: '',
     category: 'Guppies',
@@ -64,7 +63,6 @@ export default function VendorAddProductPage() {
       await apiClient.createProduct({
         title: form.title,
         description: form.description,
-        price: Number(form.price),
         images: [imageUrl],
         category: form.category,
         waterType: form.waterType,
@@ -125,15 +123,6 @@ export default function VendorAddProductPage() {
             placeholder="Scientific name (optional)"
             value={form.scientific}
             onChange={(e) => setForm((prev) => ({ ...prev, scientific: e.target.value }))}
-          />
-          <input
-            type="number"
-            className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Price"
-            min={0}
-            value={form.price}
-            onChange={(e) => setForm((prev) => ({ ...prev, price: e.target.value }))}
-            required
           />
           <select
             className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"

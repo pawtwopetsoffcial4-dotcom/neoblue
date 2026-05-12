@@ -10,7 +10,6 @@ import type { MarketplaceProduct } from '@/lib/types/marketplace';
 type EditProductForm = {
   title: string;
   description: string;
-  price: string;
   pricingType: 'piece' | 'pair';
   unitPrice: string;
   category: string;
@@ -60,7 +59,6 @@ export default function VendorProductsPage() {
     setEditForm({
       title: product.title ?? '',
       description: product.description ?? '',
-      price: String(product.price ?? ''),
       pricingType: typeof product.perPairPrice === 'number' ? 'pair' : 'piece',
       unitPrice:
         typeof product.perPairPrice === 'number'
@@ -86,12 +84,6 @@ export default function VendorProductsPage() {
   const saveEdit = async () => {
     if (!editingProduct || !editForm) return;
 
-    const price = Number(editForm.price);
-    if (Number.isNaN(price) || price < 0) {
-      setEditError('Price must be a valid positive number');
-      return;
-    }
-
     const originalPrice = editForm.originalPrice ? Number(editForm.originalPrice) : undefined;
     const discountPercentage = editForm.discountPercentage ? Number(editForm.discountPercentage) : undefined;
     const unitPrice = Number(editForm.unitPrice);
@@ -106,7 +98,6 @@ export default function VendorProductsPage() {
       await apiClient.updateProduct(editingProduct._id, {
         title: editForm.title,
         description: editForm.description,
-        price,
         category: editForm.category,
         waterType: editForm.waterType,
         tag: editForm.tag,
@@ -276,14 +267,6 @@ export default function VendorProductsPage() {
                   placeholder="Scientific name (optional)"
                   value={editForm.scientific}
                   onChange={(event) => setEditForm((current) => current ? { ...current, scientific: event.target.value } : current)}
-                />
-                <input
-                  type="number"
-                  className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Price"
-                  min={0}
-                  value={editForm.price}
-                  onChange={(event) => setEditForm((current) => current ? { ...current, price: event.target.value } : current)}
                 />
                 <select
                   className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
