@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import { apiClient } from '@/lib/api-client';
-import { Plus, Loader2, Trash2 } from 'lucide-react';
+import { Plus, Loader2, Trash2, BookOpen, FolderTree, Tags, MessageSquare } from 'lucide-react';
 
 type AdminOrder = { _id: string; totalAmount: number; status: string };
 type AdminUser = { _id: string; role: 'user' | 'vendor' | 'admin' };
@@ -117,6 +118,48 @@ export default function AdminDashboardPage() {
           <p className="text-3xl font-black text-slate-900 mt-1">₹{totalRevenue.toFixed(2)}</p>
         </div>
       </div>
+
+      <section className="rounded-2xl bg-white border border-blue-100 p-5 space-y-4">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue-600 mb-2">Content</p>
+          <h2 className="text-xl font-black tracking-tight">Blog Management</h2>
+          <p className="text-sm text-slate-500 mt-1">Quick access to blog posts, categories, tags, and comment moderation.</p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <Link href="/admin/blogs" className="rounded-xl border border-blue-100 p-4 bg-blue-50/40 hover:bg-blue-50 transition-colors">
+            <div className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-blue-600 text-white mb-3">
+              <BookOpen className="h-4 w-4" />
+            </div>
+            <p className="font-semibold text-slate-900">Blogs</p>
+            <p className="text-xs text-slate-600 mt-1">Create and edit posts</p>
+          </Link>
+
+          <Link href="/admin/blogs/categories" className="rounded-xl border border-blue-100 p-4 bg-blue-50/40 hover:bg-blue-50 transition-colors">
+            <div className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-blue-600 text-white mb-3">
+              <FolderTree className="h-4 w-4" />
+            </div>
+            <p className="font-semibold text-slate-900">Categories</p>
+            <p className="text-xs text-slate-600 mt-1">Organize blog sections</p>
+          </Link>
+
+          <Link href="/admin/blogs/tags" className="rounded-xl border border-blue-100 p-4 bg-blue-50/40 hover:bg-blue-50 transition-colors">
+            <div className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-blue-600 text-white mb-3">
+              <Tags className="h-4 w-4" />
+            </div>
+            <p className="font-semibold text-slate-900">Tags</p>
+            <p className="text-xs text-slate-600 mt-1">Manage tag library</p>
+          </Link>
+
+          <Link href="/admin/blogs/comments" className="rounded-xl border border-blue-100 p-4 bg-blue-50/40 hover:bg-blue-50 transition-colors">
+            <div className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-blue-600 text-white mb-3">
+              <MessageSquare className="h-4 w-4" />
+            </div>
+            <p className="font-semibold text-slate-900">Comments</p>
+            <p className="text-xs text-slate-600 mt-1">Moderate readers</p>
+          </Link>
+        </div>
+      </section>
 
       <section className="rounded-2xl bg-white border border-blue-100 p-5 space-y-4">
         <div>

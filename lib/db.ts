@@ -2,6 +2,11 @@ import mongoose from 'mongoose';
 import './models/User';
 import './models/Product';
 import './models/Order';
+import './models/Blog';
+import './models/BlogCategory';
+import './models/BlogTag';
+import './models/BlogComment';
+import './models/BlogAnalytics';
 
 const MONGODB_URI = process.env.MONGODB_URI;
 const MONGODB_URI_DIRECT = process.env.MONGODB_URI_DIRECT;

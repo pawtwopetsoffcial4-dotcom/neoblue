@@ -1,86 +1,130 @@
-import Link from 'next/link';
-import { connectDB } from '@/lib/db';
-import Blog from '@/lib/models/Blog';
+'use client';
 
-export const dynamic = 'force-dynamic';
+import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
+import BlogCard from '@/app/components/BlogCard';
+import BlogFilters from '@/app/components/BlogFilters';
+import { useBlogs, useCategories, useTags } from '@/lib/hooks/useBlog';
 
-type BlogCard = {
-  _id: string;
-  title: string;
-  slug: string;
-  excerpt: string;
-  coverImage: string;
-  keywords: string[];
-  author: string;
-  featured: boolean;
-  readTime: number;
-  createdAt: string;
-};
+function BlogPageContent() {
+  const searchParams = useSearchParams();
+  const page = parseInt(searchParams.get('page') || '1');
+  const category = searchParams.get('category') || undefined;
+  const tag = searchParams.get('tag') || undefined;
+  const search = searchParams.get('search') || undefined;
+  const sortBy = (searchParams.get('sortBy') || 'latest') as any;
 
-async function getBlogs(): Promise<BlogCard[]> {
-  await connectDB();
-  const blogs = await Blog.find({ isPublished: true }).sort({ featured: -1, createdAt: -1 }).limit(50);
-  return blogs.map((blog) => ({
-    _id: blog._id.toString(),
-    title: blog.title,
-    slug: blog.slug,
-    excerpt: blog.excerpt,
-    coverImage: blog.coverImage,
-    keywords: blog.keywords ?? [],
-    author: blog.author,
-    featured: blog.featured,
-    readTime: blog.readTime,
-    createdAt: blog.createdAt.toISOString(),
-  }));
-}
+  const { blogs, pagination, loading } = useBlogs({
+    page,
+    limit: 12,
+    category,
+    tag,
+    search,
+    sortBy,
+  });
 
-export default async function BlogPage() {
-  const blogs = await getBlogs();
+  const { categories } = useCategories();
+  const { tags } = useTags();
 
   return (
-    <main className="min-h-screen bg-white text-slate-900 pt-6 md:pt-10 pb-20">
+    <main className="min-h-screen bg-slate-50 pt-6 md:pt-12 pb-16 md:pb-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-10">
-          <p className="text-xs font-bold uppercase tracking-[0.25em] text-blue-600 mb-3">Insights</p>
-          <h1 className="text-4xl md:text-6xl font-black tracking-tight">Blog</h1>
-          <p className="mt-4 max-w-2xl text-slate-600">Aquarium care, fish profiles, setup notes, and tank inspiration from the Neoblue team.</p>
+        {/* Header */}
+        <div className="mb-8 md:mb-12">
+          <p className="text-xs font-bold uppercase tracking-[0.25em] text-blue-600 mb-3">Insights & Knowledge</p>
+          <h1 className="text-3xl sm:text-4xl md:text-6xl font-black tracking-tight mb-3 md:mb-4">Blog</h1>
+          <p className="text-base md:text-lg text-slate-600 max-w-2xl">
+            Aquarium care guides, fish profiles, setup tips, and inspiration from the Neoblue team.
+          </p>
         </div>
 
-        <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {blogs.map((blog) => (
-            <article key={blog._id} className="group rounded-3xl overflow-hidden border border-blue-100 bg-white shadow-sm hover:border-blue-300 transition-colors">
-              <div className="relative aspect-4/3 overflow-hidden">
-                <img src={blog.coverImage} alt={blog.title} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                <div className="absolute inset-0 bg-linear-to-t from-slate-950/70 via-slate-950/15 to-transparent" />
-                {blog.featured && <span className="absolute top-4 left-4 rounded-full bg-blue-600 text-white px-3 py-1 text-xs font-bold uppercase tracking-wide">Featured</span>}
-              </div>
+        {/* Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8">
+          {/* Sidebar - Filters */}
+          <div className="lg:col-span-1">
+            <div className="lg:sticky lg:top-20">
+              <BlogFilters categories={categories} tags={tags} />
+            </div>
+          </div>
 
-              <div className="p-5">
-                <div className="flex flex-wrap gap-2 mb-3">
-                  {blog.keywords.map((keyword) => (
-                    <span key={keyword} className="rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">{keyword}</span>
+          {/* Main Content */}
+          <div className="lg:col-span-3">
+            {/* Loading State */}
+            {loading && (
+              <div className="flex justify-center items-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+              </div>
+            )}
+
+            {/* Blog Grid */}
+            {!loading && blogs.length > 0 && (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-8">
+                  {blogs.map((blog) => (
+                    <BlogCard key={blog._id} blog={blog} />
                   ))}
                 </div>
-                <h2 className="text-2xl font-bold text-slate-900 leading-tight">{blog.title}</h2>
-                <p className="mt-2 text-sm text-slate-600">{blog.excerpt}</p>
-                <div className="mt-5 flex items-center justify-between text-sm text-slate-500">
-                  <span>{blog.author}</span>
-                  <span>{blog.readTime} min read</span>
-                </div>
-                <Link href={`/blog/${blog.slug}`} className="mt-5 inline-flex items-center justify-center h-11 px-5 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors">
-                  Read Post
-                </Link>
-              </div>
-            </article>
-          ))}
-        </section>
 
-        {blogs.length === 0 && (
-          <div className="rounded-3xl border border-blue-100 bg-blue-50/50 p-12 text-center text-slate-600 mt-8">
-            No blog posts yet.
+                {/* Pagination */}
+                {pagination && pagination.pages > 1 && (
+                  <div className="flex items-center justify-center gap-2 mt-8 md:mt-12 flex-wrap">
+                    {Array.from({ length: pagination.pages }).map((_, i) => {
+                      const pageNum = i + 1;
+                      const params = new URLSearchParams(searchParams.toString());
+                      params.set('page', String(pageNum));
+
+                      return (
+                        <a
+                          key={pageNum}
+                          href={`/blog?${params.toString()}`}
+                          className={`w-9 h-9 sm:w-10 sm:h-10 text-sm sm:text-base flex items-center justify-center rounded-lg font-semibold transition-colors ${
+                            pageNum === page
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-white border border-slate-300 text-slate-900 hover:border-blue-600 hover:text-blue-600'
+                          }`}
+                        >
+                          {pageNum}
+                        </a>
+                      );
+                    })}
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* Empty State */}
+            {!loading && blogs.length === 0 && (
+              <div className="bg-white rounded-lg border border-slate-200 p-8 sm:p-12 text-center">
+                <svg
+                  className="mx-auto h-12 w-12 text-slate-400 mb-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13V7m0 0H9m4 0h4"
+                  />
+                </svg>
+                <h3 className="text-lg font-semibold text-slate-900 mb-2">No posts found</h3>
+                <p className="text-slate-600">
+                  {search || category || tag ? 'Try adjusting your filters or search terms.' : 'Check back soon for new content!'}
+                </p>
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </main>
+  );
+}
+
+export default function BlogPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <BlogPageContent />
+    </Suspense>
   );
 }

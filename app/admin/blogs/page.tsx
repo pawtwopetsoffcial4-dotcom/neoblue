@@ -229,20 +229,20 @@ export default function AdminBlogsPage() {
         </div>
       )}
 
-      <section className="rounded-3xl bg-white border border-blue-100 p-6 space-y-4">
-        <div className="flex items-center gap-2">
+      <section className="rounded-3xl bg-white border border-blue-100 p-4 sm:p-6 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
           <BookOpen className="h-5 w-5 text-blue-600" />
           <h2 className="text-xl font-black tracking-tight">Add Blog</h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <input className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500" placeholder="Title" value={createForm.title} onChange={(event) => setCreateForm((current) => ({ ...current, title: event.target.value, slug: current.slug || slugify(event.target.value) }))} />
-          <input className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500" placeholder="Slug" value={createForm.slug} onChange={(event) => setCreateForm((current) => ({ ...current, slug: event.target.value }))} />
-          <input className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500" placeholder="Author" value={createForm.author} onChange={(event) => setCreateForm((current) => ({ ...current, author: event.target.value }))} />
-          <input className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500" placeholder="Read time (minutes)" type="number" min={1} value={createForm.readTime} onChange={(event) => setCreateForm((current) => ({ ...current, readTime: event.target.value }))} />
-          <input className="md:col-span-2 h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500" placeholder="Excerpt" value={createForm.excerpt} onChange={(event) => setCreateForm((current) => ({ ...current, excerpt: event.target.value }))} />
-          <textarea className="md:col-span-2 min-h-40 px-4 py-3 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500" placeholder="Content" value={createForm.content} onChange={(event) => setCreateForm((current) => ({ ...current, content: event.target.value }))} />
-          <input className="md:col-span-2 h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500" placeholder="Keywords, separated by commas" value={createForm.keywords} onChange={(event) => setCreateForm((current) => ({ ...current, keywords: event.target.value }))} />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+          <input className="h-12 text-base px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500" placeholder="Title" value={createForm.title} onChange={(event) => setCreateForm((current) => ({ ...current, title: event.target.value, slug: current.slug || slugify(event.target.value) }))} />
+          <input className="h-12 text-base px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500" placeholder="Slug" value={createForm.slug} onChange={(event) => setCreateForm((current) => ({ ...current, slug: event.target.value }))} />
+          <input className="h-12 text-base px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500" placeholder="Author" value={createForm.author} onChange={(event) => setCreateForm((current) => ({ ...current, author: event.target.value }))} />
+          <input className="h-12 text-base px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500" placeholder="Read time (minutes)" type="number" min={1} value={createForm.readTime} onChange={(event) => setCreateForm((current) => ({ ...current, readTime: event.target.value }))} />
+          <input className="md:col-span-2 h-12 text-base px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500" placeholder="Excerpt" value={createForm.excerpt} onChange={(event) => setCreateForm((current) => ({ ...current, excerpt: event.target.value }))} />
+          <textarea className="md:col-span-2 min-h-40 text-base px-4 py-3 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500" placeholder="Content" value={createForm.content} onChange={(event) => setCreateForm((current) => ({ ...current, content: event.target.value }))} />
+          <input className="md:col-span-2 h-12 text-base px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500" placeholder="Keywords, separated by commas" value={createForm.keywords} onChange={(event) => setCreateForm((current) => ({ ...current, keywords: event.target.value }))} />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -259,7 +259,7 @@ export default function AdminBlogsPage() {
               }}
             >
               {({ open }) => (
-                <button type="button" onClick={() => open()} className="h-10 px-4 rounded-full border border-blue-200 text-blue-700 font-semibold hover:bg-blue-50">
+                <button type="button" onClick={() => open()} className="h-11 w-full sm:w-auto px-4 rounded-full border border-blue-200 text-blue-700 font-semibold hover:bg-blue-50">
                   Upload Cover
                 </button>
               )}
@@ -280,7 +280,7 @@ export default function AdminBlogsPage() {
               }}
             >
               {({ open }) => (
-                <button type="button" onClick={() => open()} className="h-10 px-4 rounded-full border border-blue-200 text-blue-700 font-semibold hover:bg-blue-50 inline-flex items-center gap-2">
+                <button type="button" onClick={() => open()} className="h-11 w-full sm:w-auto px-4 rounded-full border border-blue-200 text-blue-700 font-semibold hover:bg-blue-50 inline-flex items-center justify-center gap-2">
                   <Plus className="h-4 w-4" /> Add Gallery Image
                 </button>
               )}
@@ -293,7 +293,7 @@ export default function AdminBlogsPage() {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3">
           <label className="inline-flex items-center gap-2 text-sm text-slate-700">
             <input type="checkbox" checked={createForm.featured} onChange={(event) => setCreateForm((current) => ({ ...current, featured: event.target.checked }))} className="h-4 w-4 accent-blue-500" />
             Featured
@@ -302,7 +302,7 @@ export default function AdminBlogsPage() {
             <input type="checkbox" checked={createForm.isPublished} onChange={(event) => setCreateForm((current) => ({ ...current, isPublished: event.target.checked }))} className="h-4 w-4 accent-blue-500" />
             Published
           </label>
-          <button disabled={isCreating} onClick={handleCreate} className="h-11 px-6 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors disabled:opacity-60">
+          <button disabled={isCreating} onClick={handleCreate} className="h-11 w-full sm:w-auto px-6 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors disabled:opacity-60">
             {isCreating ? 'Saving...' : 'Create Blog'}
           </button>
         </div>
@@ -339,27 +339,27 @@ export default function AdminBlogsPage() {
       </div>
 
       {editingBlog && editForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 px-4 py-6">
-          <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl bg-white shadow-2xl border border-blue-100">
-            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-blue-100 bg-white px-6 py-4">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-950/60 px-0 sm:px-4 py-0 sm:py-6">
+          <div className="w-full sm:max-w-4xl max-h-[94vh] sm:max-h-[90vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl bg-white shadow-2xl border border-blue-100">
+            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-blue-100 bg-white px-4 sm:px-6 py-4">
               <div>
                 <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue-600 mb-1">Edit Blog</p>
-                <h2 className="text-2xl font-black tracking-tight">{editingBlog.title}</h2>
+                <h2 className="text-lg sm:text-2xl font-black tracking-tight line-clamp-1">{editingBlog.title}</h2>
               </div>
               <button type="button" onClick={closeEditBlog} className="h-10 w-10 rounded-full border border-slate-200 text-slate-600 hover:bg-slate-100 flex items-center justify-center">
                 <X className="h-4 w-4" />
               </button>
             </div>
 
-            <div className="p-6 space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <input className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500" value={editForm.title} onChange={(event) => setEditForm((current) => current ? { ...current, title: event.target.value, slug: current.slug || slugify(event.target.value) } : current)} placeholder="Title" />
-                <input className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500" value={editForm.slug} onChange={(event) => setEditForm((current) => current ? { ...current, slug: event.target.value } : current)} placeholder="Slug" />
-                <input className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500" value={editForm.author} onChange={(event) => setEditForm((current) => current ? { ...current, author: event.target.value } : current)} placeholder="Author" />
-                <input className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500" type="number" min={1} value={editForm.readTime} onChange={(event) => setEditForm((current) => current ? { ...current, readTime: event.target.value } : current)} placeholder="Read time" />
-                <input className="md:col-span-2 h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500" value={editForm.excerpt} onChange={(event) => setEditForm((current) => current ? { ...current, excerpt: event.target.value } : current)} placeholder="Excerpt" />
-                <textarea className="md:col-span-2 min-h-40 px-4 py-3 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500" value={editForm.content} onChange={(event) => setEditForm((current) => current ? { ...current, content: event.target.value } : current)} placeholder="Content" />
-                <input className="md:col-span-2 h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500" value={editForm.keywords} onChange={(event) => setEditForm((current) => current ? { ...current, keywords: event.target.value } : current)} placeholder="Keywords, separated by commas" />
+            <div className="p-4 sm:p-6 space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+                <input className="h-12 text-base px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500" value={editForm.title} onChange={(event) => setEditForm((current) => current ? { ...current, title: event.target.value, slug: current.slug || slugify(event.target.value) } : current)} placeholder="Title" />
+                <input className="h-12 text-base px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500" value={editForm.slug} onChange={(event) => setEditForm((current) => current ? { ...current, slug: event.target.value } : current)} placeholder="Slug" />
+                <input className="h-12 text-base px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500" value={editForm.author} onChange={(event) => setEditForm((current) => current ? { ...current, author: event.target.value } : current)} placeholder="Author" />
+                <input className="h-12 text-base px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500" type="number" min={1} value={editForm.readTime} onChange={(event) => setEditForm((current) => current ? { ...current, readTime: event.target.value } : current)} placeholder="Read time" />
+                <input className="md:col-span-2 h-12 text-base px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500" value={editForm.excerpt} onChange={(event) => setEditForm((current) => current ? { ...current, excerpt: event.target.value } : current)} placeholder="Excerpt" />
+                <textarea className="md:col-span-2 min-h-40 text-base px-4 py-3 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500" value={editForm.content} onChange={(event) => setEditForm((current) => current ? { ...current, content: event.target.value } : current)} placeholder="Content" />
+                <input className="md:col-span-2 h-12 text-base px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500" value={editForm.keywords} onChange={(event) => setEditForm((current) => current ? { ...current, keywords: event.target.value } : current)} placeholder="Keywords, separated by commas" />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -371,7 +371,7 @@ export default function AdminBlogsPage() {
                       setEditForm((current) => current ? { ...current, coverImage: String(secureUrl) } : current);
                     }
                   }}>
-                    {({ open }) => <button type="button" onClick={() => open()} className="h-10 px-4 rounded-full border border-blue-200 text-blue-700 font-semibold hover:bg-blue-50">Replace Cover</button>}
+                    {({ open }) => <button type="button" onClick={() => open()} className="h-11 w-full sm:w-auto px-4 rounded-full border border-blue-200 text-blue-700 font-semibold hover:bg-blue-50">Replace Cover</button>}
                   </CldUploadWidget>
                   <img src={editForm.coverImage} alt="Cover preview" className="w-full h-48 object-cover rounded-2xl border border-blue-100" />
                 </div>
@@ -384,7 +384,7 @@ export default function AdminBlogsPage() {
                       addEditGalleryImage(String(secureUrl));
                     }
                   }}>
-                    {({ open }) => <button type="button" onClick={() => open()} className="h-10 px-4 rounded-full border border-blue-200 text-blue-700 font-semibold hover:bg-blue-50 inline-flex items-center gap-2"><Plus className="h-4 w-4" /> Add Gallery Image</button>}
+                    {({ open }) => <button type="button" onClick={() => open()} className="h-11 w-full sm:w-auto px-4 rounded-full border border-blue-200 text-blue-700 font-semibold hover:bg-blue-50 inline-flex items-center justify-center gap-2"><Plus className="h-4 w-4" /> Add Gallery Image</button>}
                   </CldUploadWidget>
                   <div className="grid grid-cols-2 gap-3">
                     {editForm.galleryImages.map((image) => (
@@ -397,10 +397,10 @@ export default function AdminBlogsPage() {
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-4 items-center">
+              <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-4 sm:items-center">
                 <label className="inline-flex items-center gap-2 text-sm text-slate-700"><input type="checkbox" checked={editForm.featured} onChange={(event) => setEditForm((current) => current ? { ...current, featured: event.target.checked } : current)} className="h-4 w-4 accent-blue-500" /> Featured</label>
                 <label className="inline-flex items-center gap-2 text-sm text-slate-700"><input type="checkbox" checked={editForm.isPublished} onChange={(event) => setEditForm((current) => current ? { ...current, isPublished: event.target.checked } : current)} className="h-4 w-4 accent-blue-500" /> Published</label>
-                <button type="button" onClick={saveEditedBlog} disabled={isSavingEdit} className="h-11 px-6 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors disabled:opacity-60">{isSavingEdit ? 'Saving...' : 'Save Blog'}</button>
+                <button type="button" onClick={saveEditedBlog} disabled={isSavingEdit} className="h-11 w-full sm:w-auto px-6 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors disabled:opacity-60">{isSavingEdit ? 'Saving...' : 'Save Blog'}</button>
               </div>
             </div>
           </div>
