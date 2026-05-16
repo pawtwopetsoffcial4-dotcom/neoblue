@@ -39,7 +39,7 @@ export default function VendorLayout({ children }: { children: React.ReactNode }
     <div className="min-h-screen bg-[#f5f8ff] text-slate-900">
       <div className="sticky top-0 z-40 border-b border-blue-100/80 bg-white/90 backdrop-blur-xl md:hidden">
         <div className="px-4 py-4">
-          <div className="flex items-center justify-between gap-4 rounded-2xl bg-linear-to-r from-blue-600 to-slate-950 px-4 py-4 text-white shadow-lg">
+          <div className="flex items-center justify-between gap-4 rounded-2xl bg-neoblue-linear-to-r px-4 py-4 text-white shadow-lg">
             <div>
               <p className="text-[10px] font-bold uppercase tracking-[0.35em] text-blue-100">Vendor Panel</p>
               <h1 className="mt-1 text-lg font-black tracking-tight">NeoBlue Studio</h1>
@@ -94,7 +94,7 @@ export default function VendorLayout({ children }: { children: React.ReactNode }
 
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-6 px-4 pb-10 pt-4 sm:px-6 lg:grid-cols-[280px_1fr] lg:px-8 lg:pt-6">
         <aside className="hidden rounded-[2rem] border border-blue-100 bg-white p-5 shadow-sm lg:block lg:h-fit lg:sticky lg:top-6">
-          <div className="rounded-3xl bg-linear-to-br from-blue-600 to-slate-950 p-5 text-white shadow-lg">
+          <div className="rounded-3xl bg-neoblue-linear-to-br p-5 text-white shadow-lg">
             <p className="text-[10px] font-bold uppercase tracking-[0.35em] text-blue-100">Vendor Panel</p>
             <h2 className="mt-2 text-2xl font-black tracking-tight">NeoBlue Studio</h2>
             <p className="mt-2 text-sm leading-6 text-blue-50/90">Manage products, orders, and shipping from one clean workspace.</p>

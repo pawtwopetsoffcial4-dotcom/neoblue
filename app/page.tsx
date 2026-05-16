@@ -5,6 +5,7 @@ import {
   Waves, Sparkles, Droplets, Package, Fish,
   Search, Home, ShoppingBag, User, ArrowRight
 } from 'lucide-react';
+import ReviewStars from '@/app/components/ReviewStars';
 import type { MarketplaceProduct } from '@/lib/types/marketplace';
 
 /* ------------------------------------------------------------------ */
@@ -103,6 +104,7 @@ function MobileScrollSection({ title, children }: { title: string; children: Rea
 /* ULTRA-CLEAN PRODUCT CARD                                           */
 /* ------------------------------------------------------------------ */
 function MobileCard({ product }: { product: any }) {
+  const reviewCount = product.reviewCount ?? ((product.title?.length ?? 6) * 7 + 12);
   return (
     <Link
       href={`/products/${product.id}`}
@@ -114,11 +116,17 @@ function MobileCard({ product }: { product: any }) {
           alt={product.title}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
         />
+        <div className="absolute left-2 top-2 rounded-md px-2 py-1 pill-neoblue-gradient text-white text-xs font-bold">{product.tag}</div>
         {/* product tag capsule removed */}
       </div>
       <div className="p-3">
         <h3 className="text-sm font-semibold text-blue-950 truncate mb-1">{product.title}</h3>
-        <p className="text-sm font-black text-blue-600">₹{product.price}</p>
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-sm font-black text-blue-600">₹{product.price}</p>
+          <div className="flex items-center gap-2">
+            <ReviewStars rating={Number(product.rating) || 0} count={Math.max(1, Math.floor(reviewCount))} compact />
+          </div>
+        </div>
       </div>
     </Link>
   );

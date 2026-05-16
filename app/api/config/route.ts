@@ -4,6 +4,7 @@ import { PRODUCT_CATEGORIES } from '@/lib/catalog';
 import StoreConfig from '@/lib/models/StoreConfig';
 import { normalizeShippingRate } from '@/lib/utils/shipping';
 
+// Single, clean GET/PUT implementation for /api/config
 export async function GET() {
   try {
     await connectDB();

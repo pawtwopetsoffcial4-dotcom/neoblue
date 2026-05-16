@@ -8,9 +8,26 @@ import { calculateShippingAmount } from '@/lib/utils/shipping';
 const appId = process.env.CASHFREE_APP_ID;
 const secretKey = process.env.CASHFREE_SECRET_KEY;
 const cashfreeEnv = process.env.CASHFREE_ENV === 'production' ? 'production' : 'sandbox';
-const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
 const getCashfreeBaseUrl = () => (cashfreeEnv === 'production' ? 'https://api.cashfree.com' : 'https://sandbox.cashfree.com');
+
+const getAppUrl = (request: NextRequest) => {
+  const configuredReturnUrl = process.env.CASHFREE_RETURN_URL;
+  if (configuredReturnUrl) {
+    return configuredReturnUrl.replace(/\/$/, '');
+  }
+
+  const configuredUrl = process.env.NEXT_PUBLIC_APP_URL;
+  if (configuredUrl) {
+    return configuredUrl.replace(/\/$/, '');
+  }
+
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+
+  return request.nextUrl.origin;
+};
 
 export async function POST(request: NextRequest) {
   try {
@@ -65,6 +82,11 @@ export async function POST(request: NextRequest) {
       return createErrorResponse('Invalid amount', 400);
     }
 
+    const appUrl = getAppUrl(request);
+    if (cashfreeEnv === 'production' && !appUrl.startsWith('https://')) {
+      return createErrorResponse('Set CASHFREE_RETURN_URL to your deployed https checkout URL for Cashfree production payments', 400);
+    }
+
     const orderId = `neo_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
     const cashfreeResponse = await fetch(`${getCashfreeBaseUrl()}/pg/orders`, {
       method: 'POST',
@@ -84,7 +106,9 @@ export async function POST(request: NextRequest) {
           customer_phone: '9999999999',
         },
         order_meta: {
-          return_url: `${appUrl}/checkout?cashfree_order_id={order_id}`,
+          return_url: appUrl.includes('{order_id}')
+            ? appUrl
+            : `${appUrl}/checkout?cashfree_order_id={order_id}`,
         },
       }),
     });

@@ -3,6 +3,8 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, ShoppingBag, Star, Truck, Shield, Droplets, Thermometer, Info, MessageSquare, ChevronRight, Heart, Share2 } from 'lucide-react';
+import ReviewList from '@/app/components/ReviewList';
+import ReviewForm from '@/app/components/ReviewForm';
 import type { MarketplaceProduct } from '@/lib/types/marketplace';
 import { useCart } from '@/lib/hooks/useCart';
 
@@ -21,6 +23,26 @@ export default function ProductDetailPage({ params }: ProductDetailProps) {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const { addToCart } = useCart();
+
+  // Reviews state and fetch (kept with other hooks to preserve hook order)
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [showForm, setShowForm] = useState(false);
+
+  useEffect(() => {
+    if (!id) return;
+    let mounted = true;
+    (async () => {
+      try {
+        const res = await fetch(`/api/reviews/${id}`, { cache: 'no-store' });
+        if (!res.ok) return;
+        const body = await res.json();
+        if (mounted) setReviews(Array.isArray(body.reviews) ? body.reviews : []);
+      } catch {
+        // ignore
+      }
+    })();
+    return () => { mounted = false; };
+  }, [id]);
 
   useEffect(() => {
     params.then((data) => setId(data.id));
@@ -80,12 +102,7 @@ export default function ProductDetailPage({ params }: ProductDetailProps) {
     );
   }
 
-  // Dummy reviews data
-  const reviews = [
-    { id: 1, user: "Alex Kumar", rating: 5, date: "2 days ago", comment: "Absolutely beautiful specimen! Arrived healthy and active.", avatar: "A" },
-    { id: 2, user: "Priya Chawla", rating: 4, date: "1 week ago", comment: "Good quality, colors are slightly less vibrant than the picture but still gorgeous.", avatar: "P" },
-    { id: 3, user: "Rahul S.", rating: 5, date: "2 weeks ago", comment: "Perfect addition to my tank. Acclimated very well.", avatar: "R" },
-  ];
+  // Dummy reviews data (hooks moved above to preserve order)
 
   const productImages =
     product.images && product.images.length > 0
@@ -127,7 +144,7 @@ export default function ProductDetailPage({ params }: ProductDetailProps) {
                 />
                  <div className="absolute top-6 left-6 flex flex-col gap-2">
                     {product.tag && (
-                      <span className="hidden md:inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-blue-500 text-white shadow-sm w-fit">
+                      <span className="hidden md:inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider pill-neoblue-gradient text-white shadow-sm w-fit">
                         {product.tag}
                       </span>
                     )}
@@ -355,32 +372,38 @@ export default function ProductDetailPage({ params }: ProductDetailProps) {
                    </div>
 
                    <div className="space-y-6">
-                      {reviews.map((review) => (
-                        <div key={review.id} className="p-6 rounded-2xl border border-slate-100 bg-white hover:border-blue-100 transition-colors shadow-sm">
-                           <div className="flex justify-between items-start mb-4">
-                              <div className="flex items-center gap-3">
-                                 <div className="w-10 h-10 rounded-full bg-linear-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center font-bold text-lg shadow-inner">
-                                   {review.avatar}
-                                 </div>
-                                 <div>
-                                   <p className="font-bold text-slate-900 text-sm">{review.user}</p>
-                                   <div className="flex items-center gap-2 mt-0.5">
-                                      <div className="flex text-amber-400">
-                                        {[...Array(5)].map((_, i) => (
-                                          <Star key={i} className={`h-3 w-3 ${i < review.rating ? 'fill-current' : 'text-slate-200'}`} />
-                                        ))}
-                                      </div>
-                                      <span className="text-[11px] text-slate-400 font-medium">{review.date}</span>
-                                   </div>
-                                 </div>
-                              </div>
-                              <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded flex items-center gap-1 border border-emerald-100">
-                                <Shield className="h-3 w-3" /> Verified
-                              </span>
-                           </div>
-                           <p className="text-slate-600 text-sm leading-relaxed">{review.comment}</p>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="text-lg font-bold text-slate-900">Customer Reviews</h3>
+                          <p className="text-slate-500 text-sm">Based on {reviews.length} reviews</p>
                         </div>
-                      ))}
+                        <div>
+                          <button onClick={() => setShowForm((s) => !s)} className="px-4 py-2 bg-slate-900 text-white rounded-xl shadow-md hover:bg-slate-800 transition-colors">
+                            {showForm ? 'Close' : 'Write a Review'}
+                          </button>
+                        </div>
+                      </div>
+
+                      {showForm && (
+                        <div className="p-4 bg-[#fbfdff] rounded-2xl border border-slate-100">
+                          <ReviewForm productId={id} onSubmit={() => {
+                            // refetch reviews
+                            (async () => {
+                              try {
+                                const res = await fetch(`/api/reviews/${id}`, { cache: 'no-store' });
+                                if (!res.ok) return;
+                                const body = await res.json();
+                                setReviews(Array.isArray(body.reviews) ? body.reviews : []);
+                                setShowForm(false);
+                              } catch {
+                                // ignore
+                              }
+                            })();
+                          }} />
+                        </div>
+                      )}
+
+                      <ReviewList reviews={reviews} />
                    </div>
                    
                    <button className="mt-8 w-full py-4 rounded-xl border-2 border-slate-100 font-bold text-slate-600 hover:border-slate-300 hover:text-slate-900 transition-all flex items-center justify-center gap-2">

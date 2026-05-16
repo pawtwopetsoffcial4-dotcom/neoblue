@@ -6,6 +6,7 @@ import {
   Search, Heart, X, SlidersHorizontal, ArrowUpDown, 
   Star, ArrowDown, ShieldCheck, Truck, Headset 
 } from 'lucide-react';
+import ReviewStars from '@/app/components/ReviewStars';
 import type { MarketplaceProduct } from '@/lib/types/marketplace';
 import { useCart } from '@/lib/hooks/useCart';
 import { getSubcategoriesForCategory } from '@/lib/catalog';
@@ -238,12 +239,9 @@ export default function ProductsPage() {
                         <Heart className="h-4 w-4" />
                       </button>
 
-                      {/* Overlaid Rating Pill */}
-                      <div className="absolute bottom-2 left-2 flex items-center gap-1 rounded bg-white px-1.5 py-0.5 text-[10px] font-bold shadow-sm">
-                        <span>{rating.toFixed(1)}</span>
-                        <Star className="h-2.5 w-2.5 fill-[#159e4b] text-[#159e4b]" />
-                        <span className="text-slate-300 font-normal">|</span>
-                        <span className="text-slate-500 font-medium">{reviewCount}</span>
+                      {/* Overlaid Rating Pill (now using NeoBlue gradient) */}
+                      <div className="absolute bottom-2 left-2 pill-neoblue-gradient px-2 py-0.5 rounded text-white text-[11px] font-bold shadow-sm">
+                        <ReviewStars rating={rating} count={reviewCount} compact />
                       </div>
                     </div>
 

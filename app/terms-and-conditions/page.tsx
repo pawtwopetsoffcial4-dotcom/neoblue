@@ -2,25 +2,9 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy | NeoBlue',
-  description: 'Read how NeoBlue collects, uses, and safeguards customer information.',
+  title: 'Terms & Conditions | NeoBlue',
+  description: 'Read the NeoBlue terms and conditions for using the platform.',
 };
-
-const informationWeCollect = [
-  'Name and contact details such as email address',
-  'Shipping and billing address',
-  'Account registration information',
-  'Usage data and interaction with our platform',
-  'Basic device and browser information',
-];
-
-const howWeUseData = [
-  'Provide and improve our services',
-  'Personalize your experience on NeoBlue',
-  'Recommend relevant products and content',
-  'Communicate important updates, offers, and support',
-  'Maintain platform security and performance',
-];
 
 const CheckIcon = () => (
   <svg className="w-4 h-4 text-[#005AE0] shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
@@ -34,7 +18,7 @@ const CrossIcon = () => (
   </svg>
 );
 
-export default function PrivacyPolicyPage() {
+export default function TermsAndConditionsPage() {
   return (
     <main className="min-h-screen bg-[#F4F7FB] font-sans pb-10 selection:bg-[#005AE0] selection:text-white flex justify-center">
       <div className="w-full max-w-md bg-[#F4F7FB] relative overflow-hidden shadow-2xl">
@@ -53,21 +37,21 @@ export default function PrivacyPolicyPage() {
               Legal
             </span>
             <h1 className="text-white text-[32px] font-extrabold mt-6 leading-[1.1] tracking-tight">
-              Privacy &amp; <br />
-              <span className="text-[#60A5FA]">Policy</span>
+              Terms &amp; <br />
+              <span className="text-[#60A5FA]">Conditions</span>
             </h1>
             <p className="text-blue-100 text-xs mt-4 leading-relaxed max-w-[65%]">
-              At NeoBlue, we value your privacy and are committed to protecting your personal information.
+              These terms explain how you may use NeoBlue, what we provide, and the responsibilities that apply to customers and sellers.
             </p>
             <p className="text-blue-100 text-xs mt-3 leading-relaxed max-w-[65%]">
-              This policy explains how we collect, use, and safeguard your data when you use our platform.
+              Please review them carefully before placing an order or using the platform.
             </p>
           </div>
 
           <div className="absolute -right-5 top-6 z-20">
             <Image
-              src="https://png.pngtree.com/png-clipart/20250103/original/pngtree-3d-happy-fish-cartoon-art-png-image_20060231.png"
-              alt="Security shield"
+              src="/illustrations/shield-check.svg"
+              alt="Shield check"
               width={220}
               height={220}
               className="object-contain drop-shadow-2xl"
@@ -79,16 +63,16 @@ export default function PrivacyPolicyPage() {
         <div className="mx-5 -mt-14 relative z-20">
           <div className="bg-[#0B192C] rounded-3xl p-5 flex items-center justify-between shadow-xl">
             <div className="flex-1 pr-3">
-              <h3 className="text-white font-bold text-[15px] mb-1.5">Our Commitment</h3>
-              <p className="text-[#38BDF8] text-[11px] font-semibold mb-1">Privacy. Security. Trust.</p>
+              <h3 className="text-white font-bold text-[15px] mb-1.5">Platform Rules</h3>
+              <p className="text-[#38BDF8] text-[11px] font-semibold mb-1">Fair use. Clear limits. Shared trust.</p>
               <p className="text-[#94A3B8] text-[11px] leading-relaxed">
                 We&apos;re committed to providing a safe and<br />trusted experience for every aquarist.
               </p>
             </div>
             <div className="shrink-0">
               <Image
-                src="/illustrations/wallet.svg"
-                alt="Wallet"
+                src="/illustrations/box.svg"
+                alt="Package box"
                 width={72}
                 height={72}
                 className="object-contain drop-shadow-lg"
@@ -99,7 +83,7 @@ export default function PrivacyPolicyPage() {
 
         <section className="mt-10">
           <h2 className="px-6 text-[#005AE0] text-[11px] font-bold uppercase tracking-widest mb-4">
-            Information We Collect
+            Account and Usage
           </h2>
 
           <div className="mx-5 bg-[#FEF2F2] border border-[#FECACA] rounded-2xl p-4 flex gap-3">
@@ -107,7 +91,7 @@ export default function PrivacyPolicyPage() {
             <div>
               <h3 className="text-[#B91C1C] font-bold text-[13px] mb-1">Important Notice</h3>
               <p className="text-[#991B1B] text-[12px] leading-relaxed">
-                We collect only the information needed to operate the platform, fulfill orders, and support customers.
+                By using NeoBlue, you agree to follow our platform rules and use the site only for lawful and intended purposes.
               </p>
             </div>
           </div>
@@ -126,19 +110,19 @@ export default function PrivacyPolicyPage() {
               <div className="flex-1 bg-white rounded-3xl p-5 shadow-sm border border-gray-100">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="bg-[#005AE0] text-white text-[10px] font-bold px-2 py-0.5 rounded">01</span>
-                  <h4 className="text-[#0F172A] font-bold text-[13px]">Data We Collect</h4>
+                  <h4 className="text-[#0F172A] font-bold text-[13px]">Eligibility</h4>
                 </div>
                 <p className="text-[#64748B] text-[11px] leading-relaxed mb-3">
-                  We may collect information you provide directly, such as account details and shipping information, along with basic technical data.
+                  You must be able to enter into a binding agreement under applicable law to use NeoBlue and place orders.
                 </p>
-                <p className="text-[#0F172A] text-[11px] font-bold mb-2">This may include:</p>
+                <p className="text-[#0F172A] text-[11px] font-bold mb-2">You agree to:</p>
                 <ul className="space-y-1.5 mb-3">
-                  {informationWeCollect.map((item) => (
-                    <li key={item} className="flex items-center gap-2 text-[11px] text-[#334155] font-medium"><CheckIcon /> {item}</li>
-                  ))}
+                  <li className="flex items-center gap-2 text-[11px] text-[#334155] font-medium"><CheckIcon /> Provide accurate information</li>
+                  <li className="flex items-center gap-2 text-[11px] text-[#334155] font-medium"><CheckIcon /> Keep your account credentials secure</li>
+                  <li className="flex items-center gap-2 text-[11px] text-[#334155] font-medium"><CheckIcon /> Use the platform responsibly</li>
                 </ul>
                 <p className="text-[#64748B] text-[10px] leading-relaxed">
-                  We do not collect more than we need to provide services and keep the platform running securely.
+                  Any misuse, fraud, or suspicious activity may result in account restriction or cancellation.
                 </p>
               </div>
             </div>
@@ -156,19 +140,18 @@ export default function PrivacyPolicyPage() {
               <div className="flex-1 bg-white rounded-3xl p-5 shadow-sm border border-gray-100">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="bg-[#005AE0] text-white text-[10px] font-bold px-2 py-0.5 rounded">02</span>
-                  <h4 className="text-[#0F172A] font-bold text-[13px]">How We Use Data</h4>
+                  <h4 className="text-[#0F172A] font-bold text-[13px]">Orders and Delivery</h4>
                 </div>
                 <p className="text-[#64748B] text-[11px] leading-relaxed mb-3">
-                  Your information helps us process orders, support your account, improve the platform, and deliver important updates.
+                  Order acceptance is subject to stock availability, payment confirmation, and shipping feasibility.
                 </p>
-                <p className="text-[#0F172A] text-[11px] font-bold mb-2">We use data to:</p>
+                <p className="text-[#0F172A] text-[11px] font-bold mb-2">We may cancel or adjust an order if:</p>
                 <ul className="space-y-1.5 mb-3">
-                  {howWeUseData.map((item) => (
-                    <li key={item} className="flex items-start gap-2 text-[11px] text-[#334155] font-medium leading-tight"><CheckIcon /> {item}</li>
-                  ))}
+                  <li className="flex items-center gap-2 text-[11px] text-[#334155] font-medium"><CheckIcon /> Products are unavailable</li>
+                  <li className="flex items-start gap-2 text-[11px] text-[#334155] font-medium leading-tight"><CheckIcon /> Delivery cannot be completed safely</li>
                 </ul>
                 <p className="text-[#64748B] text-[10px] leading-relaxed">
-                  We only use your data for the purposes described in this policy and related platform operations.
+                  Live aquatic shipments depend on transit conditions, so delivery timelines may vary.
                 </p>
               </div>
             </div>
@@ -176,8 +159,8 @@ export default function PrivacyPolicyPage() {
             <div className="mx-5 flex gap-4 items-start">
               <div className="w-14 shrink-0 flex flex-col items-center pt-1">
                 <Image
-                  src="/illustrations/box.svg"
-                  alt="Package box"
+                  src="/illustrations/wallet.svg"
+                  alt="Wallet"
                   width={56}
                   height={56}
                   className="object-contain drop-shadow"
@@ -186,13 +169,13 @@ export default function PrivacyPolicyPage() {
               <div className="flex-1 bg-white rounded-3xl p-5 shadow-sm border border-gray-100">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="bg-[#005AE0] text-white text-[10px] font-bold px-2 py-0.5 rounded">03</span>
-                  <h4 className="text-[#0F172A] font-bold text-[13px]">Data Protection</h4>
+                  <h4 className="text-[#0F172A] font-bold text-[13px]">Payment and Refunds</h4>
                 </div>
                 <p className="text-[#64748B] text-[11px] leading-relaxed mb-3">
-                  We use reasonable technical and organizational safeguards to help protect your information from unauthorized access or misuse.
+                  Payments must be completed through the available checkout methods shown on the site.
                 </p>
                 <p className="text-[#64748B] text-[10px] leading-relaxed">
-                  We do not sell personal information to third parties.
+                  Refund eligibility is governed by the Return &amp; Refund Policy and may require proof such as unboxing video evidence.
                 </p>
               </div>
             </div>
@@ -203,10 +186,10 @@ export default function PrivacyPolicyPage() {
           <div className="px-6 flex items-center justify-between">
             <div className="flex-1 pr-4">
               <h2 className="text-[#005AE0] text-[11px] font-bold uppercase tracking-widest mb-2">
-                Cookies and Sharing
+                Restrictions
               </h2>
               <p className="text-[#0F172A] text-[13px] font-bold leading-snug">
-                Some features rely on cookies and trusted third parties.
+                Certain actions are not allowed<br />on the platform.
               </p>
             </div>
             <Image
@@ -219,12 +202,13 @@ export default function PrivacyPolicyPage() {
           </div>
 
           <div className="mx-5 mt-6 bg-[#F5F8FF] rounded-3xl p-5">
-            <h3 className="text-[#0F172A] font-bold text-[13px] mb-4">Cookies and Third Parties</h3>
+            <h3 className="text-[#0F172A] font-bold text-[13px] mb-4">Prohibited Uses</h3>
             <div className="space-y-3">
               {[
-                'Cookies help remember preferences and improve your experience',
-                'Analytics may be used to understand platform performance',
-                'Payment and delivery partners only receive the data needed to perform their service',
+                'Using fake identities or false payment details',
+                'Attempting to disrupt or exploit the website',
+                'Uploading harmful, abusive, or misleading content',
+                'Copying or redistributing platform content without permission',
               ].map((text, index) => (
                 <div key={text} className="bg-white rounded-2xl p-3.5 flex items-center gap-4 shadow-sm border border-gray-50">
                   <div className="w-11 h-11 shrink-0 bg-[#F0F5FF] rounded-xl flex items-center justify-center text-[#005AE0] border border-[#E0EAFF]">
@@ -237,23 +221,23 @@ export default function PrivacyPolicyPage() {
           </div>
 
           <div className="mx-5 mt-6 bg-[#FEF2F2] rounded-3xl p-6 relative overflow-hidden">
-            <h3 className="text-[#DC2626] font-bold text-[14px] mb-2 relative z-10">Your Rights</h3>
+            <h3 className="text-[#DC2626] font-bold text-[14px] mb-2 relative z-10">Violation = Action</h3>
             <p className="text-[#991B1B] text-[12px] mb-4 relative z-10">
-              You can manage some browser-based settings like cookies directly from your browser.
+              We may suspend access, cancel orders, or take other appropriate action if these terms are violated.
             </p>
-            <ul className="space-y-3 relative z-10 w-[84%]">
-              <li className="flex items-start gap-2 text-[11px] text-[#7F1D1D] font-medium leading-tight"><CrossIcon /> Disabling cookies may affect how some parts of the site work</li>
-              <li className="flex items-start gap-2 text-[11px] text-[#7F1D1D] font-medium leading-tight"><CrossIcon /> We may still retain data required for legal, security, or order-processing reasons</li>
+            <ul className="space-y-3 relative z-10 w-[80%]">
+              <li className="flex items-start gap-2 text-[11px] text-[#7F1D1D] font-medium leading-tight"><CrossIcon /> Fraudulent orders are not permitted</li>
+              <li className="flex items-start gap-2 text-[11px] text-[#7F1D1D] font-medium leading-tight"><CrossIcon /> Abuse of support or delivery systems may lead to restrictions</li>
             </ul>
           </div>
 
           <div className="mx-5 mt-6 bg-white rounded-3xl p-6 shadow-sm border border-gray-100 relative overflow-hidden">
-            <h3 className="text-[#0F172A] font-bold text-[14px] mb-3 relative z-10">Contact Us</h3>
+            <h3 className="text-[#0F172A] font-bold text-[14px] mb-3 relative z-10">Final Note</h3>
             <p className="text-[#64748B] text-[11px] leading-relaxed mb-4 relative z-10">
-              If you have any questions or concerns regarding this Privacy Policy, please contact us through the support channels available on the site.
+              By continuing to use NeoBlue, you acknowledge that you have read and agree to these Terms &amp; Conditions.
             </p>
             <p className="text-[#64748B] text-[11px] leading-relaxed relative z-10">
-              We may update this policy from time to time, and continued use of NeoBlue means you accept the updated version.
+              We may update these terms from time to time, and continued use of the platform means you accept the updated version.
             </p>
             <div className="absolute -right-4 bottom-4 z-0 opacity-90">
               <Image

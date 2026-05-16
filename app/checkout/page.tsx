@@ -2,6 +2,7 @@
 
 import React, { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
+import Script from 'next/script';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCart } from '@/lib/hooks/useCart';
 import { useAuth } from '@/lib/hooks/useAuth';
@@ -10,6 +11,8 @@ import { Trash2, Plus, Minus, MapPin, ShoppingBag, ArrowRight, ShieldCheck, Arro
 import { calculateShippingAmount } from '@/lib/utils/shipping';
 
 const PENDING_CASHFREE_CHECKOUT_KEY = 'pendingCashfreeCheckout';
+
+const cashfreeSdkSrc = 'https://sdk.cashfree.com/js/v3/cashfree.js';
 
 function CheckoutPageContent() {
   const router = useRouter();
@@ -129,14 +132,20 @@ function CheckoutPageContent() {
 
       const products = items.map((item) => ({ productId: item.productId, quantity: item.quantity }));
 
-      const cashfreeOrder = await fetch('/api/checkout/create-order', {
+      const resp = await fetch('/api/checkout/create-order', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${localStorage.getItem('authToken') ?? ''}`,
         },
         body: JSON.stringify({ products }),
-      }).then((res) => res.json());
+      });
+
+      const cashfreeOrder = await resp.json();
+      if (!resp.ok) {
+        console.error('Create order failed', cashfreeOrder);
+        throw new Error(cashfreeOrder?.error || 'Failed to initialize Cashfree order');
+      }
 
       if (!cashfreeOrder?.orderId) {
         throw new Error('Failed to initialize Cashfree order');
@@ -151,13 +160,25 @@ function CheckoutPageContent() {
         })
       );
 
-      // Prefer hosted payment link for reliability across mobile browsers.
+      // Prefer hosted payment link when Cashfree returns one.
       if (cashfreeOrder.paymentLink) {
         window.location.href = cashfreeOrder.paymentLink;
         return;
       }
 
-      throw new Error('Payment link is unavailable. Please contact support.');
+      if (!cashfreeOrder.paymentSessionId) {
+        throw new Error('Cashfree payment session is unavailable. Please contact support.');
+      }
+
+      if (typeof window.Cashfree !== 'function') {
+        throw new Error('Cashfree checkout library is unavailable. Please refresh and try again.');
+      }
+
+      const cashfree = window.Cashfree({ mode: cashfreeOrder.environment === 'production' ? 'production' : 'sandbox' });
+      await cashfree.checkout({
+        paymentSessionId: cashfreeOrder.paymentSessionId,
+        redirectTarget: '_self',
+      });
     } catch {
       alert('Payment initialization failed.');
     } finally {
@@ -167,6 +188,7 @@ function CheckoutPageContent() {
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 pb-24 md:pb-32 font-sans">
+      <Script src={cashfreeSdkSrc} strategy="afterInteractive" />
       {/* Header section */}
       <div className="bg-white border-b border-gray-200 pt-8 pb-8 md:pt-12 md:pb-12 shadow-sm">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
