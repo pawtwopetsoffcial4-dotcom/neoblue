@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -18,16 +18,16 @@ async function writeData(obj: any) {
   await fs.writeFile(DATA_FILE, JSON.stringify(obj, null, 2), 'utf-8');
 }
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
-  const id = params.id;
+export async function GET(request: NextRequest, context: { params: Promise<{ id: string }> }) {
+  const { id } = await context.params;
   const data = await readData();
   const forProduct = Array.isArray(data[id]) ? data[id] : [];
   return NextResponse.json({ reviews: forProduct });
 }
 
-export async function POST(request: Request, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
-    const id = params.id;
+    const { id } = await context.params;
     const body = await request.json();
     const { user, rating, comment } = body || {};
 
