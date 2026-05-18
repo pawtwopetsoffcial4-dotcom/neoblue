@@ -121,7 +121,7 @@ function CheckoutPageContent() {
         }>(`/checkout/verify-order?orderId=${encodeURIComponent(cashfreeOrderId)}`);
 
         if (!verifyData?.isPaid) {
-          alert(verifyData?.error || 'Payment was not completed. Please try again.');
+          alert('Payment was not completed. Please try again.');
           return;
         }
 
