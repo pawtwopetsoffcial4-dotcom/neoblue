@@ -112,15 +112,16 @@ function CheckoutPageContent() {
           return;
         }
 
-        const verifyResponse = await fetch(`/api/checkout/verify-order?orderId=${encodeURIComponent(cashfreeOrderId)}`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('authToken') ?? ''}`,
-          },
-        });
-        const verifyData = await verifyResponse.json();
+        const verifyData = await apiClient.request<{
+          orderId: string;
+          orderStatus: string;
+          paymentStatus: string;
+          cfPaymentId?: string | null;
+          isPaid?: boolean;
+        }>(`/checkout/verify-order?orderId=${encodeURIComponent(cashfreeOrderId)}`);
 
-        if (!verifyResponse.ok || !verifyData?.isPaid) {
-          alert('Payment was not completed. Please try again.');
+        if (!verifyData?.isPaid) {
+          alert(verifyData?.error || 'Payment was not completed. Please try again.');
           return;
         }
 
@@ -172,20 +173,17 @@ function CheckoutPageContent() {
 
       const products = items.map((item) => ({ productId: item.productId, quantity: item.quantity }));
 
-      const resp = await fetch('/api/checkout/create-order', {
+      const cashfreeOrder = await apiClient.request<{
+        orderId: string;
+        amount: number;
+        currency: string;
+        paymentSessionId?: string;
+        paymentLink?: string;
+        environment?: 'production' | 'sandbox';
+      }>('/checkout/create-order', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('authToken') ?? ''}`,
-        },
         body: JSON.stringify({ products }),
       });
-
-      const cashfreeOrder = await resp.json();
-      if (!resp.ok) {
-        console.error('Create order failed', cashfreeOrder);
-        throw new Error(cashfreeOrder?.error || cashfreeOrder?.message || 'Failed to initialize Cashfree order');
-      }
 
       if (!cashfreeOrder?.orderId) {
         throw new Error('Failed to initialize Cashfree order');
