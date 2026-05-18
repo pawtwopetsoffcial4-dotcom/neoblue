@@ -18,6 +18,8 @@ export interface IProduct extends Document {
   discountPercentage?: number;
   perPiecePrice?: number;
   perPairPrice?: number;
+  shippingType?: 'piece' | 'weight';
+  shippingCharge?: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -94,6 +96,16 @@ const productSchema = new Schema<IProduct>(
     },
     perPairPrice: {
       type: Number,
+      min: 0,
+    },
+    shippingType: {
+      type: String,
+      enum: ['piece', 'weight'],
+      default: 'piece',
+    },
+    shippingCharge: {
+      type: Number,
+      default: 0,
       min: 0,
     },
   },

@@ -2,6 +2,7 @@ import { connectDB, isDatabaseConnectivityError } from '@/lib/db';
 import Product from '@/lib/models/Product';
 import User from '@/lib/models/User';
 import { createErrorResponse, createSuccessResponse, getTokenFromRequest, verifyToken } from '@/lib/utils/auth';
+import { normalizeShippingRate } from '@/lib/utils/shipping';
 import { NextRequest } from 'next/server';
 
 export const dynamic = 'force-dynamic';
@@ -79,7 +80,7 @@ export async function POST(request: NextRequest) {
       return createErrorResponse('Only vendors can create products', 403);
     }
 
-    const { title, description, price, images, category, subcategory, waterType, tag, scientific, originalPrice, discountPercentage, perPiecePrice, perPairPrice } = await request.json();
+    const { title, description, price, images, category, subcategory, waterType, tag, scientific, originalPrice, discountPercentage, perPiecePrice, perPairPrice, shippingType, shippingCharge } = await request.json();
 
     // Validate required fields
     if (!title || !description || price == null || !images || !category || !waterType) {
@@ -91,6 +92,8 @@ export async function POST(request: NextRequest) {
     const safeDiscount = discountPercentage == null ? undefined : Number(discountPercentage);
     const safePerPiecePrice = perPiecePrice == null ? undefined : Number(perPiecePrice);
     const safePerPairPrice = perPairPrice == null ? undefined : Number(perPairPrice);
+    const safeShippingType = shippingType === 'weight' ? 'weight' : 'piece';
+    const safeShippingCharge = normalizeShippingRate(shippingCharge);
     if (safeDiscount != null && (isNaN(safeDiscount) || safeDiscount < 0 || safeDiscount > 100)) {
       return createErrorResponse('Invalid discountPercentage (0-100)', 400);
     }
@@ -99,6 +102,9 @@ export async function POST(request: NextRequest) {
     }
     if (safePerPairPrice != null && (isNaN(safePerPairPrice) || safePerPairPrice < 0)) {
       return createErrorResponse('Invalid perPairPrice', 400);
+    }
+    if (shippingCharge != null && (isNaN(safeShippingCharge) || safeShippingCharge < 0)) {
+      return createErrorResponse('Invalid shippingCharge', 400);
     }
 
     const hasPerPiece = safePerPiecePrice != null;
@@ -121,6 +127,8 @@ export async function POST(request: NextRequest) {
       discountPercentage: safeDiscount,
       perPiecePrice: hasPerPiece ? safePerPiecePrice : null,
       perPairPrice: hasPerPair ? safePerPairPrice : null,
+      shippingType: safeShippingType,
+      shippingCharge: safeShippingCharge,
       vendorId: payload.userId,
       inStock: true,
       approvalStatus: 'pending',

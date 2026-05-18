@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowRight, Fish, Sparkles, X } from 'lucide-react';
+import { ArrowRight, Fish, Gauge, Sparkles, X } from 'lucide-react';
 import { CldUploadWidget } from 'next-cloudinary';
 import { apiClient } from '@/lib/api-client';
 import { FISH_NAMES } from '@/lib/catalog';
@@ -20,6 +20,8 @@ export default function VendorAddProductPage() {
     description: '',
     pricingType: 'piece' as 'piece' | 'pair',
     unitPrice: '',
+    shippingType: 'piece' as 'piece' | 'weight',
+    shippingCharge: '0',
     category: 'Guppies',
     waterType: 'Freshwater',
     tag: 'Standard',
@@ -60,10 +62,24 @@ export default function VendorAddProductPage() {
 
     try {
       setIsSaving(true);
+      const unitPrice = Number(form.unitPrice);
+      const shippingCharge = Number(form.shippingCharge);
+
+      if (Number.isNaN(unitPrice) || unitPrice < 0) {
+        setSubmitError('Please enter a valid unit price.');
+        return;
+      }
+
+      if (Number.isNaN(shippingCharge) || shippingCharge < 0) {
+        setSubmitError('Please enter a valid shipping charge.');
+        return;
+      }
+
       await apiClient.createProduct({
         title: form.title,
         description: form.description,
         images: [imageUrl],
+        price: unitPrice,
         category: form.category,
         waterType: form.waterType,
         tag: form.tag,
@@ -72,6 +88,8 @@ export default function VendorAddProductPage() {
         discountPercentage: form.discountPercentage ? Number(form.discountPercentage) : undefined,
         perPiecePrice: form.pricingType === 'piece' ? Number(form.unitPrice) : null,
         perPairPrice: form.pricingType === 'pair' ? Number(form.unitPrice) : null,
+        shippingType: form.shippingType,
+        shippingCharge,
       });
       router.push('/vendor/products');
     } catch (error: any) {
@@ -100,9 +118,9 @@ export default function VendorAddProductPage() {
               <p className="mt-1 text-sm text-white">Autocomplete ready</p>
             </div>
             <div className="rounded-2xl bg-white/10 px-4 py-3">
-              <Sparkles className="h-5 w-5 text-blue-100" />
-              <p className="mt-3 text-xs font-bold uppercase tracking-[0.25em] text-blue-100">Pricing</p>
-              <p className="mt-1 text-sm text-white">Piece or pair</p>
+              <Gauge className="h-5 w-5 text-blue-100" />
+              <p className="mt-3 text-xs font-bold uppercase tracking-[0.25em] text-blue-100">Shipping</p>
+              <p className="mt-1 text-sm text-white">Per piece or weight</p>
             </div>
           </div>
         </div>
@@ -141,6 +159,14 @@ export default function VendorAddProductPage() {
             onChange={(e) => setForm((prev) => ({ ...prev, unitPrice: e.target.value }))}
             required
           />
+          <select
+            className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
+            value={form.shippingType}
+            onChange={(e) => setForm((prev) => ({ ...prev, shippingType: e.target.value as 'piece' | 'weight' }))}
+          >
+            <option value="piece">Shipping per piece</option>
+            <option value="weight">Shipping by weight</option>
+          </select>
           <input
             type="number"
             className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
@@ -223,6 +249,43 @@ export default function VendorAddProductPage() {
             <option value="Saltwater">Saltwater</option>
             <option value="Brackish">Brackish</option>
           </select>
+        </div>
+
+        <div className="rounded-3xl border border-blue-100 bg-blue-50/70 p-5 space-y-4">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-sm font-bold text-slate-900">Product shipping charge</p>
+              <p className="text-sm text-slate-500">Set the shipping amount for this product.</p>
+            </div>
+            <div className="rounded-full bg-white px-4 py-2 text-sm font-bold text-blue-700 shadow-sm ring-1 ring-blue-100">
+              ₹{Number(form.shippingCharge || 0).toFixed(2)}
+            </div>
+          </div>
+
+          <input
+            type="range"
+            min="0"
+            max="5000"
+            step="1"
+            value={form.shippingCharge}
+            onChange={(e) => setForm((prev) => ({ ...prev, shippingCharge: e.target.value }))}
+            className="w-full accent-blue-600"
+          />
+
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_160px]">
+            <div className="h-11 rounded-xl border border-blue-200 bg-white px-4 py-2 text-sm text-slate-500 flex items-center">
+              Drag the slider to set the shipping amount.
+            </div>
+            <input
+              type="number"
+              min={0}
+              step="1"
+              value={form.shippingCharge}
+              onChange={(e) => setForm((prev) => ({ ...prev, shippingCharge: e.target.value }))}
+              className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="0"
+            />
+          </div>
         </div>
 
         <datalist id="fish-name-autofill">

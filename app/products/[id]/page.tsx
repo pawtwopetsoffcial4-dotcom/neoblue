@@ -24,26 +24,6 @@ export default function ProductDetailPage({ params }: ProductDetailProps) {
   const [quantity, setQuantity] = useState(1);
   const { addToCart } = useCart();
 
-  // Reviews state and fetch (kept with other hooks to preserve hook order)
-  const [reviews, setReviews] = useState<any[]>([]);
-  const [showForm, setShowForm] = useState(false);
-
-  useEffect(() => {
-    if (!id) return;
-    let mounted = true;
-    (async () => {
-      try {
-        const res = await fetch(`/api/reviews/${id}`, { cache: 'no-store' });
-        if (!res.ok) return;
-        const body = await res.json();
-        if (mounted) setReviews(Array.isArray(body.reviews) ? body.reviews : []);
-      } catch {
-        // ignore
-      }
-    })();
-    return () => { mounted = false; };
-  }, [id]);
-
   useEffect(() => {
     params.then((data) => setId(data.id));
   }, [params]);
@@ -102,7 +82,25 @@ export default function ProductDetailPage({ params }: ProductDetailProps) {
     );
   }
 
-  // Dummy reviews data (hooks moved above to preserve order)
+  // Dummy reviews data
+  const [reviews, setReviews] = React.useState<any[]>([]);
+  const [showForm, setShowForm] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!id) return;
+    let mounted = true;
+    (async () => {
+      try {
+        const res = await fetch(`/api/reviews/${id}`, { cache: 'no-store' });
+        if (!res.ok) return;
+        const body = await res.json();
+        if (mounted) setReviews(Array.isArray(body.reviews) ? body.reviews : []);
+      } catch {
+        // ignore
+      }
+    })();
+    return () => { mounted = false; };
+  }, [id]);
 
   const productImages =
     product.images && product.images.length > 0
@@ -213,6 +211,10 @@ export default function ProductDetailPage({ params }: ProductDetailProps) {
                         ) : (
                           <span className="text-slate-400">Unit pricing will appear here when available.</span>
                         )}
+                        <span>
+                          <span className="font-semibold text-slate-900">{formatPrice(Number(product.shippingCharge || 0))}</span>{' '}
+                          {product.shippingType === 'weight' ? 'shipping by weight' : 'shipping per piece'}
+                        </span>
                       </div>
                     </div>
                     <p className="text-lg font-medium text-slate-400 line-through mb-1">{formatPrice(product.price * 1.25)}</p>

@@ -8,7 +8,8 @@ import { useCart } from '@/lib/hooks/useCart';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { apiClient } from '@/lib/api-client';
 import { Trash2, Plus, Minus, MapPin, ShoppingBag, ArrowRight, ShieldCheck, ArrowLeft } from 'lucide-react';
-import { calculateShippingAmount } from '@/lib/utils/shipping';
+import type { MarketplaceProduct } from '@/lib/types/marketplace';
+import { calculateProductShippingAmount, getShippingModeLabel } from '@/lib/utils/shipping';
 
 const PENDING_CASHFREE_CHECKOUT_KEY = 'pendingCashfreeCheckout';
 
@@ -21,8 +22,7 @@ function CheckoutPageContent() {
   const { items, totalAmount, updateQuantity, removeFromCart, clearCart } = useCart();
   const [isPaying, setIsPaying] = useState(false);
   const [isFinalizing, setIsFinalizing] = useState(false);
-  const [shippingPerPiece, setShippingPerPiece] = useState(0);
-  const [shippingPerWeight, setShippingPerWeight] = useState(0);
+  const [productDetails, setProductDetails] = useState<Record<string, MarketplaceProduct>>({});
   const [address, setAddress] = useState({ street: '', city: '', state: '', zipcode: '' });
 
   useEffect(() => {
@@ -32,25 +32,62 @@ function CheckoutPageContent() {
   }, [isAuthenticated, router]);
 
   useEffect(() => {
-    const fetchConfig = async () => {
+    const missingIds = items
+      .map((item) => item.productId)
+      .filter((productId) => !productDetails[productId]);
+
+    if (missingIds.length === 0) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const fetchProductDetails = async () => {
       try {
         const token = localStorage.getItem('authToken') ?? '';
-        const res = await fetch('/api/config', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+        const responses = await Promise.all(
+          missingIds.map(async (productId) => {
+            const res = await fetch(`/api/products/${productId}`, {
+              cache: 'no-store',
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            });
+
+            if (!res.ok) {
+              return null;
+            }
+
+            const data = await res.json();
+            return data?.product ?? null;
+          })
+        );
+
+        if (cancelled) {
+          return;
+        }
+
+        const nextDetails: Record<string, MarketplaceProduct> = {};
+        responses.forEach((product) => {
+          if (product?._id) {
+            nextDetails[product._id] = product;
+          }
         });
-        if (!res.ok) return;
-        const data = await res.json();
-        setShippingPerPiece(Number(data?.shippingPerPiece) || 0);
-        setShippingPerWeight(Number(data?.shippingPerWeight) || 0);
+
+        if (Object.keys(nextDetails).length > 0) {
+          setProductDetails((current) => ({ ...current, ...nextDetails }));
+        }
       } catch (error) {
-        console.error('Error fetching shipping config:', error);
+        console.error('Error fetching product shipping details:', error);
       }
     };
 
-    fetchConfig();
-  }, []);
+    fetchProductDetails();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [items, productDetails]);
 
   useEffect(() => {
     const cashfreeOrderId = searchParams.get('cashfree_order_id');
@@ -108,7 +145,10 @@ function CheckoutPageContent() {
   }, [searchParams, router, clearCart, isFinalizing]);
 
   const cartQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
-  const shippingAmount = calculateShippingAmount(cartQuantity, shippingPerPiece, shippingPerWeight);
+  const shippingAmount = items.reduce((sum, item) => {
+    const product = productDetails[item.productId];
+    return sum + calculateProductShippingAmount(item.quantity, product?.shippingCharge);
+  }, 0);
   const orderTotal = totalAmount + shippingAmount;
 
   const handlePayNow = async () => {
@@ -144,7 +184,7 @@ function CheckoutPageContent() {
       const cashfreeOrder = await resp.json();
       if (!resp.ok) {
         console.error('Create order failed', cashfreeOrder);
-        throw new Error(cashfreeOrder?.error || 'Failed to initialize Cashfree order');
+        throw new Error(cashfreeOrder?.error || cashfreeOrder?.message || 'Failed to initialize Cashfree order');
       }
 
       if (!cashfreeOrder?.orderId) {
@@ -179,8 +219,9 @@ function CheckoutPageContent() {
         paymentSessionId: cashfreeOrder.paymentSessionId,
         redirectTarget: '_self',
       });
-    } catch {
-      alert('Payment initialization failed.');
+    } catch (error) {
+      console.error('Payment initialization failed:', error);
+      alert(error instanceof Error ? error.message : 'Payment initialization failed.');
     } finally {
       setIsPaying(false);
     }
@@ -248,6 +289,9 @@ function CheckoutPageContent() {
                             <p className="font-bold text-lg text-gray-900 shrink-0">₹{(item.price * item.quantity).toFixed(2)}</p>
                           </div>
                           <p className="text-sm text-gray-500 mt-1 font-medium">₹{item.price.toFixed(2)} / each</p>
+                          <p className="text-xs text-gray-400 mt-1 font-medium">
+                            Shipping: {productDetails[item.productId] ? `₹${Number(productDetails[item.productId].shippingCharge || 0).toFixed(2)} ${getShippingModeLabel(productDetails[item.productId].shippingType)}` : 'Loading shipping...'}
+                          </p>
                         </div>
                         
                         <div className="flex items-center justify-between mt-4">
@@ -348,7 +392,7 @@ function CheckoutPageContent() {
                       <span className="text-gray-900">₹{totalAmount.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between items-center text-gray-700">
-                      <span>Shipping ({cartQuantity === 1 ? 'per piece' : 'by weight'})</span>
+                      <span>Shipping from products</span>
                       <span>₹{shippingAmount.toFixed(2)}</span>
                     </div>
                   </div>

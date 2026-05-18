@@ -7,8 +7,6 @@ export interface IStoreConfig {
   offerDescription: string;
   offerButtonText: string;
   offerButtonLink: string;
-  shippingPerPiece: number;
-  shippingPerWeight: number;
   categories: string[];
   stat1Value: string;
   stat1Label: string;
@@ -25,8 +23,6 @@ const StoreConfigSchema = new mongoose.Schema<IStoreConfig>(
     offerDescription: { type: String, default: 'Weekend special: handpicked marine and freshwater species, overnight transit care, and live-arrival protection included.' },
     offerButtonText: { type: String, default: 'Shop The Offer' },
     offerButtonLink: { type: String, default: '/products' },
-    shippingPerPiece: { type: Number, default: 0, min: 0 },
-    shippingPerWeight: { type: Number, default: 0, min: 0 },
     categories: { type: [String], default: PRODUCT_CATEGORIES },
     stat1Value: { type: String, default: '500+' },
     stat1Label: { type: String, default: 'Species Curated' },

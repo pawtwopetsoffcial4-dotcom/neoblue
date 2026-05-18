@@ -1,6 +1,7 @@
 import { connectDB } from '@/lib/db';
 import Product from '@/lib/models/Product';
 import { createErrorResponse, createSuccessResponse, getTokenFromRequest, verifyToken } from '@/lib/utils/auth';
+import { normalizeShippingRate } from '@/lib/utils/shipping';
 import { NextRequest } from 'next/server';
 import mongoose from 'mongoose';
 
@@ -63,6 +64,19 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
     const updateData = await request.json();
     const hasPerPieceKey = 'perPiecePrice' in updateData;
     const hasPerPairKey = 'perPairPrice' in updateData;
+    const hasShippingChargeKey = 'shippingCharge' in updateData;
+
+    if ('shippingType' in updateData) {
+      updateData.shippingType = updateData.shippingType === 'weight' ? 'weight' : 'piece';
+    }
+
+    if (hasShippingChargeKey) {
+      const nextShippingCharge = updateData.shippingCharge == null ? 0 : normalizeShippingRate(updateData.shippingCharge);
+      if (isNaN(nextShippingCharge) || nextShippingCharge < 0) {
+        return createErrorResponse('Invalid shippingCharge', 400);
+      }
+      updateData.shippingCharge = nextShippingCharge;
+    }
 
     if (hasPerPieceKey || hasPerPairKey) {
       const nextPerPiece = hasPerPieceKey

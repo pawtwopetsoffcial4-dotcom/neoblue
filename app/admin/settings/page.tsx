@@ -14,8 +14,6 @@ export default function AdminSettingsPage() {
     offerDescription: '',
     offerButtonText: '',
     offerButtonLink: '',
-    shippingPerPiece: 0,
-    shippingPerWeight: 0,
     categories: [] as string[],
     categoryImages: {} as Record<string, string>,
     stat1Value: '',
@@ -53,19 +51,10 @@ export default function AdminSettingsPage() {
     setConfig((prev) => ({ ...prev, [name]: value }));
   };
 
-  const normalizeShippingValue = (value: number | string) => {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
-  };
-
   const handleSave = async () => {
     setSaving(true);
     try {
-      const payload = {
-        ...config,
-        shippingPerPiece: normalizeShippingValue(config.shippingPerPiece),
-        shippingPerWeight: normalizeShippingValue(config.shippingPerWeight),
-      };
+      const payload = { ...config };
       const token = localStorage.getItem('authToken') ?? '';
 
       const res = await fetch('/api/config', {
@@ -117,10 +106,10 @@ export default function AdminSettingsPage() {
         <div className="mb-6 border-b border-gray-100 pb-4">
           <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-blue-600" />
-            Offer and Shipping Configuration
+            Offer Configuration
           </h2>
           <p className="text-sm text-gray-500 mt-1">
-            Customize the main promotional banner and the shipping charges shown during checkout.
+            Customize the main promotional banner and homepage content.
           </p>
         </div>
 
@@ -217,45 +206,6 @@ export default function AdminSettingsPage() {
           </div>
         </div>
 
-        <div className="mt-8 pt-6 border-t border-gray-100">
-          <h3 className="text-lg font-bold text-gray-800 mb-4">Shipping Charges</h3>
-          <p className="text-sm text-gray-500 mb-4">
-            Set the base shipping charge for a single item and the weight-based charge used when a cart contains more than one unit.
-          </p>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
-              <label className="block text-sm font-bold text-gray-700 mb-1">Shipping per Piece</label>
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                name="shippingPerPiece"
-                value={config.shippingPerPiece}
-                onChange={handleChange}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-blue-500 outline-none"
-                placeholder="0.00"
-              />
-              <p className="text-xs text-gray-500 mt-2">Applied when the cart has a single unit.</p>
-            </div>
-
-            <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
-              <label className="block text-sm font-bold text-gray-700 mb-1">Shipping per Weight Unit</label>
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                name="shippingPerWeight"
-                value={config.shippingPerWeight}
-                onChange={handleChange}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-blue-500 outline-none"
-                placeholder="0.00"
-              />
-              <p className="text-xs text-gray-500 mt-2">Applied to each unit when the cart has more than one item.</p>
-            </div>
-          </div>
-        </div>
-        
         <div className="mt-8 pt-6 border-t border-gray-100">
           <h3 className="text-lg font-bold text-gray-800 mb-4">Categories</h3>
 

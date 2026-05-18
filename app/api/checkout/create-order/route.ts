@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createErrorResponse, getTokenFromRequest, verifyToken } from '@/lib/utils/auth';
 import { connectDB } from '@/lib/db';
 import Product from '@/lib/models/Product';
-import StoreConfig from '@/lib/models/StoreConfig';
-import { calculateShippingAmount } from '@/lib/utils/shipping';
+import { calculateProductShippingAmount } from '@/lib/utils/shipping';
 
 const appId = process.env.CASHFREE_APP_ID;
 const secretKey = process.env.CASHFREE_SECRET_KEY;
@@ -13,7 +12,7 @@ const getCashfreeBaseUrl = () => (cashfreeEnv === 'production' ? 'https://api.ca
 
 const getAppUrl = (request: NextRequest) => {
   const configuredReturnUrl = process.env.CASHFREE_RETURN_URL;
-  if (configuredReturnUrl) {
+  if (configuredReturnUrl && !configuredReturnUrl.includes('your-domain.example')) {
     return configuredReturnUrl.replace(/\/$/, '');
   }
 
@@ -59,13 +58,7 @@ export async function POST(request: NextRequest) {
       return createErrorResponse('Some products not found', 404);
     }
 
-    const storeConfig = await StoreConfig.findOne({});
-    if (!storeConfig) {
-      return createErrorResponse('Shipping configuration is not available', 500);
-    }
-
     let subtotal = 0;
-    const cartQuantity = products.reduce((sum: number, item: any) => sum + Number(item.quantity || 0), 0);
 
     for (const item of products) {
       const product = dbProducts.find((entry) => entry._id.toString() === item.productId);
@@ -75,7 +68,10 @@ export async function POST(request: NextRequest) {
       subtotal += Number(product.price) * Number(item.quantity || 0);
     }
 
-    const shippingAmount = calculateShippingAmount(cartQuantity, storeConfig.shippingPerPiece, storeConfig.shippingPerWeight);
+    const shippingAmount = dbProducts.reduce((sum, product) => {
+      const orderItem = products.find((item: any) => item.productId === product._id.toString());
+      return sum + calculateProductShippingAmount(Number(orderItem?.quantity || 0), product.shippingCharge);
+    }, 0);
     const amount = subtotal + shippingAmount;
 
     if (!amount || Number(amount) <= 0) {
@@ -113,9 +109,16 @@ export async function POST(request: NextRequest) {
       }),
     });
 
-    const order = await cashfreeResponse.json();
+    const responseText = await cashfreeResponse.text();
+    let order: any = {};
+    try {
+      order = responseText ? JSON.parse(responseText) : {};
+    } catch {
+      order = { message: responseText };
+    }
+
     if (!cashfreeResponse.ok) {
-      return createErrorResponse(order?.message || 'Failed to create Cashfree order', cashfreeResponse.status);
+      return createErrorResponse(order?.message || order?.error || responseText || 'Failed to create Cashfree order', cashfreeResponse.status);
     }
 
     return NextResponse.json({

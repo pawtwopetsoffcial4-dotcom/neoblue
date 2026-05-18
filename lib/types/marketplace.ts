@@ -17,6 +17,8 @@ export type MarketplaceProduct = {
   discountPercentage?: number;
   perPiecePrice?: number;
   perPairPrice?: number;
+  shippingType?: 'piece' | 'weight';
+  shippingCharge?: number;
   createdAt?: string;
   updatedAt?: string;
 };

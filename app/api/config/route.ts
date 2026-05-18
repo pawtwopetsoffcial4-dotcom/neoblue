@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { PRODUCT_CATEGORIES } from '@/lib/catalog';
 import StoreConfig from '@/lib/models/StoreConfig';
-import { normalizeShippingRate } from '@/lib/utils/shipping';
 
 // Single, clean GET/PUT implementation for /api/config
 export async function GET() {
@@ -14,11 +13,10 @@ export async function GET() {
     }
 
     const payload = config.toObject ? config.toObject() : config;
+    const { shippingPerPiece, shippingPerWeight, ...rest } = payload as Record<string, any>;
 
     return NextResponse.json({
-      ...payload,
-      shippingPerPiece: normalizeShippingRate(payload.shippingPerPiece),
-      shippingPerWeight: normalizeShippingRate(payload.shippingPerWeight),
+      ...rest,
       categories: Array.isArray(payload.categories) && payload.categories.length ? payload.categories : PRODUCT_CATEGORIES,
     });
   } catch (error) {
@@ -34,11 +32,11 @@ export async function PUT(request: Request) {
     const raw = await request.json();
 
     const data: any = { ...raw };
+    delete data.shippingPerPiece;
+    delete data.shippingPerWeight;
     if (Array.isArray(raw?.categories)) {
       data.categories = raw.categories.map((c: any) => String(c).trim()).filter((c: string) => c.length > 0);
     }
-    data.shippingPerPiece = normalizeShippingRate(raw?.shippingPerPiece);
-    data.shippingPerWeight = normalizeShippingRate(raw?.shippingPerWeight);
 
     const config = await StoreConfig.findOneAndUpdate({}, { $set: data }, { new: true, upsert: true });
 

@@ -110,14 +110,17 @@ function MobileCard({ product }: { product: any }) {
       href={`/products/${product.id}`}
       className="group w-40 md:w-55 shrink-0 snap-start flex flex-col rounded-2xl overflow-hidden border border-blue-50/50 bg-white shadow-[0_4px_20px_-10px_rgba(37,99,235,0.1)]"
     >
-      <div className="relative aspect-square bg-blue-50/30 overflow-hidden">
+        <div className="relative aspect-square bg-blue-50/30 overflow-hidden">
         <img
           src={product.img}
           alt={product.title}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
         />
-        <div className="absolute left-2 top-2 rounded-md px-2 py-1 pill-neoblue-gradient text-white text-xs font-bold">{product.tag}</div>
-        {/* product tag capsule removed */}
+        {product.tag && String(product.tag).toLowerCase() !== 'standard' ? (
+          <div className="absolute left-2 top-2 rounded-md px-2 py-1 pill-neoblue-gradient text-white text-xs font-bold">
+            {product.tag}
+          </div>
+        ) : null}
       </div>
       <div className="p-3">
         <h3 className="text-sm font-semibold text-blue-950 truncate mb-1">{product.title}</h3>

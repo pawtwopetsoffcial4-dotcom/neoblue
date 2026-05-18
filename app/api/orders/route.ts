@@ -1,9 +1,8 @@
 import { connectDB } from '@/lib/db';
 import Order from '@/lib/models/Order';
 import Product from '@/lib/models/Product';
-import StoreConfig from '@/lib/models/StoreConfig';
 import { createErrorResponse, createSuccessResponse, getTokenFromRequest, verifyToken } from '@/lib/utils/auth';
-import { calculateShippingAmount } from '@/lib/utils/shipping';
+import { calculateProductShippingAmount } from '@/lib/utils/shipping';
 import { NextRequest } from 'next/server';
 
 // GET orders (user sees their orders, vendor sees their vendor orders, admin sees all)
@@ -78,13 +77,7 @@ export async function POST(request: NextRequest) {
       return createErrorResponse('Some products not found', 404);
     }
 
-    const storeConfig = await StoreConfig.findOne({});
-    if (!storeConfig) {
-      return createErrorResponse('Shipping configuration is not available', 500);
-    }
-
     let totalAmount = 0;
-    const cartQuantity = products.reduce((sum: number, item: any) => sum + Number(item.quantity || 0), 0);
     const orderProducts = products.map((p: any) => {
       const product = dbProducts.find((dp) => dp._id.toString() === p.productId);
       totalAmount += product.price * p.quantity;
@@ -97,7 +90,10 @@ export async function POST(request: NextRequest) {
 
     // For now, assume all products from same vendor (simplify)
     const vendorId = dbProducts[0].vendorId;
-    const shippingAmount = calculateShippingAmount(cartQuantity, storeConfig.shippingPerPiece, storeConfig.shippingPerWeight);
+    const shippingAmount = dbProducts.reduce((sum, product) => {
+      const orderItem = products.find((item: any) => item.productId === product._id.toString());
+      return sum + calculateProductShippingAmount(Number(orderItem?.quantity || 0), product.shippingCharge);
+    }, 0);
 
     // Create order
     const order = await Order.create({

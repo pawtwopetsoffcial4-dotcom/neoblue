@@ -12,6 +12,8 @@ type EditProductForm = {
   description: string;
   pricingType: 'piece' | 'pair';
   unitPrice: string;
+  shippingType: 'piece' | 'weight';
+  shippingCharge: string;
   category: string;
   waterType: 'Freshwater' | 'Saltwater' | 'Brackish';
   tag: string;
@@ -64,6 +66,8 @@ export default function VendorProductsPage() {
         typeof product.perPairPrice === 'number'
           ? String(product.perPairPrice)
           : (product.perPiecePrice != null ? String(product.perPiecePrice) : ''),
+      shippingType: product.shippingType === 'weight' ? 'weight' : 'piece',
+      shippingCharge: product.shippingCharge != null ? String(product.shippingCharge) : '0',
       category: product.category ?? 'Guppies',
       waterType: product.waterType ?? 'Freshwater',
       tag: product.tag ?? 'Standard',
@@ -87,8 +91,13 @@ export default function VendorProductsPage() {
     const originalPrice = editForm.originalPrice ? Number(editForm.originalPrice) : undefined;
     const discountPercentage = editForm.discountPercentage ? Number(editForm.discountPercentage) : undefined;
     const unitPrice = Number(editForm.unitPrice);
+    const shippingCharge = Number(editForm.shippingCharge);
     if (Number.isNaN(unitPrice) || unitPrice < 0) {
       setEditError('Unit price must be a valid positive number');
+      return;
+    }
+    if (Number.isNaN(shippingCharge) || shippingCharge < 0) {
+      setEditError('Shipping charge must be a valid positive number');
       return;
     }
 
@@ -98,6 +107,7 @@ export default function VendorProductsPage() {
       await apiClient.updateProduct(editingProduct._id, {
         title: editForm.title,
         description: editForm.description,
+        price: unitPrice,
         category: editForm.category,
         waterType: editForm.waterType,
         tag: editForm.tag,
@@ -106,6 +116,8 @@ export default function VendorProductsPage() {
         discountPercentage,
         perPiecePrice: editForm.pricingType === 'piece' ? unitPrice : null,
         perPairPrice: editForm.pricingType === 'pair' ? unitPrice : null,
+        shippingType: editForm.shippingType,
+        shippingCharge,
         inStock: editForm.inStock,
       });
       await loadProducts();
@@ -284,6 +296,14 @@ export default function VendorProductsPage() {
                   value={editForm.unitPrice}
                   onChange={(event) => setEditForm((current) => current ? { ...current, unitPrice: event.target.value } : current)}
                 />
+                <select
+                  className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
+                  value={editForm.shippingType}
+                  onChange={(event) => setEditForm((current) => current ? { ...current, shippingType: event.target.value as 'piece' | 'weight' } : current)}
+                >
+                  <option value="piece">Shipping per piece</option>
+                  <option value="weight">Shipping by weight</option>
+                </select>
                 <input
                   type="number"
                   className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
@@ -336,6 +356,43 @@ export default function VendorProductsPage() {
                   />
                   <span className="text-sm font-medium text-slate-700">In stock</span>
                 </label>
+              </div>
+
+              <div className="rounded-3xl border border-blue-100 bg-blue-50/70 p-5 space-y-4">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <p className="text-sm font-bold text-slate-900">Shipping charge</p>
+                    <p className="text-sm text-slate-500">Use the slider or input to set this product&apos;s shipping amount.</p>
+                  </div>
+                  <div className="rounded-full bg-white px-4 py-2 text-sm font-bold text-blue-700 shadow-sm ring-1 ring-blue-100">
+                    ₹{Number(editForm.shippingCharge || 0).toFixed(2)}
+                  </div>
+                </div>
+
+                <input
+                  type="range"
+                  min="0"
+                  max="5000"
+                  step="1"
+                  value={editForm.shippingCharge}
+                  onChange={(event) => setEditForm((current) => current ? { ...current, shippingCharge: event.target.value } : current)}
+                  className="w-full accent-blue-600"
+                />
+
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_160px]">
+                  <div className="h-11 rounded-xl border border-blue-200 bg-white px-4 py-2 text-sm text-slate-500 flex items-center">
+                    Drag the slider to adjust the shipping charge.
+                  </div>
+                  <input
+                    type="number"
+                    min={0}
+                    step="1"
+                    value={editForm.shippingCharge}
+                    onChange={(event) => setEditForm((current) => current ? { ...current, shippingCharge: event.target.value } : current)}
+                    className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="0"
+                  />
+                </div>
               </div>
 
               <datalist id="vendor-fish-name-autofill">
