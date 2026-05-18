@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { AlertCircle, Loader2, Store } from 'lucide-react';
+import { AlertCircle, Eye, EyeOff, Loader2, Store } from 'lucide-react';
 import { useAuth } from '@/lib/hooks/useAuth';
 
 export default function VendorLoginPage() {
@@ -11,6 +11,7 @@ export default function VendorLoginPage() {
   const { login, user, isAuthenticated } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -60,7 +61,24 @@ export default function VendorLoginPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <input className="w-full px-4 py-3 rounded-lg border border-blue-200" type="email" placeholder="vendor@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
-            <input className="w-full px-4 py-3 rounded-lg border border-blue-200" type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+            <div className="relative">
+              <input
+                className="w-full px-4 py-3 pr-12 rounded-lg border border-blue-200"
+                type={showPassword ? 'text' : 'password'}
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((current) => !current)}
+                className="absolute inset-y-0 right-0 flex items-center px-4 text-slate-500 hover:text-slate-700"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+              </button>
+            </div>
 
             <button type="submit" disabled={isLoading} className="w-full h-12 rounded-full bg-blue-700 text-white font-bold hover:bg-blue-800 disabled:opacity-60 flex items-center justify-center gap-2">
               {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}

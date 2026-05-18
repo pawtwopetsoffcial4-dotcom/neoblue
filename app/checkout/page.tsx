@@ -7,7 +7,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useCart } from '@/lib/hooks/useCart';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { apiClient } from '@/lib/api-client';
-import { Trash2, Plus, Minus, MapPin, ShoppingBag, ArrowRight, ShieldCheck, ArrowLeft } from 'lucide-react';
+import { Trash2, Plus, Minus, MapPin, ShoppingBag, ArrowRight, ShieldCheck, ArrowLeft, CheckSquare } from 'lucide-react';
 import type { MarketplaceProduct } from '@/lib/types/marketplace';
 import { calculateProductShippingAmount, getShippingModeLabel } from '@/lib/utils/shipping';
 
@@ -23,6 +23,8 @@ function CheckoutPageContent() {
   const [isPaying, setIsPaying] = useState(false);
   const [isFinalizing, setIsFinalizing] = useState(false);
   const [productDetails, setProductDetails] = useState<Record<string, MarketplaceProduct>>({});
+  const [isSavingAddress, setIsSavingAddress] = useState(false);
+  const [saveAddress, setSaveAddress] = useState(true);
   const [address, setAddress] = useState({ street: '', city: '', state: '', zipcode: '' });
 
   useEffect(() => {
@@ -32,6 +34,28 @@ function CheckoutPageContent() {
   }, [isAuthenticated, router]);
 
   useEffect(() => {
+    const loadSavedAddress = async () => {
+      try {
+        const token = localStorage.getItem('authToken') ?? '';
+        if (!token) {
+          return;
+        }
+
+        const response = await apiClient.request<{
+          defaultAddress?: { street: string; city: string; state: string; zipcode: string } | null;
+        }>('/profile/address');
+
+        const saved = response?.defaultAddress;
+        if (saved?.street && saved?.city && saved?.state && saved?.zipcode) {
+          setAddress(saved);
+        }
+      } catch (error) {
+        console.error('Error loading saved address:', error);
+      }
+    };
+
+    loadSavedAddress();
+
     const missingIds = items
       .map((item) => item.productId)
       .filter((productId) => !productDetails[productId]);
@@ -170,6 +194,26 @@ function CheckoutPageContent() {
 
     try {
       setIsPaying(true);
+
+      if (saveAddress) {
+        try {
+          setIsSavingAddress(true);
+          await apiClient.request('/profile/address', {
+            method: 'POST',
+            body: JSON.stringify({
+              street: address.street,
+              city: address.city,
+              state: address.state,
+              zipcode: address.zipcode,
+              isDefault: true,
+            }),
+          });
+        } catch (error) {
+          console.error('Saving address failed:', error);
+        } finally {
+          setIsSavingAddress(false);
+        }
+      }
 
       const products = items.map((item) => ({ productId: item.productId, quantity: item.quantity }));
 
@@ -376,6 +420,19 @@ function CheckoutPageContent() {
                       onChange={(e) => setAddress((prev) => ({ ...prev, zipcode: e.target.value }))} 
                     />
                   </div>
+
+                  <label className="flex items-start gap-3 rounded-2xl border border-blue-100 bg-blue-50/70 p-4">
+                    <input
+                      type="checkbox"
+                      checked={saveAddress}
+                      onChange={(e) => setSaveAddress(e.target.checked)}
+                      className="mt-1 h-4 w-4 rounded border-blue-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-slate-700">
+                      <span className="block font-bold text-slate-900">Save this address</span>
+                      <span className="block mt-1 text-slate-500">Use it automatically next time for faster checkout.</span>
+                    </span>
+                  </label>
                 </div>
               </div>
 
@@ -411,7 +468,7 @@ function CheckoutPageContent() {
                     {isPaying || isFinalizing ? (
                       <span className="flex items-center gap-2">
                         <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                        {isFinalizing ? 'Verifying payment...' : 'Processing...'}
+                        {isSavingAddress ? 'Saving address...' : isFinalizing ? 'Verifying payment...' : 'Processing...'}
                       </span>
                     ) : (
                       <>Checkout Securely <ArrowRight className="h-5 w-5" /></>
