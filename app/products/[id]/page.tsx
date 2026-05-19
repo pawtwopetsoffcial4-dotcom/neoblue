@@ -22,6 +22,8 @@ export default function ProductDetailPage({ params }: ProductDetailProps) {
   const [activeTab, setActiveTab] = useState<'description' | 'specifications' | 'faq' | 'reviews'>('description');
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
+  const [reviews, setReviews] = React.useState<any[]>([]);
+  const [showForm, setShowForm] = React.useState(false);
   const { addToCart } = useCart();
 
   useEffect(() => {
@@ -54,6 +56,22 @@ export default function ProductDetailPage({ params }: ProductDetailProps) {
     fetchProduct();
   }, [id]);
 
+  React.useEffect(() => {
+    if (!id) return;
+    let mounted = true;
+    (async () => {
+      try {
+        const res = await fetch(`/api/reviews/${id}`, { cache: 'no-store' });
+        if (!res.ok) return;
+        const body = await res.json();
+        if (mounted) setReviews(Array.isArray(body.reviews) ? body.reviews : []);
+      } catch {
+        // ignore
+      }
+    })();
+    return () => { mounted = false; };
+  }, [id]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#F5F7FA] flex items-center justify-center">
@@ -81,26 +99,6 @@ export default function ProductDetailPage({ params }: ProductDetailProps) {
       </div>
     );
   }
-
-  // Dummy reviews data
-  const [reviews, setReviews] = React.useState<any[]>([]);
-  const [showForm, setShowForm] = React.useState(false);
-
-  React.useEffect(() => {
-    if (!id) return;
-    let mounted = true;
-    (async () => {
-      try {
-        const res = await fetch(`/api/reviews/${id}`, { cache: 'no-store' });
-        if (!res.ok) return;
-        const body = await res.json();
-        if (mounted) setReviews(Array.isArray(body.reviews) ? body.reviews : []);
-      } catch {
-        // ignore
-      }
-    })();
-    return () => { mounted = false; };
-  }, [id]);
 
   const productImages =
     product.images && product.images.length > 0
