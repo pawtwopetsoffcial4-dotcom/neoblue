@@ -14,6 +14,12 @@ type Address = {
   isDefault?: boolean;
 };
 
+type AddressResponse = {
+  addresses?: Address[];
+  defaultAddress?: Address | null;
+  message?: string;
+};
+
 export default function AddressesPage() {
   const { isAuthenticated } = useAuth();
   const [addresses, setAddresses] = useState<Address[]>([]);
@@ -25,7 +31,7 @@ export default function AddressesPage() {
   const load = async () => {
     setLoading(true);
     try {
-      const res = await apiClient.request('/profile/address');
+      const res = await apiClient.request<AddressResponse>('/profile/address');
       setAddresses(res.addresses || []);
       setDefaultAddress(res.defaultAddress || null);
     } catch (err) {
@@ -34,19 +40,17 @@ export default function AddressesPage() {
       setLoading(false);
     }
   };
-
   useEffect(() => {
     if (!isAuthenticated) return;
     load();
   }, [isAuthenticated]);
 
   const handleChange = (k: keyof Address, v: any) => setForm((s) => ({ ...s, [k]: v }));
-
   const submit = async (e?: React.FormEvent) => {
     e?.preventDefault();
     try {
       if (editing && editing._id) {
-        const res = await apiClient.request('/profile/address', {
+        const res = await apiClient.request<AddressResponse>('/profile/address', {
           method: 'PUT',
           body: JSON.stringify({ ...form, id: editing._id }),
         });
@@ -54,7 +58,7 @@ export default function AddressesPage() {
         setDefaultAddress(res.defaultAddress || null);
         setEditing(null);
       } else {
-        const res = await apiClient.request('/profile/address', {
+        const res = await apiClient.request<AddressResponse>('/profile/address', {
           method: 'POST',
           body: JSON.stringify(form),
         });
@@ -76,7 +80,7 @@ export default function AddressesPage() {
     if (!id) return;
     if (!confirm('Delete this address?')) return;
     try {
-      const res = await apiClient.request(`/profile/address?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+      const res = await apiClient.request<AddressResponse>(`/profile/address?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
       setAddresses(res.addresses || []);
       setDefaultAddress(res.defaultAddress || null);
     } catch (err: any) {
