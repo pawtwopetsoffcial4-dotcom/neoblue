@@ -206,7 +206,7 @@ export default function ProfilePage() {
             </div>
             <h3 className="font-bold text-lg">Addresses</h3>
             <p className="text-slate-600 text-sm mt-1">Manage delivery addresses for livestock shipments.</p>
-            <Link href="/products" className="inline-block mt-4 text-blue-600 font-semibold hover:text-blue-700">Manage</Link>
+            <Link href="/profile/addresses" className="inline-block mt-4 text-blue-600 font-semibold hover:text-blue-700">Manage</Link>
           </article>
 
           <article className="rounded-3xl border border-blue-100 bg-white p-5 shadow-sm">

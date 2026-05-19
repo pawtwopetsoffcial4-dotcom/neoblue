@@ -96,3 +96,97 @@ export async function POST(request: NextRequest) {
     return createErrorResponse(error.message || 'Failed to save address', 500);
   }
 }
+
+export async function PUT(request: NextRequest) {
+  try {
+    await connectDB();
+
+    const authed = await getAuthedUser(request);
+    if (!authed) {
+      return createErrorResponse('Invalid token', 401);
+    }
+
+    const body = await request.json();
+    const id = String(body?.id || '').trim();
+    if (!id) {
+      return createErrorResponse('Address id is required for update', 400);
+    }
+
+    const existingAddresses = Array.isArray(authed.user.addresses) ? authed.user.addresses : [];
+    const idx = existingAddresses.findIndex((a: any) => String(a._id) === id);
+    if (idx === -1) {
+      return createErrorResponse('Address not found', 404);
+    }
+
+    const street = String(body?.street || existingAddresses[idx].street || '').trim();
+    const city = String(body?.city || existingAddresses[idx].city || '').trim();
+    const state = String(body?.state || existingAddresses[idx].state || '').trim();
+    const zipcode = String(body?.zipcode || existingAddresses[idx].zipcode || '').trim();
+    const isDefault = body?.isDefault !== undefined ? Boolean(body.isDefault) : Boolean(existingAddresses[idx].isDefault);
+
+    if (!street || !city || !state || !zipcode) {
+      return createErrorResponse('Please provide a complete address', 400);
+    }
+
+    // Update fields
+    existingAddresses[idx].street = street;
+    existingAddresses[idx].city = city;
+    existingAddresses[idx].state = state;
+    existingAddresses[idx].zipcode = zipcode;
+
+    if (isDefault) {
+      for (let i = 0; i < existingAddresses.length; i++) {
+        existingAddresses[i].isDefault = false;
+      }
+      existingAddresses[idx].isDefault = true;
+    }
+
+    authed.user.addresses = existingAddresses;
+    await authed.user.save();
+
+    return createSuccessResponse({
+      message: 'Address updated successfully',
+      defaultAddress: existingAddresses.find((a: any) => a.isDefault) || null,
+      addresses: existingAddresses,
+    });
+  } catch (error: any) {
+    return createErrorResponse(error.message || 'Failed to update address', 500);
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    await connectDB();
+
+    const authed = await getAuthedUser(request);
+    if (!authed) {
+      return createErrorResponse('Invalid token', 401);
+    }
+
+    // read id from query params
+    const url = new URL(request.url);
+    const id = String(url.searchParams.get('id') || '').trim();
+    if (!id) {
+      return createErrorResponse('Address id is required for deletion', 400);
+    }
+
+    const existingAddresses = Array.isArray(authed.user.addresses) ? authed.user.addresses : [];
+    const nextAddresses = existingAddresses.filter((a: any) => String(a._id) !== id);
+
+    // If removed address was default, set first as default
+    if (nextAddresses.length > 0 && !nextAddresses.some((a: any) => a.isDefault)) {
+      nextAddresses[0].isDefault = true;
+    }
+
+    authed.user.addresses = nextAddresses;
+    await authed.user.save();
+
+    return createSuccessResponse({
+      message: 'Address deleted',
+      defaultAddress: nextAddresses.find((a: any) => a.isDefault) || null,
+      addresses: nextAddresses,
+    });
+  } catch (error: any) {
+    return createErrorResponse(error.message || 'Failed to delete address', 500);
+  }
+}
