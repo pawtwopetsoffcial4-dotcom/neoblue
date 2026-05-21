@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
-import dbConnect from '@/lib/db';
+import { connectDB } from '@/lib/db';
 import FishDescription from '@/lib/models/FishDescription';
 
 export async function GET(request: Request) {
   try {
-    await dbConnect();
+    await connectDB();
     const { searchParams } = new URL(request.url);
     const name = searchParams.get('name');
 
