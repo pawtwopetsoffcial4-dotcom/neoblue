@@ -19,6 +19,7 @@ export type MarketplaceProduct = {
   perPairPrice?: number;
   shippingType?: 'piece' | 'weight';
   shippingCharge?: number;
+  shippingLotSize?: number;
   createdAt?: string;
   updatedAt?: string;
 };

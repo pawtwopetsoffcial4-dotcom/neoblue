@@ -302,7 +302,7 @@ export default function NeoBlueMobileOptimized() {
             <Search className="h-5 w-5" />
             <span className="text-[9px] font-bold">Browse</span>
           </Link>
-          <Link href="/cart" className="flex flex-col items-center gap-1 text-blue-300 hover:text-blue-600 transition-colors relative">
+          <Link href="/checkout" className="flex flex-col items-center gap-1 text-blue-300 hover:text-blue-600 transition-colors relative">
             <div className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-blue-600 border-2 border-white" />
             <ShoppingBag className="h-5 w-5" />
             <span className="text-[9px] font-bold">Cart</span>

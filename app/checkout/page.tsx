@@ -172,7 +172,7 @@ function CheckoutPageContent() {
   const cartQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
   const shippingAmount = items.reduce((sum, item) => {
     const product = productDetails[item.productId];
-    return sum + calculateProductShippingAmount(item.quantity, product?.shippingCharge);
+    return sum + calculateProductShippingAmount(item.quantity, product?.shippingCharge, product?.shippingLotSize);
   }, 0);
   const orderTotal = totalAmount + shippingAmount;
 
@@ -332,7 +332,7 @@ function CheckoutPageContent() {
                           </div>
                           <p className="text-sm text-gray-500 mt-1 font-medium">₹{item.price.toFixed(2)} / each</p>
                           <p className="text-xs text-gray-400 mt-1 font-medium">
-                            Shipping: {productDetails[item.productId] ? `₹${Number(productDetails[item.productId].shippingCharge || 0).toFixed(2)} ${getShippingModeLabel(productDetails[item.productId].shippingType)}` : 'Loading shipping...'}
+                            Shipping: {productDetails[item.productId] ? `₹${Number(productDetails[item.productId].shippingCharge || 0).toFixed(2)} per ${productDetails[item.productId].shippingLotSize || 1} ${getShippingModeLabel(productDetails[item.productId].shippingType)}` : 'Loading shipping...'}
                           </p>
                         </div>
                         

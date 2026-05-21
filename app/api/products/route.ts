@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
       return createErrorResponse('Only vendors can create products', 403);
     }
 
-    const { title, description, price, images, category, subcategory, waterType, tag, scientific, originalPrice, discountPercentage, perPiecePrice, perPairPrice, shippingType, shippingCharge } = await request.json();
+    const { title, description, price, images, category, subcategory, waterType, tag, scientific, originalPrice, discountPercentage, perPiecePrice, perPairPrice, shippingType, shippingCharge, shippingLotSize } = await request.json();
 
     // Validate required fields
     if (!title || !description || price == null || !images || !category || !waterType) {
@@ -94,6 +94,7 @@ export async function POST(request: NextRequest) {
     const safePerPairPrice = perPairPrice == null ? undefined : Number(perPairPrice);
     const safeShippingType = shippingType === 'weight' ? 'weight' : 'piece';
     const safeShippingCharge = normalizeShippingRate(shippingCharge);
+    const safeShippingLotSize = Number.isFinite(Number(shippingLotSize)) && Number(shippingLotSize) > 0 ? Math.floor(Number(shippingLotSize)) : 1;
     if (safeDiscount != null && (isNaN(safeDiscount) || safeDiscount < 0 || safeDiscount > 100)) {
       return createErrorResponse('Invalid discountPercentage (0-100)', 400);
     }
@@ -129,6 +130,7 @@ export async function POST(request: NextRequest) {
       perPairPrice: hasPerPair ? safePerPairPrice : null,
       shippingType: safeShippingType,
       shippingCharge: safeShippingCharge,
+      shippingLotSize: safeShippingLotSize,
       vendorId: payload.userId,
       inStock: true,
       approvalStatus: 'pending',

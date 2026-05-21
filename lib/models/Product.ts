@@ -20,6 +20,7 @@ export interface IProduct extends Document {
   perPairPrice?: number;
   shippingType?: 'piece' | 'weight';
   shippingCharge?: number;
+  shippingLotSize?: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -107,6 +108,11 @@ const productSchema = new Schema<IProduct>(
       type: Number,
       default: 0,
       min: 0,
+    },
+    shippingLotSize: {
+      type: Number,
+      default: 1,
+      min: 1,
     },
   },
   { timestamps: true }

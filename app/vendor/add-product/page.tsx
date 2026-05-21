@@ -22,6 +22,7 @@ export default function VendorAddProductPage() {
     unitPrice: '',
     shippingType: 'piece' as 'piece' | 'weight',
     shippingCharge: '0',
+    shippingLotSize: '1',
     category: 'Guppies',
     waterType: 'Freshwater',
     tag: 'Standard',
@@ -109,6 +110,7 @@ export default function VendorAddProductPage() {
         perPairPrice: form.pricingType === 'pair' ? Number(form.unitPrice) : null,
         shippingType: form.shippingType,
         shippingCharge,
+        shippingLotSize: Number(form.shippingLotSize) || 1,
       });
       router.push('/vendor/products');
     } catch (error: any) {
@@ -273,27 +275,43 @@ export default function VendorAddProductPage() {
         <div className="rounded-3xl border border-blue-100 bg-blue-50/70 p-5 space-y-4">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <p className="text-sm font-bold text-slate-900">Product shipping charge</p>
-              <p className="text-sm text-slate-500">Set the shipping amount for this product.</p>
+              <p className="text-sm font-bold text-slate-900">Shipping Rate</p>
+              <p className="text-sm text-slate-500">Set the pieces included in one shipping block and its price.</p>
             </div>
             <div className="rounded-full bg-white px-4 py-2 text-sm font-bold text-blue-700 shadow-sm ring-1 ring-blue-100">
-              ₹{Number(form.shippingCharge || 0).toFixed(2)}
+              ₹{Number(form.shippingCharge || 0).toFixed(2)} per {form.shippingLotSize} pcs
             </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_160px]">
+            <div className="h-11 rounded-xl border border-blue-200 bg-white px-4 py-2 text-sm text-slate-500 flex items-center justify-between">
+              <span>Pieces per shipping block:</span>
+              <span className="font-bold text-blue-600">{form.shippingLotSize}</span>
+            </div>
+            <input
+              type="number"
+              min={1}
+              step="1"
+              value={form.shippingLotSize}
+              onChange={(e) => setForm((prev) => ({ ...prev, shippingLotSize: e.target.value }))}
+              className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="1"
+            />
           </div>
 
           <input
             type="range"
-            min="0"
-            max="5000"
+            min="1"
+            max="100"
             step="1"
-            value={form.shippingCharge}
-            onChange={(e) => setForm((prev) => ({ ...prev, shippingCharge: e.target.value }))}
-            className="w-full accent-blue-600"
+            value={form.shippingLotSize}
+            onChange={(e) => setForm((prev) => ({ ...prev, shippingLotSize: e.target.value }))}
+            className="w-full accent-blue-600 mb-6"
           />
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_160px]">
             <div className="h-11 rounded-xl border border-blue-200 bg-white px-4 py-2 text-sm text-slate-500 flex items-center">
-              Drag the slider to set the shipping amount.
+              Shipping Price (₹) for these pieces:
             </div>
             <input
               type="number"
