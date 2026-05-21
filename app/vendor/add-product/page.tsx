@@ -48,7 +48,7 @@ export default function VendorAddProductPage() {
   }, []);
 
   useEffect(() => {
-    if (FISH_NAMES.includes(form.title)) {
+    if (FISH_NAMES.includes(form.title as any)) {
       const fetchDescription = async () => {
         try {
           const res = await fetch(`/api/fish-descriptions?name=${encodeURIComponent(form.title)}`);

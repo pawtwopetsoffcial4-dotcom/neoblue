@@ -11,12 +11,12 @@ export default async function ShopPage({ params }: Props) {
 
   const identifier = params.vendor;
   // try find by slug first, then by id
-  let vendor = await User.findOne({ slug: identifier }).lean();
+  let vendor = (await User.findOne({ slug: identifier }).lean()) as any;
   if (!vendor) {
     try {
       const { Types } = await import('mongoose');
       if (Types.ObjectId.isValid(identifier)) {
-        vendor = await User.findById(identifier).lean();
+        vendor = (await User.findById(identifier).lean()) as any;
       }
     } catch (e) {
       vendor = null as any;
