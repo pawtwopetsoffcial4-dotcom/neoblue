@@ -14,6 +14,7 @@ export default function VendorSignupPage() {
   const [city, setCity] = useState('');
   const [stateName, setStateName] = useState('');
   const [pincode, setPincode] = useState('');
+  const [logo, setLogo] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -43,8 +44,9 @@ export default function VendorSignupPage() {
           phone,
           address,
           city,
-          state: stateName,
+            state: stateName,
           pincode,
+            logo,
           password,
         }),
       });
@@ -110,6 +112,17 @@ export default function VendorSignupPage() {
                 required
               />
             </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Logo URL (optional)</label>
+                <input
+                  className="w-full h-12 px-4 rounded-xl border border-blue-200 bg-white text-slate-900 placeholder:text-slate-400 shadow-sm outline-none transition-all focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                  type="url"
+                  placeholder="https://example.com/logo.png"
+                  value={logo}
+                  onChange={(e) => setLogo(e.target.value)}
+                />
+              </div>
 
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">Phone Number</label>

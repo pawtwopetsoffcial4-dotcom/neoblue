@@ -47,6 +47,25 @@ export default function VendorAddProductPage() {
     loadCategories();
   }, []);
 
+  useEffect(() => {
+    if (FISH_NAMES.includes(form.title)) {
+      const fetchDescription = async () => {
+        try {
+          const res = await fetch(`/api/fish-descriptions?name=${encodeURIComponent(form.title)}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data.success && data.description) {
+              setForm(prev => ({ ...prev, description: data.description }));
+            }
+          }
+        } catch (error) {
+          console.error("Failed to fetch description", error);
+        }
+      };
+      fetchDescription();
+    }
+  }, [form.title]);
+
   const removeImage = () => {
     setImageUrl('');
     setUploadError('');

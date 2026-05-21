@@ -23,6 +23,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "NEOBLUE",
   description: "Fish Selling Ecommerce",
+  icons: {
+    icon: "/logo.png",
+  },
 };
 
 export default function RootLayout({

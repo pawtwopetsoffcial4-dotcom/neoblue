@@ -5,7 +5,9 @@ export interface IUser extends Document {
   name: string;
   email: string;
   phone?: string;
+  logo?: string;
   password: string;
+  slug?: string;
   role: 'user' | 'vendor' | 'admin';
   addresses: Array<{
     street: string;
@@ -36,6 +38,15 @@ const userSchema = new Schema<IUser>(
     phone: {
       type: String,
       trim: true,
+    },
+    logo: {
+      type: String,
+      default: '',
+    },
+    slug: {
+      type: String,
+      unique: true,
+      index: true,
     },
     password: {
       type: String,
