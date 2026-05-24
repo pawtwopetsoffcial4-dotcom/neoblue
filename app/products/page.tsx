@@ -239,10 +239,7 @@ export default function ProductsPage() {
                         <Heart className="h-4 w-4" />
                       </button>
 
-                      {/* Overlaid Rating Pill (now using NeoBlue gradient) */}
-                      <div className="absolute bottom-2 left-2 pill-neoblue-gradient px-2 py-0.5 rounded text-white text-[11px] font-bold shadow-sm">
-                        <ReviewStars rating={rating} count={reviewCount} compact />
-                      </div>
+
                     </div>
 
                     {/* Content Section */}
@@ -262,9 +259,9 @@ export default function ProductsPage() {
                       </h3>
 
                       {/* Pricing Row */}
-                      <div className="mt-1.5 flex flex-col gap-0.5 text-[11px] text-slate-600 font-sans">
+                      <div className="mt-2 flex flex-col gap-0.5 text-[11px] text-slate-600 font-sans">
                         {unitPrice != null ? (
-                          <span><span className="text-lg font-black text-slate-900">₹{unitPrice}</span> per {unitLabel}</span>
+                          <span><span className="text-2xl font-black text-slate-900">₹{unitPrice}</span> per {unitLabel}</span>
                         ) : (
                           <span className="text-slate-400">Pricing not set</span>
                         )}
