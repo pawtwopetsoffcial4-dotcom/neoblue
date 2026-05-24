@@ -21,6 +21,7 @@ export default function ProductDetailPage({ params }: ProductDetailProps) {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'description' | 'specifications' | 'faq' | 'reviews'>('description');
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [quantity, setQuantity] = useState(1);
   const [reviews, setReviews] = React.useState<any[]>([]);
   const [showForm, setShowForm] = React.useState(false);
   const [recommendedProducts, setRecommendedProducts] = useState<MarketplaceProduct[]>([]);
