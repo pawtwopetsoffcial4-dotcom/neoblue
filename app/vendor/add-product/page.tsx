@@ -149,6 +149,17 @@ export default function VendorAddProductPage() {
 
       <form onSubmit={handleSubmit} className="rounded-4xl border border-blue-100 bg-white p-5 space-y-5 shadow-sm sm:p-6">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <select
+            className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
+            value={form.category}
+            onChange={(e) => setForm((prev) => ({ ...prev, category: e.target.value }))}
+          >
+            {categories.map((category) => (
+              <option key={category} value={category}>
+                {category}
+              </option>
+            ))}
+          </select>
           <input
             list="fish-name-autofill"
             className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
@@ -248,18 +259,6 @@ export default function VendorAddProductPage() {
               </button>
             )}
           </CldUploadWidget>
-
-          <select
-            className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
-            value={form.category}
-            onChange={(e) => setForm((prev) => ({ ...prev, category: e.target.value }))}
-          >
-            {categories.map((category) => (
-              <option key={category} value={category}>
-                {category}
-              </option>
-            ))}
-          </select>
 
           <select
             className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
