@@ -264,7 +264,7 @@ export default function ProductsPage() {
                       {/* Pricing Row */}
                       <div className="mt-1.5 flex flex-col gap-0.5 text-[11px] text-slate-600 font-sans">
                         {unitPrice != null ? (
-                          <span><span className="font-semibold text-slate-900">₹{unitPrice}</span> per {unitLabel}</span>
+                          <span><span className="text-lg font-black text-slate-900">₹{unitPrice}</span> per {unitLabel}</span>
                         ) : (
                           <span className="text-slate-400">Pricing not set</span>
                         )}

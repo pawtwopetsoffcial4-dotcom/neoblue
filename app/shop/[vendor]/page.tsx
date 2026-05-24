@@ -70,7 +70,7 @@ export default async function ShopPage({ params }: Props) {
 
                 <div className="flex flex-1 flex-col p-3">
                   <h3 className="text-sm font-semibold text-slate-900 line-clamp-1">{product.title}</h3>
-                  <div className="mt-2 text-sm text-slate-700">₹{product.price}</div>
+                  <div className="mt-2 text-lg font-black text-slate-900">₹{product.price}</div>
                 </div>
               </Link>
             ))}

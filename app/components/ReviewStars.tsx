@@ -17,13 +17,16 @@ export default function ReviewStars({ rating = 0, count, compact = false, size =
   return (
     <div className={`inline-flex items-center gap-2 ${compact ? 'text-[11px]' : 'text-sm'}`}>
       <div className="flex items-center gap-1" aria-hidden>
-        {Array.from({ length: 5 }).map((_, i) => {
-          const key = `star-${i}`;
-          if (i < full) {
-            return (
-              <Star key={key} className="text-amber-400" style={{ width: size, height: size }} />
-            );
-          }
+        {compact ? (
+          <Star className="text-amber-400 fill-current" style={{ width: size, height: size }} />
+        ) : (
+          Array.from({ length: 5 }).map((_, i) => {
+            const key = `star-${i}`;
+            if (i < full) {
+              return (
+                <Star key={key} className="text-amber-400" style={{ width: size, height: size }} />
+              );
+            }
 
           if (i === full && frac > 0) {
             return (
@@ -34,8 +37,9 @@ export default function ReviewStars({ rating = 0, count, compact = false, size =
             );
           }
 
-          return <Star key={key} className="text-slate-200" style={{ width: size, height: size }} />;
-        })}
+            return <Star key={key} className="text-slate-200" style={{ width: size, height: size }} />;
+          })
+        )}
       </div>
 
       {typeof rating === 'number' && (
