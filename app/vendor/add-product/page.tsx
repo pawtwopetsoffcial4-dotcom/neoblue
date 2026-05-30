@@ -20,7 +20,7 @@ export default function VendorAddProductPage() {
     description: '',
     pricingType: 'piece' as 'piece' | 'pair',
     unitPrice: '',
-    shippingType: 'piece' as 'piece' | 'weight',
+    shippingType: 'weight' as 'piece' | 'weight',
     shippingCharge: '0',
     shippingLotSize: '1',
     category: 'Guppies',
