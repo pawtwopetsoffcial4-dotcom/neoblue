@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import User from '@/lib/models/User';
 import { cookies } from 'next/headers';
-import * as jose from 'jose';
+import { verifyToken } from '@/lib/utils/auth';
 
 async function getUserId() {
   const cookieStore = await cookies();
@@ -10,13 +10,10 @@ async function getUserId() {
 
   if (!token) return null;
 
-  try {
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback_secret');
-    const { payload } = await jose.jwtVerify(token, secret);
-    return payload.userId as string;
-  } catch (error) {
-    return null;
-  }
+  const payload = verifyToken(token);
+  if (!payload) return null;
+  
+  return payload.userId;
 }
 
 export async function GET(request: Request) {
