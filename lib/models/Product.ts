@@ -21,6 +21,12 @@ export interface IProduct extends Document {
   shippingType?: 'piece' | 'weight';
   shippingCharge?: number;
   shippingLotSize?: number;
+  shippingRanges?: Array<{
+    id: string;
+    weightRange: string;
+    estimatedQuantity: string;
+    charge: number;
+  }>;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -114,6 +120,14 @@ const productSchema = new Schema<IProduct>(
       default: 1,
       min: 1,
     },
+    shippingRanges: [
+      {
+        id: String,
+        weightRange: String,
+        estimatedQuantity: String,
+        charge: Number,
+      }
+    ]
   },
   { timestamps: true }
 );
