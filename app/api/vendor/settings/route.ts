@@ -24,7 +24,7 @@ export async function GET(request: Request) {
     }
 
     await connectDB();
-    const user = await User.findById(userId).lean();
+    const user: any = await User.findById(userId).lean();
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
