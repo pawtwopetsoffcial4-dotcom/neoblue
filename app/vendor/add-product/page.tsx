@@ -96,7 +96,6 @@ export default function VendorAddProductPage() {
     try {
       setIsSaving(true);
       const unitPrice = Number(form.unitPrice);
-      const shippingCharge = Number(form.shippingCharge);
 
       if (Number.isNaN(unitPrice) || unitPrice < 0) {
         setSubmitError('Please enter a valid unit price.');
