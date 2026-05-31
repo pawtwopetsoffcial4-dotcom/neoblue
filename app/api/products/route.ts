@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
       return createErrorResponse('Only vendors can create products', 403);
     }
 
-    const { title, description, price, images, category, subcategory, waterType, tag, scientific, originalPrice, discountPercentage, perPiecePrice, perPairPrice, shippingType, shippingCharge, shippingLotSize, shippingRanges } = await request.json();
+    const { title, description, price, images, category, subcategory, waterType, tag, scientific, originalPrice, discountPercentage, perPiecePrice, perPairPrice, shippingType, shippingCharge, shippingLotSize, shippingPieceRanges, shippingWeightRanges } = await request.json();
 
     // Validate required fields
     if (!title || !description || price == null || !images || !category || !waterType) {
@@ -131,7 +131,8 @@ export async function POST(request: NextRequest) {
       shippingType: safeShippingType,
       shippingCharge: safeShippingCharge,
       shippingLotSize: safeShippingLotSize,
-      shippingRanges: Array.isArray(shippingRanges) ? shippingRanges : undefined,
+      shippingPieceRanges: Array.isArray(shippingPieceRanges) ? shippingPieceRanges : undefined,
+      shippingWeightRanges: Array.isArray(shippingWeightRanges) ? shippingWeightRanges : undefined,
       vendorId: payload.userId,
       inStock: true,
       approvalStatus: 'pending',

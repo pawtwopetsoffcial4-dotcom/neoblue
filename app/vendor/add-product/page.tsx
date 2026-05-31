@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowRight, Fish, Gauge, Sparkles, X, Info, Plus, Trash2 } from 'lucide-react';
+import { v4 as uuidv4 } from 'uuid';
 import { CldUploadWidget } from 'next-cloudinary';
 import { apiClient } from '@/lib/api-client';
 import { FISH_NAMES } from '@/lib/catalog';
@@ -20,16 +21,27 @@ export default function VendorAddProductPage() {
     description: '',
     pricingType: 'piece' as 'piece' | 'pair',
     unitPrice: '',
-    shippingType: 'weight' as 'piece' | 'weight',
-    shippingCharge: '0',
-    shippingLotSize: '1',
     category: 'Guppies',
     waterType: 'Freshwater',
     tag: 'Standard',
     scientific: '',
     originalPrice: '',
     discountPercentage: '',
-    shippingRanges: [{ id: Math.random().toString(36).substr(2, 9), weightRange: '', estimatedQuantity: '', charge: '' as number | '' }],
+    shippingPieceRanges: [
+      { id: uuidv4(), pieceRange: '2 - 4 Pieces', estimatedQuantity: '~ 2 - 4 Pieces', charge: 60 as number | '' },
+      { id: uuidv4(), pieceRange: '4 - 8 Pieces', estimatedQuantity: '~ 4 - 8 Pieces', charge: 80 },
+      { id: uuidv4(), pieceRange: '8 - 10 Pieces', estimatedQuantity: '~ 8 - 10 Pieces', charge: 100 },
+      { id: uuidv4(), pieceRange: '10 - 15 Pieces', estimatedQuantity: '~ 10 - 15 Pieces', charge: 120 },
+      { id: uuidv4(), pieceRange: '15 - 20 Pieces', estimatedQuantity: '~ 15 - 20 Pieces', charge: 150 },
+    ],
+    shippingWeightRanges: [
+      { id: uuidv4(), weightRange: 'Up to 0.5 KG', estimatedQuantity: '~ 2 - 4 Pieces', charge: 60 as number | '' },
+      { id: uuidv4(), weightRange: '0.5 - 1 KG', estimatedQuantity: '~ 4 - 6 Pieces', charge: 90 },
+      { id: uuidv4(), weightRange: '1 - 1.5 KG', estimatedQuantity: '~ 6 - 8 Pieces', charge: 120 },
+      { id: uuidv4(), weightRange: '1.5 - 2 KG', estimatedQuantity: '~ 8 - 12 Pieces', charge: 150 },
+      { id: uuidv4(), weightRange: '2 - 3 KG', estimatedQuantity: '~ 12 - 20 Pieces', charge: 180 },
+      { id: uuidv4(), weightRange: 'Above 3 KG', estimatedQuantity: '20+ Pieces', charge: 200 },
+    ],
   });
   const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'neoblue_products';
 
@@ -91,11 +103,6 @@ export default function VendorAddProductPage() {
         return;
       }
 
-      if (Number.isNaN(shippingCharge) || shippingCharge < 0) {
-        setSubmitError('Please enter a valid shipping charge.');
-        return;
-      }
-
       await apiClient.createProduct({
         title: form.title,
         description: form.description,
@@ -109,10 +116,8 @@ export default function VendorAddProductPage() {
         discountPercentage: form.discountPercentage ? Number(form.discountPercentage) : undefined,
         perPiecePrice: form.pricingType === 'piece' ? Number(form.unitPrice) : null,
         perPairPrice: form.pricingType === 'pair' ? Number(form.unitPrice) : null,
-        shippingType: form.shippingType,
-        shippingCharge,
-        shippingLotSize: Number(form.shippingLotSize) || 1,
-        shippingRanges: form.shippingRanges,
+        shippingPieceRanges: form.shippingPieceRanges,
+        shippingWeightRanges: form.shippingWeightRanges,
       });
       router.push('/vendor/products');
     } catch (error: any) {
@@ -193,14 +198,6 @@ export default function VendorAddProductPage() {
             onChange={(e) => setForm((prev) => ({ ...prev, unitPrice: e.target.value }))}
             required
           />
-          <select
-            className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
-            value={form.shippingType}
-            onChange={(e) => setForm((prev) => ({ ...prev, shippingType: e.target.value as 'piece' | 'weight' }))}
-          >
-            <option value="piece">Shipping per piece</option>
-            <option value="weight">Shipping by weight</option>
-          </select>
           <input
             type="number"
             className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
@@ -273,159 +270,213 @@ export default function VendorAddProductPage() {
           </select>
         </div>
 
-        {form.shippingType === 'piece' ? (
-          <div className="rounded-3xl border border-blue-100 bg-blue-50/70 p-5 space-y-4">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <p className="text-sm font-bold text-slate-900">Shipping Rate</p>
-                <p className="text-sm text-slate-500">Set the pieces included in one shipping block and its price.</p>
-              </div>
-              <div className="rounded-full bg-white px-4 py-2 text-sm font-bold text-blue-700 shadow-sm ring-1 ring-blue-100">
-                ₹{Number(form.shippingCharge || 0).toFixed(2)} per {form.shippingLotSize} pcs
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_160px]">
-              <div className="h-11 rounded-xl border border-blue-200 bg-white px-4 py-2 text-sm text-slate-500 flex items-center justify-between">
-                <span>Pieces per shipping block:</span>
-                <span className="font-bold text-blue-600">{form.shippingLotSize}</span>
-              </div>
-              <input
-                type="number"
-                min={1}
-                step="1"
-                value={form.shippingLotSize}
-                onChange={(e) => setForm((prev) => ({ ...prev, shippingLotSize: e.target.value }))}
-                className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="1"
-              />
-            </div>
-
-            <input
-              type="range"
-              min="1"
-              max="100"
-              step="1"
-              value={form.shippingLotSize}
-              onChange={(e) => setForm((prev) => ({ ...prev, shippingLotSize: e.target.value }))}
-              className="w-full accent-blue-600 mb-6"
-            />
-
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_160px]">
-              <div className="h-11 rounded-xl border border-blue-200 bg-white px-4 py-2 text-sm text-slate-500 flex items-center">
-                Shipping Price (₹) for these pieces:
-              </div>
-              <input
-                type="number"
-                min={0}
-                step="1"
-                value={form.shippingCharge}
-                onChange={(e) => setForm((prev) => ({ ...prev, shippingCharge: e.target.value }))}
-                className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="0"
-              />
-            </div>
-          </div>
-        ) : (
-          <div className="rounded-3xl border border-blue-100 bg-blue-50/70 p-5 space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-4">
-              <div>
-                <p className="text-sm font-bold text-slate-900">B. Shipping Charge Per Weight (KG)</p>
-                <p className="text-sm text-slate-500">Set shipping charges based on total weight of the shipment.</p>
-              </div>
-              <button 
-                type="button"
-                onClick={() => setForm(prev => ({
-                  ...prev,
-                  shippingRanges: [...prev.shippingRanges, { id: Math.random().toString(36).substr(2, 9), weightRange: '', estimatedQuantity: '', charge: '' }]
-                }))}
-                className="flex h-10 items-center gap-2 rounded-xl border border-blue-200 bg-white px-4 text-sm font-bold text-blue-600 hover:bg-blue-50 transition-colors shadow-sm shrink-0"
-              >
-                <Plus className="h-4 w-4" /> Add Range
-              </button>
-            </div>
-
-            <div className="hidden md:grid grid-cols-[1.5fr_1.5fr_1fr_40px] gap-4 mb-2 px-2">
-              <div className="text-xs font-bold text-slate-700">Weight Range</div>
-              <div className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                Estimated Quantity
-              </div>
-              <div className="text-xs font-bold text-slate-700">Shipping Charge (₹)</div>
-              <div></div>
-            </div>
-
-            <div className="space-y-3">
-              {form.shippingRanges.map((range) => (
-                <div key={range.id} className="grid grid-cols-1 md:grid-cols-[1.5fr_1.5fr_1fr_40px] gap-3 md:gap-4 items-center bg-white p-3 md:p-0 rounded-2xl md:bg-transparent md:border-none border border-blue-100">
-                  <div>
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1 block md:hidden">Weight Range</label>
-                    <input 
-                      type="text" 
-                      value={range.weightRange}
-                      onChange={(e) => setForm(prev => ({
-                        ...prev,
-                        shippingRanges: prev.shippingRanges.map(r => r.id === range.id ? { ...r, weightRange: e.target.value } : r)
-                      }))}
-                      placeholder="e.g. Up to 0.5 KG"
-                      className="w-full h-11 rounded-xl border border-blue-200 px-4 text-sm font-medium text-slate-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1 block md:hidden">Estimated Quantity</label>
-                    <input 
-                      type="text" 
-                      value={range.estimatedQuantity}
-                      onChange={(e) => setForm(prev => ({
-                        ...prev,
-                        shippingRanges: prev.shippingRanges.map(r => r.id === range.id ? { ...r, estimatedQuantity: e.target.value } : r)
-                      }))}
-                      placeholder="e.g. ~ 2 - 4 Pieces"
-                      className="w-full h-11 rounded-xl border border-blue-200 px-4 text-sm font-medium text-slate-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                    />
-                  </div>
-                  
-                  <div className="relative">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1 block md:hidden">Shipping Charge (₹)</label>
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-medium md:top-6 md:-mt-0.5">₹</span>
-                    <input 
-                      type="number" 
-                      value={range.charge}
-                      onChange={(e) => setForm(prev => ({
-                        ...prev,
-                        shippingRanges: prev.shippingRanges.map(r => r.id === range.id ? { ...r, charge: e.target.value === '' ? '' : Number(e.target.value) } : r)
-                      }))}
-                      placeholder="0"
-                      min="0"
-                      className="w-full h-11 rounded-xl border border-blue-200 pl-8 pr-4 text-sm font-medium text-slate-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                    />
-                  </div>
-                  
-                  <div className="flex justify-end md:justify-center">
-                    <button 
-                      type="button"
-                      onClick={() => setForm(prev => ({
-                        ...prev,
-                        shippingRanges: prev.shippingRanges.filter(r => r.id !== range.id)
-                      }))}
-                      disabled={form.shippingRanges.length === 1}
-                      className="flex h-10 w-10 items-center justify-center rounded-xl text-rose-500 hover:bg-rose-100 disabled:opacity-50 disabled:hover:bg-transparent transition-colors mt-2 md:mt-0"
-                    >
-                      <Trash2 className="h-5 w-5" />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-4 rounded-xl bg-white/50 p-3 flex items-start gap-2">
-              <Info className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
-              <p className="text-xs font-medium text-blue-800">
-                Tip: Weight includes water, packing, and container.
+        {/* Section A: Pieces */}
+        <div className="rounded-xl border border-slate-200 bg-white p-5 sm:p-6 shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
+            <div>
+              <h2 className="flex items-center gap-2 text-base font-bold text-slate-900">
+                A. Shipping Charges Per Number of Pieces <Info className="h-4 w-4 text-slate-400" />
+              </h2>
+              <p className="mt-1 text-sm text-slate-500">
+                Set shipping charges based on the number of pieces.
               </p>
             </div>
+            <button 
+              type="button"
+              onClick={() => setForm(prev => ({
+                ...prev,
+                shippingPieceRanges: [...prev.shippingPieceRanges, { id: uuidv4(), pieceRange: '', estimatedQuantity: '', charge: '' }]
+              }))}
+              className="flex h-9 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-sm font-semibold text-blue-600 hover:bg-slate-50 transition-colors shadow-sm shrink-0"
+            >
+              <Plus className="h-4 w-4" /> Add Range
+            </button>
           </div>
-        )}
+
+          <div className="hidden md:grid grid-cols-[1.5fr_1.5fr_1fr_40px] gap-4 mb-3 px-2">
+            <div className="text-sm font-bold text-slate-900">Pieces Range</div>
+            <div className="text-sm font-bold flex items-center gap-1.5 text-slate-900">
+              Estimated Quantity <Info className="h-3.5 w-3.5 text-slate-400" />
+            </div>
+            <div className="text-sm font-bold text-slate-900">Shipping Charge (₹)</div>
+            <div></div>
+          </div>
+
+          <div className="space-y-3">
+            {form.shippingPieceRanges.map((range) => (
+              <div key={range.id} className="grid grid-cols-1 md:grid-cols-[1.5fr_1.5fr_1fr_40px] gap-3 md:gap-4 items-center">
+                <div>
+                  <label className="text-xs font-semibold text-slate-500 mb-1 block md:hidden">Pieces Range</label>
+                  <input 
+                    type="text" 
+                    value={range.pieceRange}
+                    onChange={(e) => setForm(prev => ({
+                      ...prev,
+                      shippingPieceRanges: prev.shippingPieceRanges.map(r => r.id === range.id ? { ...r, pieceRange: e.target.value } : r)
+                    }))}
+                    placeholder="e.g. 2 - 4 Pieces"
+                    className="w-full h-11 rounded-lg border border-slate-200 px-4 text-sm font-medium outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white text-slate-900"
+                  />
+                </div>
+                
+                <div>
+                  <label className="text-xs font-semibold text-slate-500 mb-1 block md:hidden">Estimated Quantity</label>
+                  <input 
+                    type="text" 
+                    value={range.estimatedQuantity}
+                    onChange={(e) => setForm(prev => ({
+                      ...prev,
+                      shippingPieceRanges: prev.shippingPieceRanges.map(r => r.id === range.id ? { ...r, estimatedQuantity: e.target.value } : r)
+                    }))}
+                    placeholder="e.g. ~ 2 - 4 Shrimp"
+                    className="w-full h-11 rounded-lg border border-slate-200 px-4 text-sm font-medium outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white text-slate-900"
+                  />
+                </div>
+                
+                <div className="relative">
+                  <label className="text-xs font-semibold text-slate-500 mb-1 block md:hidden">Shipping Charge</label>
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-medium md:top-5.5 md:-mt-0.5">₹</span>
+                  <input 
+                    type="number" 
+                    value={range.charge}
+                    onChange={(e) => setForm(prev => ({
+                      ...prev,
+                      shippingPieceRanges: prev.shippingPieceRanges.map(r => r.id === range.id ? { ...r, charge: e.target.value === '' ? '' : Number(e.target.value) } : r)
+                    }))}
+                    placeholder="0"
+                    min="0"
+                    className="w-full h-11 rounded-lg border border-slate-200 pl-8 pr-4 text-sm font-medium outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white text-slate-900"
+                  />
+                </div>
+                
+                <div className="flex justify-end md:justify-center">
+                  <button 
+                    type="button"
+                    onClick={() => setForm(prev => ({
+                      ...prev,
+                      shippingPieceRanges: prev.shippingPieceRanges.filter(r => r.id !== range.id)
+                    }))}
+                    disabled={form.shippingPieceRanges.length === 1}
+                    className="flex h-10 w-10 items-center justify-center rounded-lg text-rose-500 hover:bg-rose-50 disabled:opacity-50 disabled:hover:bg-transparent transition-colors mt-6 md:mt-0"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6 rounded-lg bg-[#f0f4fa] p-3 border border-blue-100 flex items-start gap-2">
+            <Info className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
+            <p className="text-sm font-medium text-blue-800">
+              Tip: Shipping charges will be auto-calculated for buyers based on quantity.
+            </p>
+          </div>
+        </div>
+
+        {/* Section B: Weight */}
+        <div className="rounded-xl border border-slate-200 bg-white p-5 sm:p-6 shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
+            <div>
+              <h2 className="flex items-center gap-2 text-base font-bold text-slate-900">
+                B. Shipping Charge Per Weight (KG) <Info className="h-4 w-4 text-slate-400" />
+              </h2>
+              <p className="mt-1 text-sm text-slate-500">
+                Set shipping charges based on total weight of the shipment.
+              </p>
+            </div>
+            <button 
+              type="button"
+              onClick={() => setForm(prev => ({
+                ...prev,
+                shippingWeightRanges: [...prev.shippingWeightRanges, { id: uuidv4(), weightRange: '', estimatedQuantity: '', charge: '' }]
+              }))}
+              className="flex h-9 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-sm font-semibold text-blue-600 hover:bg-slate-50 transition-colors shadow-sm shrink-0"
+            >
+              <Plus className="h-4 w-4" /> Add Range
+            </button>
+          </div>
+
+          <div className="hidden md:grid grid-cols-[1.5fr_1.5fr_1fr_40px] gap-4 mb-3 px-2">
+            <div className="text-sm font-bold text-slate-900">Weight Range</div>
+            <div className="text-sm font-bold flex items-center gap-1.5 text-slate-900">
+              Estimated Quantity <Info className="h-3.5 w-3.5 text-slate-400" />
+            </div>
+            <div className="text-sm font-bold text-slate-900">Shipping Charge (₹)</div>
+            <div></div>
+          </div>
+
+          <div className="space-y-3">
+            {form.shippingWeightRanges.map((range) => (
+              <div key={range.id} className="grid grid-cols-1 md:grid-cols-[1.5fr_1.5fr_1fr_40px] gap-3 md:gap-4 items-center">
+                <div>
+                  <label className="text-xs font-semibold text-slate-500 mb-1 block md:hidden">Weight Range</label>
+                  <input 
+                    type="text" 
+                    value={range.weightRange}
+                    onChange={(e) => setForm(prev => ({
+                      ...prev,
+                      shippingWeightRanges: prev.shippingWeightRanges.map(r => r.id === range.id ? { ...r, weightRange: e.target.value } : r)
+                    }))}
+                    placeholder="e.g. Up to 0.5 KG"
+                    className="w-full h-11 rounded-lg border border-slate-200 px-4 text-sm font-medium outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white text-slate-900"
+                  />
+                </div>
+                
+                <div>
+                  <label className="text-xs font-semibold text-slate-500 mb-1 block md:hidden">Estimated Quantity</label>
+                  <input 
+                    type="text" 
+                    value={range.estimatedQuantity}
+                    onChange={(e) => setForm(prev => ({
+                      ...prev,
+                      shippingWeightRanges: prev.shippingWeightRanges.map(r => r.id === range.id ? { ...r, estimatedQuantity: e.target.value } : r)
+                    }))}
+                    placeholder="e.g. ~ 2 - 4 Pieces"
+                    className="w-full h-11 rounded-lg border border-slate-200 px-4 text-sm font-medium outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white text-slate-900"
+                  />
+                </div>
+                
+                <div className="relative">
+                  <label className="text-xs font-semibold text-slate-500 mb-1 block md:hidden">Shipping Charge</label>
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-medium md:top-5.5 md:-mt-0.5">₹</span>
+                  <input 
+                    type="number" 
+                    value={range.charge}
+                    onChange={(e) => setForm(prev => ({
+                      ...prev,
+                      shippingWeightRanges: prev.shippingWeightRanges.map(r => r.id === range.id ? { ...r, charge: e.target.value === '' ? '' : Number(e.target.value) } : r)
+                    }))}
+                    placeholder="0"
+                    min="0"
+                    className="w-full h-11 rounded-lg border border-slate-200 pl-8 pr-4 text-sm font-medium outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white text-slate-900"
+                  />
+                </div>
+                
+                <div className="flex justify-end md:justify-center">
+                  <button 
+                    type="button"
+                    onClick={() => setForm(prev => ({
+                      ...prev,
+                      shippingWeightRanges: prev.shippingWeightRanges.filter(r => r.id !== range.id)
+                    }))}
+                    disabled={form.shippingWeightRanges.length === 1}
+                    className="flex h-10 w-10 items-center justify-center rounded-lg text-rose-500 hover:bg-rose-50 disabled:opacity-50 disabled:hover:bg-transparent transition-colors mt-6 md:mt-0"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6 rounded-lg bg-[#f0f4fa] p-3 border border-blue-100 flex items-start gap-2">
+            <Info className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
+            <p className="text-sm font-medium text-blue-800">
+              Tip: Weight includes water, packing, and container.
+            </p>
+          </div>
+        </div>
 
         <datalist id="fish-name-autofill">
           {FISH_NAMES.map((fishName) => (

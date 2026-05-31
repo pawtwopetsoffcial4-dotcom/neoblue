@@ -30,7 +30,10 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    return NextResponse.json({ shippingRanges: user.shippingRanges || [] });
+    return NextResponse.json({ 
+      shippingPieceRanges: user.shippingPieceRanges || [],
+      shippingWeightRanges: user.shippingWeightRanges || []
+    });
   } catch (error: any) {
     return NextResponse.json(
       { error: error.message || 'Something went wrong' },
@@ -46,9 +49,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { shippingRanges } = await request.json();
+    const { shippingPieceRanges, shippingWeightRanges } = await request.json();
 
-    if (!Array.isArray(shippingRanges)) {
+    if (!Array.isArray(shippingPieceRanges) || !Array.isArray(shippingWeightRanges)) {
       return NextResponse.json({ error: 'Invalid payload format' }, { status: 400 });
     }
 
@@ -59,10 +62,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    user.shippingRanges = shippingRanges;
+    user.shippingPieceRanges = shippingPieceRanges;
+    user.shippingWeightRanges = shippingWeightRanges;
     await user.save();
 
-    return NextResponse.json({ success: true, shippingRanges: user.shippingRanges });
+    return NextResponse.json({ success: true, shippingPieceRanges: user.shippingPieceRanges, shippingWeightRanges: user.shippingWeightRanges });
   } catch (error: any) {
     return NextResponse.json(
       { error: error.message || 'Something went wrong' },

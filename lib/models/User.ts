@@ -17,7 +17,13 @@ export interface IUser extends Document {
     isDefault: boolean;
   }>;
   isApproved: boolean; // for vendors
-  shippingRanges?: Array<{
+  shippingPieceRanges?: Array<{
+    id: string;
+    pieceRange: string;
+    estimatedQuantity: string;
+    charge: number;
+  }>;
+  shippingWeightRanges?: Array<{
     id: string;
     weightRange: string;
     estimatedQuantity: string;
@@ -78,7 +84,15 @@ const userSchema = new Schema<IUser>(
       type: Boolean,
       default: false,
     },
-    shippingRanges: [
+    shippingPieceRanges: [
+      {
+        id: String,
+        pieceRange: String,
+        estimatedQuantity: String,
+        charge: Number,
+      }
+    ],
+    shippingWeightRanges: [
       {
         id: String,
         weightRange: String,
