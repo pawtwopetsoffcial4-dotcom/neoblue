@@ -7,7 +7,7 @@ type Props = { params: { id: string } };
 
 export default async function VendorIdRedirect({ params }: Props) {
   await connectDB();
-  const vendor = (await User.findById(params.id).lean()) as any;
+  const vendor = await User.findById(params.id).lean();
   if (!vendor) return redirect('/');
   if (vendor.slug) {
     return redirect(`/shop/${vendor.slug}`);

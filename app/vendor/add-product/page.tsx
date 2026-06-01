@@ -19,8 +19,9 @@ export default function VendorAddProductPage() {
   const [form, setForm] = useState({
     title: '',
     description: '',
-    pricingType: 'piece' as 'piece' | 'pair',
-    unitPrice: '',
+    price: '',
+    stockQuantity: '',
+    ageCategory: 'adult',
     category: 'Guppies',
     waterType: 'Freshwater',
     tag: 'Standard',
@@ -95,10 +96,10 @@ export default function VendorAddProductPage() {
 
     try {
       setIsSaving(true);
-      const unitPrice = Number(form.unitPrice);
+      const price = Number(form.price);
 
-      if (Number.isNaN(unitPrice) || unitPrice < 0) {
-        setSubmitError('Please enter a valid unit price.');
+      if (Number.isNaN(price) || price < 0) {
+        setSubmitError('Please enter a valid price.');
         return;
       }
 
@@ -106,15 +107,17 @@ export default function VendorAddProductPage() {
         title: form.title,
         description: form.description,
         images: [imageUrl],
-        price: unitPrice,
+        price: price,
         category: form.category,
         waterType: form.waterType,
         tag: form.tag,
         scientific: form.scientific,
         originalPrice: form.originalPrice ? Number(form.originalPrice) : undefined,
         discountPercentage: form.discountPercentage ? Number(form.discountPercentage) : undefined,
-        perPiecePrice: form.pricingType === 'piece' ? Number(form.unitPrice) : null,
-        perPairPrice: form.pricingType === 'pair' ? Number(form.unitPrice) : null,
+        perPiecePrice: Number(form.price),
+        perPairPrice: null,
+        stockQuantity: form.stockQuantity ? Number(form.stockQuantity) : undefined,
+        ageCategory: form.ageCategory,
         shippingPieceRanges: form.shippingPieceRanges,
         shippingWeightRanges: form.shippingWeightRanges,
       });
@@ -180,23 +183,34 @@ export default function VendorAddProductPage() {
             value={form.scientific}
             onChange={(e) => setForm((prev) => ({ ...prev, scientific: e.target.value }))}
           />
-          <select
-            className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
-            value={form.pricingType}
-            onChange={(e) => setForm((prev) => ({ ...prev, pricingType: e.target.value as 'piece' | 'pair' }))}
-          >
-            <option value="piece">Price per piece</option>
-            <option value="pair">Price per pair</option>
-          </select>
           <input
             type="number"
             className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder={form.pricingType === 'piece' ? 'Per piece price' : 'Per pair price'}
+            placeholder="Price"
             min={0}
-            value={form.unitPrice}
-            onChange={(e) => setForm((prev) => ({ ...prev, unitPrice: e.target.value }))}
+            value={form.price}
+            onChange={(e) => setForm((prev) => ({ ...prev, price: e.target.value }))}
             required
           />
+
+          <input
+            type="number"
+            className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Quantity in stock"
+            min={0}
+            value={form.stockQuantity}
+            onChange={(e) => setForm((prev) => ({ ...prev, stockQuantity: e.target.value }))}
+          />
+
+          <select
+            className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
+            value={form.ageCategory}
+            onChange={(e) => setForm((prev) => ({ ...prev, ageCategory: e.target.value }))}
+          >
+            <option value="adult">Adult</option>
+            <option value="semi-adult">Semi adult</option>
+            <option value="first-season-breeding-pair">First season breeding pair</option>
+          </select>
           <input
             type="number"
             className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"

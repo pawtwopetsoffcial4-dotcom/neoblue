@@ -17,18 +17,6 @@ export interface IUser extends Document {
     isDefault: boolean;
   }>;
   isApproved: boolean; // for vendors
-  shippingPieceRanges?: Array<{
-    id: string;
-    pieceRange: string;
-    estimatedQuantity: string;
-    charge: number;
-  }>;
-  shippingWeightRanges?: Array<{
-    id: string;
-    weightRange: string;
-    estimatedQuantity: string;
-    charge: number;
-  }>;
   createdAt: Date;
   updatedat: Date;
   comparePassword(password: string): Promise<boolean>;
@@ -84,22 +72,6 @@ const userSchema = new Schema<IUser>(
       type: Boolean,
       default: false,
     },
-    shippingPieceRanges: [
-      {
-        id: String,
-        pieceRange: String,
-        estimatedQuantity: String,
-        charge: Number,
-      }
-    ],
-    shippingWeightRanges: [
-      {
-        id: String,
-        weightRange: String,
-        estimatedQuantity: String,
-        charge: Number,
-      }
-    ]
   },
   { timestamps: true }
 );

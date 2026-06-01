@@ -11,12 +11,12 @@ export default async function ShopPage({ params }: Props) {
 
   const identifier = params.vendor;
   // try find by slug first, then by id
-  let vendor = (await User.findOne({ slug: identifier }).lean()) as any;
+  let vendor = await User.findOne({ slug: identifier }).lean();
   if (!vendor) {
     try {
       const { Types } = await import('mongoose');
       if (Types.ObjectId.isValid(identifier)) {
-        vendor = (await User.findById(identifier).lean()) as any;
+        vendor = await User.findById(identifier).lean();
       }
     } catch (e) {
       vendor = null as any;
@@ -70,7 +70,7 @@ export default async function ShopPage({ params }: Props) {
 
                 <div className="flex flex-1 flex-col p-3">
                   <h3 className="text-sm font-semibold text-slate-900 line-clamp-1">{product.title}</h3>
-                  <div className="mt-2 text-lg font-black text-slate-900">₹{product.price}</div>
+                  <div className="mt-2 text-sm text-slate-700">₹{product.price}</div>
                 </div>
               </Link>
             ))}

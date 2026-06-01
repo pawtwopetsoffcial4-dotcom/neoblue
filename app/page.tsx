@@ -125,7 +125,10 @@ function MobileCard({ product }: { product: any }) {
       <div className="p-3">
         <h3 className="text-sm font-semibold text-blue-950 truncate mb-1">{product.title}</h3>
         <div className="flex items-center justify-between gap-2">
-          <p className="text-2xl font-black text-slate-900">₹{product.price}</p>
+          <p className="text-sm font-black text-blue-600">₹{product.price}</p>
+          <div className="flex items-center gap-2">
+            <ReviewStars rating={Number(product.rating) || 0} count={Math.max(1, Math.floor(reviewCount))} compact />
+          </div>
         </div>
       </div>
     </Link>
@@ -299,7 +302,7 @@ export default function NeoBlueMobileOptimized() {
             <Search className="h-5 w-5" />
             <span className="text-[9px] font-bold">Browse</span>
           </Link>
-          <Link href="/checkout" className="flex flex-col items-center gap-1 text-blue-300 hover:text-blue-600 transition-colors relative">
+          <Link href="/cart" className="flex flex-col items-center gap-1 text-blue-300 hover:text-blue-600 transition-colors relative">
             <div className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-blue-600 border-2 border-white" />
             <ShoppingBag className="h-5 w-5" />
             <span className="text-[9px] font-bold">Cart</span>

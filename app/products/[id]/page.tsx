@@ -24,7 +24,6 @@ export default function ProductDetailPage({ params }: ProductDetailProps) {
   const [quantity, setQuantity] = useState(1);
   const [reviews, setReviews] = React.useState<any[]>([]);
   const [showForm, setShowForm] = React.useState(false);
-  const [recommendedProducts, setRecommendedProducts] = useState<MarketplaceProduct[]>([]);
   const { addToCart } = useCart();
 
   useEffect(() => {
@@ -40,23 +39,13 @@ export default function ProductDetailPage({ params }: ProductDetailProps) {
         setIsLoading(true);
         setError(null);
 
-        const [productRes, allRes] = await Promise.all([
-          fetch(`/api/products/${id}`, { cache: 'no-store' }),
-          fetch(`/api/products`, { cache: 'no-store' })
-        ]);
-
-        if (!productRes.ok) {
+        const response = await fetch(`/api/products/${id}`, { cache: 'no-store' });
+        if (!response.ok) {
           throw new Error('Product not found');
         }
 
-        const data = await productRes.json();
+        const data = await response.json();
         setProduct(data.product ?? null);
-
-        if (allRes.ok) {
-          const allData = await allRes.json();
-          const allProducts = Array.isArray(allData) ? allData : (allData.products || allData.data?.products || []);
-          setRecommendedProducts(allProducts.filter((p: MarketplaceProduct) => p._id !== id).slice(0, 4));
-        }
       } catch {
         setError('Unable to load product details.');
       } finally {
@@ -96,7 +85,7 @@ export default function ProductDetailPage({ params }: ProductDetailProps) {
 
   if (error || !product) {
     return (
-      <div className="min-h-screen bg-[#F5F7FA] flex flex-col items-center justify-center p-4 gap-8">
+      <div className="min-h-screen bg-[#F5F7FA] flex items-center justify-center p-4">
          <div className="bg-white rounded-3xl p-8 max-w-md w-full text-center shadow-sm border border-slate-100">
             <div className="w-16 h-16 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Info className="h-8 w-8 text-rose-500" />
@@ -107,23 +96,6 @@ export default function ProductDetailPage({ params }: ProductDetailProps) {
                Return to Shop
              </Link>
          </div>
-
-         {recommendedProducts.length > 0 && (
-           <div className="max-w-4xl w-full">
-             <h3 className="text-xl font-bold text-slate-900 mb-4 text-center">Explore More</h3>
-             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-               {recommendedProducts.map((p) => (
-                 <Link key={p._id} href={`/products/${p._id}`} className="bg-white rounded-2xl p-3 shadow-sm border border-slate-100 flex flex-col group hover:border-blue-200 transition-colors">
-                   <div className="aspect-square rounded-xl overflow-hidden mb-3 bg-slate-50">
-                     <img src={p.images?.[0] || '/illustrations/placeholder.png'} alt={p.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
-                   </div>
-                   <h4 className="font-semibold text-sm text-slate-900 line-clamp-1">{p.title}</h4>
-                   <p className="text-blue-600 font-bold text-sm mt-1">₹{p.price}</p>
-                 </Link>
-               ))}
-             </div>
-           </div>
-         )}
       </div>
     );
   }
@@ -235,8 +207,12 @@ export default function ProductDetailPage({ params }: ProductDetailProps) {
                             <span className="font-semibold text-slate-900">{formatPrice(product.perPiecePrice)}</span> per piece
                           </span>
                         ) : (
-                          <span className="text-slate-400">Unit pricing not set.</span>
+                          <span className="text-slate-400">Unit pricing will appear here when available.</span>
                         )}
+                        <span>
+                          <span className="font-semibold text-slate-900">{formatPrice(Number(product.shippingCharge || 0))}</span>{' '}
+                          {product.shippingType === 'weight' ? 'shipping by weight' : 'shipping per piece'}
+                        </span>
                       </div>
                     </div>
                     <p className="text-lg font-medium text-slate-400 line-through mb-1">{formatPrice(product.price * 1.25)}</p>
@@ -293,28 +269,8 @@ export default function ProductDetailPage({ params }: ProductDetailProps) {
                        </div>
                     </div>
                  </div>
-               </div>
-
-               {/* Recommended Products */}
-               {recommendedProducts.length > 0 && (
-                 <div className="mt-8">
-                   <h3 className="text-lg font-bold text-slate-900 mb-4">Recommended for You</h3>
-                   <div className="grid grid-cols-2 gap-4">
-                     {recommendedProducts.slice(0, 2).map((p) => (
-                       <Link key={p._id} href={`/products/${p._id}`} className="bg-white rounded-2xl p-3 shadow-sm border border-slate-100 flex items-center gap-3 group hover:border-blue-200 transition-colors">
-                         <div className="w-16 h-16 rounded-xl overflow-hidden bg-slate-50 shrink-0">
-                           <img src={p.images?.[0] || '/illustrations/placeholder.png'} alt={p.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
-                         </div>
-                         <div className="flex-1 min-w-0">
-                           <h4 className="font-semibold text-sm text-slate-900 line-clamp-1">{p.title}</h4>
-                           <p className="text-blue-600 font-bold text-sm mt-0.5">₹{p.price}</p>
-                         </div>
-                       </Link>
-                     ))}
-                   </div>
-                 </div>
-               )}
-           </div>
+              </div>
+          </div>
         </div>
 
         {/* Bottom Section - Detailed Info */}
@@ -349,26 +305,20 @@ export default function ProductDetailPage({ params }: ProductDetailProps) {
                    <div className="prose prose-slate prose-lg">
                       <p className="text-slate-600 leading-relaxed whitespace-pre-wrap">{product.description}</p>
                       
-                      <h4 className="text-xl font-bold text-slate-900 mt-10 mb-4">Scientific Details</h4>
+                      <h4 className="text-xl font-bold text-slate-900 mt-10 mb-4">Why choose Neoblue?</h4>
                       <ul className="space-y-3 mt-4">
-                        <li className="flex items-start gap-3 text-slate-600">
-                             <div className="w-6 h-6 rounded-full bg-blue-50 flex items-center justify-center shrink-0 mt-0.5">
-                                <Info className="h-3.5 w-3.5 text-blue-600" />
+                        {[
+                          "All livestock undergoes a strict quarantine period before sale.",
+                          "We ensure optimal water parameters and nutrition.",
+                          "Expert advice available post-purchase to ensure a healthy transition."
+                        ].map((item, idx) => (
+                           <li key={idx} className="flex items-start gap-3 text-slate-600">
+                             <div className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center shrink-0 mt-0.5">
+                                <Shield className="h-3.5 w-3.5 text-emerald-600" />
                              </div>
-                             <strong>Scientific Name:</strong> {product.scientific || 'N/A'}
-                        </li>
-                        <li className="flex items-start gap-3 text-slate-600">
-                             <div className="w-6 h-6 rounded-full bg-blue-50 flex items-center justify-center shrink-0 mt-0.5">
-                                <Info className="h-3.5 w-3.5 text-blue-600" />
-                             </div>
-                             <strong>Category:</strong> {product.category || 'N/A'}
-                        </li>
-                        <li className="flex items-start gap-3 text-slate-600">
-                             <div className="w-6 h-6 rounded-full bg-blue-50 flex items-center justify-center shrink-0 mt-0.5">
-                                <Info className="h-3.5 w-3.5 text-blue-600" />
-                             </div>
-                             <strong>Water Type:</strong> {product.waterType || 'N/A'}
-                        </li>
+                             {item}
+                           </li>
+                        ))}
                       </ul>
                    </div>
                 </div>
