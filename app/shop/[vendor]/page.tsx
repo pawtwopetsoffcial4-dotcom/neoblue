@@ -11,7 +11,7 @@ export default async function ShopPage({ params }: Props) {
 
   const identifier = params.vendor;
   // try find by slug first, then by id
-  let vendor = await User.findOne({ slug: identifier }).lean();
+  let vendor: any = await User.findOne({ slug: identifier }).lean();
   if (!vendor) {
     try {
       const { Types } = await import('mongoose');
@@ -31,7 +31,7 @@ export default async function ShopPage({ params }: Props) {
     );
   }
 
-  const products = await Product.find({ vendorId: (vendor as any)._id, approvalStatus: 'approved' }).lean();
+  const products = await Product.find({ vendorId: vendor._id, approvalStatus: 'approved' }).lean();
 
   return (
     <div className="min-h-screen bg-[#f7fafc] p-4">
