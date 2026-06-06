@@ -33,10 +33,14 @@ export interface IProduct extends Document {
     estimatedQuantity: string;
     charge: number;
   }>;
-  shippingNorthSmallRanges?: Array<{ id: string; weightRange: string; estimatedQuantity: string; charge: number; }>;
-  shippingNorthBulkRanges?: Array<{ id: string; weightRange: string; estimatedQuantity: string; charge: number; }>;
-  shippingSouthSmallRanges?: Array<{ id: string; weightRange: string; estimatedQuantity: string; charge: number; }>;
-  shippingSouthBulkRanges?: Array<{ id: string; weightRange: string; estimatedQuantity: string; charge: number; }>;
+  shippingNorth1Ranges?: Array<{ id: string; weightRange: string; estimatedQuantity: string; charge: number; }>;
+  shippingNorth2Ranges?: Array<{ id: string; weightRange: string; estimatedQuantity: string; charge: number; }>;
+  shippingNorth3Ranges?: Array<{ id: string; weightRange: string; estimatedQuantity: string; charge: number; }>;
+  shippingNorth4Ranges?: Array<{ id: string; weightRange: string; estimatedQuantity: string; charge: number; }>;
+  shippingSouth1Ranges?: Array<{ id: string; weightRange: string; estimatedQuantity: string; charge: number; }>;
+  shippingSouth2Ranges?: Array<{ id: string; weightRange: string; estimatedQuantity: string; charge: number; }>;
+  shippingSouth3Ranges?: Array<{ id: string; weightRange: string; estimatedQuantity: string; charge: number; }>;
+  shippingSouth4Ranges?: Array<{ id: string; weightRange: string; estimatedQuantity: string; charge: number; }>;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -146,10 +150,14 @@ const productSchema = new Schema<IProduct>(
         charge: Number,
       }
     ],
-    shippingNorthSmallRanges: [{ id: String, weightRange: String, estimatedQuantity: String, charge: Number }],
-    shippingNorthBulkRanges: [{ id: String, weightRange: String, estimatedQuantity: String, charge: Number }],
-    shippingSouthSmallRanges: [{ id: String, weightRange: String, estimatedQuantity: String, charge: Number }],
-    shippingSouthBulkRanges: [{ id: String, weightRange: String, estimatedQuantity: String, charge: Number }],
+    shippingNorth1Ranges: [{ id: String, weightRange: String, estimatedQuantity: String, charge: Number }],
+    shippingNorth2Ranges: [{ id: String, weightRange: String, estimatedQuantity: String, charge: Number }],
+    shippingNorth3Ranges: [{ id: String, weightRange: String, estimatedQuantity: String, charge: Number }],
+    shippingNorth4Ranges: [{ id: String, weightRange: String, estimatedQuantity: String, charge: Number }],
+    shippingSouth1Ranges: [{ id: String, weightRange: String, estimatedQuantity: String, charge: Number }],
+    shippingSouth2Ranges: [{ id: String, weightRange: String, estimatedQuantity: String, charge: Number }],
+    shippingSouth3Ranges: [{ id: String, weightRange: String, estimatedQuantity: String, charge: Number }],
+    shippingSouth4Ranges: [{ id: String, weightRange: String, estimatedQuantity: String, charge: Number }],
   },
   { timestamps: true }
 );

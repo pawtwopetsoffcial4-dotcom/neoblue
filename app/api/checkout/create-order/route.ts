@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createErrorResponse, getTokenFromRequest, verifyToken } from '@/lib/utils/auth';
 import { connectDB } from '@/lib/db';
 import Product from '@/lib/models/Product';
-import { calculateProductShippingAmount } from '@/lib/utils/shipping';
+import { calculateProductShippingAmount, calculateRegionalShipping } from '@/lib/utils/shipping';
 
 const appId = process.env.CASHFREE_APP_ID;
 const secretKey = process.env.CASHFREE_SECRET_KEY;
@@ -46,10 +46,12 @@ export async function POST(request: NextRequest) {
       return createErrorResponse('Only users can create checkout orders', 403);
     }
 
-    const { products } = await request.json();
+    const { products, address } = await request.json();
     if (!products || !Array.isArray(products) || products.length === 0) {
       return createErrorResponse('Please provide products', 400);
     }
+
+    const stateName = address?.state || '';
 
     const productIds = products.map((product: any) => product.productId);
     const dbProducts = await Product.find({ _id: { $in: productIds } });
@@ -70,7 +72,12 @@ export async function POST(request: NextRequest) {
 
     const shippingAmount = dbProducts.reduce((sum, product) => {
       const orderItem = products.find((item: any) => item.productId === product._id.toString());
-      return sum + calculateProductShippingAmount(Number(orderItem?.quantity || 0), product.shippingCharge);
+      return sum + calculateRegionalShipping(
+        product,
+        stateName,
+        Number(orderItem?.quantity || 0),
+        orderItem?.shippingOptionId
+      );
     }, 0);
     const amount = subtotal + shippingAmount;
 

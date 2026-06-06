@@ -9,7 +9,7 @@ import { useAuth } from '@/lib/hooks/useAuth';
 import { apiClient } from '@/lib/api-client';
 import { Trash2, Plus, Minus, MapPin, ShoppingBag, ArrowRight, ShieldCheck, ArrowLeft, CheckSquare } from 'lucide-react';
 import type { MarketplaceProduct } from '@/lib/types/marketplace';
-import { calculateProductShippingAmount, getShippingModeLabel } from '@/lib/utils/shipping';
+import { calculateProductShippingAmount, getShippingModeLabel, getRegionFromState, getTierFromQuantity, calculateRegionalShipping } from '@/lib/utils/shipping';
 
 const PENDING_CASHFREE_CHECKOUT_KEY = 'pendingCashfreeCheckout';
 
@@ -26,6 +26,7 @@ function CheckoutPageContent() {
   const [isSavingAddress, setIsSavingAddress] = useState(false);
   const [saveAddress, setSaveAddress] = useState(true);
   const [address, setAddress] = useState({ street: '', city: '', state: '', zipcode: '' });
+  const [selectedShipping, setSelectedShipping] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -113,6 +114,37 @@ function CheckoutPageContent() {
     };
   }, [items, productDetails]);
 
+  const getProductActiveRanges = (product: any, stateName: string, qty: number) => {
+    if (!product) return [];
+    const region = getRegionFromState(stateName);
+    const tier = getTierFromQuantity(qty);
+    const fieldName = `shipping${region}${tier}Ranges`;
+    const ranges = product[fieldName] || [];
+    return ranges.filter((r: any) => r.charge !== '' && r.charge != null);
+  };
+
+  useEffect(() => {
+    const nextSelected = { ...selectedShipping };
+    let changed = false;
+
+    items.forEach((item) => {
+      const product = productDetails[item.productId];
+      const activeRanges = getProductActiveRanges(product, address.state, item.quantity);
+      if (activeRanges.length > 0) {
+        const current = selectedShipping[item.productId];
+        const isValid = activeRanges.some((r: any) => (r.id || r._id?.toString()) === current);
+        if (!current || !isValid) {
+          nextSelected[item.productId] = activeRanges[0].id || activeRanges[0]._id?.toString();
+          changed = true;
+        }
+      }
+    });
+
+    if (changed) {
+      setSelectedShipping(nextSelected);
+    }
+  }, [items, productDetails, address.state, selectedShipping]);
+
   useEffect(() => {
     const cashfreeOrderId = searchParams.get('cashfree_order_id');
     if (!cashfreeOrderId || isFinalizing) return;
@@ -172,7 +204,8 @@ function CheckoutPageContent() {
   const cartQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
   const shippingAmount = items.reduce((sum, item) => {
     const product = productDetails[item.productId];
-    return sum + calculateProductShippingAmount(item.quantity, product?.shippingCharge, product?.shippingLotSize);
+    const selectedOptionId = selectedShipping[item.productId];
+    return sum + calculateRegionalShipping(product, address.state, item.quantity, selectedOptionId);
   }, 0);
   const orderTotal = totalAmount + shippingAmount;
 
@@ -215,7 +248,11 @@ function CheckoutPageContent() {
         }
       }
 
-      const products = items.map((item) => ({ productId: item.productId, quantity: item.quantity }));
+      const products = items.map((item) => ({
+        productId: item.productId,
+        quantity: item.quantity,
+        shippingOptionId: selectedShipping[item.productId]
+      }));
 
       const cashfreeOrder = await apiClient.request<{
         orderId: string;
@@ -226,7 +263,7 @@ function CheckoutPageContent() {
         environment?: 'production' | 'sandbox';
       }>('/checkout/create-order', {
         method: 'POST',
-        body: JSON.stringify({ products }),
+        body: JSON.stringify({ products, address }),
       });
 
       if (!cashfreeOrder?.orderId) {
@@ -331,9 +368,53 @@ function CheckoutPageContent() {
                             <p className="font-bold text-lg text-gray-900 shrink-0">₹{(item.price * item.quantity).toFixed(2)}</p>
                           </div>
                           <p className="text-sm text-gray-500 mt-1 font-medium">₹{item.price.toFixed(2)} / each</p>
-                          <p className="text-xs text-gray-400 mt-1 font-medium">
-                            Shipping: {productDetails[item.productId] ? `₹${Number(productDetails[item.productId].shippingCharge || 0).toFixed(2)} per ${productDetails[item.productId].shippingLotSize || 1} ${getShippingModeLabel(productDetails[item.productId].shippingType)}` : 'Loading shipping...'}
-                          </p>
+                          {productDetails[item.productId] ? (
+                            (() => {
+                              const activeRanges = getProductActiveRanges(productDetails[item.productId], address.state, item.quantity);
+                              if (activeRanges.length > 0) {
+                                return (
+                                  <div className="mt-3 bg-blue-50/50 rounded-2xl border border-blue-100/50 p-3.5 space-y-2.5">
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-[10px] font-bold uppercase tracking-wider text-blue-800">
+                                        📦 Select Shipping Option ({getRegionFromState(address.state)} India)
+                                      </span>
+                                      <span className="text-[10px] font-bold bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
+                                        Tier {getTierFromQuantity(item.quantity)}
+                                      </span>
+                                    </div>
+                                    <div className="grid gap-2">
+                                      {activeRanges.map((opt: any) => {
+                                        const optId = opt.id || opt._id?.toString();
+                                        return (
+                                          <label key={optId} className="flex items-center gap-3 p-2 rounded-xl bg-white border border-slate-100 hover:border-blue-200 hover:bg-blue-50/20 cursor-pointer transition-all shadow-2xs">
+                                            <input
+                                              type="radio"
+                                              name={`shipping-${item.productId}`}
+                                              checked={selectedShipping[item.productId] === optId}
+                                              onChange={() => setSelectedShipping(prev => ({ ...prev, [item.productId]: optId }))}
+                                              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-slate-300"
+                                            />
+                                            <div className="flex-1 flex items-center justify-between text-xs font-semibold text-slate-700">
+                                              <span>{opt.weightRange} <span className="text-slate-400 font-medium ml-1">({opt.estimatedQuantity})</span></span>
+                                              <span className="text-slate-900 font-bold">₹{Number(opt.charge).toFixed(2)}</span>
+                                            </div>
+                                          </label>
+                                        );
+                                      })}
+                                    </div>
+                                  </div>
+                                );
+                              } else {
+                                return (
+                                  <p className="text-xs text-gray-400 mt-1 font-medium">
+                                    Shipping: ₹{Number(productDetails[item.productId].shippingCharge || 0).toFixed(2)} per {productDetails[item.productId].shippingLotSize || 1} {getShippingModeLabel(productDetails[item.productId].shippingType)}
+                                  </p>
+                                );
+                              }
+                            })()
+                          ) : (
+                            <p className="text-xs text-gray-400 mt-1 font-medium">Loading shipping...</p>
+                          )}
                         </div>
                         
                         <div className="flex items-center justify-between mt-4">

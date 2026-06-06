@@ -209,10 +209,6 @@ export default function ProductDetailPage({ params }: ProductDetailProps) {
                         ) : (
                           <span className="text-slate-400">Unit pricing will appear here when available.</span>
                         )}
-                        <span>
-                          <span className="font-semibold text-slate-900">{formatPrice(Number(product.shippingCharge || 0))}</span>{' '}
-                          {product.shippingType === 'weight' ? 'shipping by weight' : 'shipping per piece'}
-                        </span>
                       </div>
                     </div>
                     <p className="text-lg font-medium text-slate-400 line-through mb-1">{formatPrice(product.price * 1.25)}</p>

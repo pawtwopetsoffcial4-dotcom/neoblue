@@ -28,29 +28,37 @@ export default function VendorAddProductPage() {
     scientific: '',
     originalPrice: '',
     discountPercentage: '',
-    shippingNorthSmallRanges: [
+    shippingNorth1Ranges: [
       { id: uuidv4(), weightRange: 'Up to 0.5 KG', estimatedQuantity: '~ 1 - 2 Pieces', charge: 60 as number | '' },
       { id: uuidv4(), weightRange: '0.5 - 1 KG', estimatedQuantity: '~ 1 - 2 Pieces', charge: 90 },
     ],
-    shippingNorthBulkRanges: [
+    shippingNorth2Ranges: [
       { id: uuidv4(), weightRange: 'Up to 0.5 KG', estimatedQuantity: '~ 3 - 5 Pieces', charge: 80 as number | '' },
       { id: uuidv4(), weightRange: '0.5 - 1 KG', estimatedQuantity: '~ 4 - 6 Pieces', charge: 110 },
-      { id: uuidv4(), weightRange: '1 - 1.5 KG', estimatedQuantity: '~ 6 - 8 Pieces', charge: 140 },
-      { id: uuidv4(), weightRange: '1.5 - 2 KG', estimatedQuantity: '~ 8 - 12 Pieces', charge: 170 },
-      { id: uuidv4(), weightRange: '2 - 3 KG', estimatedQuantity: '~ 12 - 20 Pieces', charge: 200 },
-      { id: uuidv4(), weightRange: 'Above 3 KG', estimatedQuantity: '20+ Pieces', charge: 250 },
     ],
-    shippingSouthSmallRanges: [
+    shippingNorth3Ranges: [
+      { id: uuidv4(), weightRange: 'Up to 0.5 KG', estimatedQuantity: '~ 6 - 8 Pieces', charge: 120 as number | '' },
+      { id: uuidv4(), weightRange: '0.5 - 1 KG', estimatedQuantity: '~ 8 - 10 Pieces', charge: 150 },
+    ],
+    shippingNorth4Ranges: [
+      { id: uuidv4(), weightRange: 'Up to 0.5 KG', estimatedQuantity: '~ 10+ Pieces', charge: 160 as number | '' },
+      { id: uuidv4(), weightRange: '0.5 - 1 KG', estimatedQuantity: '~ 12+ Pieces', charge: 200 },
+    ],
+    shippingSouth1Ranges: [
       { id: uuidv4(), weightRange: 'Up to 0.5 KG', estimatedQuantity: '~ 1 - 2 Pieces', charge: 100 as number | '' },
       { id: uuidv4(), weightRange: '0.5 - 1 KG', estimatedQuantity: '~ 1 - 2 Pieces', charge: 140 },
     ],
-    shippingSouthBulkRanges: [
-      { id: uuidv4(), weightRange: 'Up to 0.5 KG', estimatedQuantity: '~ 3 - 5 Pieces', charge: 120 as number | '' },
-      { id: uuidv4(), weightRange: '0.5 - 1 KG', estimatedQuantity: '~ 4 - 6 Pieces', charge: 160 },
-      { id: uuidv4(), weightRange: '1 - 1.5 KG', estimatedQuantity: '~ 6 - 8 Pieces', charge: 200 },
-      { id: uuidv4(), weightRange: '1.5 - 2 KG', estimatedQuantity: '~ 8 - 12 Pieces', charge: 240 },
-      { id: uuidv4(), weightRange: '2 - 3 KG', estimatedQuantity: '~ 12 - 20 Pieces', charge: 280 },
-      { id: uuidv4(), weightRange: 'Above 3 KG', estimatedQuantity: '20+ Pieces', charge: 350 },
+    shippingSouth2Ranges: [
+      { id: uuidv4(), weightRange: 'Up to 0.5 KG', estimatedQuantity: '~ 3 - 5 Pieces', charge: 130 as number | '' },
+      { id: uuidv4(), weightRange: '0.5 - 1 KG', estimatedQuantity: '~ 4 - 6 Pieces', charge: 170 },
+    ],
+    shippingSouth3Ranges: [
+      { id: uuidv4(), weightRange: 'Up to 0.5 KG', estimatedQuantity: '~ 6 - 8 Pieces', charge: 180 as number | '' },
+      { id: uuidv4(), weightRange: '0.5 - 1 KG', estimatedQuantity: '~ 8 - 10 Pieces', charge: 220 },
+    ],
+    shippingSouth4Ranges: [
+      { id: uuidv4(), weightRange: 'Up to 0.5 KG', estimatedQuantity: '~ 10+ Pieces', charge: 240 as number | '' },
+      { id: uuidv4(), weightRange: '0.5 - 1 KG', estimatedQuantity: '~ 12+ Pieces', charge: 300 },
     ],
   });
   const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'neoblue_products';
@@ -127,10 +135,14 @@ export default function VendorAddProductPage() {
         perPairPrice: null,
         stockQuantity: form.stockQuantity ? Number(form.stockQuantity) : undefined,
         ageCategory: form.ageCategory,
-        shippingNorthSmallRanges: form.shippingNorthSmallRanges,
-        shippingNorthBulkRanges: form.shippingNorthBulkRanges,
-        shippingSouthSmallRanges: form.shippingSouthSmallRanges,
-        shippingSouthBulkRanges: form.shippingSouthBulkRanges,
+        shippingNorth1Ranges: form.shippingNorth1Ranges,
+        shippingNorth2Ranges: form.shippingNorth2Ranges,
+        shippingNorth3Ranges: form.shippingNorth3Ranges,
+        shippingNorth4Ranges: form.shippingNorth4Ranges,
+        shippingSouth1Ranges: form.shippingSouth1Ranges,
+        shippingSouth2Ranges: form.shippingSouth2Ranges,
+        shippingSouth3Ranges: form.shippingSouth3Ranges,
+        shippingSouth4Ranges: form.shippingSouth4Ranges,
       });
       router.push('/vendor/products');
     } catch (error: any) {

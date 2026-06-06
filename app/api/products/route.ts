@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
       return createErrorResponse('Only vendors can create products', 403);
     }
 
-    const { title, description, price, images, category, subcategory, waterType, tag, scientific, originalPrice, discountPercentage, perPiecePrice, perPairPrice, shippingType, shippingCharge, shippingLotSize, shippingPieceRanges, shippingWeightRanges, shippingNorthSmallRanges, shippingNorthBulkRanges, shippingSouthSmallRanges, shippingSouthBulkRanges } = await request.json();
+    const { title, description, price, images, category, subcategory, waterType, tag, scientific, originalPrice, discountPercentage, perPiecePrice, perPairPrice, shippingType, shippingCharge, shippingLotSize, shippingPieceRanges, shippingWeightRanges, shippingNorth1Ranges, shippingNorth2Ranges, shippingNorth3Ranges, shippingNorth4Ranges, shippingSouth1Ranges, shippingSouth2Ranges, shippingSouth3Ranges, shippingSouth4Ranges } = await request.json();
 
     // Validate required fields
     if (!title || !description || price == null || !images || !category || !waterType) {
@@ -133,10 +133,14 @@ export async function POST(request: NextRequest) {
       shippingLotSize: safeShippingLotSize,
       shippingPieceRanges: Array.isArray(shippingPieceRanges) ? shippingPieceRanges : undefined,
       shippingWeightRanges: Array.isArray(shippingWeightRanges) ? shippingWeightRanges : undefined,
-      shippingNorthSmallRanges: Array.isArray(shippingNorthSmallRanges) ? shippingNorthSmallRanges : undefined,
-      shippingNorthBulkRanges: Array.isArray(shippingNorthBulkRanges) ? shippingNorthBulkRanges : undefined,
-      shippingSouthSmallRanges: Array.isArray(shippingSouthSmallRanges) ? shippingSouthSmallRanges : undefined,
-      shippingSouthBulkRanges: Array.isArray(shippingSouthBulkRanges) ? shippingSouthBulkRanges : undefined,
+      shippingNorth1Ranges: Array.isArray(shippingNorth1Ranges) ? shippingNorth1Ranges : undefined,
+      shippingNorth2Ranges: Array.isArray(shippingNorth2Ranges) ? shippingNorth2Ranges : undefined,
+      shippingNorth3Ranges: Array.isArray(shippingNorth3Ranges) ? shippingNorth3Ranges : undefined,
+      shippingNorth4Ranges: Array.isArray(shippingNorth4Ranges) ? shippingNorth4Ranges : undefined,
+      shippingSouth1Ranges: Array.isArray(shippingSouth1Ranges) ? shippingSouth1Ranges : undefined,
+      shippingSouth2Ranges: Array.isArray(shippingSouth2Ranges) ? shippingSouth2Ranges : undefined,
+      shippingSouth3Ranges: Array.isArray(shippingSouth3Ranges) ? shippingSouth3Ranges : undefined,
+      shippingSouth4Ranges: Array.isArray(shippingSouth4Ranges) ? shippingSouth4Ranges : undefined,
       vendorId: payload.userId,
       inStock: true,
       approvalStatus: 'pending',

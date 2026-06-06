@@ -2,7 +2,7 @@ import { connectDB } from '@/lib/db';
 import Order from '@/lib/models/Order';
 import Product from '@/lib/models/Product';
 import { createErrorResponse, createSuccessResponse, getTokenFromRequest, verifyToken } from '@/lib/utils/auth';
-import { calculateProductShippingAmount } from '@/lib/utils/shipping';
+import { calculateProductShippingAmount, calculateRegionalShipping } from '@/lib/utils/shipping';
 import { NextRequest } from 'next/server';
 
 // GET orders (user sees their orders, vendor sees their vendor orders, admin sees all)
@@ -90,9 +90,15 @@ export async function POST(request: NextRequest) {
 
     // For now, assume all products from same vendor (simplify)
     const vendorId = dbProducts[0].vendorId;
+    const stateName = address?.state || '';
     const shippingAmount = dbProducts.reduce((sum, product) => {
       const orderItem = products.find((item: any) => item.productId === product._id.toString());
-      return sum + calculateProductShippingAmount(Number(orderItem?.quantity || 0), product.shippingCharge);
+      return sum + calculateRegionalShipping(
+        product,
+        stateName,
+        Number(orderItem?.quantity || 0),
+        orderItem?.shippingOptionId
+      );
     }, 0);
 
     // Create order
