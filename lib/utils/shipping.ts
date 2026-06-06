@@ -49,6 +49,8 @@ export function calculateRegionalShipping(
   if (!product) return 0;
 
   const region = getRegionFromState(stateName);
+  if (region === 'North' && product.deliverNorth === false) return 0;
+  if (region === 'South' && product.deliverSouth === false) return 0;
   const tier = getTierFromQuantity(quantity);
   const fieldName = `shipping${region}${tier}Ranges`;
 

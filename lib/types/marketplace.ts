@@ -20,6 +20,8 @@ export type MarketplaceProduct = {
   shippingType?: 'piece' | 'weight';
   shippingCharge?: number;
   shippingLotSize?: number;
+  deliverNorth?: boolean;
+  deliverSouth?: boolean;
   createdAt?: string;
   updatedAt?: string;
 };

@@ -106,7 +106,7 @@ function ShippingTable({
           <div key={range.id} className="grid grid-cols-1 md:grid-cols-[1.3fr_1.3fr_1fr_36px] gap-2 md:gap-3 items-center">
             <div>
               <label className="text-[10px] font-semibold text-slate-500 mb-1 block md:hidden">Weight Range</label>
-              <input type="text" value={range.weightRange} onChange={(e) => onChange(range.id, 'weightRange', e.target.value)} placeholder="e.g. Up to 0.5 KG" className="w-full h-9 rounded-lg border border-slate-200 px-3 text-sm font-medium outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white" />
+              <WeightRangeSlider value={range.weightRange} onChange={(val) => onChange(range.id, 'weightRange', val)} />
             </div>
             <div>
               <label className="text-[10px] font-semibold text-slate-500 mb-1 block md:hidden">Estimated Quantity</label>
@@ -360,6 +360,134 @@ export default function VendorShippingSettingsPage() {
         </button>
       </div>
 
+    </div>
+  );
+}
+
+interface WeightRangeSliderProps {
+  value: string;
+  onChange: (value: string) => void;
+}
+
+function WeightRangeSlider({ value, onChange }: WeightRangeSliderProps) {
+  const parseWeightRange = (str: string) => {
+    const clean = (str || '').toLowerCase().trim();
+    if (!clean) return { min: 0, max: 1, hasMax: true };
+
+    if (clean.startsWith('up to')) {
+      const match = clean.match(/up to\s+([\d.]+)/);
+      const val = match ? parseFloat(match[1]) : 1;
+      return { min: 0, max: isNaN(val) ? 1 : val, hasMax: true };
+    }
+
+    if (clean.startsWith('above')) {
+      const match = clean.match(/above\s+([\d.]+)/);
+      const val = match ? parseFloat(match[1]) : 3;
+      return { min: isNaN(val) ? 3 : val, max: 100, hasMax: false };
+    }
+
+    const parts = clean.split('-');
+    if (parts.length === 2) {
+      const minVal = parseFloat(parts[0]);
+      const maxVal = parseFloat(parts[1]);
+      return {
+        min: isNaN(minVal) ? 0 : minVal,
+        max: isNaN(maxVal) ? 100 : maxVal,
+        hasMax: true
+      };
+    }
+
+    const matchNum = clean.match(/([\d.]+)/);
+    const val = matchNum ? parseFloat(matchNum[1]) : 1;
+    return { min: 0, max: isNaN(val) ? 1 : val, hasMax: true };
+  };
+
+  const formatWeightRange = (min: number, max: number, hasMax: boolean): string => {
+    if (min === 0 && hasMax) {
+      return `Up to ${max} KG`;
+    }
+    if (!hasMax) {
+      return `Above ${min} KG`;
+    }
+    return `${min} - ${max} KG`;
+  };
+
+  const { min, max, hasMax } = parseWeightRange(value);
+
+  const handleMinChange = (newMin: number) => {
+    let newMax = max;
+    if (newMin > max) {
+      newMax = newMin;
+    }
+    onChange(formatWeightRange(newMin, newMax, hasMax));
+  };
+
+  const handleMaxChange = (newMax: number) => {
+    let newMin = min;
+    if (newMax < min) {
+      newMin = newMax;
+    }
+    onChange(formatWeightRange(newMin, newMax, hasMax));
+  };
+
+  const handleToggleHasMax = () => {
+    onChange(formatWeightRange(min, max, !hasMax));
+  };
+
+  return (
+    <div className="flex flex-col gap-1.5 p-2 bg-slate-50 rounded-xl border border-slate-200/60 shadow-2xs w-full text-slate-800">
+      <div className="flex items-center justify-between gap-1 text-[11px] font-bold text-slate-700">
+        <span className="truncate bg-blue-50 text-blue-700 px-2 py-0.5 rounded-md border border-blue-100/50">
+          {value || '0 - 1 KG'}
+        </span>
+        <label className="flex items-center gap-1.5 cursor-pointer shrink-0 select-none">
+          <input
+            type="checkbox"
+            checked={!hasMax}
+            onChange={handleToggleHasMax}
+            className="h-3.5 w-3.5 rounded-sm border-slate-300 text-blue-600 focus:ring-blue-500/20 cursor-pointer"
+          />
+          <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">No Max Limit</span>
+        </label>
+      </div>
+
+      <div className="space-y-1.5 pt-0.5">
+        {/* Min weight slider */}
+        <div className="flex flex-col gap-0.5">
+          <div className="flex justify-between items-center text-[9px] text-slate-400 font-bold uppercase tracking-wider">
+            <span>Min Weight</span>
+            <span className="text-slate-600 font-semibold">{min} KG</span>
+          </div>
+          <input
+            type="range"
+            min="0"
+            max="100"
+            step="0.5"
+            value={min}
+            onChange={(e) => handleMinChange(parseFloat(e.target.value))}
+            className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600 focus:outline-none"
+          />
+        </div>
+
+        {/* Max weight slider */}
+        {hasMax && (
+          <div className="flex flex-col gap-0.5">
+            <div className="flex justify-between items-center text-[9px] text-slate-400 font-bold uppercase tracking-wider">
+              <span>Max Weight</span>
+              <span className="text-slate-600 font-semibold">{max} KG</span>
+            </div>
+            <input
+              type="range"
+              min="0.5"
+              max="100"
+              step="0.5"
+              value={max}
+              onChange={(e) => handleMaxChange(parseFloat(e.target.value))}
+              className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600 focus:outline-none"
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
 }

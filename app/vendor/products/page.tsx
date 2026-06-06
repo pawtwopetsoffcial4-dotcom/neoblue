@@ -21,6 +21,8 @@ type EditProductForm = {
   originalPrice: string;
   discountPercentage: string;
   inStock: boolean;
+  deliverNorth: boolean;
+  deliverSouth: boolean;
 };
 
 export default function VendorProductsPage() {
@@ -75,6 +77,8 @@ export default function VendorProductsPage() {
       originalPrice: product.originalPrice != null ? String(product.originalPrice) : '',
       discountPercentage: product.discountPercentage != null ? String(product.discountPercentage) : '',
       inStock: product.inStock,
+      deliverNorth: product.deliverNorth !== false,
+      deliverSouth: product.deliverSouth !== false,
     });
   };
 
@@ -119,6 +123,8 @@ export default function VendorProductsPage() {
         shippingType: editForm.shippingType,
         shippingCharge,
         inStock: editForm.inStock,
+        deliverNorth: editForm.deliverNorth,
+        deliverSouth: editForm.deliverSouth,
       });
       await loadProducts();
       closeEdit();
@@ -352,9 +358,27 @@ export default function VendorProductsPage() {
                     type="checkbox"
                     checked={editForm.inStock}
                     onChange={(event) => setEditForm((current) => current ? { ...current, inStock: event.target.checked } : current)}
-                    className="h-4 w-4 rounded border-blue-300"
+                    className="h-4 w-4 rounded border-blue-300 text-blue-600 focus:ring-blue-500"
                   />
                   <span className="text-sm font-medium text-slate-700">In stock</span>
+                </label>
+                <label className="flex items-center gap-3 h-11 px-4 rounded-xl border border-blue-200 bg-white">
+                  <input
+                    type="checkbox"
+                    checked={editForm.deliverNorth}
+                    onChange={(event) => setEditForm((current) => current ? { ...current, deliverNorth: event.target.checked } : current)}
+                    className="h-4 w-4 rounded border-blue-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm font-medium text-slate-700">Deliver to North India</span>
+                </label>
+                <label className="flex items-center gap-3 h-11 px-4 rounded-xl border border-blue-200 bg-white">
+                  <input
+                    type="checkbox"
+                    checked={editForm.deliverSouth}
+                    onChange={(event) => setEditForm((current) => current ? { ...current, deliverSouth: event.target.checked } : current)}
+                    className="h-4 w-4 rounded border-blue-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm font-medium text-slate-700">Deliver to South India</span>
                 </label>
               </div>
 

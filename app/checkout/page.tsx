@@ -7,7 +7,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useCart } from '@/lib/hooks/useCart';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { apiClient } from '@/lib/api-client';
-import { Trash2, Plus, Minus, MapPin, ShoppingBag, ArrowRight, ShieldCheck, ArrowLeft, CheckSquare } from 'lucide-react';
+import { Trash2, Plus, Minus, MapPin, ShoppingBag, ArrowRight, ShieldCheck, ArrowLeft, CheckSquare, AlertCircle } from 'lucide-react';
 import type { MarketplaceProduct } from '@/lib/types/marketplace';
 import { calculateProductShippingAmount, getShippingModeLabel, getRegionFromState, getTierFromQuantity, calculateRegionalShipping } from '@/lib/utils/shipping';
 
@@ -306,6 +306,16 @@ function CheckoutPageContent() {
     }
   };
 
+  const isDeliveryBlocked = items.some((item) => {
+    const product = productDetails[item.productId];
+    if (!product) return false;
+    const region = getRegionFromState(address.state);
+    return (
+      (region === 'North' && product.deliverNorth === false) ||
+      (region === 'South' && product.deliverSouth === false)
+    );
+  });
+
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 pb-24 md:pb-32 font-sans">
       <Script src={cashfreeSdkSrc} strategy="afterInteractive" />
@@ -370,7 +380,25 @@ function CheckoutPageContent() {
                           <p className="text-sm text-gray-500 mt-1 font-medium">₹{item.price.toFixed(2)} / each</p>
                           {productDetails[item.productId] ? (
                             (() => {
-                              const activeRanges = getProductActiveRanges(productDetails[item.productId], address.state, item.quantity);
+                              const product = productDetails[item.productId];
+                              const region = getRegionFromState(address.state);
+                              const cannotDeliver = (region === 'North' && product.deliverNorth === false) ||
+                                                    (region === 'South' && product.deliverSouth === false);
+                              if (cannotDeliver) {
+                                return (
+                                  <div className="mt-3 bg-rose-50 rounded-2xl border border-rose-100 p-3.5 flex items-start gap-2.5 text-rose-700">
+                                    <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
+                                    <div>
+                                      <p className="text-xs font-bold">Delivery Unavailable</p>
+                                      <p className="text-[11px] font-medium mt-0.5">
+                                        The vendor does not deliver this product to {region} India ({address.state || 'your location'}).
+                                      </p>
+                                    </div>
+                                  </div>
+                                );
+                              }
+
+                              const activeRanges = getProductActiveRanges(product, address.state, item.quantity);
                               if (activeRanges.length > 0) {
                                 return (
                                   <div className="mt-3 bg-blue-50/50 rounded-2xl border border-blue-100/50 p-3.5 space-y-2.5">
@@ -541,9 +569,19 @@ function CheckoutPageContent() {
                     </div>
                   </div>
 
+                  {isDeliveryBlocked && (
+                    <div className="p-3.5 bg-rose-50 border border-rose-100 rounded-2xl flex items-start gap-2.5 text-rose-600 text-xs">
+                      <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-bold">Delivery Blocked</p>
+                        <p className="font-semibold mt-0.5">Some items in your cart cannot be delivered to your location.</p>
+                      </div>
+                    </div>
+                  )}
+
                   <button
                     onClick={handlePayNow}
-                    disabled={isPaying || isFinalizing || items.length === 0}
+                    disabled={isPaying || isFinalizing || items.length === 0 || isDeliveryBlocked}
                     className="w-full h-14 rounded-2xl bg-blue-600 text-white font-bold text-lg hover:bg-blue-700 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-blue-500/20 active:scale-[0.98]"
                   >
                     {isPaying || isFinalizing ? (

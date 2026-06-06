@@ -32,6 +32,8 @@ export default function VendorAddProductPage() {
     scientific: '',
     originalPrice: '',
     discountPercentage: '',
+    deliverNorth: true,
+    deliverSouth: true,
     shippingNorth1Ranges: [
       { id: uuidv4(), weightRange: 'Up to 0.5 KG', estimatedQuantity: '~ 1 - 2 Pieces', charge: 60 as number | '' },
       { id: uuidv4(), weightRange: '0.5 - 1 KG', estimatedQuantity: '~ 1 - 2 Pieces', charge: 90 },
@@ -252,6 +254,8 @@ export default function VendorAddProductPage() {
         shippingSouth2Ranges: form.shippingSouth2Ranges,
         shippingSouth3Ranges: form.shippingSouth3Ranges,
         shippingSouth4Ranges: form.shippingSouth4Ranges,
+        deliverNorth: form.deliverNorth,
+        deliverSouth: form.deliverSouth,
       });
       router.push('/vendor/products');
     } catch (error: any) {
@@ -303,12 +307,9 @@ export default function VendorAddProductPage() {
             <div key={range.id} className="grid grid-cols-1 md:grid-cols-[1.3fr_1.3fr_1fr_36px] gap-2 md:gap-3 items-center">
               <div>
                 <label className="text-[9px] font-bold text-slate-400 mb-0.5 block md:hidden uppercase tracking-wider">Weight Range</label>
-                <input
-                  type="text"
+                <WeightRangeSlider
                   value={range.weightRange}
-                  onChange={(e) => handleShippingRangeChange(fieldName, range.id, 'weightRange', e.target.value)}
-                  placeholder="e.g. Up to 0.5 KG"
-                  className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs font-medium outline-hidden focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white"
+                  onChange={(val) => handleShippingRangeChange(fieldName, range.id, 'weightRange', val)}
                 />
               </div>
               <div>
@@ -538,13 +539,21 @@ export default function VendorAddProductPage() {
                   sources: ['local', 'camera', 'url'],
                   multiple: false,
                   resourceType: 'image',
+                  cropping: true,
+                  croppingAspectRatio: 1,
+                  showSkipCropButton: false,
+                  croppingDefaultSelectionRatio: 1.0,
                 }}
                 onOpen={() => setUploadError('')}
                 onClose={() => setIsUploading(false)}
                 onSuccess={(result: any) => {
                   const info = result?.info;
                   if (info && typeof info === 'object' && 'secure_url' in info) {
-                    setImageUrl(String(info.secure_url));
+                    let url = String(info.secure_url);
+                    if (url.includes('/upload/')) {
+                      url = url.replace('/upload/', '/upload/c_crop,g_custom/');
+                    }
+                    setImageUrl(url);
                     setUploadError('');
                   } else {
                     setUploadError('Upload succeeded but secure URL could not be retrieved.');
@@ -721,28 +730,86 @@ export default function VendorAddProductPage() {
               </div>
             </div>
 
-            <div className={`rounded-2xl border-2 p-4 sm:p-5 space-y-4 transition-all duration-300 ${
-              shippingRegion === 'North' 
-                ? 'border-blue-100 bg-blue-50/10' 
-                : 'border-orange-100 bg-orange-50/10'
-            }`}>
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-lg">{shippingRegion === 'North' ? '🏔️' : '🌴'}</span>
-                <div>
-                  <h3 className="text-sm font-bold text-slate-900">
-                    {shippingRegion === 'North' ? 'North India shipping settings' : 'South India shipping settings'}
-                  </h3>
-                  <p className="text-slate-500 text-[11px] font-medium">
-                    Configure weight ranges and charges for deliveries to {shippingRegion === 'North' ? 'North India' : 'South India'} states.
-                  </p>
-                </div>
+            {/* Delivery Regions Selector */}
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-2xs space-y-4">
+              <div>
+                <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                  🌍 Delivery Region Coverage
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Select which regions you support for shipping this product. If a region is disabled, buyers from that region will not be able to purchase this product.
+                </p>
               </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <label className={`flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                  form.deliverNorth 
+                    ? 'border-blue-500 bg-blue-50/20' 
+                    : 'border-slate-200 bg-white hover:border-slate-300'
+                }`}>
+                  <input
+                    type="checkbox"
+                    checked={form.deliverNorth}
+                    onChange={(e) => setForm(prev => ({ ...prev, deliverNorth: e.target.checked }))}
+                    className="mt-1 h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <div>
+                    <span className="block text-sm font-bold text-slate-900">🏔️ Deliver to North India</span>
+                    <span className="block text-xs text-slate-500 mt-0.5">Delhi, UP, Rajasthan, Punjab, Haryana, MP, etc.</span>
+                  </div>
+                </label>
 
-              {renderShippingTable('1', 'A. 1-2 Pieces', 'Shipping charges when buyer orders 1-2 pieces.')}
-              {renderShippingTable('2', 'B. 3-5 Pieces', 'Shipping charges when buyer orders 3-5 pieces.')}
-              {renderShippingTable('3', 'C. 6-10 Pieces', 'Shipping charges when buyer orders 6-10 pieces.')}
-              {renderShippingTable('4', 'D. 10+ Pieces', 'Shipping charges when buyer orders 10 or more pieces.')}
+                <label className={`flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                  form.deliverSouth 
+                    ? 'border-orange-500 bg-orange-50/20' 
+                    : 'border-slate-200 bg-white hover:border-slate-300'
+                }`}>
+                  <input
+                    type="checkbox"
+                    checked={form.deliverSouth}
+                    onChange={(e) => setForm(prev => ({ ...prev, deliverSouth: e.target.checked }))}
+                    className="mt-1 h-4 w-4 rounded border-slate-300 text-orange-600 focus:ring-orange-500"
+                  />
+                  <div>
+                    <span className="block text-sm font-bold text-slate-900">🌴 Deliver to South India</span>
+                    <span className="block text-xs text-slate-500 mt-0.5">Tamil Nadu, Kerala, Karnataka, Andhra Pradesh, Telangana, etc.</span>
+                  </div>
+                </label>
+              </div>
             </div>
+
+            {((shippingRegion === 'North' && !form.deliverNorth) || (shippingRegion === 'South' && !form.deliverSouth)) ? (
+              <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
+                <p className="text-sm font-bold text-slate-500">
+                  {shippingRegion === 'North' ? '🏔️ North India' : '🌴 South India'} delivery is disabled.
+                </p>
+                <p className="text-xs text-slate-400 mt-1">
+                  Enable this region above if you want to configure shipping charges and deliver here.
+                </p>
+              </div>
+            ) : (
+              <div className={`rounded-2xl border-2 p-4 sm:p-5 space-y-4 transition-all duration-300 ${
+                shippingRegion === 'North' 
+                  ? 'border-blue-100 bg-blue-50/10' 
+                  : 'border-orange-100 bg-orange-50/10'
+              }`}>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-lg">{shippingRegion === 'North' ? '🏔️' : '🌴'}</span>
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900">
+                      {shippingRegion === 'North' ? 'North India shipping settings' : 'South India shipping settings'}
+                    </h3>
+                    <p className="text-slate-500 text-[11px] font-medium">
+                      Configure weight ranges and charges for deliveries to {shippingRegion === 'North' ? 'North India' : 'South India'} states.
+                    </p>
+                  </div>
+                </div>
+
+                {renderShippingTable('1', 'A. 1-2 Pieces', 'Shipping charges when buyer orders 1-2 pieces.')}
+                {renderShippingTable('2', 'B. 3-5 Pieces', 'Shipping charges when buyer orders 3-5 pieces.')}
+                {renderShippingTable('3', 'C. 6-10 Pieces', 'Shipping charges when buyer orders 6-10 pieces.')}
+                {renderShippingTable('4', 'D. 10+ Pieces', 'Shipping charges when buyer orders 10 or more pieces.')}
+              </div>
+            )}
           </div>
         )}
 
@@ -840,6 +907,134 @@ export default function VendorAddProductPage() {
         </div>
 
       </form>
+    </div>
+  );
+}
+
+interface WeightRangeSliderProps {
+  value: string;
+  onChange: (value: string) => void;
+}
+
+function WeightRangeSlider({ value, onChange }: WeightRangeSliderProps) {
+  const parseWeightRange = (str: string) => {
+    const clean = (str || '').toLowerCase().trim();
+    if (!clean) return { min: 0, max: 1, hasMax: true };
+
+    if (clean.startsWith('up to')) {
+      const match = clean.match(/up to\s+([\d.]+)/);
+      const val = match ? parseFloat(match[1]) : 1;
+      return { min: 0, max: isNaN(val) ? 1 : val, hasMax: true };
+    }
+
+    if (clean.startsWith('above')) {
+      const match = clean.match(/above\s+([\d.]+)/);
+      const val = match ? parseFloat(match[1]) : 3;
+      return { min: isNaN(val) ? 3 : val, max: 100, hasMax: false };
+    }
+
+    const parts = clean.split('-');
+    if (parts.length === 2) {
+      const minVal = parseFloat(parts[0]);
+      const maxVal = parseFloat(parts[1]);
+      return {
+        min: isNaN(minVal) ? 0 : minVal,
+        max: isNaN(maxVal) ? 100 : maxVal,
+        hasMax: true
+      };
+    }
+
+    const matchNum = clean.match(/([\d.]+)/);
+    const val = matchNum ? parseFloat(matchNum[1]) : 1;
+    return { min: 0, max: isNaN(val) ? 1 : val, hasMax: true };
+  };
+
+  const formatWeightRange = (min: number, max: number, hasMax: boolean): string => {
+    if (min === 0 && hasMax) {
+      return `Up to ${max} KG`;
+    }
+    if (!hasMax) {
+      return `Above ${min} KG`;
+    }
+    return `${min} - ${max} KG`;
+  };
+
+  const { min, max, hasMax } = parseWeightRange(value);
+
+  const handleMinChange = (newMin: number) => {
+    let newMax = max;
+    if (newMin > max) {
+      newMax = newMin;
+    }
+    onChange(formatWeightRange(newMin, newMax, hasMax));
+  };
+
+  const handleMaxChange = (newMax: number) => {
+    let newMin = min;
+    if (newMax < min) {
+      newMin = newMax;
+    }
+    onChange(formatWeightRange(newMin, newMax, hasMax));
+  };
+
+  const handleToggleHasMax = () => {
+    onChange(formatWeightRange(min, max, !hasMax));
+  };
+
+  return (
+    <div className="flex flex-col gap-1.5 p-2 bg-slate-50 rounded-xl border border-slate-200/60 shadow-2xs w-full text-slate-800">
+      <div className="flex items-center justify-between gap-1 text-[11px] font-bold text-slate-700">
+        <span className="truncate bg-blue-50 text-blue-700 px-2 py-0.5 rounded-md border border-blue-100/50">
+          {value || '0 - 1 KG'}
+        </span>
+        <label className="flex items-center gap-1.5 cursor-pointer shrink-0 select-none">
+          <input
+            type="checkbox"
+            checked={!hasMax}
+            onChange={handleToggleHasMax}
+            className="h-3.5 w-3.5 rounded-sm border-slate-300 text-blue-600 focus:ring-blue-500/20 cursor-pointer"
+          />
+          <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">No Max Limit</span>
+        </label>
+      </div>
+
+      <div className="space-y-1.5 pt-0.5">
+        {/* Min weight slider */}
+        <div className="flex flex-col gap-0.5">
+          <div className="flex justify-between items-center text-[9px] text-slate-400 font-bold uppercase tracking-wider">
+            <span>Min Weight</span>
+            <span className="text-slate-600 font-semibold">{min} KG</span>
+          </div>
+          <input
+            type="range"
+            min="0"
+            max="100"
+            step="0.5"
+            value={min}
+            onChange={(e) => handleMinChange(parseFloat(e.target.value))}
+            className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600 focus:outline-none"
+          />
+        </div>
+
+        {/* Max weight slider */}
+        {hasMax && (
+          <div className="flex flex-col gap-0.5">
+            <div className="flex justify-between items-center text-[9px] text-slate-400 font-bold uppercase tracking-wider">
+              <span>Max Weight</span>
+              <span className="text-slate-600 font-semibold">{max} KG</span>
+            </div>
+            <input
+              type="range"
+              min="0.5"
+              max="100"
+              step="0.5"
+              value={max}
+              onChange={(e) => handleMaxChange(parseFloat(e.target.value))}
+              className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600 focus:outline-none"
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
 }

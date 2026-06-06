@@ -41,6 +41,8 @@ export interface IProduct extends Document {
   shippingSouth2Ranges?: Array<{ id: string; weightRange: string; estimatedQuantity: string; charge: number; }>;
   shippingSouth3Ranges?: Array<{ id: string; weightRange: string; estimatedQuantity: string; charge: number; }>;
   shippingSouth4Ranges?: Array<{ id: string; weightRange: string; estimatedQuantity: string; charge: number; }>;
+  deliverNorth?: boolean;
+  deliverSouth?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -158,6 +160,14 @@ const productSchema = new Schema<IProduct>(
     shippingSouth2Ranges: [{ id: String, weightRange: String, estimatedQuantity: String, charge: Number }],
     shippingSouth3Ranges: [{ id: String, weightRange: String, estimatedQuantity: String, charge: Number }],
     shippingSouth4Ranges: [{ id: String, weightRange: String, estimatedQuantity: String, charge: Number }],
+    deliverNorth: {
+      type: Boolean,
+      default: true,
+    },
+    deliverSouth: {
+      type: Boolean,
+      default: true,
+    },
   },
   { timestamps: true }
 );

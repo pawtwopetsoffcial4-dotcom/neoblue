@@ -24,6 +24,7 @@ export default function ProductDetailPage({ params }: ProductDetailProps) {
   const [quantity, setQuantity] = useState(1);
   const [reviews, setReviews] = React.useState<any[]>([]);
   const [showForm, setShowForm] = React.useState(false);
+  const [recommendations, setRecommendations] = useState<MarketplaceProduct[]>([]);
   const { addToCart } = useCart();
 
   useEffect(() => {
@@ -71,6 +72,34 @@ export default function ProductDetailPage({ params }: ProductDetailProps) {
     })();
     return () => { mounted = false; };
   }, [id]);
+
+  useEffect(() => {
+    if (!product) return;
+    let mounted = true;
+    (async () => {
+      try {
+        const response = await fetch('/api/products', { cache: 'no-store' });
+        if (!response.ok) return;
+        const data = await response.json();
+        const list: MarketplaceProduct[] = Array.isArray(data.products) ? data.products : [];
+        let filtered = list.filter(p => p._id !== product._id);
+        
+        // Prioritize same category first
+        filtered.sort((a, b) => {
+          if (a.category === product.category && b.category !== product.category) return -1;
+          if (a.category !== product.category && b.category === product.category) return 1;
+          return 0;
+        });
+
+        if (mounted) {
+          setRecommendations(filtered.slice(0, 4));
+        }
+      } catch (error) {
+        console.error("Failed to load recommendations", error);
+      }
+    })();
+    return () => { mounted = false; };
+  }, [product]);
 
   if (isLoading) {
     return (
@@ -269,10 +298,12 @@ export default function ProductDetailPage({ params }: ProductDetailProps) {
           </div>
         </div>
 
-        {/* Bottom Section - Detailed Info */}
-        <div className="mt-12 md:mt-20">
-           {/* Custom Tabs */}
-           <div className="flex overflow-x-auto hide-scrollbar gap-2 mb-8 border-b border-slate-200">
+        {/* Bottom Section - Detailed Info & Recommendations */}
+        <div className="mt-12 md:mt-20 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          {/* Main Tab Content */}
+          <div className="lg:col-span-8 flex flex-col gap-6">
+            {/* Custom Tabs */}
+            <div className="flex overflow-x-auto hide-scrollbar gap-2 mb-2 border-b border-slate-200">
               {[
                 { id: 'description', icon: Info, label: 'Description' },
                 { id: 'specifications', icon: Thermometer, label: 'Care & Specs' },
@@ -444,7 +475,56 @@ export default function ProductDetailPage({ params }: ProductDetailProps) {
                   </div>
                 </div>
               )}
-           </div>
+            </div>
+          </div>
+
+          {/* Vertical Recommended Products Sidebar */}
+          <aside className="lg:col-span-4 flex flex-col gap-6">
+            <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm space-y-5">
+              <div>
+                <h3 className="text-lg font-black text-slate-900 tracking-tight">Recommended Products</h3>
+                <p className="text-xs text-slate-500 mt-1">Discover other premium aquatic life for your tank setup.</p>
+              </div>
+
+              <div className="flex flex-col gap-4">
+                {recommendations.length > 0 ? (
+                  recommendations.map((rec) => (
+                    <Link
+                      href={`/products/${rec._id}`}
+                      key={rec._id}
+                      className="group flex gap-4 p-3 rounded-2xl border border-slate-100 hover:border-blue-200 hover:bg-blue-50/10 transition-all duration-300"
+                    >
+                      <div className="relative h-20 w-20 rounded-xl overflow-hidden shrink-0 bg-slate-100 border border-slate-200/50">
+                        <img
+                          src={rec.images?.[0] || 'https://images.stockcake.com/public/1/9/4/194f4315-a8d9-422b-b237-18b1e224b7a1_large/colorful-tropical-fish-stockcake.jpg'}
+                          alt={rec.title}
+                          className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
+                        <div>
+                          <h4 className="font-bold text-sm text-slate-900 truncate group-hover:text-blue-600 transition-colors">
+                            {rec.title}
+                          </h4>
+                          <p className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider mt-0.5">
+                            {rec.category} • {rec.waterType}
+                          </p>
+                        </div>
+                        <div className="flex items-center justify-between mt-2">
+                          <span className="font-black text-sm text-slate-900">{formatPrice(rec.price)}</span>
+                          <span className="text-[9px] font-bold text-blue-600 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                            View Details <ChevronRight className="h-3 w-3" />
+                          </span>
+                        </div>
+                      </div>
+                    </Link>
+                  ))
+                ) : (
+                  <p className="text-xs text-slate-400 py-4 text-center">No recommendations found.</p>
+                )}
+              </div>
+            </div>
+          </aside>
         </div>
       </main>
     </div>
