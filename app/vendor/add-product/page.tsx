@@ -23,6 +23,7 @@ export default function VendorAddProductPage() {
     title: '',
     description: '',
     price: '',
+    pricingType: 'piece' as 'piece' | 'pair',
     stockQuantity: '',
     ageCategory: 'adult',
     category: 'Guppies',
@@ -239,8 +240,8 @@ export default function VendorAddProductPage() {
         scientific: form.scientific,
         originalPrice: form.originalPrice ? Number(form.originalPrice) : undefined,
         discountPercentage: form.discountPercentage ? Number(form.discountPercentage) : undefined,
-        perPiecePrice: Number(form.price),
-        perPairPrice: null,
+        perPiecePrice: form.pricingType === 'piece' ? Number(form.price) : undefined,
+        perPairPrice: form.pricingType === 'pair' ? Number(form.price) : undefined,
         stockQuantity: form.stockQuantity ? Number(form.stockQuantity) : undefined,
         ageCategory: form.ageCategory,
         shippingNorth1Ranges: form.shippingNorth1Ranges,
@@ -603,15 +604,45 @@ export default function VendorAddProductPage() {
               <p className="text-xs text-slate-500 mt-0.5">Specify active unit price, standard retail price, and discount tiers.</p>
             </div>
 
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-3 pt-2">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 pt-2">
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Sale Price (₹)</label>
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Pricing Unit</label>
+                <div className="inline-flex rounded-xl bg-slate-100 p-0.5 shadow-2xs border border-slate-200/50 h-11">
+                  <button
+                    type="button"
+                    onClick={() => setForm((prev) => ({ ...prev, pricingType: 'piece' }))}
+                    className={`flex-1 flex items-center justify-center gap-1.5 rounded-lg text-xs font-bold transition-all ${
+                      form.pricingType === 'piece'
+                        ? 'bg-blue-600 text-white shadow-2xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    🪙 Per Piece
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setForm((prev) => ({ ...prev, pricingType: 'pair' }))}
+                    className={`flex-1 flex items-center justify-center gap-1.5 rounded-lg text-xs font-bold transition-all ${
+                      form.pricingType === 'pair'
+                        ? 'bg-blue-600 text-white shadow-2xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    👥 Per Pair
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  Sale Price ({form.pricingType === 'piece' ? '₹ / Piece' : '₹ / Pair'})
+                </label>
                 <div className="relative">
                   <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-medium text-sm">₹</span>
                   <input
                     type="number"
                     className="w-full h-11 pl-8 pr-4 rounded-xl border border-slate-200 outline-hidden focus:ring-2 focus:ring-blue-500 text-sm font-medium"
-                    placeholder="0"
+                    placeholder={form.pricingType === 'piece' ? 'Price per piece' : 'Price per pair'}
                     min={0}
                     value={form.price}
                     onChange={(e) => setForm((prev) => ({ ...prev, price: e.target.value }))}
@@ -758,7 +789,9 @@ export default function VendorAddProductPage() {
                 </div>
                 <div>
                   <p className="text-[10px] uppercase text-slate-400 font-bold">Listing Price</p>
-                  <p className="text-slate-900 font-bold mt-0.5">₹{Number(form.price || 0).toFixed(2)}</p>
+                  <p className="text-slate-900 font-bold mt-0.5">
+                    ₹{Number(form.price || 0).toFixed(2)} per {form.pricingType === 'piece' ? 'piece' : 'pair'}
+                  </p>
                 </div>
                 <div>
                   <p className="text-[10px] uppercase text-slate-400 font-bold">In Stock</p>
