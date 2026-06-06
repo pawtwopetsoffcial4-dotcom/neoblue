@@ -33,6 +33,10 @@ export interface IProduct extends Document {
     estimatedQuantity: string;
     charge: number;
   }>;
+  shippingNorthSmallRanges?: Array<{ id: string; weightRange: string; estimatedQuantity: string; charge: number; }>;
+  shippingNorthBulkRanges?: Array<{ id: string; weightRange: string; estimatedQuantity: string; charge: number; }>;
+  shippingSouthSmallRanges?: Array<{ id: string; weightRange: string; estimatedQuantity: string; charge: number; }>;
+  shippingSouthBulkRanges?: Array<{ id: string; weightRange: string; estimatedQuantity: string; charge: number; }>;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -141,7 +145,11 @@ const productSchema = new Schema<IProduct>(
         estimatedQuantity: String,
         charge: Number,
       }
-    ]
+    ],
+    shippingNorthSmallRanges: [{ id: String, weightRange: String, estimatedQuantity: String, charge: Number }],
+    shippingNorthBulkRanges: [{ id: String, weightRange: String, estimatedQuantity: String, charge: Number }],
+    shippingSouthSmallRanges: [{ id: String, weightRange: String, estimatedQuantity: String, charge: Number }],
+    shippingSouthBulkRanges: [{ id: String, weightRange: String, estimatedQuantity: String, charge: Number }],
   },
   { timestamps: true }
 );

@@ -28,20 +28,29 @@ export default function VendorAddProductPage() {
     scientific: '',
     originalPrice: '',
     discountPercentage: '',
-    shippingPieceRanges: [
-      { id: uuidv4(), pieceRange: '2 - 4 Pieces', estimatedQuantity: '~ 2 - 4 Pieces', charge: 60 as number | '' },
-      { id: uuidv4(), pieceRange: '4 - 8 Pieces', estimatedQuantity: '~ 4 - 8 Pieces', charge: 80 },
-      { id: uuidv4(), pieceRange: '8 - 10 Pieces', estimatedQuantity: '~ 8 - 10 Pieces', charge: 100 },
-      { id: uuidv4(), pieceRange: '10 - 15 Pieces', estimatedQuantity: '~ 10 - 15 Pieces', charge: 120 },
-      { id: uuidv4(), pieceRange: '15 - 20 Pieces', estimatedQuantity: '~ 15 - 20 Pieces', charge: 150 },
+    shippingNorthSmallRanges: [
+      { id: uuidv4(), weightRange: 'Up to 0.5 KG', estimatedQuantity: '~ 1 - 2 Pieces', charge: 60 as number | '' },
+      { id: uuidv4(), weightRange: '0.5 - 1 KG', estimatedQuantity: '~ 1 - 2 Pieces', charge: 90 },
     ],
-    shippingWeightRanges: [
-      { id: uuidv4(), weightRange: 'Up to 0.5 KG', estimatedQuantity: '~ 2 - 4 Pieces', charge: 60 as number | '' },
-      { id: uuidv4(), weightRange: '0.5 - 1 KG', estimatedQuantity: '~ 4 - 6 Pieces', charge: 90 },
-      { id: uuidv4(), weightRange: '1 - 1.5 KG', estimatedQuantity: '~ 6 - 8 Pieces', charge: 120 },
-      { id: uuidv4(), weightRange: '1.5 - 2 KG', estimatedQuantity: '~ 8 - 12 Pieces', charge: 150 },
-      { id: uuidv4(), weightRange: '2 - 3 KG', estimatedQuantity: '~ 12 - 20 Pieces', charge: 180 },
-      { id: uuidv4(), weightRange: 'Above 3 KG', estimatedQuantity: '20+ Pieces', charge: 200 },
+    shippingNorthBulkRanges: [
+      { id: uuidv4(), weightRange: 'Up to 0.5 KG', estimatedQuantity: '~ 3 - 5 Pieces', charge: 80 as number | '' },
+      { id: uuidv4(), weightRange: '0.5 - 1 KG', estimatedQuantity: '~ 4 - 6 Pieces', charge: 110 },
+      { id: uuidv4(), weightRange: '1 - 1.5 KG', estimatedQuantity: '~ 6 - 8 Pieces', charge: 140 },
+      { id: uuidv4(), weightRange: '1.5 - 2 KG', estimatedQuantity: '~ 8 - 12 Pieces', charge: 170 },
+      { id: uuidv4(), weightRange: '2 - 3 KG', estimatedQuantity: '~ 12 - 20 Pieces', charge: 200 },
+      { id: uuidv4(), weightRange: 'Above 3 KG', estimatedQuantity: '20+ Pieces', charge: 250 },
+    ],
+    shippingSouthSmallRanges: [
+      { id: uuidv4(), weightRange: 'Up to 0.5 KG', estimatedQuantity: '~ 1 - 2 Pieces', charge: 100 as number | '' },
+      { id: uuidv4(), weightRange: '0.5 - 1 KG', estimatedQuantity: '~ 1 - 2 Pieces', charge: 140 },
+    ],
+    shippingSouthBulkRanges: [
+      { id: uuidv4(), weightRange: 'Up to 0.5 KG', estimatedQuantity: '~ 3 - 5 Pieces', charge: 120 as number | '' },
+      { id: uuidv4(), weightRange: '0.5 - 1 KG', estimatedQuantity: '~ 4 - 6 Pieces', charge: 160 },
+      { id: uuidv4(), weightRange: '1 - 1.5 KG', estimatedQuantity: '~ 6 - 8 Pieces', charge: 200 },
+      { id: uuidv4(), weightRange: '1.5 - 2 KG', estimatedQuantity: '~ 8 - 12 Pieces', charge: 240 },
+      { id: uuidv4(), weightRange: '2 - 3 KG', estimatedQuantity: '~ 12 - 20 Pieces', charge: 280 },
+      { id: uuidv4(), weightRange: 'Above 3 KG', estimatedQuantity: '20+ Pieces', charge: 350 },
     ],
   });
   const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'neoblue_products';
@@ -118,8 +127,10 @@ export default function VendorAddProductPage() {
         perPairPrice: null,
         stockQuantity: form.stockQuantity ? Number(form.stockQuantity) : undefined,
         ageCategory: form.ageCategory,
-        shippingPieceRanges: form.shippingPieceRanges,
-        shippingWeightRanges: form.shippingWeightRanges,
+        shippingNorthSmallRanges: form.shippingNorthSmallRanges,
+        shippingNorthBulkRanges: form.shippingNorthBulkRanges,
+        shippingSouthSmallRanges: form.shippingSouthSmallRanges,
+        shippingSouthBulkRanges: form.shippingSouthBulkRanges,
       });
       router.push('/vendor/products');
     } catch (error: any) {
@@ -283,148 +294,12 @@ export default function VendorAddProductPage() {
           </select>
         </div>
 
-        {/* Section A: Pieces */}
-        <div className="rounded-xl border border-slate-200 bg-white p-5 sm:p-6 shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
-            <div>
-              <h2 className="flex items-center gap-2 text-base font-bold text-slate-900">
-                A. Shipping Charges Per Number of Pieces <Info className="h-4 w-4 text-slate-400" />
-              </h2>
-              <p className="mt-1 text-sm text-slate-500">
-                Set shipping charges based on the number of pieces.
-              </p>
-            </div>
-          </div>
-
-          <div className="hidden md:grid grid-cols-[1.5fr_1.5fr_1.5fr] gap-4 mb-3 px-2">
-            <div className="text-sm font-bold text-slate-900">Pieces Range</div>
-            <div className="text-sm font-bold flex items-center gap-1.5 text-slate-900">
-              Estimated Quantity <Info className="h-3.5 w-3.5 text-slate-400" />
-            </div>
-            <div className="text-sm font-bold text-slate-900">Shipping Charge (₹)</div>
-          </div>
-
-          <div className="space-y-3">
-            {form.shippingPieceRanges.map((range) => (
-              <div key={range.id} className="grid grid-cols-1 md:grid-cols-[1.5fr_1.5fr_1.5fr] gap-3 md:gap-4 items-center">
-                <div>
-                  <label className="text-xs font-semibold text-slate-500 mb-1 block md:hidden">Pieces Range</label>
-                  <div className="w-full h-11 flex items-center rounded-lg border border-slate-200 bg-slate-50 px-4 text-sm font-medium text-slate-700">
-                    {range.pieceRange}
-                  </div>
-                </div>
-                
-                <div>
-                  <label className="text-xs font-semibold text-slate-500 mb-1 block md:hidden">Estimated Quantity</label>
-                  <input 
-                    type="text" 
-                    value={range.estimatedQuantity}
-                    onChange={(e) => setForm(prev => ({
-                      ...prev,
-                      shippingPieceRanges: prev.shippingPieceRanges.map(r => r.id === range.id ? { ...r, estimatedQuantity: e.target.value } : r)
-                    }))}
-                    placeholder="e.g. ~ 2 - 4 Shrimp"
-                    className="w-full h-11 rounded-lg border border-slate-200 px-4 text-sm font-medium outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white text-slate-900"
-                  />
-                </div>
-                
-                <div className="relative">
-                  <label className="text-xs font-semibold text-slate-500 mb-1 block md:hidden">Shipping Charge</label>
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-medium md:top-5.5 md:-mt-0.5">₹</span>
-                  <input 
-                    type="number" 
-                    value={range.charge}
-                    onChange={(e) => setForm(prev => ({
-                      ...prev,
-                      shippingPieceRanges: prev.shippingPieceRanges.map(r => r.id === range.id ? { ...r, charge: e.target.value === '' ? '' : Number(e.target.value) } : r)
-                    }))}
-                    placeholder="0"
-                    min="0"
-                    className="w-full h-11 rounded-lg border border-slate-200 pl-8 pr-4 text-sm font-medium outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white text-slate-900"
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-6 rounded-lg bg-[#f0f4fa] p-3 border border-blue-100 flex items-start gap-2">
-            <Info className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
-            <p className="text-sm font-medium text-blue-800">
-              Tip: Shipping charges will be auto-calculated for buyers based on quantity.
-            </p>
-          </div>
-        </div>
-
-        {/* Section B: Weight */}
-        <div className="rounded-xl border border-slate-200 bg-white p-5 sm:p-6 shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
-            <div>
-              <h2 className="flex items-center gap-2 text-base font-bold text-slate-900">
-                B. Shipping Charge Per Weight (KG) <Info className="h-4 w-4 text-slate-400" />
-              </h2>
-              <p className="mt-1 text-sm text-slate-500">
-                Set shipping charges based on total weight of the shipment.
-              </p>
-            </div>
-          </div>
-
-          <div className="hidden md:grid grid-cols-[1.5fr_1.5fr_1.5fr] gap-4 mb-3 px-2">
-            <div className="text-sm font-bold text-slate-900">Weight Range</div>
-            <div className="text-sm font-bold flex items-center gap-1.5 text-slate-900">
-              Estimated Quantity <Info className="h-3.5 w-3.5 text-slate-400" />
-            </div>
-            <div className="text-sm font-bold text-slate-900">Shipping Charge (₹)</div>
-          </div>
-
-          <div className="space-y-3">
-            {form.shippingWeightRanges.map((range) => (
-              <div key={range.id} className="grid grid-cols-1 md:grid-cols-[1.5fr_1.5fr_1.5fr] gap-3 md:gap-4 items-center">
-                <div>
-                  <label className="text-xs font-semibold text-slate-500 mb-1 block md:hidden">Weight Range</label>
-                  <div className="w-full h-11 flex items-center rounded-lg border border-slate-200 bg-slate-50 px-4 text-sm font-medium text-slate-700">
-                    {range.weightRange}
-                  </div>
-                </div>
-                
-                <div>
-                  <label className="text-xs font-semibold text-slate-500 mb-1 block md:hidden">Estimated Quantity</label>
-                  <input 
-                    type="text" 
-                    value={range.estimatedQuantity}
-                    onChange={(e) => setForm(prev => ({
-                      ...prev,
-                      shippingWeightRanges: prev.shippingWeightRanges.map(r => r.id === range.id ? { ...r, estimatedQuantity: e.target.value } : r)
-                    }))}
-                    placeholder="e.g. ~ 2 - 4 Pieces"
-                    className="w-full h-11 rounded-lg border border-slate-200 px-4 text-sm font-medium outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white text-slate-900"
-                  />
-                </div>
-                
-                <div className="relative">
-                  <label className="text-xs font-semibold text-slate-500 mb-1 block md:hidden">Shipping Charge</label>
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-medium md:top-5.5 md:-mt-0.5">₹</span>
-                  <input 
-                    type="number" 
-                    value={range.charge}
-                    onChange={(e) => setForm(prev => ({
-                      ...prev,
-                      shippingWeightRanges: prev.shippingWeightRanges.map(r => r.id === range.id ? { ...r, charge: e.target.value === '' ? '' : Number(e.target.value) } : r)
-                    }))}
-                    placeholder="0"
-                    min="0"
-                    className="w-full h-11 rounded-lg border border-slate-200 pl-8 pr-4 text-sm font-medium outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white text-slate-900"
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-6 rounded-lg bg-[#f0f4fa] p-3 border border-blue-100 flex items-start gap-2">
-            <Info className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
-            <p className="text-sm font-medium text-blue-800">
-              Tip: Weight includes water, packing, and container.
-            </p>
-          </div>
+        {/* Shipping info note */}
+        <div className="rounded-lg bg-[#f0f4fa] p-3 border border-blue-100 flex items-start gap-2">
+          <Info className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
+          <p className="text-sm font-medium text-blue-800">
+            Tip: You can configure detailed North/South India shipping charges in Settings after creating the product.
+          </p>
         </div>
 
         <datalist id="fish-name-autofill">
