@@ -31,7 +31,7 @@ export default async function ShopPage({ params }: Props) {
     );
   }
 
-  const products = await Product.find({ vendorId: vendor._id, approvalStatus: 'approved' }).lean();
+  const products = await Product.find({ vendorId: (vendor as any)._id, approvalStatus: 'approved' }).lean();
 
   return (
     <div className="min-h-screen bg-[#f7fafc] p-4">
