@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, ArrowUpRight } from 'lucide-react';
 import type { MarketplaceProduct } from '@/lib/types/marketplace';
+import ReviewStars from '@/app/components/ReviewStars';
 
 type CategoryPageProps = {
   params: Promise<{ slug: string }>;
@@ -128,6 +129,11 @@ export default function CategoryDetailPage({ params }: CategoryPageProps) {
                 </p>
                 <h2 className="text-xl font-bold text-slate-900">{product.title}</h2>
                 <p className="text-slate-600 text-sm italic mt-1">{product.scientific ?? 'Aquatic premium stock'}</p>
+                
+                {/* Rating stars */}
+                <div className="mt-2">
+                  <ReviewStars rating={product.rating} count={product.reviewsCount} compact size={12} />
+                </div>
                 <div className="mt-4 flex items-center justify-between">
                   <span className="text-xl font-black text-slate-900">₹{product.price.toFixed(2)}</span>
                   <Link href={`/products/${product._id}`} className="inline-flex items-center gap-2 text-blue-600 font-semibold hover:text-blue-700">

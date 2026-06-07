@@ -19,7 +19,8 @@ export async function proxy(request: NextRequest) {
   const isPublicCategoriesGet = pathname.startsWith('/api/categories') && method === 'GET';
   const isPublicFishDescGet = pathname.startsWith('/api/fish-descriptions') && method === 'GET';
   const isPublicConfigRoute = pathname === '/api/config';
-  if (isPublicAuthRoute || isPublicProductsGet || isPublicCategoriesGet || isPublicFishDescGet || isPublicConfigRoute) {
+  const isPublicReviews = pathname.startsWith('/api/reviews/');
+  if (isPublicAuthRoute || isPublicProductsGet || isPublicCategoriesGet || isPublicFishDescGet || isPublicConfigRoute || isPublicReviews) {
     return NextResponse.next();
   }
 

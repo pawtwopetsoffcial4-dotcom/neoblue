@@ -199,8 +199,8 @@ export default function ProductsPage() {
             {/* 2-column Grid Matching Mockup */}
             <div className="grid grid-cols-2 gap-3 mb-6">
               {filteredProducts.map((product) => {
-                const rating = Number(product.rating) || 4.2;
-                const reviewCount = getFakeReviewCount(product._id || product.title);
+                const rating = typeof product.rating === 'number' ? product.rating : 5;
+                const reviewsCount = product.reviewsCount ?? 0;
                 const unitPrice = typeof product.perPairPrice === 'number'
                   ? product.perPairPrice
                   : (typeof product.perPiecePrice === 'number' ? product.perPiecePrice : null);
@@ -257,6 +257,11 @@ export default function ProductsPage() {
                       <h3 className="mt-0.5 line-clamp-1 text-sm font-semibold text-slate-900">
                         {product.title}
                       </h3>
+
+                      {/* Rating Row */}
+                      <div className="mt-1 flex items-center">
+                        <ReviewStars rating={rating} count={reviewsCount} compact size={11} />
+                      </div>
 
                       {/* Pricing Row */}
                       <div className="mt-2 flex flex-col gap-0.5 text-[11px] text-slate-600 font-sans">

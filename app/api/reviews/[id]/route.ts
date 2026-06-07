@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs/promises';
 import path from 'path';
+import { connectDB } from '@/lib/db';
+import Product from '@/lib/models/Product';
 
 const DATA_FILE = path.join(process.cwd(), 'data', 'reviews.json');
 
@@ -49,6 +51,18 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
     forProduct.unshift(newReview);
     data[id] = forProduct;
     await writeData(data);
+
+    try {
+      await connectDB();
+      const ratingSum = forProduct.reduce((sum: number, r: any) => sum + r.rating, 0);
+      const averageRating = forProduct.length > 0 ? (ratingSum / forProduct.length) : 5;
+      await Product.findByIdAndUpdate(id, {
+        rating: Math.round(averageRating * 10) / 10,
+        reviewsCount: forProduct.length,
+      });
+    } catch (dbErr) {
+      console.error('Failed to sync review rating with MongoDB:', dbErr);
+    }
 
     return NextResponse.json({ ok: true, review: newReview });
   } catch (err) {

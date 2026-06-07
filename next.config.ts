@@ -16,3 +16,4 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
+// Force configuration reload to clear middleware cache

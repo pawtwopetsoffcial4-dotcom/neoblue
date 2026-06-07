@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ArrowLeft, ShoppingBag, Star, Truck, Shield, Droplets, Thermometer, Info, MessageSquare, ChevronRight, Heart, Share2 } from 'lucide-react';
 import ReviewList from '@/app/components/ReviewList';
 import ReviewForm from '@/app/components/ReviewForm';
+import ReviewStars from '@/app/components/ReviewStars';
 import type { MarketplaceProduct } from '@/lib/types/marketplace';
 import { useCart } from '@/lib/hooks/useCart';
 
@@ -31,31 +32,31 @@ export default function ProductDetailPage({ params }: ProductDetailProps) {
     params.then((data) => setId(data.id));
   }, [params]);
 
+  const fetchProduct = React.useCallback(async (silent = false) => {
+    if (!id) return;
+    try {
+      if (!silent) setIsLoading(true);
+      setError(null);
+
+      const response = await fetch(`/api/products/${id}`, { cache: 'no-store' });
+      if (!response.ok) {
+        throw new Error('Product not found');
+      }
+
+      const data = await response.json();
+      setProduct(data.product ?? null);
+    } catch {
+      if (!silent) setError('Unable to load product details.');
+    } finally {
+      if (!silent) setIsLoading(false);
+    }
+  }, [id]);
+
   useEffect(() => {
     if (!id) return;
     setActiveImageIndex(0);
-
-    const fetchProduct = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-
-        const response = await fetch(`/api/products/${id}`, { cache: 'no-store' });
-        if (!response.ok) {
-          throw new Error('Product not found');
-        }
-
-        const data = await response.json();
-        setProduct(data.product ?? null);
-      } catch {
-        setError('Unable to load product details.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchProduct();
-  }, [id]);
+  }, [id, fetchProduct]);
 
   React.useEffect(() => {
     if (!id) return;
@@ -208,15 +209,8 @@ export default function ProductDetailPage({ params }: ProductDetailProps) {
                  </p>
                  
                  {/* Ratings */}
-                 <div className="flex items-center gap-4 mt-4">
-                    <div className="flex items-center text-amber-400">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <Star key={star} className={`h-5 w-5 ${star <= Math.round(product.rating) ? 'fill-current' : 'text-slate-200'}`} />
-                      ))}
-                    </div>
-                    <span className="text-sm font-medium text-slate-600">{product.rating.toFixed(1)} Rating</span>
-                    <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
-                    <span className="text-sm text-blue-600 font-medium hover:underline cursor-pointer">128 Reviews</span>
+                 <div className="mt-4 flex items-center gap-2">
+                    <ReviewStars rating={product.rating} count={reviews.length} size={16} />
                  </div>
               </div>
 
@@ -308,7 +302,7 @@ export default function ProductDetailPage({ params }: ProductDetailProps) {
                 { id: 'description', icon: Info, label: 'Description' },
                 { id: 'specifications', icon: Thermometer, label: 'Care & Specs' },
                 { id: 'faq', icon: MessageSquare, label: 'FAQ' },
-                { id: 'reviews', icon: MessageSquare, label: 'Reviews (128)' }
+                { id: 'reviews', icon: MessageSquare, label: `Reviews (${reviews.length})` }
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -381,24 +375,24 @@ export default function ProductDetailPage({ params }: ProductDetailProps) {
                          <div className="flex flex-col items-center justify-center w-24 h-24 bg-[#F5F7FA] rounded-3xl border border-slate-100">
                             <span className="text-3xl font-black text-slate-900">{product.rating.toFixed(1)}</span>
                             <div className="flex text-amber-400 mt-1">
-                              <Star className="h-3 w-3 fill-current" />
-                              <Star className="h-3 w-3 fill-current" />
-                              <Star className="h-3 w-3 fill-current" />
-                              <Star className="h-3 w-3 fill-current" />
-                              <Star className="h-3 w-3 fill-current" />
+                              {[1, 2, 3, 4, 5].map((star) => (
+                                <Star key={star} className={`h-3 w-3 ${star <= Math.round(product.rating) ? 'text-amber-400 fill-current' : 'text-slate-200'}`} />
+                              ))}
                             </div>
                          </div>
                          <div>
                            <h3 className="text-2xl font-bold text-slate-900 mb-1">Customer Reviews</h3>
-                           <p className="text-slate-500">Based on 128 certified purchases</p>
+                           <p className="text-slate-500">
+                             Based on {reviews.length} {reviews.length === 1 ? 'certified purchase' : 'certified purchases'}
+                           </p>
                          </div>
                       </div>
-                      <button className="px-6 py-3 bg-slate-900 text-white font-bold rounded-xl shadow-md hover:bg-slate-800 transition-colors">
-                        Write a Review
+                      <button onClick={() => setShowForm((s) => !s)} className="px-6 py-3 bg-slate-900 text-white font-bold rounded-xl shadow-md hover:bg-slate-800 transition-colors">
+                        {showForm ? 'Close' : 'Write a Review'}
                       </button>
                    </div>
 
-                   <div className="space-y-6">
+                    <div className="space-y-6">
                       <div className="flex items-center justify-between">
                         <div>
                           <h3 className="text-lg font-bold text-slate-900">Customer Reviews</h3>
@@ -414,13 +408,14 @@ export default function ProductDetailPage({ params }: ProductDetailProps) {
                       {showForm && (
                         <div className="p-4 bg-[#fbfdff] rounded-2xl border border-slate-100">
                           <ReviewForm productId={id} onSubmit={() => {
-                            // refetch reviews
+                            // refetch reviews and rating stats
                             (async () => {
                               try {
                                 const res = await fetch(`/api/reviews/${id}`, { cache: 'no-store' });
                                 if (!res.ok) return;
                                 const body = await res.json();
                                 setReviews(Array.isArray(body.reviews) ? body.reviews : []);
+                                fetchProduct(true);
                                 setShowForm(false);
                               } catch {
                                 // ignore

@@ -18,6 +18,7 @@ type HeroCardProduct = {
   img: string;
   tag?: string;
   rating?: number;
+  reviewsCount?: number;
   createdAt?: string;
 };
 
@@ -104,7 +105,8 @@ function MobileScrollSection({ title, children }: { title: string; children: Rea
 /* ULTRA-CLEAN PRODUCT CARD                                           */
 /* ------------------------------------------------------------------ */
 function MobileCard({ product }: { product: any }) {
-  const reviewCount = product.reviewCount ?? ((product.title?.length ?? 6) * 7 + 12);
+  const rating = typeof product.rating === 'number' ? product.rating : 5;
+  const reviewsCount = product.reviewsCount ?? 0;
   return (
     <Link
       href={`/products/${product.id}`}
@@ -127,7 +129,7 @@ function MobileCard({ product }: { product: any }) {
         <div className="flex items-center justify-between gap-2">
           <p className="text-sm font-black text-blue-600">₹{product.price}</p>
           <div className="flex items-center gap-2">
-            <ReviewStars rating={Number(product.rating) || 0} count={Math.max(1, Math.floor(reviewCount))} compact />
+            <ReviewStars rating={rating} count={reviewsCount} compact />
           </div>
         </div>
       </div>
@@ -192,6 +194,7 @@ export default function NeoBlueMobileOptimized() {
         img: product.images?.[0] || DEFAULT_IMAGE,
         tag: product.tag,
         rating: product.rating,
+        reviewsCount: product.reviewsCount,
         createdAt: product.createdAt,
       })),
     [products]

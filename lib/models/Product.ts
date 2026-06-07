@@ -11,6 +11,7 @@ export interface IProduct extends Document {
   vendorId: mongoose.Types.ObjectId;
   tag: string;
   rating: number;
+  reviewsCount?: number;
   inStock: boolean;
   approvalStatus: 'pending' | 'approved' | 'rejected';
   scientific?: string;
@@ -93,6 +94,10 @@ const productSchema = new Schema<IProduct>(
       default: 5,
       min: 0,
       max: 5,
+    },
+    reviewsCount: {
+      type: Number,
+      default: 0,
     },
     inStock: {
       type: Boolean,

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Inter_Tight, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Header from "./components/Header";
+import Footer from "./components/Footer";
 import MobileDock from "./components/MobileDock";
 import { RootProviders } from "./providers";
 
@@ -42,6 +43,7 @@ export default function RootLayout({
         <RootProviders>
           <Header />
           <div className="flex-1">{children}</div>
+          <Footer />
           <MobileDock />
         </RootProviders>
       </body>
