@@ -88,7 +88,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
             <Search className="h-5 w-5" />
           </button>
           
-          {user && (
+          {user ? (
             <button
               type="button"
               onClick={handleLogout}
@@ -96,6 +96,13 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
             >
               Logout
             </button>
+          ) : (
+            <Link
+              href="/auth/login"
+              className="hidden md:flex h-9.5 px-4 rounded-full border border-white/20 text-blue-50 text-sm font-medium items-center justify-center hover:bg-white/10 transition-colors"
+            >
+              Login
+            </Link>
           )}
 
           <Link href="/checkout" className="h-9.5 px-4 rounded-full bg-white text-blue-600 flex items-center gap-2 hover:bg-blue-50 transition-colors shadow-sm">
@@ -128,7 +135,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
                 {link.label}
               </Link>
             ))}
-            {user && (
+            {user ? (
               <button
                 type="button"
                 onClick={handleLogout}
@@ -136,6 +143,14 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
               >
                 Logout
               </button>
+            ) : (
+              <Link
+                href="/auth/login"
+                onClick={closeMenu}
+                className="rounded-lg px-4 py-3 text-left hover:bg-white/10 hover:text-white transition-colors"
+              >
+                Login
+              </Link>
             )}
           </div>
         </div>
