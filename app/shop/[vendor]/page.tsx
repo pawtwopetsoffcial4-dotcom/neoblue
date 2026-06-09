@@ -1,16 +1,41 @@
 import React from 'react';
-import Link from 'next/link';
 import { connectDB } from '@/lib/db';
 import User from '@/lib/models/User';
 import Product from '@/lib/models/Product';
+import VendorShopContent from './VendorShopContent';
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
 
 type Props = { params: { vendor: string } };
+
+export async function generateMetadata({ params }: Props) {
+  await connectDB();
+  const identifier = params.vendor;
+  
+  let vendor: any = await User.findOne({ slug: identifier }).select('name').lean();
+  if (!vendor) {
+    try {
+      const { Types } = await import('mongoose');
+      if (Types.ObjectId.isValid(identifier)) {
+        vendor = await User.findById(identifier).select('name').lean();
+      }
+    } catch {
+      vendor = null;
+    }
+  }
+
+  return {
+    title: vendor ? `${vendor.name} - Storefront | Neoblue` : 'Storefront | Neoblue',
+    description: vendor 
+      ? `Browse and purchase premium aquatic fish, plants, and breeding pairs directly from ${vendor.name} on Neoblue.` 
+      : 'Browse vendor storefronts and aquatic varieties on Neoblue.',
+  };
+}
 
 export default async function ShopPage({ params }: Props) {
   await connectDB();
 
   const identifier = params.vendor;
-  // try find by slug first, then by id
   let vendor: any = await User.findOne({ slug: identifier }).lean();
   if (!vendor) {
     try {
@@ -18,65 +43,44 @@ export default async function ShopPage({ params }: Props) {
       if (Types.ObjectId.isValid(identifier)) {
         vendor = await User.findById(identifier).lean();
       }
-    } catch (e) {
-      vendor = null as any;
+    } catch {
+      vendor = null;
     }
   }
 
-  if (!vendor) {
+  if (!vendor || vendor.role !== 'vendor') {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">Vendor not found</div>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-6">
+        <div className="max-w-md w-full text-center space-y-6 bg-white p-8 rounded-3xl border border-slate-200/60 shadow-sm">
+          <div className="h-16 w-16 bg-rose-50 rounded-full flex items-center justify-center text-rose-500 mx-auto border border-rose-100">
+            🐟
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-xl font-black text-slate-900">Storefront Not Found</h2>
+            <p className="text-sm text-slate-500">
+              The breeder storefront you are trying to visit does not exist or has been deactivated.
+            </p>
+          </div>
+          <Link
+            href="/"
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-blue-600 px-6 font-bold text-white hover:bg-blue-700 transition-colors shadow-2xs w-full"
+          >
+            <ArrowLeft className="h-4 w-4" /> Return to Marketplace
+          </Link>
+        </div>
       </div>
     );
   }
 
-  const products = await Product.find({ vendorId: vendor._id, approvalStatus: 'approved' }).lean();
+  // Fetch approved products for this vendor
+  const products = await Product.find({ 
+    vendorId: vendor._id, 
+    approvalStatus: 'approved' 
+  }).lean();
 
-  return (
-    <div className="min-h-screen bg-[#f7fafc] p-4">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex items-center gap-4 mb-6">
-          {vendor.logo ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={vendor.logo} alt={`${vendor.name} logo`} className="h-20 w-20 rounded-lg object-cover" />
-          ) : (
-            <div className="h-20 w-20 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500">No Logo</div>
-          )}
+  // Safely serialize MongoDB documents to plain JSON for client component serialization compatibility
+  const serializedVendor = JSON.parse(JSON.stringify(vendor));
+  const serializedProducts = JSON.parse(JSON.stringify(products));
 
-          <div>
-            <h1 className="text-2xl font-bold">{vendor.name}</h1>
-            <p className="text-sm text-slate-600">{vendor.email}</p>
-            {vendor.phone && <p className="text-sm text-slate-600">{vendor.phone}</p>}
-          </div>
-        </div>
-
-        <h2 className="text-lg font-semibold mb-3">Products</h2>
-
-        {products.length === 0 ? (
-          <div className="rounded-lg bg-white p-6 text-center text-slate-600">No products found for this vendor.</div>
-        ) : (
-          <div className="grid grid-cols-2 gap-3">
-            {products.map((product: any) => (
-              <Link
-                href={`/products/${product._id}`}
-                key={product._id}
-                className="group flex w-full flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/70 transition-transform"
-              >
-                <div className="relative aspect-square w-full overflow-hidden bg-slate-100">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={product.images?.[0] ?? '/illustrations/placeholder.png'} alt={product.title} className="absolute inset-0 h-full w-full object-cover" />
-                </div>
-
-                <div className="flex flex-1 flex-col p-3">
-                  <h3 className="text-sm font-semibold text-slate-900 line-clamp-1">{product.title}</h3>
-                  <div className="mt-2 text-sm text-slate-700">₹{product.price}</div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  );
+  return <VendorShopContent vendor={serializedVendor} products={serializedProducts} />;
 }
