@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, ShoppingBag, Star, Truck, Shield, Droplets, Thermometer, Info, MessageSquare, ChevronRight, Heart, Share2 } from 'lucide-react';
+import { ArrowLeft, ShoppingBag, Star, Truck, Shield, Droplets, Thermometer, Info, MessageSquare, ChevronRight, Heart, Share2, Store, CheckCircle2 } from 'lucide-react';
 import ReviewList from '@/app/components/ReviewList';
 import ReviewForm from '@/app/components/ReviewForm';
 import ReviewStars from '@/app/components/ReviewStars';
@@ -475,6 +475,69 @@ export default function ProductDetailPage({ params }: ProductDetailProps) {
 
           {/* Vertical Recommended Products Sidebar */}
           <aside className="lg:col-span-4 flex flex-col gap-6">
+
+            {/* Vendor / Sold By Card */}
+            {(() => {
+              const v = typeof product.vendorId === 'object' && product.vendorId !== null ? product.vendorId : null;
+              if (!v) return null;
+              const shopHref = v.slug ? `/shop/${v.slug}` : `/shop/${v._id}`;
+              const initials = v.name
+                .split(' ')
+                .map((w: string) => w[0])
+                .slice(0, 2)
+                .join('')
+                .toUpperCase();
+              return (
+                <div className="relative overflow-hidden rounded-3xl border border-slate-100 shadow-sm bg-white">
+                  {/* Decorative gradient header */}
+                  <div className="h-20 bg-gradient-to-br from-slate-900 via-blue-950 to-slate-950 relative">
+                    <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-blue-500/15 blur-2xl pointer-events-none" />
+                    <div className="absolute -bottom-10 -left-10 w-40 h-40 rounded-full bg-cyan-500/15 blur-2xl pointer-events-none" />
+                  </div>
+
+                  <div className="px-6 pb-6 -mt-8 relative z-10">
+                    {/* Avatar */}
+                    <div className="h-16 w-16 rounded-2xl border-[3px] border-white bg-white shadow-lg overflow-hidden flex items-center justify-center mb-4">
+                      {v.logo ? (
+                        <img src={v.logo} alt={v.name} className="h-full w-full object-cover" />
+                      ) : (
+                        <div className="h-full w-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center">
+                          <span className="text-sm font-black text-white tracking-wider">{initials}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Name + Verified */}
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="text-lg font-extrabold text-slate-900 tracking-tight">{v.name}</h3>
+                      <CheckCircle2 className="h-4 w-4 text-blue-500 shrink-0" />
+                    </div>
+                    <p className="text-xs text-slate-500 font-medium mb-1">Verified Breeder on Neoblue</p>
+
+                    {/* Meta badges */}
+                    <div className="flex flex-wrap items-center gap-2 mt-3 mb-5">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-50 text-blue-600 text-[10px] font-bold border border-blue-100">
+                        <Store className="h-3 w-3" /> Official Store
+                      </span>
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-600 text-[10px] font-bold border border-emerald-100">
+                        <Shield className="h-3 w-3" /> Quality Assured
+                      </span>
+                    </div>
+
+                    {/* CTA */}
+                    <Link
+                      href={shopHref}
+                      className="flex items-center justify-center gap-2 w-full h-12 rounded-2xl bg-slate-900 text-white font-bold text-sm hover:bg-slate-800 active:scale-[0.98] transition-all shadow-lg hover:shadow-slate-900/25"
+                    >
+                      <Store className="h-4 w-4" />
+                      Visit Storefront
+                      <ChevronRight className="h-4 w-4 ml-auto" />
+                    </Link>
+                  </div>
+                </div>
+              );
+            })()}
+
             <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm space-y-5">
               <div>
                 <h3 className="text-lg font-black text-slate-900 tracking-tight">Recommended Products</h3>

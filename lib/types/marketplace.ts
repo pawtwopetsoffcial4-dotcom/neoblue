@@ -7,7 +7,7 @@ export type MarketplaceProduct = {
   category: string;
   subcategory?: string;
   waterType: 'Freshwater' | 'Saltwater' | 'Brackish';
-  vendorId: string;
+  vendorId: string | { _id: string; name: string; email: string; slug?: string; logo?: string };
   tag: string;
   rating: number;
   reviewsCount?: number;

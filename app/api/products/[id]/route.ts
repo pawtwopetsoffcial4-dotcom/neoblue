@@ -16,7 +16,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
       return createErrorResponse('Invalid product ID', 400);
     }
 
-    const product = await Product.findById(id).populate('vendorId', 'name email');
+    const product = await Product.findById(id).populate('vendorId', 'name email slug logo');
 
     if (!product) {
       return createErrorResponse('Product not found', 404);
