@@ -6,11 +6,11 @@ import VendorShopContent from './VendorShopContent';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 
-type Props = { params: { vendor: string } };
+type Props = { params: Promise<{ vendor: string }> };
 
 export async function generateMetadata({ params }: Props) {
   await connectDB();
-  const identifier = params.vendor;
+  const { vendor: identifier } = await params;
   
   let vendor: any = await User.findOne({ slug: identifier }).select('name').lean();
   if (!vendor) {
@@ -35,7 +35,7 @@ export async function generateMetadata({ params }: Props) {
 export default async function ShopPage({ params }: Props) {
   await connectDB();
 
-  const identifier = params.vendor;
+  const { vendor: identifier } = await params;
   let vendor: any = await User.findOne({ slug: identifier }).lean();
   if (!vendor) {
     try {
