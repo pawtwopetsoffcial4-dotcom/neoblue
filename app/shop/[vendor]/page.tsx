@@ -72,10 +72,9 @@ export default async function ShopPage({ params }: Props) {
     );
   }
 
-  // Fetch approved products for this vendor
+  // Fetch products for this vendor
   const products = await Product.find({ 
-    vendorId: vendor._id, 
-    approvalStatus: 'approved' 
+    vendorId: vendor._id
   }).lean();
 
   // Safely serialize MongoDB documents to plain JSON for client component serialization compatibility

@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { Search, SlidersHorizontal, ArrowUpDown, CheckCircle2, MapPin, Mail, Phone, ShoppingBag, Star, X, ChevronRight, Inbox } from 'lucide-react';
+import { Search, SlidersHorizontal, ArrowUpDown, CheckCircle2, MapPin, ShoppingBag, Star, X, ChevronRight, Inbox } from 'lucide-react';
 import { MarketplaceProduct } from '@/lib/types/marketplace';
 
 interface Address {
@@ -159,17 +159,7 @@ export default function VendorShopContent({ vendor, products }: Props) {
                 </span>
               </div>
 
-              {/* Contact Information */}
-              <div className="pt-2.5 border-t border-white/10 flex flex-wrap items-center justify-center md:justify-start gap-x-6 gap-y-2 text-xs text-slate-300 font-medium">
-                <span className="flex items-center gap-1.5">
-                  <Mail className="h-3.5 w-3.5 text-cyan-400" /> {vendor.email}
-                </span>
-                {vendor.phone && (
-                  <span className="flex items-center gap-1.5">
-                    <Phone className="h-3.5 w-3.5 text-cyan-400" /> {vendor.phone}
-                  </span>
-                )}
-              </div>
+
 
             </div>
 
