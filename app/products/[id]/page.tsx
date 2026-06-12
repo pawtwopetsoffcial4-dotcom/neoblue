@@ -204,6 +204,31 @@ export default function ProductDetailPage({ params }: ProductDetailProps) {
                  <p className="text-lg text-slate-500 italic font-serif flex items-center gap-2">
                    {product.scientific ?? 'Premium Aquatic Specimen'}
                  </p>
+                  {(() => {
+                    const vendor = typeof product.vendorId === 'object' && product.vendorId !== null ? product.vendorId : null;
+                    if (!vendor) return null;
+                    const shopHref = vendor.slug ? `/shop/${vendor.slug}` : `/shop/${vendor._id}`;
+                    return (
+                      <div className="mt-3.5 flex items-center gap-2 text-sm text-slate-600 bg-slate-50 border border-slate-100 rounded-2xl py-2 px-3.5 w-fit">
+                        <Store className="h-4 w-4 text-blue-600" />
+                        <span className="font-medium">Sold by:</span>
+                        <Link 
+                          href={shopHref}
+                          className="font-extrabold text-slate-900 hover:text-blue-600 transition-colors"
+                        >
+                          {vendor.name}
+                        </Link>
+                        <span className="text-slate-300">|</span>
+                        <Link 
+                          href={shopHref}
+                          className="font-bold text-blue-600 hover:text-blue-700 hover:underline flex items-center gap-0.5"
+                        >
+                          View Storefront
+                          <ChevronRight className="h-3.5 w-3.5" />
+                        </Link>
+                      </div>
+                    );
+                  })()}
                  <p className="mt-4 text-sm md:text-base text-slate-600 leading-relaxed line-clamp-4">
                    {product.description || 'Healthy, quarantine-tested livestock sourced for stable acclimation and long-term tank vitality.'}
                  </p>
