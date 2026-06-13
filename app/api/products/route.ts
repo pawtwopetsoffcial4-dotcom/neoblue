@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
       return createErrorResponse('Only vendors can create products', 403);
     }
 
-    const { title, description, price, images, category, subcategory, waterType, tag, scientific, originalPrice, discountPercentage, perPiecePrice, perPairPrice, shippingType, shippingCharge, shippingLotSize, shippingPieceRanges, shippingWeightRanges, shippingNorth1Ranges, shippingNorth2Ranges, shippingNorth3Ranges, shippingNorth4Ranges, shippingSouth1Ranges, shippingSouth2Ranges, shippingSouth3Ranges, shippingSouth4Ranges, deliverNorth, deliverSouth } = await request.json();
+    const { title, description, price, images, category, subcategory, waterType, tag, scientific, originalPrice, discountPercentage, perPiecePrice, perPairPrice, shippingType, shippingCharge, shippingLotSize, shippingPieceRanges, shippingWeightRanges, shippingNorth1Ranges, shippingNorth2Ranges, shippingNorth3Ranges, shippingNorth4Ranges, shippingSouth1Ranges, shippingSouth2Ranges, shippingSouth3Ranges, shippingSouth4Ranges, deliverNorth, deliverSouth, phMin, phMax, tempMin, tempMax, temperament } = await request.json();
 
     // Validate required fields
     if (!title || !description || price == null || !images || !category || !waterType) {
@@ -143,6 +143,11 @@ export async function POST(request: NextRequest) {
       shippingSouth4Ranges: Array.isArray(shippingSouth4Ranges) ? shippingSouth4Ranges : undefined,
       deliverNorth: deliverNorth !== false,
       deliverSouth: deliverSouth !== false,
+      phMin: phMin != null ? Number(phMin) : 6.0,
+      phMax: phMax != null ? Number(phMax) : 8.0,
+      tempMin: tempMin != null ? Number(tempMin) : 20,
+      tempMax: tempMax != null ? Number(tempMax) : 30,
+      temperament: temperament || 'Peaceful',
       vendorId: payload.userId,
       inStock: true,
       approvalStatus: 'pending',

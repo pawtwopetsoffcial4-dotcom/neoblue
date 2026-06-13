@@ -34,6 +34,11 @@ export default function VendorAddProductPage() {
     discountPercentage: '',
     deliverNorth: true,
     deliverSouth: true,
+    phMin: '6.0',
+    phMax: '8.0',
+    tempMin: '20',
+    tempMax: '30',
+    temperament: 'Peaceful',
     shippingNorth1Ranges: [
       { id: uuidv4(), weightRange: 'Up to 0.5 KG', estimatedQuantity: '~ 1 - 2 Pieces', charge: 60 as number | '' },
       { id: uuidv4(), weightRange: '0.5 - 1 KG', estimatedQuantity: '~ 1 - 2 Pieces', charge: 90 },
@@ -246,6 +251,11 @@ export default function VendorAddProductPage() {
         perPairPrice: form.pricingType === 'pair' ? Number(form.price) : undefined,
         stockQuantity: form.stockQuantity ? Number(form.stockQuantity) : undefined,
         ageCategory: form.ageCategory,
+        phMin: form.phMin ? Number(form.phMin) : undefined,
+        phMax: form.phMax ? Number(form.phMax) : undefined,
+        tempMin: form.tempMin ? Number(form.tempMin) : undefined,
+        tempMax: form.tempMax ? Number(form.tempMax) : undefined,
+        temperament: form.temperament,
         shippingNorth1Ranges: form.shippingNorth1Ranges,
         shippingNorth2Ranges: form.shippingNorth2Ranges,
         shippingNorth3Ranges: form.shippingNorth3Ranges,
@@ -519,6 +529,65 @@ export default function VendorAddProductPage() {
                   value={form.stockQuantity}
                   onChange={(e) => setForm((prev) => ({ ...prev, stockQuantity: e.target.value }))}
                 />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Ideal Min pH</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  className="h-11 px-4 rounded-xl border border-slate-200 outline-hidden focus:ring-2 focus:ring-blue-500 text-sm font-medium"
+                  placeholder="6.0"
+                  value={form.phMin}
+                  onChange={(e) => setForm((prev) => ({ ...prev, phMin: e.target.value }))}
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Ideal Max pH</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  className="h-11 px-4 rounded-xl border border-slate-200 outline-hidden focus:ring-2 focus:ring-blue-500 text-sm font-medium"
+                  placeholder="8.0"
+                  value={form.phMax}
+                  onChange={(e) => setForm((prev) => ({ ...prev, phMax: e.target.value }))}
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Ideal Min Temp (°C)</label>
+                <input
+                  type="number"
+                  className="h-11 px-4 rounded-xl border border-slate-200 outline-hidden focus:ring-2 focus:ring-blue-500 text-sm font-medium"
+                  placeholder="20"
+                  value={form.tempMin}
+                  onChange={(e) => setForm((prev) => ({ ...prev, tempMin: e.target.value }))}
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Ideal Max Temp (°C)</label>
+                <input
+                  type="number"
+                  className="h-11 px-4 rounded-xl border border-slate-200 outline-hidden focus:ring-2 focus:ring-blue-500 text-sm font-medium"
+                  placeholder="30"
+                  value={form.tempMax}
+                  onChange={(e) => setForm((prev) => ({ ...prev, tempMax: e.target.value }))}
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Social Temperament</label>
+                <select
+                  className="h-11 px-4 rounded-xl border border-slate-200 bg-white text-sm font-medium outline-hidden focus:ring-2 focus:ring-blue-500"
+                  value={form.temperament}
+                  onChange={(e) => setForm((prev) => ({ ...prev, temperament: e.target.value }))}
+                >
+                  <option value="Peaceful">Peaceful</option>
+                  <option value="Semi-aggressive">Semi-aggressive</option>
+                  <option value="Aggressive">Aggressive</option>
+                </select>
               </div>
             </div>
           </div>

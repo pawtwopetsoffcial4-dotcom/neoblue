@@ -23,6 +23,11 @@ type EditProductForm = {
   inStock: boolean;
   deliverNorth: boolean;
   deliverSouth: boolean;
+  phMin: string;
+  phMax: string;
+  tempMin: string;
+  tempMax: string;
+  temperament: 'Peaceful' | 'Semi-aggressive' | 'Aggressive';
 };
 
 export default function VendorProductsPage() {
@@ -79,6 +84,11 @@ export default function VendorProductsPage() {
       inStock: product.inStock,
       deliverNorth: product.deliverNorth !== false,
       deliverSouth: product.deliverSouth !== false,
+      phMin: product.phMin != null ? String(product.phMin) : '6.0',
+      phMax: product.phMax != null ? String(product.phMax) : '8.0',
+      tempMin: product.tempMin != null ? String(product.tempMin) : '20',
+      tempMax: product.tempMax != null ? String(product.tempMax) : '30',
+      temperament: product.temperament ?? 'Peaceful',
     });
   };
 
@@ -125,6 +135,11 @@ export default function VendorProductsPage() {
         inStock: editForm.inStock,
         deliverNorth: editForm.deliverNorth,
         deliverSouth: editForm.deliverSouth,
+        phMin: Number(editForm.phMin),
+        phMax: Number(editForm.phMax),
+        tempMin: Number(editForm.tempMin),
+        tempMax: Number(editForm.tempMax),
+        temperament: editForm.temperament,
       });
       await loadProducts();
       closeEdit();
@@ -347,12 +362,51 @@ export default function VendorProductsPage() {
                   <option value="Saltwater">Saltwater</option>
                   <option value="Brackish">Brackish</option>
                 </select>
-                <input
+                 <input
                   className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Tag"
                   value={editForm.tag}
                   onChange={(event) => setEditForm((current) => current ? { ...current, tag: event.target.value } : current)}
                 />
+                <input
+                  type="number"
+                  step="0.1"
+                  className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Ideal Min pH"
+                  value={editForm.phMin}
+                  onChange={(event) => setEditForm((current) => current ? { ...current, phMin: event.target.value } : current)}
+                />
+                <input
+                  type="number"
+                  step="0.1"
+                  className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Ideal Max pH"
+                  value={editForm.phMax}
+                  onChange={(event) => setEditForm((current) => current ? { ...current, phMax: event.target.value } : current)}
+                />
+                <input
+                  type="number"
+                  className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Ideal Min Temp (°C)"
+                  value={editForm.tempMin}
+                  onChange={(event) => setEditForm((current) => current ? { ...current, tempMin: event.target.value } : current)}
+                />
+                <input
+                  type="number"
+                  className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Ideal Max Temp (°C)"
+                  value={editForm.tempMax}
+                  onChange={(event) => setEditForm((current) => current ? { ...current, tempMax: event.target.value } : current)}
+                />
+                <select
+                  className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                  value={editForm.temperament}
+                  onChange={(event) => setEditForm((current) => current ? { ...current, temperament: event.target.value as any } : current)}
+                >
+                  <option value="Peaceful">Peaceful</option>
+                  <option value="Semi-aggressive">Semi-aggressive</option>
+                  <option value="Aggressive">Aggressive</option>
+                </select>
                 <label className="flex items-center gap-3 h-11 px-4 rounded-xl border border-blue-200 bg-white">
                   <input
                     type="checkbox"

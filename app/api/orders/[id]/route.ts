@@ -89,6 +89,9 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
       return createErrorResponse('You can only update your own orders', 403);
     }
 
+    if (status === 'completed' && order.status !== 'completed') {
+      order.completedAt = new Date();
+    }
     order.status = status;
     if (notes) order.notes = notes;
     await order.save();

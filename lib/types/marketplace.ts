@@ -23,6 +23,11 @@ export type MarketplaceProduct = {
   shippingLotSize?: number;
   deliverNorth?: boolean;
   deliverSouth?: boolean;
+  phMin?: number;
+  phMax?: number;
+  tempMin?: number;
+  tempMax?: number;
+  temperament?: 'Peaceful' | 'Semi-aggressive' | 'Aggressive';
   createdAt?: string;
   updatedAt?: string;
 };

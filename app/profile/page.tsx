@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
-import { CreditCard, MapPin, Package, UserRound, LayoutDashboard, Fish, PlusCircle, PackageCheck, LogOut } from 'lucide-react';
+import { CreditCard, MapPin, Package, UserRound, LayoutDashboard, Fish, PlusCircle, PackageCheck, LogOut, Shield } from 'lucide-react';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { apiClient } from '@/lib/api-client';
 import type { MarketplaceProduct } from '@/lib/types/marketplace';
@@ -20,6 +20,7 @@ const vendorNavItems = [
   { href: '/vendor/products', label: 'Products', icon: Fish },
   { href: '/vendor/add-product', label: 'Add Product', icon: PlusCircle },
   { href: '/vendor/orders', label: 'Orders', icon: PackageCheck },
+  { href: '/vendor/claims', label: 'DOA Claims', icon: Shield },
 ];
 
 export default function ProfilePage() {
@@ -135,6 +136,9 @@ export default function ProfilePage() {
                 </Link>
                 <Link href="/vendor/orders" className="h-11 px-6 rounded-full border border-blue-200 text-blue-700 font-semibold hover:bg-blue-50 transition-colors inline-flex items-center">
                   View Orders
+                </Link>
+                <Link href="/vendor/claims" className="h-11 px-6 rounded-full border border-blue-200 text-blue-700 font-semibold hover:bg-blue-50 transition-colors inline-flex items-center">
+                  Manage DOA Claims
                 </Link>
               </div>
             </div>

@@ -44,6 +44,11 @@ export interface IProduct extends Document {
   shippingSouth4Ranges?: Array<{ id: string; weightRange: string; estimatedQuantity: string; charge: number; }>;
   deliverNorth?: boolean;
   deliverSouth?: boolean;
+  phMin?: number;
+  phMax?: number;
+  tempMin?: number;
+  tempMax?: number;
+  temperament?: 'Peaceful' | 'Semi-aggressive' | 'Aggressive';
   createdAt: Date;
   updatedAt: Date;
 }
@@ -172,6 +177,27 @@ const productSchema = new Schema<IProduct>(
     deliverSouth: {
       type: Boolean,
       default: true,
+    },
+    phMin: {
+      type: Number,
+      default: 6.0,
+    },
+    phMax: {
+      type: Number,
+      default: 8.0,
+    },
+    tempMin: {
+      type: Number,
+      default: 20,
+    },
+    tempMax: {
+      type: Number,
+      default: 30,
+    },
+    temperament: {
+      type: String,
+      enum: ['Peaceful', 'Semi-aggressive', 'Aggressive'],
+      default: 'Peaceful',
     },
   },
   { timestamps: true }

@@ -21,6 +21,7 @@ export interface IOrder extends Document {
   razorpayOrderId?: string;
   cashfreeOrderId?: string;
   notes?: string;
+  completedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -80,6 +81,7 @@ const orderSchema = new Schema<IOrder>(
     razorpayOrderId: String,
     cashfreeOrderId: String,
     notes: String,
+    completedAt: Date,
   },
   { timestamps: true }
 );

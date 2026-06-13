@@ -183,6 +183,29 @@ export class APIClient {
       method: 'DELETE',
     });
   }
+
+  // Claim methods
+  async getClaims() {
+    return this.request('/claims');
+  }
+
+  async getClaim(id: string) {
+    return this.request(`/claims/${id}`);
+  }
+
+  async createClaim(claimData: any) {
+    return this.request('/claims', {
+      method: 'POST',
+      body: JSON.stringify(claimData),
+    });
+  }
+
+  async processClaim(id: string, claimData: any) {
+    return this.request(`/claims/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(claimData),
+    });
+  }
 }
 
 export const apiClient = new APIClient();
