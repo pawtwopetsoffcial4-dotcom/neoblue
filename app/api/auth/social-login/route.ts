@@ -8,10 +8,11 @@ export async function POST(request: NextRequest) {
   try {
     await connectDB();
 
-    const { email, name, uid } = await request.json();
+    const { email, name, uid, role } = await request.json();
 
     const normalizedEmail = String(email || '').trim().toLowerCase();
     const normalizedName = String(name || '').trim();
+    const targetRole = role === 'vendor' ? 'vendor' : 'user';
 
     if (!normalizedEmail) {
       return createErrorResponse('Please provide email address from provider', 400);
@@ -27,7 +28,7 @@ export async function POST(request: NextRequest) {
         name: normalizedName || 'Social User',
         email: normalizedEmail,
         password: placeholderPassword,
-        role: 'user',
+        role: targetRole,
         isApproved: false,
       });
     }

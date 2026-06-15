@@ -17,7 +17,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   signup: (name: string, email: string, password: string, role: 'user' | 'vendor') => Promise<User>;
   login: (email: string, password: string) => Promise<User>;
-  loginWithSocial: (name: string, email: string, uid: string) => Promise<User>;
+  loginWithSocial: (name: string, email: string, uid: string, role?: 'user' | 'vendor') => Promise<User>;
   logout: () => void;
   error: string | null;
   clearError: () => void;
@@ -105,14 +105,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const loginWithSocial = async (name: string, email: string, uid: string): Promise<User> => {
+  const loginWithSocial = async (name: string, email: string, uid: string, role?: 'user' | 'vendor'): Promise<User> => {
     setIsLoading(true);
     setError(null);
     try {
       const response = await fetch('/api/auth/social-login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, uid }),
+        body: JSON.stringify({ name, email, uid, role }),
       });
 
       if (!response.ok) {
