@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import type { MarketplaceProduct } from '@/lib/types/marketplace';
+import { useAuth } from './useAuth';
 
 export type CartItem = {
   productId: string;
@@ -25,21 +26,58 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const { user } = useAuth();
 
+  // Load/merge carts on user change
   useEffect(() => {
-    const raw = localStorage.getItem('neoblue-cart');
-    if (raw) {
+    setIsLoaded(false);
+    const rawUserCart = user ? localStorage.getItem(`neoblue-cart-${user.id}`) : null;
+    const rawGuestCart = localStorage.getItem('neoblue-cart-guest');
+
+    let userItems: CartItem[] = [];
+    if (user && rawUserCart) {
       try {
-        setItems(JSON.parse(raw));
-      } catch {
-        localStorage.removeItem('neoblue-cart');
-      }
+        userItems = JSON.parse(rawUserCart);
+      } catch {}
     }
-  }, []);
 
+    let guestItems: CartItem[] = [];
+    if (rawGuestCart) {
+      try {
+        guestItems = JSON.parse(rawGuestCart);
+      } catch {}
+    }
+
+    if (user) {
+      if (guestItems.length > 0) {
+        const merged = [...userItems];
+        guestItems.forEach((gItem) => {
+          const existing = merged.find((uItem) => uItem.productId === gItem.productId);
+          if (existing) {
+            existing.quantity += gItem.quantity;
+          } else {
+            merged.push(gItem);
+          }
+        });
+        setItems(merged);
+        localStorage.setItem(`neoblue-cart-${user.id}`, JSON.stringify(merged));
+        localStorage.removeItem('neoblue-cart-guest');
+      } else {
+        setItems(userItems);
+      }
+    } else {
+      setItems(guestItems);
+    }
+    setIsLoaded(true);
+  }, [user]);
+
+  // Save items to localStorage whenever they change, but ONLY after initial load completes
   useEffect(() => {
-    localStorage.setItem('neoblue-cart', JSON.stringify(items));
-  }, [items]);
+    if (!isLoaded) return;
+    const key = user ? `neoblue-cart-${user.id}` : 'neoblue-cart-guest';
+    localStorage.setItem(key, JSON.stringify(items));
+  }, [items, user, isLoaded]);
 
   const addToCart = (product: MarketplaceProduct) => {
     setItems((prev) => {
