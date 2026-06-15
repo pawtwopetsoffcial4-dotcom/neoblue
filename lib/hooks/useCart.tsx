@@ -31,65 +31,124 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   // Load/merge carts on user change
   useEffect(() => {
-    setIsLoaded(false);
-    const rawUserCart = user ? localStorage.getItem(`neoblue-cart-${user.id}`) : null;
-    const rawGuestCart = localStorage.getItem('neoblue-cart-guest');
-
-    let userItems: CartItem[] = [];
-    if (user && rawUserCart) {
-      try {
-        userItems = JSON.parse(rawUserCart);
-      } catch {}
-    }
-
-    let guestItems: CartItem[] = [];
-    if (rawGuestCart) {
-      try {
-        guestItems = JSON.parse(rawGuestCart);
-      } catch {}
-    }
-
-    if (user) {
-      if (guestItems.length > 0) {
-        const merged = [...userItems];
-        guestItems.forEach((gItem) => {
-          const existing = merged.find((uItem) => uItem.productId === gItem.productId);
-          if (existing) {
-            existing.quantity += gItem.quantity;
-          } else {
-            merged.push(gItem);
-          }
-        });
-        setItems(merged);
-        localStorage.setItem(`neoblue-cart-${user.id}`, JSON.stringify(merged));
-        localStorage.removeItem('neoblue-cart-guest');
-      } else {
-        setItems(userItems);
+    const loadCart = async () => {
+      setIsLoaded(false);
+      const rawGuestCart = localStorage.getItem('neoblue-cart-guest');
+      let guestItems: CartItem[] = [];
+      if (rawGuestCart) {
+        try {
+          guestItems = JSON.parse(rawGuestCart);
+        } catch {}
       }
-    } else {
-      setItems(guestItems);
-    }
-    setIsLoaded(true);
+
+      if (user) {
+        try {
+          // Fetch user's cart from database
+          const response = await fetch('/api/cart');
+          if (response.ok) {
+            const data = await response.json();
+            const dbItems: CartItem[] = data.items || [];
+
+            if (guestItems.length > 0) {
+              // Merge guest items with database items
+              const merged = [...dbItems];
+              guestItems.forEach((gItem) => {
+                const existing = merged.find((uItem) => uItem.productId === gItem.productId);
+                if (existing) {
+                  existing.quantity += gItem.quantity;
+                } else {
+                  merged.push(gItem);
+                }
+              });
+
+              // Save merged cart to database
+              const saveResponse = await fetch('/api/cart', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  items: merged.map((item) => ({ productId: item.productId, quantity: item.quantity })),
+                }),
+              });
+
+              if (saveResponse.ok) {
+                const saveData = await saveResponse.json();
+                setItems(saveData.items || merged);
+              } else {
+                setItems(merged);
+              }
+              // Clear guest cart
+              localStorage.removeItem('neoblue-cart-guest');
+            } else {
+              setItems(dbItems);
+            }
+          } else {
+            // Fallback to local storage on API failure
+            const rawUserCart = localStorage.getItem(`neoblue-cart-${user.id}`);
+            let userItems: CartItem[] = [];
+            if (rawUserCart) {
+              try {
+                userItems = JSON.parse(rawUserCart);
+              } catch {}
+            }
+            setItems(userItems);
+          }
+        } catch (err) {
+          console.error('Failed to load cart from DB, falling back to localStorage:', err);
+          const rawUserCart = localStorage.getItem(`neoblue-cart-${user.id}`);
+          let userItems: CartItem[] = [];
+          if (rawUserCart) {
+            try {
+              userItems = JSON.parse(rawUserCart);
+            } catch {}
+          }
+          setItems(userItems);
+        }
+      } else {
+        // Guest user: load from local storage
+        setItems(guestItems);
+      }
+      setIsLoaded(true);
+    };
+
+    loadCart();
   }, [user]);
 
-  // Save items to localStorage whenever they change, but ONLY after initial load completes
+  // Save items to localStorage whenever they change, but ONLY after initial load completes (serves as fallback backup)
   useEffect(() => {
     if (!isLoaded) return;
     const key = user ? `neoblue-cart-${user.id}` : 'neoblue-cart-guest';
     localStorage.setItem(key, JSON.stringify(items));
   }, [items, user, isLoaded]);
 
-  const addToCart = (product: MarketplaceProduct) => {
-    setItems((prev) => {
-      const existing = prev.find((item) => item.productId === product._id);
-      if (existing) {
-        return prev.map((item) =>
-          item.productId === product._id ? { ...item, quantity: item.quantity + 1 } : item
-        );
-      }
+  // Helper to sync cart changes with database
+  const syncCartToDB = async (currentItems: CartItem[]) => {
+    if (!user) return;
+    try {
+      await fetch('/api/cart', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: currentItems.map((item) => ({
+            productId: item.productId,
+            quantity: item.quantity,
+          })),
+        }),
+      });
+    } catch (err) {
+      console.error('Failed to sync cart to database:', err);
+    }
+  };
 
-      return [
-        ...prev,
+  const addToCart = (product: MarketplaceProduct) => {
+    const existing = items.find((item) => item.productId === product._id);
+    let newItems: CartItem[] = [];
+    if (existing) {
+      newItems = items.map((item) =>
+        item.productId === product._id ? { ...item, quantity: item.quantity + 1 } : item
+      );
+    } else {
+      newItems = [
+        ...items,
         {
           productId: product._id,
           title: product.title,
@@ -98,11 +157,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           quantity: 1,
         },
       ];
-    });
+    }
+    setItems(newItems);
+    syncCartToDB(newItems);
   };
 
   const removeFromCart = (productId: string) => {
-    setItems((prev) => prev.filter((item) => item.productId !== productId));
+    const newItems = items.filter((item) => item.productId !== productId);
+    setItems(newItems);
+    syncCartToDB(newItems);
   };
 
   const updateQuantity = (productId: string, quantity: number) => {
@@ -110,13 +173,17 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       removeFromCart(productId);
       return;
     }
-
-    setItems((prev) =>
-      prev.map((item) => (item.productId === productId ? { ...item, quantity } : item))
+    const newItems = items.map((item) =>
+      item.productId === productId ? { ...item, quantity } : item
     );
+    setItems(newItems);
+    syncCartToDB(newItems);
   };
 
-  const clearCart = () => setItems([]);
+  const clearCart = () => {
+    setItems([]);
+    syncCartToDB([]);
+  };
 
   const cartCount = useMemo(
     () => items.reduce((sum, item) => sum + item.quantity, 0),
