@@ -17,6 +17,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   signup: (name: string, email: string, password: string, role: 'user' | 'vendor') => Promise<User>;
   login: (email: string, password: string) => Promise<User>;
+  loginWithSocial: (name: string, email: string, uid: string) => Promise<User>;
   logout: () => void;
   error: string | null;
   clearError: () => void;
@@ -104,6 +105,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const loginWithSocial = async (name: string, email: string, uid: string): Promise<User> => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await fetch('/api/auth/social-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, uid }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Social login failed');
+      }
+
+      const data = await response.json();
+      setToken(data.token);
+      setUser(data.user);
+      localStorage.setItem('authToken', data.token);
+      localStorage.setItem('authUser', JSON.stringify(data.user));
+      return data.user as User;
+    } catch (err: any) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const logout = () => {
     setUser(null);
     setToken(null);
@@ -122,6 +152,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAuthenticated: !!token,
         signup,
         login,
+        loginWithSocial,
         logout,
         error,
         clearError,
