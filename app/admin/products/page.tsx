@@ -28,6 +28,8 @@ type AdminProduct = {
   approvalStatus?: 'pending' | 'approved' | 'rejected';
   scientific?: string;
   vendorId?: { _id?: string; name?: string; email?: string };
+  isTrending?: boolean;
+  isNewArrival?: boolean;
 };
 
 type EditFormState = {
@@ -41,6 +43,8 @@ type EditFormState = {
   inStock: boolean;
   approvalStatus: 'pending' | 'approved' | 'rejected';
   images: string[];
+  isTrending: boolean;
+  isNewArrival: boolean;
 };
 
 export default function AdminProductsPage() {
@@ -122,6 +126,8 @@ export default function AdminProductsPage() {
       inStock: product.inStock,
       approvalStatus: product.approvalStatus ?? 'pending',
       images: product.images?.length ? [...product.images] : [],
+      isTrending: product.isTrending || false,
+      isNewArrival: product.isNewArrival || false,
     });
   };
 
@@ -207,6 +213,8 @@ export default function AdminProductsPage() {
         scientific: editForm.scientific,
         inStock: editForm.inStock,
         approvalStatus: editForm.approvalStatus,
+        isTrending: editForm.isTrending,
+        isNewArrival: editForm.isNewArrival,
       });
       await loadProducts();
       setMessage('Product updated successfully');
@@ -229,6 +237,34 @@ export default function AdminProductsPage() {
       setMessage('Product deleted successfully');
     } catch (error: any) {
       setMessage(error.message || 'Failed to delete product');
+    }
+  };
+
+  const toggleTrending = async (product: AdminProduct) => {
+    try {
+      setMessage(null);
+      const nextValue = !product.isTrending;
+      await apiClient.updateProduct(product._id, { isTrending: nextValue });
+      setProducts((current) =>
+        current.map((p) => (p._id === product._id ? { ...p, isTrending: nextValue } : p))
+      );
+      setMessage(`Updated trending status for ${product.title}`);
+    } catch (error: any) {
+      setMessage(error.message || 'Failed to update trending status');
+    }
+  };
+
+  const toggleNewArrival = async (product: AdminProduct) => {
+    try {
+      setMessage(null);
+      const nextValue = !product.isNewArrival;
+      await apiClient.updateProduct(product._id, { isNewArrival: nextValue });
+      setProducts((current) =>
+        current.map((p) => (p._id === product._id ? { ...p, isNewArrival: nextValue } : p))
+      );
+      setMessage(`Updated new arrival status for ${product.title}`);
+    } catch (error: any) {
+      setMessage(error.message || 'Failed to update new arrival status');
     }
   };
 
@@ -288,14 +324,25 @@ export default function AdminProductsPage() {
             Loading products...
           </div>
         )}
-
         {!isLoading && filteredProducts.map((product) => {
           const status = product.approvalStatus ?? 'pending';
           return (
             <article key={product._id} className="rounded-2xl bg-white border border-blue-100 p-5">
               <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-                <div>
-                  <p className="font-bold text-slate-900">{product.title}</p>
+                <div className="flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="font-bold text-slate-900">{product.title}</p>
+                    {product.isTrending && (
+                      <span className="text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">
+                        Trending
+                      </span>
+                    )}
+                    {product.isNewArrival && (
+                      <span className="text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                        New Arrival
+                      </span>
+                    )}
+                  </div>
                   <p className="text-sm text-slate-600 mt-1">{product.description}</p>
                   <p className="text-sm text-slate-500 mt-2">
                     Vendor: {product.vendorId?.name ?? product.vendorId?.email ?? 'Unknown'}
@@ -310,9 +357,30 @@ export default function AdminProductsPage() {
                     </button>
                   </div>
                   <p className="text-xs mt-2 font-semibold text-blue-700 uppercase tracking-wider">{status}</p>
+
+                  <div className="flex flex-wrap items-center gap-4 mt-3 pt-3 border-t border-slate-50">
+                    <label className="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={product.isTrending || false}
+                        onChange={() => toggleTrending(product)}
+                        className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 h-4 w-4"
+                      />
+                      Trending Fish
+                    </label>
+                    <label className="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={product.isNewArrival || false}
+                        onChange={() => toggleNewArrival(product)}
+                        className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 h-4 w-4"
+                      />
+                      New Arrival
+                    </label>
+                  </div>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2 lg:self-start">
                   <button
                     onClick={() => setApproval(product._id, 'approved')}
                     disabled={status === 'approved'}
@@ -344,7 +412,6 @@ export default function AdminProductsPage() {
             </article>
           );
         })}
-
         {!isLoading && filteredProducts.length === 0 && (
           <div className="rounded-2xl bg-white border border-blue-100 p-8 text-center text-slate-600">
             No products for this filter.
@@ -429,6 +496,7 @@ export default function AdminProductsPage() {
                   <option value="rejected">Rejected</option>
                 </select>
 
+
                 <label className="flex items-center gap-3 h-11 px-4 rounded-xl border border-blue-200 bg-white">
                   <input
                     type="checkbox"
@@ -437,6 +505,26 @@ export default function AdminProductsPage() {
                     className="h-4 w-4 rounded border-blue-300"
                   />
                   <span className="text-sm font-medium text-slate-700">In stock</span>
+                </label>
+
+                <label className="flex items-center gap-3 h-11 px-4 rounded-xl border border-blue-200 bg-white">
+                  <input
+                    type="checkbox"
+                    checked={editForm.isTrending}
+                    onChange={(event) => setEditForm((current) => current ? { ...current, isTrending: event.target.checked } : current)}
+                    className="h-4 w-4 rounded border-blue-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm font-medium text-slate-700">Trending Fish</span>
+                </label>
+
+                <label className="flex items-center gap-3 h-11 px-4 rounded-xl border border-blue-200 bg-white">
+                  <input
+                    type="checkbox"
+                    checked={editForm.isNewArrival}
+                    onChange={(event) => setEditForm((current) => current ? { ...current, isNewArrival: event.target.checked } : current)}
+                    className="h-4 w-4 rounded border-blue-300 text-emerald-600 focus:ring-emerald-500"
+                  />
+                  <span className="text-sm font-medium text-slate-700">New Arrival</span>
                 </label>
               </div>
 

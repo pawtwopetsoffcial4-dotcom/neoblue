@@ -21,6 +21,8 @@ type HeroCardProduct = {
   rating?: number;
   reviewsCount?: number;
   createdAt?: string;
+  isTrending?: boolean;
+  isNewArrival?: boolean;
 };
 
 const DEFAULT_IMAGE = 'https://images.stockcake.com/public/1/9/4/194f4315-a8d9-422b-b237-18b1e224b7a1_large/colorful-tropical-fish-stockcake.jpg';
@@ -152,7 +154,7 @@ export default function NeoBlueMobileOptimized() {
         setIsLoading(true);
 
         const [productsResponse, categoriesResponse] = await Promise.all([
-          fetch('/api/products?limit=24', { cache: 'no-store' }),
+          fetch('/api/products?limit=100', { cache: 'no-store' }),
           fetch('/api/categories', { cache: 'no-store' }),
         ]);
 
@@ -197,22 +199,25 @@ export default function NeoBlueMobileOptimized() {
         rating: product.rating,
         reviewsCount: product.reviewsCount,
         createdAt: product.createdAt,
+        isTrending: product.isTrending,
+        isNewArrival: product.isNewArrival,
       })),
     [products]
   );
 
-  const trendingProducts = useMemo(
-    () => [...cards].sort((a, b) => (Number(b.rating) || 0) - (Number(a.rating) || 0)).slice(0, 8),
-    [cards]
-  );
+  const trendingProducts = useMemo(() => {
+    const selected = cards.filter((c) => c.isTrending);
+    if (selected.length > 0) return selected;
+    return [...cards].sort((a, b) => (Number(b.rating) || 0) - (Number(a.rating) || 0)).slice(0, 8);
+  }, [cards]);
 
-  const newArrivalProducts = useMemo(
-    () =>
-      [...cards]
-        .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
-        .slice(0, 8),
-    [cards]
-  );
+  const newArrivalProducts = useMemo(() => {
+    const selected = cards.filter((c) => c.isNewArrival);
+    if (selected.length > 0) return selected;
+    return [...cards]
+      .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+      .slice(0, 8);
+  }, [cards]);
 
   const categories = useMemo(() => {
     const list = categoriesFromDb.length > 0

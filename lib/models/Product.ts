@@ -49,6 +49,8 @@ export interface IProduct extends Document {
   tempMin?: number;
   tempMax?: number;
   temperament?: 'Peaceful' | 'Semi-aggressive' | 'Aggressive';
+  isTrending?: boolean;
+  isNewArrival?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -198,6 +200,14 @@ const productSchema = new Schema<IProduct>(
       type: String,
       enum: ['Peaceful', 'Semi-aggressive', 'Aggressive'],
       default: 'Peaceful',
+    },
+    isTrending: {
+      type: Boolean,
+      default: false,
+    },
+    isNewArrival: {
+      type: Boolean,
+      default: false,
     },
   },
   { timestamps: true }

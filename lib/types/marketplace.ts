@@ -28,6 +28,8 @@ export type MarketplaceProduct = {
   tempMin?: number;
   tempMax?: number;
   temperament?: 'Peaceful' | 'Semi-aggressive' | 'Aggressive';
+  isTrending?: boolean;
+  isNewArrival?: boolean;
   createdAt?: string;
   updatedAt?: string;
 };
