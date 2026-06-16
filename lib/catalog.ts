@@ -69,14 +69,14 @@ export const getSubcategoriesForCategory = (category: string) =>
   (PRODUCT_CATALOG as Record<string, readonly string[]>)[category] ?? [];
 
 export const CATEGORY_IMAGES: Record<string, string> = {
-  Guppies: 'https://images.unsplash.com/photo-1534080391025-a77c4e77243c?w=150&auto=format&fit=crop&q=80',
-  Crayfish: 'https://images.unsplash.com/photo-1618482623956-6a589cf8b006?w=150&auto=format&fit=crop&q=80',
-  'Jewel Cichlid': 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=150&auto=format&fit=crop&q=80',
-  'Ram Cichlid': 'https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?w=150&auto=format&fit=crop&q=80',
-  Kribensis: 'https://images.unsplash.com/photo-1524704654690-b56c05c78a02?w=150&auto=format&fit=crop&q=80',
-  Apistogramma: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=150&auto=format&fit=crop&q=80',
+  Guppies: '/fishes_cat_cover/Guppies.jpeg',
+  Crayfish: '/fishes_cat_cover/Crayfish.png',
+  'Jewel Cichlid': '/fishes_cat_cover/Jewel_Cichlid.png',
+  'Ram Cichlid': '/fishes_cat_cover/Rams.jpeg',
+  Kribensis: '/fishes_cat_cover/Kribensis.png',
+  Apistogramma: '/fishes_cat_cover/Apistogramma.png',
 };
 
 export const getCategoryImage = (category: string): string => {
-  return CATEGORY_IMAGES[category] || 'https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?w=150&auto=format&fit=crop&q=80';
+  return CATEGORY_IMAGES[category] || '/fishes_cat_cover/Guppies.jpeg';
 };
