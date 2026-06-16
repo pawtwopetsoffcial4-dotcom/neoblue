@@ -1,10 +1,12 @@
 import jwt from 'jsonwebtoken';
 import { NextRequest, NextResponse } from 'next/server';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key_change_in_production_12345';
-
-if (process.env.NODE_ENV === 'production' && (!process.env.JWT_SECRET || process.env.JWT_SECRET === 'your_jwt_secret_key_change_in_production_12345')) {
-  throw new Error('CRITICAL SECURITY ERROR: JWT_SECRET must be securely set in a production environment.');
+function getJwtSecret(): string {
+  const secret = process.env.JWT_SECRET || 'your_jwt_secret_key_change_in_production_12345';
+  if (process.env.NODE_ENV === 'production' && (!process.env.JWT_SECRET || process.env.JWT_SECRET === 'your_jwt_secret_key_change_in_production_12345')) {
+    throw new Error('CRITICAL SECURITY ERROR: JWT_SECRET must be securely set in a production environment.');
+  }
+  return secret;
 }
 
 let googlePublicKeys: Record<string, string> | null = null;
@@ -79,12 +81,12 @@ export interface TokenPayload {
 }
 
 export function generateToken(payload: TokenPayload): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
+  return jwt.sign(payload, getJwtSecret(), { expiresIn: '7d' });
 }
 
 export function verifyToken(token: string): TokenPayload | null {
   try {
-    return jwt.verify(token, JWT_SECRET) as TokenPayload;
+    return jwt.verify(token, getJwtSecret()) as TokenPayload;
   } catch (error) {
     return null;
   }
