@@ -24,6 +24,15 @@ const generateDescription = (category: string, name: string) => {
   if (category === 'Kribensis') {
     return `The ${name} is a colorful and relatively peaceful dwarf cichlid. Known for their intriguing breeding behavior and stunning breeding dress, they are a fantastic addition to a community tank with appropriately sized tank mates.`;
   }
+  if (category === 'Jewel Cichlid') {
+    return `The ${name} is a highly territorial, remarkably colorful African cichlid. Known for its brilliant coloration, especially during breeding, it makes a stunning center-piece for cichlid-focused setups with adequate rocky formations and hiding places.`;
+  }
+  if (category === 'Ram Cichlid') {
+    return `The ${name} is a popular dwarf cichlid prized for its peaceful nature and spectacular iridescent colors. They thrive in well-planted community tanks with warm, soft, and clean water conditions.`;
+  }
+  if (category === 'Apistogramma') {
+    return `The ${name} is a gorgeous South American dwarf cichlid, highly sought-after for its elaborate finnage and fascinating harem-spawning behaviors. It prefers soft, slightly acidic water and a tank rich with leaf litter and caves.`;
+  }
   return `The ${name} is a wonderful addition to any aquarium, bringing life and activity to your aquatic setup. Ensure proper water conditions and diet for optimal health and vibrant colors.`;
 };
 
