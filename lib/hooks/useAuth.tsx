@@ -6,6 +6,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  phone?: string;
   role: 'user' | 'vendor' | 'admin';
   isApproved: boolean;
 }
@@ -15,7 +16,7 @@ interface AuthContextType {
   token: string | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  signup: (name: string, email: string, password: string, role: 'user' | 'vendor') => Promise<User>;
+  signup: (name: string, email: string, password: string, phone: string, role: 'user' | 'vendor') => Promise<User>;
   login: (email: string, password: string) => Promise<User>;
   loginWithSocial: (name: string, email: string, idToken: string, role?: 'user' | 'vendor') => Promise<User>;
   logout: () => void;
@@ -47,14 +48,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const signup = async (name: string, email: string, password: string, role: 'user' | 'vendor'): Promise<User> => {
+  const signup = async (name: string, email: string, password: string, phone: string, role: 'user' | 'vendor'): Promise<User> => {
     setIsLoading(true);
     setError(null);
     try {
       const response = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password, role }),
+        body: JSON.stringify({ name, email, password, phone, role }),
       });
 
       if (!response.ok) {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 interface Comment {
   _id: string;
@@ -30,7 +30,7 @@ export default function BlogComments({ blogId }: BlogCommentsProps) {
   const [success, setSuccess] = useState(false);
 
   // Load comments
-  const loadComments = async () => {
+  const loadComments = useCallback(async () => {
     try {
       setLoading(true);
       const res = await fetch(`/api/blogs/${blogId}/comments`);
@@ -43,7 +43,12 @@ export default function BlogComments({ blogId }: BlogCommentsProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [blogId]);
+
+  // Load comments on mount and when blogId changes
+  useEffect(() => {
+    loadComments();
+  }, [loadComments]);
 
   // Submit comment
   const handleSubmit = async (e: React.FormEvent) => {

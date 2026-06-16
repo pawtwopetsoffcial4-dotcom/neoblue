@@ -25,7 +25,7 @@ function CheckoutPageContent() {
   const [productDetails, setProductDetails] = useState<Record<string, MarketplaceProduct>>({});
   const [isSavingAddress, setIsSavingAddress] = useState(false);
   const [saveAddress, setSaveAddress] = useState(true);
-  const [address, setAddress] = useState({ street: '', city: '', state: '', zipcode: '' });
+  const [address, setAddress] = useState({ street: '', city: '', state: '', zipcode: '', phone: '' });
   const [selectedShipping, setSelectedShipping] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -44,11 +44,20 @@ function CheckoutPageContent() {
 
         const response = await apiClient.request<{
           defaultAddress?: { street: string; city: string; state: string; zipcode: string } | null;
+          phone?: string;
         }>('/profile/address');
 
         const saved = response?.defaultAddress;
         if (saved?.street && saved?.city && saved?.state && saved?.zipcode) {
-          setAddress(saved);
+          setAddress({
+            street: saved.street,
+            city: saved.city,
+            state: saved.state,
+            zipcode: saved.zipcode,
+            phone: response?.phone || '',
+          });
+        } else if (response?.phone) {
+          setAddress((prev) => ({ ...prev, phone: response.phone || '' }));
         }
       } catch (error) {
         console.error('Error loading saved address:', error);
@@ -220,8 +229,8 @@ function CheckoutPageContent() {
       return;
     }
 
-    if (!address.street || !address.city || !address.state || !address.zipcode) {
-      alert('Please fill delivery address.');
+    if (!address.street || !address.city || !address.state || !address.zipcode || !address.phone) {
+      alert('Please fill all delivery details including phone number.');
       return;
     }
 
@@ -238,6 +247,7 @@ function CheckoutPageContent() {
               city: address.city,
               state: address.state,
               zipcode: address.zipcode,
+              phone: address.phone,
               isDefault: true,
             }),
           });
@@ -530,6 +540,16 @@ function CheckoutPageContent() {
                       placeholder="400001" 
                       value={address.zipcode} 
                       onChange={(e) => setAddress((prev) => ({ ...prev, zipcode: e.target.value }))} 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Phone Number</label>
+                    <input 
+                      type="tel"
+                      className="w-full h-12 px-4 rounded-xl bg-gray-50 border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all font-medium placeholder:text-gray-400 text-gray-900" 
+                      placeholder="9999999999" 
+                      value={address.phone} 
+                      onChange={(e) => setAddress((prev) => ({ ...prev, phone: e.target.value }))} 
                     />
                   </div>
 

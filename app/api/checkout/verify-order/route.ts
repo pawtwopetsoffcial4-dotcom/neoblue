@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createErrorResponse, getTokenFromRequest, verifyToken } from '@/lib/utils/auth';
+import { connectDB } from '@/lib/db';
+import Order from '@/lib/models/Order';
 
 const appId = process.env.CASHFREE_APP_ID;
 const secretKey = process.env.CASHFREE_SECRET_KEY;
@@ -9,6 +11,8 @@ const getCashfreeBaseUrl = () => (cashfreeEnv === 'production' ? 'https://api.ca
 
 export async function GET(request: NextRequest) {
   try {
+    await connectDB();
+
     if (!appId || !secretKey) {
       return createErrorResponse('Cashfree keys are not configured', 500);
     }
@@ -64,12 +68,20 @@ export async function GET(request: NextRequest) {
       cfPaymentId = successPayment?.cf_payment_id || null;
     }
 
+    const isPaid = orderData.order_status === 'PAID';
+    if (isPaid) {
+      await Order.updateMany(
+        { cashfreeOrderId: orderId },
+        { status: 'placed', paymentId: cfPaymentId || orderId }
+      );
+    }
+
     return NextResponse.json({
       orderId,
       orderStatus: orderData.order_status,
       paymentStatus: orderData.order_status,
       cfPaymentId,
-      isPaid: orderData.order_status === 'PAID',
+      isPaid,
     });
   } catch (error: any) {
     return createErrorResponse(error.message || 'Failed to verify Cashfree order', 500);

@@ -7,12 +7,17 @@ export async function POST(request: NextRequest) {
   try {
     await connectDB();
 
-    const { name, email, password } = await request.json();
+    const { name, email, password, phone } = await request.json();
     const normalizedEmail = String(email || '').trim().toLowerCase();
 
     // Validate input
-    if (!name || !normalizedEmail || !password) {
+    if (!name || !normalizedEmail || !password || !phone) {
       return createErrorResponse('Please provide all required fields', 400);
+    }
+
+    const normalizedPhone = String(phone || '').trim();
+    if (normalizedPhone.length < 10) {
+      return createErrorResponse('Please provide a valid phone number (at least 10 digits)', 400);
     }
 
     // Check if user already exists
@@ -38,6 +43,7 @@ export async function POST(request: NextRequest) {
               id: existingUser._id,
               name: existingUser.name,
               email: existingUser.email,
+              phone: existingUser.phone,
               role: existingUser.role,
               isApproved: existingUser.isApproved,
             },
@@ -53,6 +59,7 @@ export async function POST(request: NextRequest) {
     const user = await User.create({
       name,
       email: normalizedEmail,
+      phone: normalizedPhone,
       password,
       role: 'user',
       isApproved: true,
@@ -73,6 +80,7 @@ export async function POST(request: NextRequest) {
           id: user._id,
           name: user.name,
           email: user.email,
+          phone: user.phone,
           role: user.role,
           isApproved: user.isApproved,
         },

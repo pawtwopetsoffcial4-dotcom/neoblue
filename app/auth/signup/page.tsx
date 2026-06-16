@@ -11,6 +11,7 @@ import { auth, googleProvider, facebookProvider } from '@/lib/firebase';
 export default function SignupPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -29,13 +30,18 @@ export default function SignupPage() {
     e.preventDefault();
     clearError();
 
+    if (phone.trim().length < 10) {
+      alert('Please enter a valid phone number (at least 10 digits)');
+      return;
+    }
+
     if (password !== confirmPassword) {
       alert('Passwords do not match');
       return;
     }
 
     try {
-      const signedUpUser = await signup(name, email, password, 'user');
+      const signedUpUser = await signup(name, email, password, phone, 'user');
       router.push(getRedirectPath(signedUpUser.role));
     } catch (err) {
       // Error is already set in context
@@ -106,6 +112,18 @@ export default function SignupPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
+                className="w-full px-4 py-3 rounded-lg border border-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">Phone Number</label>
+              <input
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="9876543210"
                 className="w-full px-4 py-3 rounded-lg border border-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 required
               />

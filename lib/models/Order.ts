@@ -16,7 +16,7 @@ export interface IOrder extends Document {
     state: string;
     zipcode: string;
   };
-  status: 'placed' | 'accepted' | 'preparing' | 'completed' | 'cancelled';
+  status: 'pending' | 'placed' | 'accepted' | 'preparing' | 'completed' | 'cancelled';
   paymentId?: string;
   razorpayOrderId?: string;
   cashfreeOrderId?: string;
@@ -74,8 +74,8 @@ const orderSchema = new Schema<IOrder>(
     },
     status: {
       type: String,
-      enum: ['placed', 'accepted', 'preparing', 'completed', 'cancelled'],
-      default: 'placed',
+      enum: ['pending', 'placed', 'accepted', 'preparing', 'completed', 'cancelled'],
+      default: 'pending',
     },
     paymentId: String,
     razorpayOrderId: String,

@@ -300,28 +300,7 @@ export default function NeoBlueMobileOptimized() {
         ) : null}
       </MobileScrollSection>
 
-      {/* 6. BOTTOM NAVIGATION BAR (Mobile Only - Based on the 4 blocks sketch) */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-xl border-t border-blue-50 px-6 py-3 pb-safe">
-        <div className="flex items-center justify-between">
-          <Link href="/" className="flex flex-col items-center gap-1 text-blue-600">
-            <Home className="h-5 w-5" fill="currentColor" />
-            <span className="text-[9px] font-bold">Home</span>
-          </Link>
-          <Link href="/categories" className="flex flex-col items-center gap-1 text-blue-300 hover:text-blue-600 transition-colors">
-            <Search className="h-5 w-5" />
-            <span className="text-[9px] font-bold">Browse</span>
-          </Link>
-          <Link href="/cart" className="flex flex-col items-center gap-1 text-blue-300 hover:text-blue-600 transition-colors relative">
-            <div className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-blue-600 border-2 border-white" />
-            <ShoppingBag className="h-5 w-5" />
-            <span className="text-[9px] font-bold">Cart</span>
-          </Link>
-          <Link href="/profile" className="flex flex-col items-center gap-1 text-blue-300 hover:text-blue-600 transition-colors">
-            <User className="h-5 w-5" />
-            <span className="text-[9px] font-bold">Profile</span>
-          </Link>
-        </div>
-      </nav>
+
 
       {/* Basic spacing for desktop footer to avoid breaking if viewed on large screen */}
       <div className="hidden md:block py-10 text-center text-xs text-blue-300">

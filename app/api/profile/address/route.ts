@@ -46,6 +46,7 @@ export async function GET(request: NextRequest) {
     return createSuccessResponse({
       defaultAddress,
       addresses: Array.isArray(authed.user.addresses) ? authed.user.addresses : [],
+      phone: authed.user.phone || '',
     });
   } catch (error: any) {
     return createErrorResponse(error.message || 'Failed to load saved address', 500);
@@ -85,6 +86,9 @@ export async function POST(request: NextRequest) {
       : [...existingAddresses, newAddress];
 
     authed.user.addresses = nextAddresses;
+    if (body?.phone) {
+      authed.user.phone = body.phone;
+    }
     await authed.user.save();
 
     return createSuccessResponse({
@@ -142,6 +146,9 @@ export async function PUT(request: NextRequest) {
     }
 
     authed.user.addresses = existingAddresses;
+    if (body?.phone) {
+      authed.user.phone = body.phone;
+    }
     await authed.user.save();
 
     return createSuccessResponse({

@@ -27,14 +27,72 @@ export async function GET(request: NextRequest) {
       return createErrorResponse('Invalid token', 401);
     }
 
+    // Self-healing check for recent pending orders
+    try {
+      const checkTime = new Date(Date.now() - 60 * 60 * 1000); // last 1 hour
+      const queryPending: any = { status: 'pending', createdAt: { $gt: checkTime } };
+      if (payload.role === 'user') {
+        queryPending.userId = payload.userId;
+      } else if (payload.role === 'vendor') {
+        queryPending.vendorId = payload.userId;
+      }
+
+      const pendingOrders = await Order.find(queryPending);
+      if (pendingOrders.length > 0 && appId && secretKey) {
+        const uniqueCfIds = Array.from(new Set(pendingOrders.map(o => o.cashfreeOrderId).filter(Boolean)));
+        for (const cfId of uniqueCfIds) {
+          const orderRes = await fetch(`${getCashfreeBaseUrl()}/pg/orders/${cfId}`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-client-id': appId,
+              'x-client-secret': secretKey,
+              'x-api-version': '2023-08-01',
+            },
+          });
+          if (orderRes.ok) {
+            const orderData = await orderRes.json();
+            if (orderData.order_status === 'PAID') {
+              let cfPaymentId = null;
+              const paymentsRes = await fetch(`${getCashfreeBaseUrl()}/pg/orders/${cfId}/payments`, {
+                method: 'GET',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'x-client-id': appId,
+                  'x-client-secret': secretKey,
+                  'x-api-version': '2023-08-01',
+                },
+              });
+              if (paymentsRes.ok) {
+                const payments = await paymentsRes.json();
+                const successPayment = Array.isArray(payments)
+                  ? payments.find((p: any) => p?.payment_status === 'SUCCESS')
+                  : null;
+                cfPaymentId = successPayment?.cf_payment_id || null;
+              }
+              await Order.updateMany(
+                { cashfreeOrderId: cfId },
+                { status: 'placed', paymentId: cfPaymentId || cfId }
+              );
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Self-healing pending orders check failed:', err);
+    }
+
     let query: any = {};
 
     if (payload.role === 'user') {
       query.userId = payload.userId;
+      query.status = { $ne: 'pending' };
     } else if (payload.role === 'vendor') {
       query.vendorId = payload.userId;
+      query.status = { $ne: 'pending' };
+    } else if (payload.role === 'admin') {
+      query.status = { $ne: 'pending' };
     }
-    // Admin sees all orders
 
     const orders = await Order.find(query)
       .populate('userId', 'name email')
@@ -67,6 +125,32 @@ export async function POST(request: NextRequest) {
 
     const { products, address, paymentId, razorpayOrderId, cashfreeOrderId } = await request.json();
 
+    if (cashfreeOrderId) {
+      const existingOrders = await Order.find({ cashfreeOrderId });
+      if (existingOrders.length > 0) {
+        const updatedOrders = [];
+        for (const order of existingOrders) {
+          if (order.status === 'pending') {
+            order.status = 'placed';
+            if (paymentId) {
+              order.paymentId = paymentId;
+            }
+            await order.save();
+          }
+          updatedOrders.push(order);
+        }
+        return createSuccessResponse(
+          {
+            message: 'Order created successfully (retrieved existing)',
+            orders: updatedOrders,
+            // Backward compatibility
+            order: updatedOrders[0],
+          },
+          201
+        );
+      }
+    }
+
     if (!products || !Array.isArray(products) || products.length === 0) {
       return createErrorResponse('Please provide products', 400);
     }
@@ -86,16 +170,18 @@ export async function POST(request: NextRequest) {
     let totalAmount = 0;
     const orderProducts = products.map((p: any) => {
       const product = dbProducts.find((dp) => dp._id.toString() === p.productId);
+      if (!product) {
+        throw new Error(`Product not found: ${p.productId}`);
+      }
       totalAmount += product.price * p.quantity;
       return {
         productId: p.productId,
         quantity: p.quantity,
         price: product.price,
+        vendorId: product.vendorId.toString(),
       };
     });
 
-    // For now, assume all products from same vendor (simplify)
-    const vendorId = dbProducts[0].vendorId;
     const stateName = address?.state || '';
     const shippingAmount = dbProducts.reduce((sum, product) => {
       const orderItem = products.find((item: any) => item.productId === product._id.toString());
@@ -144,24 +230,72 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Create order
-    const order = await Order.create({
-      userId: payload.userId,
-      vendorId,
-      products: orderProducts,
-      totalAmount: totalAmount + shippingAmount,
-      shippingAmount,
-      address,
-      paymentId,
-      razorpayOrderId,
-      cashfreeOrderId,
-      status: 'placed',
-    });
+    // Group products by vendor
+    const vendorGroups: Record<
+      string,
+      {
+        products: Array<{ productId: string; quantity: number; price: number }>;
+        subtotal: number;
+        shippingAmount: number;
+      }
+    > = {};
+
+    for (const op of orderProducts) {
+      const vId = op.vendorId;
+      if (!vendorGroups[vId]) {
+        vendorGroups[vId] = {
+          products: [],
+          subtotal: 0,
+          shippingAmount: 0,
+        };
+      }
+      vendorGroups[vId].products.push({
+        productId: op.productId,
+        quantity: op.quantity,
+        price: op.price,
+      });
+      vendorGroups[vId].subtotal += op.price * op.quantity;
+    }
+
+    // Calculate shipping amount per vendor group
+    for (const vId of Object.keys(vendorGroups)) {
+      const vendorDbProducts = dbProducts.filter((dp) => dp.vendorId.toString() === vId);
+      const groupShipping = vendorDbProducts.reduce((sum, product) => {
+        const orderItem = products.find((item: any) => item.productId === product._id.toString());
+        return sum + calculateRegionalShipping(
+          product,
+          stateName,
+          Number(orderItem?.quantity || 0),
+          orderItem?.shippingOptionId
+        );
+      }, 0);
+      vendorGroups[vId].shippingAmount = groupShipping;
+    }
+
+    // Create order for each vendor
+    const createdOrders = [];
+    for (const [vId, group] of Object.entries(vendorGroups)) {
+      const order = await Order.create({
+        userId: payload.userId,
+        vendorId: vId,
+        products: group.products,
+        totalAmount: group.subtotal + group.shippingAmount,
+        shippingAmount: group.shippingAmount,
+        address,
+        paymentId,
+        razorpayOrderId,
+        cashfreeOrderId,
+        status: 'placed',
+      });
+      createdOrders.push(order);
+    }
 
     return createSuccessResponse(
       {
         message: 'Order created successfully',
-        order,
+        orders: createdOrders,
+        // Backward compatibility
+        order: createdOrders[0],
       },
       201
     );

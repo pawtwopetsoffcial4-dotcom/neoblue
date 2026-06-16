@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createErrorResponse, getTokenFromRequest, verifyToken } from '@/lib/utils/auth';
 import { connectDB } from '@/lib/db';
 import Product from '@/lib/models/Product';
+import Order from '@/lib/models/Order';
+import User from '@/lib/models/User';
 import { calculateProductShippingAmount, calculateRegionalShipping } from '@/lib/utils/shipping';
 
 const appId = process.env.CASHFREE_APP_ID;
@@ -61,14 +63,19 @@ export async function POST(request: NextRequest) {
     }
 
     let subtotal = 0;
-
-    for (const item of products) {
+    const orderProducts = products.map((item: any) => {
       const product = dbProducts.find((entry) => entry._id.toString() === item.productId);
       if (!product) {
-        return createErrorResponse('Some products not found', 404);
+        throw new Error(`Product not found: ${item.productId}`);
       }
       subtotal += Number(product.price) * Number(item.quantity || 0);
-    }
+      return {
+        productId: item.productId,
+        quantity: item.quantity,
+        price: product.price,
+        vendorId: product.vendorId.toString(),
+      };
+    });
 
     const shippingAmount = dbProducts.reduce((sum, product) => {
       const orderItem = products.find((item: any) => item.productId === product._id.toString());
@@ -90,6 +97,12 @@ export async function POST(request: NextRequest) {
       return createErrorResponse('Set CASHFREE_RETURN_URL to your deployed https checkout URL for Cashfree production payments', 400);
     }
 
+    let customerPhone = address?.phone || '';
+    if (!customerPhone) {
+      const user = await User.findById(payload.userId);
+      customerPhone = user?.phone || '9999999999';
+    }
+
     const orderId = `neo_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
     const cashfreeResponse = await fetch(`${getCashfreeBaseUrl()}/pg/orders`, {
       method: 'POST',
@@ -106,7 +119,7 @@ export async function POST(request: NextRequest) {
         customer_details: {
           customer_id: payload.userId,
           customer_email: payload.email,
-          customer_phone: '9999999999',
+          customer_phone: customerPhone,
         },
         order_meta: {
           return_url: appUrl.includes('{order_id}')
@@ -126,6 +139,62 @@ export async function POST(request: NextRequest) {
 
     if (!cashfreeResponse.ok) {
       return createErrorResponse(order?.message || order?.error || responseText || 'Failed to create Cashfree order', cashfreeResponse.status);
+    }
+
+    // Group products by vendor
+    const vendorGroups: Record<
+      string,
+      {
+        products: Array<{ productId: string; quantity: number; price: number }>;
+        subtotal: number;
+        shippingAmount: number;
+      }
+    > = {};
+
+    for (const op of orderProducts) {
+      const vId = op.vendorId;
+      if (!vendorGroups[vId]) {
+        vendorGroups[vId] = {
+          products: [],
+          subtotal: 0,
+          shippingAmount: 0,
+        };
+      }
+      vendorGroups[vId].products.push({
+        productId: op.productId,
+        quantity: op.quantity,
+        price: op.price,
+      });
+      vendorGroups[vId].subtotal += op.price * op.quantity;
+    }
+
+    // Calculate shipping amount per vendor group
+    for (const vId of Object.keys(vendorGroups)) {
+      const vendorDbProducts = dbProducts.filter((dp) => dp.vendorId.toString() === vId);
+      const groupShipping = vendorDbProducts.reduce((sum, product) => {
+        const orderItem = products.find((item: any) => item.productId === product._id.toString());
+        return sum + calculateRegionalShipping(
+          product,
+          stateName,
+          Number(orderItem?.quantity || 0),
+          orderItem?.shippingOptionId
+        );
+      }, 0);
+      vendorGroups[vId].shippingAmount = groupShipping;
+    }
+
+    // Create pending orders in MongoDB
+    for (const [vId, group] of Object.entries(vendorGroups)) {
+      await Order.create({
+        userId: payload.userId,
+        vendorId: vId,
+        products: group.products,
+        totalAmount: group.subtotal + group.shippingAmount,
+        shippingAmount: group.shippingAmount,
+        address,
+        cashfreeOrderId: orderId,
+        status: 'pending',
+      });
     }
 
     return NextResponse.json({
