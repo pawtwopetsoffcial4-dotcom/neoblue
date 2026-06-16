@@ -2,23 +2,15 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import {
   CreditCard, MapPin, Package, UserRound, LayoutDashboard, Fish,
   PlusCircle, PackageCheck, LogOut, Shield, ChevronRight, Phone,
-  Mail, Calendar, ShoppingBag, ArrowUpRight, Clock, Loader2,
+  Mail, ShoppingBag, ArrowUpRight, Clock, Loader2,
   Truck, CheckCircle2, XCircle, Star
 } from 'lucide-react';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { apiClient } from '@/lib/api-client';
-import type { MarketplaceProduct } from '@/lib/types/marketplace';
-
-type VendorOrder = {
-  _id: string;
-  totalAmount: number;
-  status: string;
-  createdAt: string;
-};
 
 type UserOrder = {
   _id: string;
@@ -46,14 +38,6 @@ type Address = {
   isDefault?: boolean;
 };
 
-const vendorNavItems = [
-  { href: '/profile', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/vendor/products', label: 'Products', icon: Fish },
-  { href: '/vendor/add-product', label: 'Add Product', icon: PlusCircle },
-  { href: '/vendor/orders', label: 'Orders', icon: PackageCheck },
-  { href: '/vendor/claims', label: 'DOA Claims', icon: Shield },
-];
-
 const statusConfig: Record<string, { icon: React.ComponentType<{ className?: string }>, color: string, bg: string, border: string }> = {
   placed: { icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-100' },
   accepted: { icon: CheckCircle2, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-100' },
@@ -61,6 +45,22 @@ const statusConfig: Record<string, { icon: React.ComponentType<{ className?: str
   completed: { icon: Truck, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100' },
   cancelled: { icon: XCircle, color: 'text-slate-500', bg: 'bg-slate-50', border: 'border-slate-200' },
 };
+
+const customerQuickLinks = [
+  { href: '/orders', label: 'My Orders', desc: 'Track & manage orders', icon: Package, color: 'text-blue-600', bg: 'bg-blue-50' },
+  { href: '/profile/addresses', label: 'Addresses', desc: 'Manage delivery locations', icon: MapPin, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+  { href: '/checkout', label: 'Checkout', desc: 'Complete a purchase', icon: CreditCard, color: 'text-violet-600', bg: 'bg-violet-50' },
+  { href: '/products', label: 'Browse Products', desc: 'Explore our collection', icon: Fish, color: 'text-amber-600', bg: 'bg-amber-50' },
+];
+
+const vendorQuickLinks = [
+  { href: '/vendor/dashboard', label: 'Vendor Dashboard', desc: 'Overview & analytics', icon: LayoutDashboard, color: 'text-blue-600', bg: 'bg-blue-50' },
+  { href: '/vendor/products', label: 'My Products', desc: 'Manage your catalog', icon: Fish, color: 'text-cyan-600', bg: 'bg-cyan-50' },
+  { href: '/vendor/add-product', label: 'Add Product', desc: 'List a new product', icon: PlusCircle, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+  { href: '/vendor/orders', label: 'Vendor Orders', desc: 'Manage customer orders', icon: PackageCheck, color: 'text-violet-600', bg: 'bg-violet-50' },
+  { href: '/vendor/claims', label: 'DOA Claims', desc: 'Handle arrival claims', icon: Shield, color: 'text-amber-600', bg: 'bg-amber-50' },
+  { href: '/profile/addresses', label: 'Addresses', desc: 'Manage delivery locations', icon: MapPin, color: 'text-rose-600', bg: 'bg-rose-50' },
+];
 
 function AnimatedCounter({ target, prefix = '', suffix = '' }: { target: number; prefix?: string; suffix?: string }) {
   const [count, setCount] = useState(0);
@@ -89,165 +89,49 @@ function AnimatedCounter({ target, prefix = '', suffix = '' }: { target: number;
 export default function ProfilePage() {
   const { user, isAuthenticated, logout } = useAuth();
   const router = useRouter();
-  const pathname = usePathname();
-  const [products, setProducts] = useState<MarketplaceProduct[]>([]);
-  const [vendorOrders, setVendorOrders] = useState<VendorOrder[]>([]);
 
-  // Customer-specific state
-  const [customerOrders, setCustomerOrders] = useState<UserOrder[]>([]);
+  const [orders, setOrders] = useState<UserOrder[]>([]);
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [phone, setPhone] = useState('');
-  const [isLoadingCustomer, setIsLoadingCustomer] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
 
   const handleLogout = () => {
     logout();
     router.push('/');
   };
 
-  // Load vendor dashboard data if user is a vendor
-  useEffect(() => {
-    const load = async () => {
-      if (isAuthenticated && user?.role === 'vendor') {
-        try {
-          const [productsRes, ordersRes] = await Promise.all([
-            apiClient.getProducts(),
-            apiClient.getOrders(),
-          ]);
-          setProducts((productsRes as { products: MarketplaceProduct[] }).products ?? []);
-          setVendorOrders((ordersRes as { orders: VendorOrder[] }).orders ?? []);
-        } catch {
-          setProducts([]);
-          setVendorOrders([]);
-        }
-      }
-    };
-
-    load();
-  }, [isAuthenticated, user?.role]);
-
-  // Load customer data (orders + addresses + phone)
-  const loadCustomerData = useCallback(async () => {
-    if (!isAuthenticated || user?.role === 'vendor') return;
-    setIsLoadingCustomer(true);
+  // Load profile data for all authenticated users
+  const loadProfileData = useCallback(async () => {
+    if (!isAuthenticated) return;
+    setIsLoading(true);
     try {
       const [ordersRes, addressRes] = await Promise.all([
         apiClient.getOrders().catch(() => ({ orders: [] })),
         apiClient.request<{ addresses?: Address[]; phone?: string }>('/profile/address').catch(() => ({ addresses: [], phone: '' })),
       ]);
-      setCustomerOrders((ordersRes as { orders: UserOrder[] }).orders ?? []);
+      setOrders((ordersRes as { orders: UserOrder[] }).orders ?? []);
       setAddresses(addressRes.addresses ?? []);
       setPhone(addressRes.phone ?? '');
     } catch {
-      setCustomerOrders([]);
+      setOrders([]);
       setAddresses([]);
     } finally {
-      setIsLoadingCustomer(false);
+      setIsLoading(false);
     }
-  }, [isAuthenticated, user?.role]);
+  }, [isAuthenticated]);
 
   useEffect(() => {
-    loadCustomerData();
-  }, [loadCustomerData]);
+    loadProfileData();
+  }, [loadProfileData]);
 
-  // If user is a vendor, show vendor dashboard with sidebar
-  if (isAuthenticated && user?.role === 'vendor') {
-    const revenue = vendorOrders.reduce((sum, order) => sum + order.totalAmount, 0);
-
-    return (
-      <div className="min-h-screen bg-slate-50 text-slate-900 pt-0">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10 grid grid-cols-1 md:grid-cols-[260px_1fr] gap-6">
-          <aside className="rounded-3xl bg-white border border-blue-100 p-4 md:p-5 h-fit shadow-sm">
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue-600 mb-4">Vendor Panel</p>
-            <nav className="space-y-2">
-              {vendorNavItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = pathname === item.href;
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${
-                      isActive ? 'bg-blue-600 text-white' : 'text-slate-700 hover:bg-blue-50'
-                    }`}
-                  >
-                    <Icon className="h-4 w-4" />
-                    <span className="font-semibold text-sm">{item.label}</span>
-                  </Link>
-                );
-              })}
-            </nav>
-
-            <button
-              onClick={handleLogout}
-              className="mt-6 w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-blue-200 text-blue-700 font-semibold hover:bg-blue-50 transition-colors"
-            >
-              <LogOut className="h-4 w-4" /> Logout
-            </button>
-          </aside>
-
-          <section>
-            <div className="mb-8">
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue-600 mb-2">Vendor</p>
-              <h1 className="text-3xl md:text-4xl font-black tracking-tight">Dashboard</h1>
-            </div>
-
-            <div className="rounded-3xl bg-linear-to-br from-blue-600 via-cyan-600 to-slate-950 p-6 md:p-8 mb-8 text-white shadow-[0_24px_80px_-40px_rgba(2,132,199,0.6)]">
-              <div className="flex items-center gap-4">
-                <div className="h-14 w-14 rounded-full bg-white/15 backdrop-blur-sm text-white flex items-center justify-center ring-1 ring-white/20">
-                  <UserRound className="h-7 w-7" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold text-white">{user.name}</h2>
-                  <p className="text-blue-100">{user.email}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-              <div className="rounded-2xl bg-white border border-blue-100 p-5 shadow-sm">
-                <p className="text-sm text-slate-500 font-semibold">Products Listed</p>
-                <p className="text-3xl font-black text-slate-900 mt-2">{products.length}</p>
-              </div>
-              <div className="rounded-2xl bg-white border border-blue-100 p-5 shadow-sm">
-                <p className="text-sm text-slate-500 font-semibold">Total Orders</p>
-                <p className="text-3xl font-black text-slate-900 mt-2">{vendorOrders.length}</p>
-              </div>
-              <div className="rounded-2xl bg-white border border-blue-100 p-5 shadow-sm">
-                <p className="text-sm text-slate-500 font-semibold">Total Revenue</p>
-                <p className="text-3xl font-black text-slate-900 mt-2">₹{revenue.toFixed(2)}</p>
-              </div>
-            </div>
-
-            <div className="rounded-2xl bg-white border border-blue-100 p-6 shadow-sm">
-              <p className="font-bold text-lg text-slate-900 mb-4">Quick Actions</p>
-              <div className="flex flex-wrap gap-3">
-                <Link href="/vendor/add-product" className="h-11 px-6 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors inline-flex items-center">
-                  Add New Product
-                </Link>
-                <Link href="/vendor/products" className="h-11 px-6 rounded-full border border-blue-200 text-blue-700 font-semibold hover:bg-blue-50 transition-colors inline-flex items-center">
-                  Manage Products
-                </Link>
-                <Link href="/vendor/orders" className="h-11 px-6 rounded-full border border-blue-200 text-blue-700 font-semibold hover:bg-blue-50 transition-colors inline-flex items-center">
-                  View Orders
-                </Link>
-                <Link href="/vendor/claims" className="h-11 px-6 rounded-full border border-blue-200 text-blue-700 font-semibold hover:bg-blue-50 transition-colors inline-flex items-center">
-                  Manage DOA Claims
-                </Link>
-              </div>
-            </div>
-          </section>
-        </div>
-      </div>
-    );
-  }
-
-  // ─── Customer Profile ──────────────────────────────────────────────
-  const totalSpent = customerOrders.reduce((sum, o) => sum + o.totalAmount, 0);
-  const completedOrders = customerOrders.filter(o => o.status === 'completed').length;
-  const activeOrders = customerOrders.filter(o => !['completed', 'cancelled', 'pending'].includes(o.status)).length;
-  const recentOrders = customerOrders.slice(0, 3);
+  // ─── Computed data ─────────────────────────────────────────────────
+  const totalSpent = orders.reduce((sum, o) => sum + o.totalAmount, 0);
+  const completedOrders = orders.filter(o => o.status === 'completed').length;
+  const activeOrders = orders.filter(o => !['completed', 'cancelled', 'pending'].includes(o.status)).length;
+  const recentOrders = orders.slice(0, 3);
   const defaultAddress = addresses.find(a => a.isDefault) || addresses[0] || null;
-  const memberSince = user ? 'Member' : '';
+  const isVendor = user?.role === 'vendor';
+  const quickLinks = isVendor ? vendorQuickLinks : customerQuickLinks;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50 text-slate-900 selection:bg-blue-500 selection:text-white pb-28 md:pb-10">
@@ -305,9 +189,8 @@ export default function ProfilePage() {
                     </div>
                     <div className="flex items-center gap-2 mt-2">
                       <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white/15 backdrop-blur-sm text-white text-[10px] font-black uppercase tracking-wider">
-                        <Star className="h-3 w-3 fill-current" /> {user.role === 'admin' ? 'Admin' : 'Customer'}
+                        <Star className="h-3 w-3 fill-current" /> {user.role === 'admin' ? 'Admin' : isVendor ? 'Vendor' : 'Customer'}
                       </span>
-                      <span className="text-blue-200/70 text-xs">{memberSince}</span>
                     </div>
                   </div>
                 </div>
@@ -330,7 +213,7 @@ export default function ProfilePage() {
                 </div>
                 <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Orders</p>
                 <p className="text-2xl md:text-3xl font-black text-slate-900 mt-1">
-                  <AnimatedCounter target={customerOrders.length} />
+                  <AnimatedCounter target={orders.length} />
                 </p>
               </div>
               <div className="rounded-2xl border border-emerald-100 bg-white p-4 md:p-5 shadow-sm hover:shadow-md transition-shadow group">
@@ -374,15 +257,15 @@ export default function ProfilePage() {
                     </div>
                     <div>
                       <h3 className="font-black text-lg text-slate-900">Recent Orders</h3>
-                      <p className="text-xs text-slate-400">Your latest purchases</p>
+                      <p className="text-xs text-slate-400">Your latest {isVendor ? 'vendor' : ''} orders</p>
                     </div>
                   </div>
-                  <Link href="/orders" className="text-sm font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1 transition-colors">
+                  <Link href={isVendor ? '/vendor/orders' : '/orders'} className="text-sm font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1 transition-colors">
                     View All <ChevronRight className="h-4 w-4" />
                   </Link>
                 </div>
 
-                {isLoadingCustomer ? (
+                {isLoading ? (
                   <div className="flex items-center justify-center py-16">
                     <Loader2 className="w-8 h-8 text-blue-400 animate-spin" />
                   </div>
@@ -392,9 +275,11 @@ export default function ProfilePage() {
                       <ShoppingBag className="h-8 w-8" />
                     </div>
                     <p className="font-bold text-slate-700 mb-1">No orders yet</p>
-                    <p className="text-sm text-slate-400 mb-6">Browse our collection and find something you love</p>
-                    <Link href="/products" className="h-10 px-6 rounded-full bg-blue-600 text-white font-semibold text-sm hover:bg-blue-700 transition-colors inline-flex items-center gap-2">
-                      Shop Now <ArrowUpRight className="h-3.5 w-3.5" />
+                    <p className="text-sm text-slate-400 mb-6">
+                      {isVendor ? 'Orders from customers will appear here' : 'Browse our collection and find something you love'}
+                    </p>
+                    <Link href={isVendor ? '/vendor/dashboard' : '/products'} className="h-10 px-6 rounded-full bg-blue-600 text-white font-semibold text-sm hover:bg-blue-700 transition-colors inline-flex items-center gap-2">
+                      {isVendor ? 'Go to Dashboard' : 'Shop Now'} <ArrowUpRight className="h-3.5 w-3.5" />
                     </Link>
                   </div>
                 ) : (
@@ -404,7 +289,7 @@ export default function ProfilePage() {
                       const StatusIcon = config.icon;
                       const itemCount = order.products.reduce((s, p) => s + p.quantity, 0);
                       return (
-                        <Link key={order._id} href="/orders" className="flex items-center gap-4 p-5 md:p-6 hover:bg-slate-50/50 transition-colors group cursor-pointer">
+                        <Link key={order._id} href={isVendor ? '/vendor/orders' : '/orders'} className="flex items-center gap-4 p-5 md:p-6 hover:bg-slate-50/50 transition-colors group cursor-pointer">
                           <div className={`h-11 w-11 rounded-xl ${config.bg} ${config.color} flex items-center justify-center shrink-0`}>
                             <StatusIcon className="h-5 w-5" />
                           </div>
@@ -447,7 +332,7 @@ export default function ProfilePage() {
                     </Link>
                   </div>
 
-                  {isLoadingCustomer ? (
+                  {isLoading ? (
                     <div className="flex justify-center py-6">
                       <Loader2 className="w-5 h-5 text-blue-400 animate-spin" />
                     </div>
@@ -525,12 +410,7 @@ export default function ProfilePage() {
                     <p className="text-xs text-slate-400">Shortcuts to common actions</p>
                   </div>
                   <nav className="divide-y divide-slate-50">
-                    {[
-                      { href: '/orders', label: 'My Orders', desc: 'Track & manage orders', icon: Package, color: 'text-blue-600', bg: 'bg-blue-50' },
-                      { href: '/profile/addresses', label: 'Addresses', desc: 'Manage delivery locations', icon: MapPin, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-                      { href: '/checkout', label: 'Checkout', desc: 'Complete a purchase', icon: CreditCard, color: 'text-violet-600', bg: 'bg-violet-50' },
-                      { href: '/products', label: 'Browse Products', desc: 'Explore our collection', icon: Fish, color: 'text-amber-600', bg: 'bg-amber-50' },
-                    ].map((link) => {
+                    {quickLinks.map((link) => {
                       const LinkIcon = link.icon;
                       return (
                         <Link key={link.href} href={link.href} className="flex items-center gap-3 px-5 md:px-6 py-3.5 hover:bg-slate-50/80 transition-colors group">
@@ -561,10 +441,10 @@ export default function ProfilePage() {
                 <p className="text-sm text-slate-500 mt-0.5">Every order is protected. If any livestock arrives DOA, submit a claim with proof within 6 hours for a full refund or replacement.</p>
               </div>
               <Link
-                href="/orders"
+                href={isVendor ? '/vendor/claims' : '/orders'}
                 className="h-10 px-5 rounded-full bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-700 transition-colors inline-flex items-center gap-1.5 shrink-0"
               >
-                View Claims <ChevronRight className="h-4 w-4" />
+                {isVendor ? 'Manage Claims' : 'View Claims'} <ChevronRight className="h-4 w-4" />
               </Link>
             </section>
           </>
