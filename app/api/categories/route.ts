@@ -3,6 +3,7 @@ import { connectDB, isDatabaseConnectivityError } from '@/lib/db';
 import Product from '@/lib/models/Product';
 import StoreConfig from '@/lib/models/StoreConfig';
 import { createErrorResponse, createSuccessResponse } from '@/lib/utils/auth';
+import { getCategoryImage } from '@/lib/catalog';
 
 export const dynamic = 'force-dynamic';
 
@@ -25,8 +26,14 @@ export async function GET(_request: NextRequest) {
       ].filter((category): category is string => typeof category === 'string' && category.trim().length > 0))
     ).sort();
 
+    const categoriesWithImages = categories.map((name) => ({
+      name,
+      image: getCategoryImage(name),
+    }));
+
     return createSuccessResponse({
       categories,
+      categoriesWithImages,
     });
   } catch (error: any) {
     if (isDatabaseConnectivityError(error)) {

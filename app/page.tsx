@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import ReviewStars from '@/app/components/ReviewStars';
 import type { MarketplaceProduct } from '@/lib/types/marketplace';
+import { PRODUCT_CATEGORIES, getCategoryImage } from '@/lib/catalog';
 
 /* ------------------------------------------------------------------ */
 /* LIVE DATA HELPERS                                                   */
@@ -142,7 +143,7 @@ function MobileCard({ product }: { product: any }) {
 /* ================================================================== */
 export default function NeoBlueMobileOptimized() {
   const [products, setProducts] = useState<MarketplaceProduct[]>([]);
-  const [categoriesFromDb, setCategoriesFromDb] = useState<string[]>([]);
+  const [categoriesFromDb, setCategoriesFromDb] = useState<Array<{ name: string; image: string }>>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -169,8 +170,8 @@ export default function NeoBlueMobileOptimized() {
 
         if (categoriesResponse.ok) {
           const categoriesData = await categoriesResponse.json();
-          const dbCategories: unknown[] = Array.isArray(categoriesData?.categories) ? categoriesData.categories : [];
-          setCategoriesFromDb(dbCategories.filter((category): category is string => typeof category === 'string'));
+          const dbCategories = Array.isArray(categoriesData?.categoriesWithImages) ? categoriesData.categoriesWithImages : [];
+          setCategoriesFromDb(dbCategories);
         } else {
           setCategoriesFromDb([]);
         }
@@ -214,14 +215,15 @@ export default function NeoBlueMobileOptimized() {
   );
 
   const categories = useMemo(() => {
-    const liveCategories = Array.from(new Set(products.map((product) => product.category)));
-    const mergedCategories = Array.from(new Set([...categoriesFromDb, ...liveCategories]));
+    const list = categoriesFromDb.length > 0
+      ? categoriesFromDb
+      : (PRODUCT_CATEGORIES as unknown as string[]).map(name => ({ name, image: getCategoryImage(name) }));
 
-    return mergedCategories.sort().slice(0, 8).map((label) => ({
-      label,
-      icon: categoryIconMap[label] || Package,
+    return list.slice(0, 8).map((cat) => ({
+      label: cat.name,
+      image: cat.image,
     }));
-  }, [categoriesFromDb, products]);
+  }, [categoriesFromDb]);
 
   return (
     <div className="min-h-screen bg-white text-blue-950 font-sans pb-20 md:pb-0 selection:bg-blue-100">
@@ -253,15 +255,14 @@ export default function NeoBlueMobileOptimized() {
       <section className="pt-6 pb-2 bg-white">
         <div className="flex overflow-x-auto gap-5 px-5 snap-x snap-mandatory [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {categories.map((cat, i) => {
-            const Icon = cat.icon;
             return (
               <Link
                 key={i}
                 href={`/categories/${toCategorySlug(cat.label)}`}
                 className="flex flex-col items-center gap-2 shrink-0 snap-start"
               >
-                <div className="h-16 w-16 rounded-full border border-blue-100 bg-white shadow-sm flex items-center justify-center text-blue-600">
-                  <Icon className="h-6 w-6 stroke-[1.5]" />
+                <div className="h-16 w-16 rounded-full border border-blue-100 bg-white shadow-sm flex items-center justify-center overflow-hidden">
+                  <img src={cat.image} alt={cat.label} className="h-full w-full object-cover" />
                 </div>
                 <span className="text-[10px] font-bold uppercase tracking-wider text-blue-900/70">{cat.label}</span>
               </Link>
