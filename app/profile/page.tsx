@@ -191,14 +191,14 @@ export default function ProfilePage() {
               <h1 className="text-3xl md:text-4xl font-black tracking-tight">Dashboard</h1>
             </div>
 
-            <div className="rounded-3xl border border-blue-100 bg-blue-50/60 p-6 md:p-8 mb-8">
+            <div className="rounded-3xl bg-linear-to-br from-blue-600 via-cyan-600 to-slate-950 p-6 md:p-8 mb-8 text-white shadow-[0_24px_80px_-40px_rgba(2,132,199,0.6)]">
               <div className="flex items-center gap-4">
-                <div className="h-14 w-14 rounded-full bg-blue-600 text-white flex items-center justify-center">
+                <div className="h-14 w-14 rounded-full bg-white/15 backdrop-blur-sm text-white flex items-center justify-center ring-1 ring-white/20">
                   <UserRound className="h-7 w-7" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold">{user.name}</h2>
-                  <p className="text-slate-600">{user.email}</p>
+                  <h2 className="text-xl font-bold text-white">{user.name}</h2>
+                  <p className="text-blue-100">{user.email}</p>
                 </div>
               </div>
             </div>
@@ -285,29 +285,29 @@ export default function ProfilePage() {
         ) : (
           <>
             {/* ── Profile Hero Card ── */}
-            <section className="rounded-3xl border border-blue-100 bg-blue-50/60 p-6 md:p-8 mb-6 relative overflow-hidden">
+            <section className="rounded-3xl bg-linear-to-br from-blue-600 via-cyan-600 to-slate-950 p-6 md:p-8 mb-6 relative overflow-hidden text-white shadow-[0_24px_80px_-40px_rgba(2,132,199,0.6)]">
               <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
                 <div className="flex items-center gap-5">
-                  <div className="h-16 w-16 md:h-20 md:w-20 rounded-2xl bg-blue-600 text-white flex items-center justify-center ring-2 ring-blue-200 shadow-lg">
+                  <div className="h-16 w-16 md:h-20 md:w-20 rounded-2xl bg-white/15 backdrop-blur-sm text-white flex items-center justify-center ring-1 ring-white/20">
                     <span className="text-2xl md:text-3xl font-black">{user.name.charAt(0).toUpperCase()}</span>
                   </div>
                   <div>
-                    <h2 className="text-xl md:text-2xl font-black text-slate-900">{user.name}</h2>
+                    <h2 className="text-xl md:text-2xl font-black text-white">{user.name}</h2>
                     <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 mt-1.5">
-                      <span className="text-slate-600 text-sm flex items-center gap-1.5">
+                      <span className="text-blue-100 text-sm flex items-center gap-1.5">
                         <Mail className="h-3.5 w-3.5" /> {user.email}
                       </span>
                       {phone && (
-                        <span className="text-slate-600 text-sm flex items-center gap-1.5">
+                        <span className="text-blue-100 text-sm flex items-center gap-1.5">
                           <Phone className="h-3.5 w-3.5" /> {phone}
                         </span>
                       )}
                     </div>
                     <div className="flex items-center gap-2 mt-2">
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[10px] font-black uppercase tracking-wider">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white/15 backdrop-blur-sm text-white text-[10px] font-black uppercase tracking-wider">
                         <Star className="h-3 w-3 fill-current" /> {user.role === 'admin' ? 'Admin' : 'Customer'}
                       </span>
-                      <span className="text-slate-400 text-xs">{memberSince}</span>
+                      <span className="text-blue-200/70 text-xs">{memberSince}</span>
                     </div>
                   </div>
                 </div>
@@ -315,7 +315,7 @@ export default function ProfilePage() {
                 <button
                   type="button"
                   onClick={handleLogout}
-                  className="h-11 px-6 rounded-full bg-slate-900 text-white font-semibold hover:bg-slate-800 transition-all inline-flex items-center gap-2 w-fit"
+                  className="h-11 px-6 rounded-full bg-white/10 backdrop-blur-sm text-white font-semibold hover:bg-white/20 transition-all border border-white/15 inline-flex items-center gap-2 w-fit"
                 >
                   <LogOut className="h-4 w-4" /> Sign Out
                 </button>
