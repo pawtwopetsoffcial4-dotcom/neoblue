@@ -26,6 +26,8 @@ export const metadata: Metadata = {
   description: "Fish Selling Ecommerce",
   icons: {
     icon: "/logo.png",
+    shortcut: "/logo.png",
+    apple: "/logo.png",
   },
 };
 
