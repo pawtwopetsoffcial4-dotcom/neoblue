@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { ArrowRight, PackageSearch, PlusCircle, X } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
-import { FISH_NAMES } from '@/lib/catalog';
+import { FISH_NAMES, PRODUCT_CATEGORIES } from '@/lib/catalog';
 import type { MarketplaceProduct } from '@/lib/types/marketplace';
 
 type EditProductForm = {
@@ -347,11 +347,9 @@ export default function VendorProductsPage() {
                   value={editForm.category}
                   onChange={(event) => setEditForm((current) => current ? { ...current, category: event.target.value } : current)}
                 >
-                  {categories.length > 0 ? categories.map((category) => (
+                  {PRODUCT_CATEGORIES.map((category) => (
                     <option key={category} value={category}>{category}</option>
-                  )) : (
-                    <option value={editForm.category}>{editForm.category}</option>
-                  )}
+                  ))}
                 </select>
                 <select
                   className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"

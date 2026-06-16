@@ -6,7 +6,7 @@ import { ArrowRight, Fish, Gauge, Sparkles, X, Info, Plus, Trash2, ChevronRight,
 import { v4 as uuidv4 } from 'uuid';
 import { CldUploadWidget } from 'next-cloudinary';
 import { apiClient } from '@/lib/api-client';
-import { FISH_NAMES, getSubcategoriesForCategory } from '@/lib/catalog';
+import { FISH_NAMES, getSubcategoriesForCategory, PRODUCT_CATEGORIES } from '@/lib/catalog';
 
 export default function VendorAddProductPage() {
   const router = useRouter();
@@ -17,7 +17,7 @@ export default function VendorAddProductPage() {
   const [imageUrl, setImageUrl] = useState<string>('');
   const [uploadError, setUploadError] = useState<string>('');
   const [submitError, setSubmitError] = useState<string>('');
-  const [categories, setCategories] = useState<string[]>([]);
+  const [categories, setCategories] = useState<string[]>(PRODUCT_CATEGORIES as unknown as string[]);
   
   const [form, setForm] = useState({
     title: '',
@@ -85,29 +85,13 @@ export default function VendorAddProductPage() {
   };
 
   useEffect(() => {
-    const loadCategories = async () => {
-      try {
-        const response = await fetch('/api/categories', { cache: 'no-store' });
-        if (!response.ok) return;
-
-        const data = await response.json();
-        const cats: string[] = Array.isArray(data.categories) ? data.categories : [];
-        setCategories(cats);
-        if (cats.length > 0) {
-          const defaultCat = cats.find((c: string) => c === 'Guppies') || cats[0];
-          const varieties = getSubcategoriesForCategory(defaultCat);
-          setForm(prev => ({
-            ...prev,
-            category: defaultCat,
-            title: varieties.length > 0 ? varieties[0] : ''
-          }));
-        }
-      } catch {
-        setCategories([]);
-      }
-    };
-
-    loadCategories();
+    const defaultCat = (PRODUCT_CATEGORIES as unknown as string[]).find((c: string) => c === 'Guppies') || PRODUCT_CATEGORIES[0];
+    const varieties = getSubcategoriesForCategory(defaultCat);
+    setForm(prev => ({
+      ...prev,
+      category: defaultCat,
+      title: varieties.length > 0 ? varieties[0] : ''
+    }));
   }, []);
 
   useEffect(() => {
