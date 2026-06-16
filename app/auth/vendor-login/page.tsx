@@ -55,10 +55,11 @@ export default function VendorLoginPage() {
       const result = await signInWithPopup(auth, provider);
       const firebaseUser = result.user;
       if (firebaseUser.email) {
+        const idToken = await firebaseUser.getIdToken();
         const loggedInUser = await loginWithSocial(
           firebaseUser.displayName || 'Social Vendor',
           firebaseUser.email,
-          firebaseUser.uid,
+          idToken,
           'vendor'
         );
 

@@ -1,6 +1,6 @@
 import { connectDB } from '@/lib/db';
 import User from '@/lib/models/User';
-import { generateToken, createErrorResponse, createSuccessResponse } from '@/lib/utils/auth';
+import { generateToken, verifyFirebaseIdToken, createErrorResponse, createSuccessResponse } from '@/lib/utils/auth';
 import { NextRequest } from 'next/server';
 import crypto from 'crypto';
 
@@ -8,15 +8,20 @@ export async function POST(request: NextRequest) {
   try {
     await connectDB();
 
-    const { email, name, uid, role } = await request.json();
-
-    const normalizedEmail = String(email || '').trim().toLowerCase();
-    const normalizedName = String(name || '').trim();
+    const { idToken, role } = await request.json();
     const targetRole = role === 'vendor' ? 'vendor' : 'user';
 
-    if (!normalizedEmail) {
-      return createErrorResponse('Please provide email address from provider', 400);
+    if (!idToken) {
+      return createErrorResponse('Please provide Firebase ID token', 400);
     }
+
+    const firebasePayload = await verifyFirebaseIdToken(idToken);
+    if (!firebasePayload) {
+      return createErrorResponse('Invalid or expired Firebase ID token', 401);
+    }
+
+    const normalizedEmail = firebasePayload.email.trim().toLowerCase();
+    const normalizedName = (firebasePayload.name || 'Social User').trim();
 
     // Find user by email
     let user = await User.findOne({ email: normalizedEmail });

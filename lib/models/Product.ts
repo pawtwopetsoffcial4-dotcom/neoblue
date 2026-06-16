@@ -213,4 +213,9 @@ const productSchema = new Schema<IProduct>(
   { timestamps: true }
 );
 
+// Indexes for common queries
+productSchema.index({ category: 1, inStock: 1, approvalStatus: 1 });
+productSchema.index({ vendorId: 1, approvalStatus: 1 });
+productSchema.index({ createdAt: -1 });
+
 export default mongoose.models.Product || mongoose.model<IProduct>('Product', productSchema);

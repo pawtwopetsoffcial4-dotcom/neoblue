@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useState, useRef } from 'react';
 import type { MarketplaceProduct } from '@/lib/types/marketplace';
 import { useAuth } from './useAuth';
 
@@ -28,6 +28,16 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const { user } = useAuth();
+  const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (syncTimeoutRef.current) {
+        clearTimeout(syncTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Load/merge carts on user change
   useEffect(() => {
@@ -121,22 +131,27 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [items, user, isLoaded]);
 
   // Helper to sync cart changes with database
-  const syncCartToDB = async (currentItems: CartItem[]) => {
+  const syncCartToDB = (currentItems: CartItem[]) => {
     if (!user) return;
-    try {
-      await fetch('/api/cart', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          items: currentItems.map((item) => ({
-            productId: item.productId,
-            quantity: item.quantity,
-          })),
-        }),
-      });
-    } catch (err) {
-      console.error('Failed to sync cart to database:', err);
+    if (syncTimeoutRef.current) {
+      clearTimeout(syncTimeoutRef.current);
     }
+    syncTimeoutRef.current = setTimeout(async () => {
+      try {
+        await fetch('/api/cart', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            items: currentItems.map((item) => ({
+              productId: item.productId,
+              quantity: item.quantity,
+            })),
+          }),
+        });
+      } catch (err) {
+        console.error('Failed to sync cart to database:', err);
+      }
+    }, 500);
   };
 
   const addToCart = (product: MarketplaceProduct) => {

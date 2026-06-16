@@ -45,10 +45,11 @@ export default function LoginPage() {
       const result = await signInWithPopup(auth, provider);
       const firebaseUser = result.user;
       if (firebaseUser.email) {
+        const idToken = await firebaseUser.getIdToken();
         const loggedInUser = await loginWithSocial(
           firebaseUser.displayName || 'Social User',
           firebaseUser.email,
-          firebaseUser.uid
+          idToken
         );
         router.push(getRedirectPath(loggedInUser.role));
       } else {

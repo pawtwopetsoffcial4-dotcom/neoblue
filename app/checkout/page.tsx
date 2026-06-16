@@ -18,7 +18,7 @@ const cashfreeSdkSrc = 'https://sdk.cashfree.com/js/v3/cashfree.js';
 function CheckoutPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
   const { items, totalAmount, updateQuantity, removeFromCart, clearCart } = useCart();
   const [isPaying, setIsPaying] = useState(false);
   const [isFinalizing, setIsFinalizing] = useState(false);
@@ -29,10 +29,10 @@ function CheckoutPageContent() {
   const [selectedShipping, setSelectedShipping] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!isLoading && !isAuthenticated) {
       router.replace('/auth/login');
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, isLoading, router]);
 
   useEffect(() => {
     const loadSavedAddress = async () => {
@@ -309,6 +309,7 @@ function CheckoutPageContent() {
   const isDeliveryBlocked = items.some((item) => {
     const product = productDetails[item.productId];
     if (!product) return false;
+    if (!address.state) return false; // Do not block checkout if the state has not been entered yet
     const region = getRegionFromState(address.state);
     return (
       (region === 'North' && product.deliverNorth === false) ||
@@ -382,8 +383,10 @@ function CheckoutPageContent() {
                             (() => {
                               const product = productDetails[item.productId];
                               const region = getRegionFromState(address.state);
-                              const cannotDeliver = (region === 'North' && product.deliverNorth === false) ||
-                                                    (region === 'South' && product.deliverSouth === false);
+                              const cannotDeliver = address.state ? (
+                                (region === 'North' && product.deliverNorth === false) ||
+                                (region === 'South' && product.deliverSouth === false)
+                              ) : false;
                               if (cannotDeliver) {
                                 return (
                                   <div className="mt-3 bg-rose-50 rounded-2xl border border-rose-100 p-3.5 flex items-start gap-2.5 text-rose-700">

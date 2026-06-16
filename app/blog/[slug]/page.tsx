@@ -3,8 +3,37 @@ import { connectDB } from '@/lib/db';
 import Blog from '@/lib/models/Blog';
 import BlogComments from '@/app/components/BlogComments';
 import { notFound } from 'next/navigation';
+import type { Metadata } from 'next';
 
 export const dynamic = 'force-dynamic';
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  try {
+    await connectDB();
+    const blog = await Blog.findOne({ slug, isPublished: true });
+    if (!blog) return {};
+
+    return {
+      title: `${blog.seoTitle || blog.title} | NeoBlue Insights`,
+      description: blog.seoDescription || blog.excerpt,
+      openGraph: {
+        title: blog.seoTitle || blog.title,
+        description: blog.seoDescription || blog.excerpt,
+        images: blog.seoImage || blog.coverImage ? [{ url: blog.seoImage || blog.coverImage }] : [],
+        type: 'article',
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: blog.seoTitle || blog.title,
+        description: blog.seoDescription || blog.excerpt,
+        images: blog.seoImage || blog.coverImage ? [blog.seoImage || blog.coverImage] : [],
+      },
+    };
+  } catch (err) {
+    return {};
+  }
+}
 
 type BlogDetail = {
   _id: string;

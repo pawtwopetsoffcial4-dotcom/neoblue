@@ -1,71 +1,67 @@
 import { NextRequest, NextResponse } from 'next/server';
-import fs from 'fs/promises';
-import path from 'path';
 import { connectDB } from '@/lib/db';
 import Product from '@/lib/models/Product';
-
-const DATA_FILE = path.join(process.cwd(), 'data', 'reviews.json');
-
-async function readData() {
-  try {
-    const raw = await fs.readFile(DATA_FILE, 'utf-8');
-    return JSON.parse(raw || '{}');
-  } catch (err) {
-    return {};
-  }
-}
-
-async function writeData(obj: any) {
-  await fs.mkdir(path.dirname(DATA_FILE), { recursive: true });
-  await fs.writeFile(DATA_FILE, JSON.stringify(obj, null, 2), 'utf-8');
-}
+import Review from '@/lib/models/Review';
+import { getTokenFromRequest, verifyToken } from '@/lib/utils/auth';
 
 export async function GET(request: NextRequest, context: { params: Promise<{ id: string }> }) {
-  const { id } = await context.params;
-  const data = await readData();
-  const forProduct = Array.isArray(data[id]) ? data[id] : [];
-  return NextResponse.json({ reviews: forProduct });
+  try {
+    await connectDB();
+    const { id } = await context.params;
+    const reviews = await Review.find({ productId: id }).sort({ createdAt: -1 });
+    return NextResponse.json({ reviews });
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message || 'Server error' }, { status: 500 });
+  }
 }
 
 export async function POST(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
+    await connectDB();
     const { id } = await context.params;
+
+    // Verify token
+    const token = getTokenFromRequest(request);
+    if (!token) {
+      return NextResponse.json({ error: 'Unauthorized. Please login to write a review.' }, { status: 401 });
+    }
+
+    const payload = verifyToken(token);
+    if (!payload) {
+      return NextResponse.json({ error: 'Invalid session. Please login again.' }, { status: 401 });
+    }
+
     const body = await request.json();
     const { user, rating, comment } = body || {};
 
-    if (!user || typeof rating !== 'number' || rating < 1 || rating > 5) {
-      return NextResponse.json({ error: 'Invalid payload' }, { status: 400 });
+    if (typeof rating !== 'number' || rating < 1 || rating > 5) {
+      return NextResponse.json({ error: 'Invalid payload. Rating must be 1-5.' }, { status: 400 });
     }
 
-    const data = await readData();
-    const forProduct = Array.isArray(data[id]) ? data[id] : [];
-    const newReview = {
-      id: Date.now(),
-      user,
+    const nameToSave = user || payload.email.split('@')[0];
+
+    const newReview = await Review.create({
+      productId: id,
+      user: nameToSave,
       rating: Math.round(rating),
       comment: comment || '',
-      date: new Date().toISOString(),
-      avatar: user.charAt(0).toUpperCase(),
       verified: true,
-    };
-    forProduct.unshift(newReview);
-    data[id] = forProduct;
-    await writeData(data);
+      avatar: nameToSave.charAt(0).toUpperCase(),
+      date: new Date(),
+    });
 
-    try {
-      await connectDB();
-      const ratingSum = forProduct.reduce((sum: number, r: any) => sum + r.rating, 0);
-      const averageRating = forProduct.length > 0 ? (ratingSum / forProduct.length) : 5;
-      await Product.findByIdAndUpdate(id, {
-        rating: Math.round(averageRating * 10) / 10,
-        reviewsCount: forProduct.length,
-      });
-    } catch (dbErr) {
-      console.error('Failed to sync review rating with MongoDB:', dbErr);
-    }
+    // Recalculate average rating for product
+    const allReviews = await Review.find({ productId: id });
+    const ratingSum = allReviews.reduce((sum: number, r: any) => sum + r.rating, 0);
+    const averageRating = allReviews.length > 0 ? (ratingSum / allReviews.length) : 5;
+
+    await Product.findByIdAndUpdate(id, {
+      rating: Math.round(averageRating * 10) / 10,
+      reviewsCount: allReviews.length,
+    });
 
     return NextResponse.json({ ok: true, review: newReview });
-  } catch (err) {
-    return NextResponse.json({ error: 'Server error' }, { status: 500 });
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message || 'Server error' }, { status: 500 });
   }
 }

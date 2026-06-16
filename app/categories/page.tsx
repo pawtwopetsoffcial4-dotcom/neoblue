@@ -1,80 +1,59 @@
-"use client";
-
-import React, { useEffect, useMemo, useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
-import type { MarketplaceProduct } from '@/lib/types/marketplace';
+import { connectDB } from '@/lib/db';
+import Product from '@/lib/models/Product';
+import StoreConfig from '@/lib/models/StoreConfig';
+import { PRODUCT_CATEGORIES } from '@/lib/catalog';
+import type { Metadata } from 'next';
 
-type UICategory = {
-  slug: string;
-  name: string;
-  description: string;
-  image: string;
-  subcategories: string[];
+export const dynamic = 'force-dynamic';
+
+export const metadata: Metadata = {
+  title: 'Aquatic Categories & Species | NeoBlue',
+  description: 'Explore our curated selection of live tropical fish, cichlids, guppies, crayfish, and premium aquatic life.',
 };
-
-// CATEGORY_META removed: category metadata will be derived from DB and products at runtime.
 
 const toSlug = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 
-export default function CategoriesPage() {
-  const [products, setProducts] = useState<MarketplaceProduct[]>([]);
-  const [availableCategories, setAvailableCategories] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+export default async function CategoriesPage() {
+  await connectDB();
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        setIsLoading(true);
-        const response = await fetch('/api/products', { cache: 'no-store' });
-        if (!response.ok) throw new Error('Failed to load categories');
-        const data = await response.json();
-        setProducts(data.products ?? []);
-      } finally {
-        setIsLoading(false);
-      }
+  const config = await StoreConfig.findOne({}).lean() as any;
+  const configuredCategories = Array.isArray(config?.categories) ? config.categories : [];
+
+  const productCategories = await Product.distinct('category', {
+    approvalStatus: 'approved',
+    inStock: true,
+  });
+
+  const categoryNames = Array.from(
+    new Set([
+      ...PRODUCT_CATEGORIES,
+      ...configuredCategories,
+      ...productCategories,
+    ].filter((category): category is string => typeof category === 'string' && category.trim().length > 0))
+  ).sort();
+
+  const products = await Product.find({
+    approvalStatus: 'approved',
+    inStock: true,
+  }).select('category subcategory images').lean() as any[];
+
+  const categories = categoryNames.map((category) => {
+    const cleaned = String(category);
+    const categoryProducts = products.filter((p) => p.category === cleaned);
+    const subcategories = Array.from(new Set(categoryProducts.map((p) => p.subcategory).filter(Boolean))) as string[];
+    const image = categoryProducts.find((p) => Array.isArray(p.images) && p.images.length > 0)?.images?.[0] ?? 'https://img.freepik.com/free-photo/beautiful-fish-undersea_23-2150737797.jpg?w=800';
+
+    return {
+      slug: toSlug(cleaned),
+      name: cleaned,
+      description: `Browse premium ${cleaned.toLowerCase()} products.`,
+      image,
+      subcategories,
     };
-
-    fetchProducts();
-  }, []);
-
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await fetch('/api/categories', { cache: 'no-store' });
-        if (!response.ok) return;
-
-        const data = await response.json();
-        setAvailableCategories(Array.isArray(data.categories) ? data.categories : []);
-      } catch {
-        setAvailableCategories([]);
-      }
-    };
-
-    fetchCategories();
-  }, []);
-
-  const categories: UICategory[] = useMemo(() => {
-    const allCategories = new Set<string>([
-      ...availableCategories,
-      ...products.map((item) => item.category).filter(Boolean),
-    ]);
-
-    return Array.from(allCategories).map((category) => {
-      const cleaned = String(category);
-      const categoryProducts = products.filter((p) => p.category === cleaned);
-      const subcategories = Array.from(new Set(categoryProducts.map((p) => p.subcategory).filter(Boolean)));
-      const image = categoryProducts.find((p) => Array.isArray(p.images) && p.images.length > 0)?.images?.[0] ?? 'https://img.freepik.com/free-photo/beautiful-fish-undersea_23-2150737797.jpg?w=800';
-
-      return {
-        slug: toSlug(cleaned),
-        name: cleaned,
-        description: `Browse premium ${cleaned.toLowerCase()} products.`,
-        image,
-        subcategories,
-      } as UICategory;
-    });
-  }, [availableCategories, products]);
+  });
 
   return (
     <div className="min-h-screen bg-white text-slate-900 selection:bg-blue-500 selection:text-white pb-24 md:pb-0 font-sans">
@@ -101,12 +80,6 @@ export default function CategoriesPage() {
             <ArrowUpRight className="h-4 w-4 transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
           </Link>
         </div>
-
-        {isLoading && (
-          <div className="rounded-2xl border border-slate-100 bg-slate-50 p-8 text-center text-slate-500 animate-pulse">
-            Loading categories...
-          </div>
-        )}
 
         {/* Categories Grid - Circular Style */}
         <section className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-x-4 gap-y-8 sm:gap-x-6 sm:gap-y-10">

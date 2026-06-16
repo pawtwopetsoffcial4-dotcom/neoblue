@@ -1,91 +1,90 @@
-"use client";
-
-import React, { useEffect, useMemo, useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { ArrowLeft, ArrowUpRight } from 'lucide-react';
-import type { MarketplaceProduct } from '@/lib/types/marketplace';
+import { connectDB } from '@/lib/db';
+import Product from '@/lib/models/Product';
+import StoreConfig from '@/lib/models/StoreConfig';
+import { PRODUCT_CATEGORIES } from '@/lib/catalog';
 import ReviewStars from '@/app/components/ReviewStars';
+import type { Metadata } from 'next';
 
 type CategoryPageProps = {
   params: Promise<{ slug: string }>;
 };
 
-// removed hardcoded slug-to-category map: categories are resolved from DB/products at runtime
+export const dynamic = 'force-dynamic';
 
 const toSlug = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 
-export default function CategoryDetailPage({ params }: CategoryPageProps) {
-  const [slug, setSlug] = useState<string>('');
-  const [availableCategories, setAvailableCategories] = useState<string[]>([]);
-  const [products, setProducts] = useState<MarketplaceProduct[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    params.then((data) => setSlug(data.slug));
-  }, [params]);
-
-  useEffect(() => {
-    if (!slug) return;
-    const fetchProducts = async () => {
-      try {
-        setIsLoading(true);
-        const response = await fetch('/api/products', { cache: 'no-store' });
-        if (!response.ok) throw new Error('Failed to load products');
-        const data = await response.json();
-        setProducts(data.products ?? []);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchProducts();
-  }, [slug]);
-
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await fetch('/api/categories', { cache: 'no-store' });
-        if (!response.ok) return;
-
-        const data = await response.json();
-        setAvailableCategories(Array.isArray(data.categories) ? data.categories : []);
-      } catch {
-        setAvailableCategories([]);
-      }
-    };
-
-    fetchCategories();
-  }, []);
+// Helper to resolve category title and filtered products
+async function getCategoryData(slug: string) {
+  await connectDB();
 
   const normalizedSlug = slug.toLowerCase();
   const isWaterFilter = normalizedSlug === 'freshwater' || normalizedSlug === 'saltwater';
+
+  // Fetch all approved, in-stock products
+  const products = await Product.find({
+    approvalStatus: 'approved',
+    inStock: true,
+  }).lean() as any[];
+
+  // Fetch configurations for custom categories
+  const config = await StoreConfig.findOne({}).lean() as any;
+  const configuredCategories = Array.isArray(config?.categories) ? config.categories : [];
+
+  const availableCategories = Array.from(
+    new Set([
+      ...PRODUCT_CATEGORIES,
+      ...configuredCategories,
+    ].filter((category): category is string => typeof category === 'string' && category.trim().length > 0))
+  );
+
   const customCategory = availableCategories.find((category) => toSlug(category) === normalizedSlug);
   const inferredCategory = products.find((p) => toSlug(p.category) === normalizedSlug)?.category;
   const mappedCategory = customCategory ?? inferredCategory;
 
-  const filteredProducts = useMemo(() => {
-    if (!slug) return [];
-    if (isWaterFilter) {
-      return products.filter((product) => product.waterType.toLowerCase() === normalizedSlug);
-    }
+  let filteredProducts: any[] = [];
+  if (isWaterFilter) {
+    filteredProducts = products.filter((product) => product.waterType && product.waterType.toLowerCase() === normalizedSlug);
+  } else if (mappedCategory || customCategory) {
+    filteredProducts = products.filter((product) => product.category === (mappedCategory || customCategory));
+  }
 
-    if (mappedCategory || customCategory) {
-      return products.filter((product) => product.category === (mappedCategory || customCategory));
-    }
-
-    return [];
-  }, [slug, isWaterFilter, normalizedSlug, mappedCategory, customCategory, products]);
-
-  const subcategories = useMemo(() => {
-    if (!mappedCategory) return [];
-    return Array.from(
-      new Set(products.filter((p) => p.category === mappedCategory).map((p) => p.subcategory).filter(Boolean))
-    );
-  }, [mappedCategory, products]);
+  const subcategories = mappedCategory
+    ? Array.from(new Set(products.filter((p) => p.category === mappedCategory).map((p) => p.subcategory).filter(Boolean))) as string[]
+    : [];
 
   const categoryTitle = isWaterFilter
     ? normalizedSlug.charAt(0).toUpperCase() + normalizedSlug.slice(1)
     : mappedCategory ?? customCategory ?? 'Category';
+
+  return {
+    categoryTitle,
+    filteredProducts: JSON.parse(JSON.stringify(filteredProducts)),
+    subcategories,
+  };
+}
+
+export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  try {
+    const { categoryTitle, filteredProducts } = await getCategoryData(slug);
+    return {
+      title: `${categoryTitle} Premium Aquatic Stock | NeoBlue`,
+      description: `Browse our active inventory of ${filteredProducts.length} premium ${categoryTitle.toLowerCase()} specimens. Live arrival guaranteed.`,
+    };
+  } catch {
+    return {
+      title: 'Aquatic Category | NeoBlue',
+    };
+  }
+}
+
+export default async function CategoryDetailPage({ params }: CategoryPageProps) {
+  const { slug } = await params;
+  const { categoryTitle, filteredProducts, subcategories } = await getCategoryData(slug);
+
   return (
     <div className="min-h-screen bg-white text-slate-900 selection:bg-blue-500 selection:text-white pb-24 md:pb-0">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 md:pt-10 pb-10">
@@ -113,14 +112,8 @@ export default function CategoryDetailPage({ params }: CategoryPageProps) {
           </p>
         </div>
 
-        {isLoading && (
-          <div className="rounded-3xl border border-blue-100 bg-blue-50/50 p-12 text-center">
-            <p className="text-lg font-semibold text-slate-900">Loading products...</p>
-          </div>
-        )}
-
-        {!isLoading && <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {filteredProducts.map((product) => (
+        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {filteredProducts.map((product: any) => (
             <article key={product._id} className="rounded-3xl overflow-hidden border border-blue-100 bg-white shadow-sm hover:border-blue-300 transition-colors">
               <img src={product.images?.[0] ?? '/api/placeholder/400/300'} alt={product.title} className="w-full aspect-4/3 object-cover" />
               <div className="p-5">
@@ -143,7 +136,7 @@ export default function CategoryDetailPage({ params }: CategoryPageProps) {
               </div>
             </article>
           ))}
-        </section>}
+        </section>
       </main>
     </div>
   );

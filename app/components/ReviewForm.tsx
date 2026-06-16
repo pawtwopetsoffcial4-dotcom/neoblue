@@ -1,6 +1,7 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ReviewStars from './ReviewStars';
+import { useAuth } from '@/lib/hooks/useAuth';
 
 type Props = {
   productId: string;
@@ -8,6 +9,7 @@ type Props = {
 };
 
 export default function ReviewForm({ productId, onSubmit }: Props) {
+  const { token, user: authUser } = useAuth();
   const [rating, setRating] = useState(5);
   const [hover, setHover] = useState<number | null>(null);
   const [name, setName] = useState('');
@@ -16,9 +18,19 @@ export default function ReviewForm({ productId, onSubmit }: Props) {
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (authUser?.name) {
+      setName(authUser.name);
+    }
+  }, [authUser]);
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    
+    if (!token) {
+      return setError('You must be logged in to submit a review.');
+    }
     if (!name.trim()) return setError('Please enter your name.');
     if (rating < 1 || rating > 5) return setError('Please provide a rating.');
 
@@ -26,7 +38,10 @@ export default function ReviewForm({ productId, onSubmit }: Props) {
     try {
       const res = await fetch(`/api/reviews/${productId}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({ user: name.trim(), rating, comment: comment.trim() }),
       });
 

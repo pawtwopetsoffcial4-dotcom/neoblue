@@ -7,6 +7,7 @@ import './models/BlogCategory';
 import './models/BlogTag';
 import './models/BlogComment';
 import './models/BlogAnalytics';
+import './models/Review';
 
 const MONGODB_URI = process.env.MONGODB_URI;
 const MONGODB_URI_DIRECT = process.env.MONGODB_URI_DIRECT;

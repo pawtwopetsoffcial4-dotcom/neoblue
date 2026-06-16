@@ -5,6 +5,12 @@ import { createErrorResponse, createSuccessResponse, getTokenFromRequest, verify
 import { calculateProductShippingAmount, calculateRegionalShipping } from '@/lib/utils/shipping';
 import { NextRequest } from 'next/server';
 
+const appId = process.env.CASHFREE_APP_ID;
+const secretKey = process.env.CASHFREE_SECRET_KEY;
+const cashfreeEnv = process.env.CASHFREE_ENV === 'production' ? 'production' : 'sandbox';
+
+const getCashfreeBaseUrl = () => (cashfreeEnv === 'production' ? 'https://api.cashfree.com' : 'https://sandbox.cashfree.com');
+
 // GET orders (user sees their orders, vendor sees their vendor orders, admin sees all)
 export async function GET(request: NextRequest) {
   try {
@@ -100,6 +106,43 @@ export async function POST(request: NextRequest) {
         orderItem?.shippingOptionId
       );
     }, 0);
+
+    // Verify cashfree payment if Cashfree is used
+    if (cashfreeOrderId) {
+      if (!appId || !secretKey) {
+        return createErrorResponse('Cashfree keys are not configured', 500);
+      }
+
+      const orderRes = await fetch(`${getCashfreeBaseUrl()}/pg/orders/${cashfreeOrderId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-client-id': appId,
+          'x-client-secret': secretKey,
+          'x-api-version': '2023-08-01',
+        },
+      });
+
+      const orderData = await orderRes.json();
+      if (!orderRes.ok) {
+        return createErrorResponse(orderData?.message || 'Failed to verify Cashfree order payment', orderRes.status);
+      }
+
+      if (orderData.order_status !== 'PAID') {
+        return createErrorResponse(`Payment not completed. Status: ${orderData.order_status}`, 400);
+      }
+
+      // Assert that the payment amount matches the calculated total amount (with dynamic tolerance for rounding)
+      const expectedTotal = totalAmount + shippingAmount;
+      const actualPaid = Number(orderData.order_amount);
+      if (Math.abs(expectedTotal - actualPaid) > 0.05) {
+        return createErrorResponse(`Payment amount mismatch. Expected: ₹${expectedTotal.toFixed(2)}, Paid: ₹${actualPaid.toFixed(2)}`, 400);
+      }
+    } else {
+      if (process.env.NODE_ENV === 'production') {
+        return createErrorResponse('Payment verification identifier (cashfreeOrderId) is required', 400);
+      }
+    }
 
     // Create order
     const order = await Order.create({

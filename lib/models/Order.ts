@@ -86,4 +86,8 @@ const orderSchema = new Schema<IOrder>(
   { timestamps: true }
 );
 
+// Indexes for common queries
+orderSchema.index({ userId: 1, createdAt: -1 });
+orderSchema.index({ vendorId: 1, createdAt: -1 });
+
 export default mongoose.models.Order || mongoose.model<IOrder>('Order', orderSchema);
