@@ -3,7 +3,7 @@ import { connectDB, isDatabaseConnectivityError } from '@/lib/db';
 import Product from '@/lib/models/Product';
 import StoreConfig from '@/lib/models/StoreConfig';
 import { createErrorResponse, createSuccessResponse } from '@/lib/utils/auth';
-import { getCategoryImage } from '@/lib/catalog';
+import { getCategoryImage, PRODUCT_CATEGORIES } from '@/lib/catalog';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,6 +21,7 @@ export async function GET(_request: NextRequest) {
 
     const categories = Array.from(
       new Set([
+        ...PRODUCT_CATEGORIES,
         ...configuredCategories,
         ...productCategories,
       ].filter((category): category is string => typeof category === 'string' && category.trim().length > 0))

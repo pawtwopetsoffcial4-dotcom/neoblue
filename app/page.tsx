@@ -219,7 +219,7 @@ export default function NeoBlueMobileOptimized() {
       ? categoriesFromDb
       : (PRODUCT_CATEGORIES as unknown as string[]).map(name => ({ name, image: getCategoryImage(name) }));
 
-    return list.slice(0, 8).map((cat) => ({
+    return list.map((cat) => ({
       label: cat.name,
       image: cat.image,
     }));
