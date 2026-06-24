@@ -240,6 +240,82 @@ export default function ProductClientPage({
               </div>
             );
           })()}
+          {/* Price & Cart Actions */}
+          <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 mt-6 mb-6">
+            <div className="flex items-start gap-3 mb-6">
+              <div className="flex-1 space-y-2">
+                <p className="text-xs font-bold uppercase tracking-[0.3em] text-blue-600">Pricing</p>
+                <p className="text-4xl font-black text-slate-900 leading-none">{formatPrice(product.price)}</p>
+                <div className="flex flex-col gap-1 text-sm text-slate-600">
+                  {typeof product.perPairPrice === 'number' ? (
+                    <span>
+                      <span className="font-semibold text-slate-900">{formatPrice(product.perPairPrice)}</span> per pair
+                    </span>
+                  ) : typeof product.perPiecePrice === 'number' ? (
+                    <span>
+                      <span className="font-semibold text-slate-900">{formatPrice(product.perPiecePrice)}</span> per piece
+                    </span>
+                  ) : (
+                    <span className="text-slate-400">Unit pricing will appear here when available.</span>
+                  )}
+                </div>
+              </div>
+              <p className="text-lg font-medium text-slate-400 line-through mb-1">{formatPrice(product.price * 1.25)}</p>
+              <span className="ml-auto inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-100">
+                Save 20%
+              </span>
+            </div>
+
+            <div className="flex items-center gap-4 mb-6">
+              <div className="flex items-center bg-[#F5F7FA] rounded-2xl p-1 border border-slate-200">
+                <button 
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-white text-slate-600 transition-colors shadow-sm"
+                >-</button>
+                <span className="w-12 text-center font-bold text-slate-900">{quantity}</span>
+                <button 
+                  onClick={() => setQuantity(quantity + 1)}
+                  className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-white text-slate-600 transition-colors shadow-sm"
+                >+</button>
+              </div>
+              <button
+                onClick={() => {
+                  for (let i = 0; i < quantity; i++) product && addToCart(product);
+                }}
+                disabled={!product.inStock}
+                className={`flex-1 h-14 rounded-2xl font-bold text-lg flex items-center justify-center gap-2 transition-all shadow-lg
+                  ${product.inStock 
+                    ? 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-blue-600/25 active:scale-[0.98]' 
+                    : 'bg-slate-200 text-slate-400 cursor-not-allowed'}`}
+              >
+                <ShoppingBag className="h-5 w-5" /> 
+                {product.inStock ? 'Add to Cart' : 'Out of Stock'}
+              </button>
+            </div>
+
+            {/* Trust Badges */}
+            <div className="grid grid-cols-2 gap-4 pt-6 border-t border-slate-100">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
+                  <Truck className="h-5 w-5" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-xs font-bold text-slate-900">Live Delivery</span>
+                  <span className="text-[10px] text-slate-500">100% Guarantee</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
+                  <Shield className="h-5 w-5" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-xs font-bold text-slate-900">Quality Checked</span>
+                  <span className="text-[10px] text-slate-500">Quarantined</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <p className="mt-4 text-sm md:text-base text-slate-600 leading-relaxed line-clamp-4">
             {product.description || 'Healthy, quarantine-tested livestock sourced for stable acclimation and long-term tank vitality.'}
           </p>
@@ -426,82 +502,6 @@ export default function ProductClientPage({
             </div>
           </div>
         </div>
-
-        {/* Price & Cart Actions */}
-        <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 mb-8">
-          <div className="flex items-start gap-3 mb-6">
-            <div className="flex-1 space-y-2">
-              <p className="text-xs font-bold uppercase tracking-[0.3em] text-blue-600">Pricing</p>
-              <p className="text-4xl font-black text-slate-900 leading-none">{formatPrice(product.price)}</p>
-              <div className="flex flex-col gap-1 text-sm text-slate-600">
-                {typeof product.perPairPrice === 'number' ? (
-                  <span>
-                    <span className="font-semibold text-slate-900">{formatPrice(product.perPairPrice)}</span> per pair
-                  </span>
-                ) : typeof product.perPiecePrice === 'number' ? (
-                  <span>
-                    <span className="font-semibold text-slate-900">{formatPrice(product.perPiecePrice)}</span> per piece
-                  </span>
-                ) : (
-                  <span className="text-slate-400">Unit pricing will appear here when available.</span>
-                )}
-              </div>
-            </div>
-            <p className="text-lg font-medium text-slate-400 line-through mb-1">{formatPrice(product.price * 1.25)}</p>
-            <span className="ml-auto inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-100">
-              Save 20%
-            </span>
-          </div>
-
-          <div className="flex items-center gap-4 mb-6">
-            <div className="flex items-center bg-[#F5F7FA] rounded-2xl p-1 border border-slate-200">
-              <button 
-                onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-white text-slate-600 transition-colors shadow-sm"
-              >-</button>
-              <span className="w-12 text-center font-bold text-slate-900">{quantity}</span>
-              <button 
-                onClick={() => setQuantity(quantity + 1)}
-                className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-white text-slate-600 transition-colors shadow-sm"
-              >+</button>
-            </div>
-            <button
-              onClick={() => {
-                for (let i = 0; i < quantity; i++) product && addToCart(product);
-              }}
-              disabled={!product.inStock}
-              className={`flex-1 h-14 rounded-2xl font-bold text-lg flex items-center justify-center gap-2 transition-all shadow-lg
-                ${product.inStock 
-                  ? 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-blue-600/25 active:scale-[0.98]' 
-                  : 'bg-slate-200 text-slate-400 cursor-not-allowed'}`}
-            >
-              <ShoppingBag className="h-5 w-5" /> 
-              {product.inStock ? 'Add to Cart' : 'Out of Stock'}
-            </button>
-          </div>
-
-          {/* Trust Badges */}
-          <div className="grid grid-cols-2 gap-4 pt-6 border-t border-slate-100">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
-                <Truck className="h-5 w-5" />
-              </div>
-              <div className="flex flex-col">
-                <span className="text-xs font-bold text-slate-900">Live Delivery</span>
-                <span className="text-[10px] text-slate-500">100% Guarantee</span>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
-                <Shield className="h-5 w-5" />
-              </div>
-              <div className="flex flex-col">
-                <span className="text-xs font-bold text-slate-900">Quality Checked</span>
-                <span className="text-[10px] text-slate-500">Quarantined</span>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Main Tab Content */}
@@ -562,7 +562,13 @@ export default function ProductClientPage({
                 {[
                   { title: "Water Type", value: product.waterType, icon: Droplets, color: "text-blue-500", bg: "bg-blue-50" },
                   { title: "Temperature", value: "24°C - 28°C", icon: Thermometer, color: "text-rose-500", bg: "bg-rose-50" },
-                  { title: "Category", value: product.category, icon: Info, color: "text-indigo-500", bg: "bg-indigo-50" },
+                  { 
+                    title: "Category", 
+                    value: product.category, 
+                    icon: Info, 
+                    color: product.category === 'Plants' ? "text-green-600" : "text-indigo-500", 
+                    bg: product.category === 'Plants' ? "bg-green-50" : "bg-indigo-50" 
+                  },
                 ].map((spec, i) => (
                   <div key={i} className="flex items-center gap-4 p-4 rounded-2xl border border-slate-100 bg-[#F5F7FA] hover:border-slate-200 transition-colors">
                     <div className={`w-12 h-12 rounded-xl ${spec.bg} flex items-center justify-center shrink-0`}>

@@ -2,18 +2,49 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Home, Grid2X2, ShoppingCart, User, Fish } from 'lucide-react';
+import { Home, Layers, ShoppingCart, User, Fish, Leaf } from 'lucide-react';
 import { usePathname } from 'next/navigation';
+import { useMode } from '@/lib/hooks/useMode';
 
 export default function MobileDock() {
   const pathname = usePathname();
+  const { mode } = useMode();
+
+  const isPlants = mode === 'plants';
+  const activeBg = isPlants ? 'bg-green-50' : 'bg-blue-50';
+  const activeText = isPlants ? 'text-green-700' : 'text-blue-600';
 
   const items = [
-    { href: '/', label: 'Home', icon: Home, active: pathname === '/' },
-    { href: '/products', label: 'Products', icon: Fish, active: pathname === '/products' || pathname.startsWith('/products/') },
-    { href: '/categories', label: 'Categories', icon: Grid2X2, active: pathname === '/categories' || pathname.startsWith('/categories/') },
-    { href: '/checkout', label: 'Cart', icon: ShoppingCart, active: pathname === '/checkout' },
-    { href: '/profile', label: 'Account', icon: User, active: pathname === '/profile' },
+    { 
+      href: '/', 
+      label: 'Home', 
+      icon: Home, 
+      active: pathname === '/' 
+    },
+    { 
+      href: '/categories', 
+      label: 'Categories', 
+      icon: Layers, 
+      active: pathname.startsWith('/categories') 
+    },
+    { 
+      href: '/products', 
+      label: isPlants ? 'Plants' : 'Fishes', 
+      icon: isPlants ? Leaf : Fish, 
+      active: pathname.startsWith('/products') 
+    },
+    { 
+      href: '/checkout', 
+      label: 'Cart', 
+      icon: ShoppingCart, 
+      active: pathname.startsWith('/checkout') 
+    },
+    { 
+      href: '/profile', 
+      label: 'Account', 
+      icon: User, 
+      active: pathname.startsWith('/profile') 
+    },
   ];
 
   return (
@@ -26,8 +57,10 @@ export default function MobileDock() {
               <li key={item.label}>
                 <Link
                   href={item.href}
-                  className={`flex flex-col items-center justify-center rounded-xl py-2 text-[11px] font-semibold transition-colors ${
-                    item.active ? 'bg-blue-50 text-blue-600' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'
+                  className={`flex flex-col items-center justify-center rounded-xl py-2 text-[11px] font-semibold transition-all duration-300 ${
+                    item.active 
+                      ? `${activeBg} ${activeText}` 
+                      : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'
                   }`}
                 >
                   <Icon className="h-4 w-4 mb-1" />
@@ -41,3 +74,4 @@ export default function MobileDock() {
     </nav>
   );
 }
+

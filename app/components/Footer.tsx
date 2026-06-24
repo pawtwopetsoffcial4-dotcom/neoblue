@@ -1,17 +1,43 @@
+"use client";
+
+import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useMode } from '@/lib/hooks/useMode';
+import { useRouter } from 'next/navigation';
 
 export default function Footer() {
+  const { mode, setMode } = useMode();
+  const router = useRouter();
+
+  const isPlants = mode === 'plants';
+  const accentColorClass = isPlants ? 'text-green-200/70' : 'text-blue-200/70';
+  const subtitleColorClass = isPlants ? 'text-green-100/70' : 'text-blue-100/70';
+  const headerColorClass = isPlants ? 'text-green-200/50' : 'text-blue-200/50';
+  const linkColorClass = isPlants ? 'text-green-100/80' : 'text-blue-100/80';
+  const copyrightColorClass = isPlants ? 'text-green-200/50' : 'text-blue-200/50';
+
   return (
     <footer className="w-full bg-transparent flex justify-center py-6">
       <div className="w-full max-w-md md:max-w-4xl px-5">
-        <div className="bg-gradient-to-b from-[#001435] to-[#00081a] rounded-[32px] p-6 text-white shadow-xl relative overflow-hidden">
-          <div className="absolute inset-0 opacity-5 bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,0.5),transparent_40%)]" />
+        <div className={`bg-gradient-to-b ${
+          isPlants ? 'from-[#032008] to-[#010c03]' : 'from-[#001435] to-[#00081a]'
+        } rounded-[32px] p-6 text-white shadow-xl relative overflow-hidden transition-colors duration-500`}>
+          
+          <div className={`absolute inset-0 opacity-5 transition-all duration-500 ${
+            isPlants 
+              ? 'bg-[radial-gradient(circle_at_top_right,rgba(74,222,128,0.5),transparent_40%)]' 
+              : 'bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,0.5),transparent_40%)]'
+          }`} />
 
           {/* Stay Updated Banner */}
           <div className="relative z-10 mb-7">
-            <h3 className="text-white text-base font-extrabold leading-none">Stay updated with NeoBlue</h3>
-            <p className="text-blue-200/70 text-[9.5px] mt-1.5 font-bold">Tips, new arrivals, offers and more</p>
+            <h3 className="text-white text-base font-extrabold leading-none">
+              {isPlants ? 'Stay updated with NeoBlue Plants' : 'Stay updated with NeoBlue'}
+            </h3>
+            <p className={`${accentColorClass} text-[9.5px] mt-1.5 font-bold transition-colors duration-300`}>
+              {isPlants ? 'Plants, new arrivals, tips and more' : 'Tips, new arrivals, offers and more'}
+            </p>
             
             <div className="flex gap-2 mt-4">
               <input 
@@ -19,7 +45,11 @@ export default function Footer() {
                 placeholder="Enter your email..." 
                 className="flex-1 min-w-0 h-9 px-4 rounded-xl bg-white text-slate-900 text-xs focus:outline-none placeholder-slate-400 font-semibold"
               />
-              <button className="h-9 px-4.5 bg-[#005AE0] hover:bg-blue-600 text-white font-extrabold text-[10px] uppercase tracking-wider rounded-xl shadow-md transition-colors shrink-0">
+              <button className={`h-9 px-4.5 text-white font-extrabold text-[10px] uppercase tracking-wider rounded-xl shadow-md transition-all duration-300 shrink-0 ${
+                isPlants 
+                  ? 'bg-green-700 hover:bg-green-600 shadow-green-950/20' 
+                  : 'bg-[#005AE0] hover:bg-blue-600 shadow-blue-950/20'
+              }`}>
                 Subscribe
               </button>
             </div>
@@ -40,11 +70,11 @@ export default function Footer() {
                 />
               </div>
               <span className="font-extrabold text-xs tracking-widest text-white uppercase">
-                NEOBLUE
+                {isPlants ? 'NEOBLUE PLANTS' : 'NEOBLUE'}
               </span>
             </Link>
-            <p className="text-blue-100/70 text-[9.5px] leading-relaxed font-semibold">
-              India&apos;s trusted aquarium ecosystem.<br />
+            <p className={`${subtitleColorClass} text-[9.5px] leading-relaxed font-semibold transition-colors duration-300`}>
+              {isPlants ? "India's trusted aquatic plant ecosystem." : "India's trusted aquarium ecosystem."}<br />
               For hobbyists. By hobbyists.
             </p>
             
@@ -82,17 +112,31 @@ export default function Footer() {
           {/* Footer Links Grid */}
           <div className="grid grid-cols-3 gap-2 mt-8 text-[9.5px]">
             <div>
-              <span className="text-blue-200/50 font-bold block mb-2 uppercase tracking-wider">Shop</span>
-              <ul className="space-y-1.5 text-blue-100/80 font-semibold">
-                <li><Link href="/categories/fish" className="hover:text-white transition-colors">Fish</Link></li>
-                <li><Link href="/categories/plants" className="hover:text-white transition-colors">Plants</Link></li>
+              <span className={`${headerColorClass} font-bold block mb-2 uppercase tracking-wider transition-colors duration-300`}>Shop</span>
+              <ul className={`${linkColorClass} space-y-1.5 font-semibold transition-colors duration-300`}>
+                <li>
+                  <button 
+                    onClick={() => { setMode('fishes'); router.push('/products'); }}
+                    className="hover:text-white transition-colors text-left font-semibold"
+                  >
+                    Fishes
+                  </button>
+                </li>
+                <li>
+                  <button 
+                    onClick={() => { setMode('plants'); router.push('/products'); }}
+                    className="hover:text-white transition-colors text-left font-semibold"
+                  >
+                    Plants
+                  </button>
+                </li>
                 <li><Link href="/products?category=accessories" className="hover:text-white transition-colors">Accessories</Link></li>
                 <li><Link href="/products?sort=newest" className="hover:text-white transition-colors">New Arrivals</Link></li>
               </ul>
             </div>
             <div>
-              <span className="text-blue-200/50 font-bold block mb-2 uppercase tracking-wider">Company</span>
-              <ul className="space-y-1.5 text-blue-100/80 font-semibold">
+              <span className={`${headerColorClass} font-bold block mb-2 uppercase tracking-wider transition-colors duration-300`}>Company</span>
+              <ul className={`${linkColorClass} space-y-1.5 font-semibold transition-colors duration-300`}>
                 <li><Link href="/about" className="hover:text-white transition-colors">About Us</Link></li>
                 <li><Link href="/blog" className="hover:text-white transition-colors">Blog</Link></li>
                 <li><Link href="/community" className="hover:text-white transition-colors">Community</Link></li>
@@ -100,8 +144,8 @@ export default function Footer() {
               </ul>
             </div>
             <div>
-              <span className="text-blue-200/50 font-bold block mb-2 uppercase tracking-wider">Support</span>
-              <ul className="space-y-1.5 text-blue-100/80 font-semibold">
+              <span className={`${headerColorClass} font-bold block mb-2 uppercase tracking-wider transition-colors duration-300`}>Support</span>
+              <ul className={`${linkColorClass} space-y-1.5 font-semibold transition-colors duration-300`}>
                 <li><Link href="/shipping" className="hover:text-white transition-colors">Shipping</Link></li>
                 <li><Link href="/return-refund-policy" className="hover:text-white transition-colors">Returns</Link></li>
                 <li><Link href="/faq" className="hover:text-white transition-colors">FAQs</Link></li>
@@ -113,17 +157,21 @@ export default function Footer() {
           <hr className="border-white/10 my-6" />
 
           {/* Copyright and Back to Top */}
-          <div className="relative z-10 flex items-center justify-between text-[9px] text-blue-200/50 font-bold">
-            <span>&copy; 2025 NeoBlue. All rights reserved.</span>
-            <a 
-              href="#"
-              className="w-7 h-7 bg-blue-600 hover:bg-blue-500 rounded-full flex items-center justify-center text-white transition-colors shadow-md"
+          <div className={`relative z-10 flex items-center justify-between text-[9px] ${copyrightColorClass} font-bold transition-colors duration-300`}>
+            <span>&copy; 2025 {isPlants ? 'NeoBlue Plants' : 'NeoBlue'}. All rights reserved.</span>
+            <button 
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              className={`w-7 h-7 rounded-full flex items-center justify-center text-white transition-all duration-300 shadow-md ${
+                isPlants 
+                  ? 'bg-green-700 hover:bg-green-600 shadow-green-950/20' 
+                  : 'bg-blue-600 hover:bg-blue-500 shadow-blue-950/20'
+              }`}
               aria-label="Scroll back to top"
             >
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
               </svg>
-            </a>
+            </button>
           </div>
 
         </div>
@@ -131,3 +179,4 @@ export default function Footer() {
     </footer>
   );
 }
+

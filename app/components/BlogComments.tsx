@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import LoadingSpinner from './LoadingSpinner';
 
 interface Comment {
   _id: string;
@@ -36,7 +37,7 @@ export default function BlogComments({ blogId }: BlogCommentsProps) {
       const res = await fetch(`/api/blogs/${blogId}/comments`);
       const data = await res.json();
       if (res.ok) {
-        setComments(data.data.comments);
+        setComments(data.comments || []);
       }
     } catch (err) {
       console.error('Failed to load comments:', err);
@@ -218,7 +219,7 @@ export default function BlogComments({ blogId }: BlogCommentsProps) {
       {/* Comments List */}
       {loading ? (
         <div className="flex justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <LoadingSpinner size={36} label="Loading Comments..." />
         </div>
       ) : comments.length > 0 ? (
         <div className="space-y-6">

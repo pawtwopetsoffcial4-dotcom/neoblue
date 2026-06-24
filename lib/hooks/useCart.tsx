@@ -53,8 +53,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
       if (user) {
         try {
+          const token = localStorage.getItem('authToken') || '';
           // Fetch user's cart from database
-          const response = await fetch('/api/cart');
+          const response = await fetch('/api/cart', {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
           if (response.ok) {
             const data = await response.json();
             const dbItems: CartItem[] = data.items || [];
@@ -74,7 +79,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
               // Save merged cart to database
               const saveResponse = await fetch('/api/cart', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${token}`
+                },
                 body: JSON.stringify({
                   items: merged.map((item) => ({ productId: item.productId, quantity: item.quantity })),
                 }),
@@ -138,9 +146,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
     syncTimeoutRef.current = setTimeout(async () => {
       try {
+        const token = localStorage.getItem('authToken') || '';
         await fetch('/api/cart', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
           body: JSON.stringify({
             items: currentItems.map((item) => ({
               productId: item.productId,

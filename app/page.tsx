@@ -1,13 +1,15 @@
 "use client";
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
-  Waves, Sparkles, Droplets, Package, Fish,
+  Waves, Sparkles, Droplets, Package, Fish, Leaf,
   Search, Home, ShoppingBag, User, ArrowRight
 } from 'lucide-react';
 import ReviewStars from '@/app/components/ReviewStars';
 import type { MarketplaceProduct } from '@/lib/types/marketplace';
 import { PRODUCT_CATEGORIES, getCategoryImage } from '@/lib/catalog';
+import { useMode } from '@/lib/hooks/useMode';
 
 /* ------------------------------------------------------------------ */
 /* LIVE DATA HELPERS                                                   */
@@ -23,6 +25,7 @@ type HeroCardProduct = {
   createdAt?: string;
   isTrending?: boolean;
   isNewArrival?: boolean;
+  category: string;
 };
 
 const DEFAULT_IMAGE = 'https://images.stockcake.com/public/1/9/4/194f4315-a8d9-422b-b237-18b1e224b7a1_large/colorful-tropical-fish-stockcake.jpg';
@@ -54,46 +57,29 @@ const extractProducts = (payload: unknown): MarketplaceProduct[] => {
   return [];
 };
 
-const categoryIconMap: Record<string, React.ComponentType<{ className?: string }>> = {
-  Guppies: Fish,
-  Crayfish: Droplets,
-  Kribensis: Sparkles,
-  Betta: Sparkles,
-  "Angel's": Waves,
-  Discuss: Waves,
-  Platy: Fish,
-  'Exotic Molly': Fish,
-  Zebra: Fish,
-};
-
-const categorySlugMap: Record<string, string> = {
-  Guppies: 'guppies',
-  Crayfish: 'crayfish',
-  Kribensis: 'kribensis',
-  Betta: 'betta',
-  "Angel's": 'angels',
-  Discuss: 'discuss',
-  Platy: 'platy',
-  'Exotic Molly': 'exotic-molly',
-  Zebra: 'zebra',
-};
-
 const toCategorySlug = (category: string) =>
-  categorySlugMap[category] || category.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  category.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 
 /* ------------------------------------------------------------------ */
 /* NATIVE-FEEL HORIZONTAL SCROLL HELPER                               */
 /* ------------------------------------------------------------------ */
-function MobileScrollSection({ title, children }: { title: string; children: React.ReactNode }) {
+function MobileScrollSection({ 
+  title, 
+  children, 
+  mode 
+}: { 
+  title: string; 
+  children: React.ReactNode; 
+  mode: 'fishes' | 'plants' 
+}) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   return (
     <section className="pt-6 pb-2 bg-white">
       <div className="px-5 mb-4 flex justify-between items-end">
-        <h2 className="text-xl font-bold tracking-tight text-blue-950">{title}</h2>
-        <span className="text-xs font-semibold text-blue-600 uppercase tracking-widest">See All</span>
+        <h2 className={`text-xl font-bold tracking-tight ${mode === 'fishes' ? 'text-blue-950' : 'text-green-950'}`}>{title}</h2>
+        <span className={`text-xs font-semibold uppercase tracking-widest ${mode === 'fishes' ? 'text-blue-600' : 'text-green-700'}`}>See All</span>
       </div>
-      {/* Hide scrollbar, force snap for app-like feel */}
       <div 
         ref={scrollRef} 
         className="flex overflow-x-auto gap-4 px-5 pb-6 snap-x snap-mandatory [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
@@ -107,30 +93,38 @@ function MobileScrollSection({ title, children }: { title: string; children: Rea
 /* ------------------------------------------------------------------ */
 /* ULTRA-CLEAN PRODUCT CARD                                           */
 /* ------------------------------------------------------------------ */
-function MobileCard({ product }: { product: any }) {
+function MobileCard({ product, mode }: { product: any; mode: 'fishes' | 'plants' }) {
   const rating = typeof product.rating === 'number' ? product.rating : 5;
   const reviewsCount = product.reviewsCount ?? 0;
   return (
     <Link
       href={`/products/${product.id}`}
-      className="group w-40 md:w-55 shrink-0 snap-start flex flex-col rounded-2xl overflow-hidden border border-blue-50/50 bg-white shadow-[0_4px_20px_-10px_rgba(37,99,235,0.1)]"
+      className={`group w-40 md:w-55 shrink-0 snap-start flex flex-col rounded-2xl overflow-hidden border bg-white transition-all duration-300 ${
+        mode === 'fishes' 
+          ? 'border-blue-50/50 shadow-[0_4px_20px_-10px_rgba(37,99,235,0.1)]' 
+          : 'border-green-50/50 shadow-[0_4px_20px_-10px_rgba(21,158,75,0.1)]'
+      }`}
     >
-        <div className="relative aspect-square bg-blue-50/30 overflow-hidden">
-        <img
+      <div className={`relative aspect-square overflow-hidden ${mode === 'fishes' ? 'bg-blue-50/30' : 'bg-green-50/30'}`}>
+        <Image
           src={product.img}
           alt={product.title}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+          fill
+          sizes="(max-width: 768px) 160px, 220px"
+          className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
         />
         {product.tag && String(product.tag).toLowerCase() !== 'standard' ? (
-          <div className="absolute left-2 top-2 rounded-md px-2 py-1 pill-neoblue-gradient text-white text-xs font-bold">
+          <div className={`absolute left-2 top-2 rounded-md px-2 py-1 text-white text-xs font-bold ${
+            mode === 'fishes' ? 'bg-gradient-to-r from-blue-600 to-indigo-600' : 'bg-gradient-to-r from-green-600 to-emerald-600'
+          }`}>
             {product.tag}
           </div>
         ) : null}
       </div>
       <div className="p-3">
-        <h3 className="text-sm font-semibold text-blue-950 truncate mb-1">{product.title}</h3>
+        <h3 className={`text-sm font-semibold truncate mb-1 ${mode === 'fishes' ? 'text-blue-950' : 'text-green-950'}`}>{product.title}</h3>
         <div className="flex items-center justify-between gap-2">
-          <p className="text-sm font-black text-blue-600">₹{product.price}</p>
+          <p className={`text-sm font-black ${mode === 'fishes' ? 'text-blue-600' : 'text-green-700'}`}>₹{product.price}</p>
           <div className="flex items-center gap-2">
             <ReviewStars rating={rating} count={reviewsCount} compact />
           </div>
@@ -144,6 +138,7 @@ function MobileCard({ product }: { product: any }) {
 /* MAIN PAGE                                                          */
 /* ================================================================== */
 export default function NeoBlueMobileOptimized() {
+  const { mode } = useMode();
   const [products, setProducts] = useState<MarketplaceProduct[]>([]);
   const [categoriesFromDb, setCategoriesFromDb] = useState<Array<{ name: string; image: string }>>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -188,9 +183,20 @@ export default function NeoBlueMobileOptimized() {
     fetchHomepageData();
   }, []);
 
+  // Filter products by mode
+  const modeFilteredProducts = useMemo(() => {
+    return products.filter((p) => {
+      if (mode === 'fishes') {
+        return p.category !== 'Plants';
+      } else {
+        return p.category === 'Plants';
+      }
+    });
+  }, [products, mode]);
+
   const cards = useMemo<HeroCardProduct[]>(
     () =>
-      products.map((product) => ({
+      modeFilteredProducts.map((product) => ({
         id: product._id,
         title: product.title,
         price: product.price,
@@ -201,8 +207,9 @@ export default function NeoBlueMobileOptimized() {
         createdAt: product.createdAt,
         isTrending: product.isTrending,
         isNewArrival: product.isNewArrival,
+        category: product.category,
       })),
-    [products]
+    [modeFilteredProducts]
   );
 
   const trendingProducts = useMemo(() => {
@@ -224,86 +231,118 @@ export default function NeoBlueMobileOptimized() {
       ? categoriesFromDb
       : (PRODUCT_CATEGORIES as unknown as string[]).map(name => ({ name, image: getCategoryImage(name) }));
 
-    return list.map((cat) => ({
+    const filtered = list.filter((cat) => {
+      if (mode === 'fishes') {
+        return cat.name !== 'Plants';
+      } else {
+        return cat.name === 'Plants';
+      }
+    });
+
+    return filtered.map((cat) => ({
       label: cat.name,
       image: cat.image,
     }));
-  }, [categoriesFromDb]);
+  }, [categoriesFromDb, mode]);
 
   return (
-    <div className="min-h-screen bg-white text-blue-950 font-sans pb-20 md:pb-0 selection:bg-blue-100">
+    <div className={`min-h-screen bg-white pb-20 md:pb-0 font-sans transition-colors duration-500 ${
+      mode === 'fishes' ? 'text-blue-950 selection:bg-blue-100' : 'text-green-950 selection:bg-green-100'
+    }`}>
 
-      {/* 2. AD BANNER (Hero) - Blue & White strictly */}
+      {/* 2. AD BANNER (Hero) */}
       <section className="px-4 pt-4 pb-2 bg-white">
-        <div className="relative w-full rounded-3xl bg-blue-600 overflow-hidden shadow-sm flex flex-col justify-center p-6 min-h-55">
+        <div className={`relative w-full rounded-3xl overflow-hidden shadow-sm flex flex-col justify-center p-6 min-h-55 transition-colors duration-500 ${
+          mode === 'fishes' ? 'bg-blue-600' : 'bg-green-700'
+        }`}>
           <div className="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-2xl" />
           <div className="absolute -left-10 -bottom-10 w-32 h-32 bg-white/10 rounded-full blur-xl" />
           
           <div className="relative z-10">
-            {/* hero capsule removed */}
             <h1 className="text-2xl font-black text-white leading-tight mb-2">
-              Save 35% on All<br/>Premium Stock
+              {mode === 'fishes' ? (
+                <>Save 35% on All<br/>Premium Stock</>
+              ) : (
+                <>Save 35% on All<br/>Aquatic Plants</>
+              )}
             </h1>
             <p className="text-blue-100 text-xs mb-5 font-light max-w-[80%]">
               {isLoading
                 ? 'Loading live inventory...'
-                : `Live arrival guaranteed across ${products.length} in-stock fish and aquatic listings.`}
+                : mode === 'fishes' 
+                  ? `Live arrival guaranteed across ${modeFilteredProducts.length} in-stock fish and aquatic listings.`
+                  : `100% fresh arrival guaranteed across ${modeFilteredProducts.length} snail-free plant variants.`
+              }
             </p>
-            <button className="h-10 px-5 rounded-full bg-white text-blue-700 text-xs font-bold uppercase tracking-wider inline-flex items-center w-fit shadow-sm">
+            <Link 
+              href="/products"
+              className={`h-10 px-5 rounded-full bg-white text-xs font-bold uppercase tracking-wider inline-flex items-center w-fit shadow-sm transition-colors ${
+                mode === 'fishes' ? 'text-blue-700' : 'text-green-800'
+              }`}
+            >
               Claim Deal <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
-            </button>
+            </Link>
           </div>
         </div>
       </section>
 
       {/* 3. CATEGORIES (Circular Scroll) */}
-      <section className="pt-6 pb-2 bg-white">
-        <div className="flex overflow-x-auto gap-5 px-5 snap-x snap-mandatory [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-          {categories.map((cat, i) => {
-            return (
-              <Link
-                key={i}
-                href={`/categories/${toCategorySlug(cat.label)}`}
-                className="flex flex-col items-center gap-2 shrink-0 snap-start"
-              >
-                <div className="h-16 w-16 rounded-full border border-blue-100 bg-white shadow-sm flex items-center justify-center overflow-hidden">
-                  <img src={cat.image} alt={cat.label} className="h-full w-full object-cover" />
-                </div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-blue-900/70">{cat.label}</span>
-              </Link>
-            );
-          })}
-        </div>
-      </section>
+      {categories.length > 0 && (
+        <section className="pt-6 pb-2 bg-white">
+          <div className="flex overflow-x-auto gap-5 px-5 snap-x snap-mandatory [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+            {categories.map((cat, i) => {
+              const isPlants = toCategorySlug(cat.label) === 'plants';
+              return (
+                <Link
+                  key={i}
+                  href={`/categories/${toCategorySlug(cat.label)}`}
+                  className="flex flex-col items-center gap-2 shrink-0 snap-start"
+                >
+                  <div className={`relative h-16 w-16 rounded-full border bg-white shadow-sm flex items-center justify-center overflow-hidden transition-all duration-300 ${
+                    isPlants ? 'border-green-300 ring-2 ring-green-100' : 'border-blue-100'
+                  }`}>
+                    <Image src={cat.image} alt={cat.label} width={64} height={64} className="h-full w-full object-cover" />
+                  </div>
+                  <span className={`text-[10px] font-bold uppercase tracking-wider transition-colors duration-300 ${
+                    isPlants ? 'text-green-700 font-extrabold' : 'text-blue-900/70'
+                  }`}>{cat.label}</span>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       {/* 4. TRENDING */}
-      <MobileScrollSection title="Trending">
+      <MobileScrollSection title={mode === 'fishes' ? 'Trending Stock' : 'Trending Plants'} mode={mode}>
         {trendingProducts.map((product) => (
-          <MobileCard key={`trend-${product.id}`} product={product} />
+          <MobileCard key={`trend-${product.id}`} product={product} mode={mode} />
         ))}
         {!isLoading && trendingProducts.length === 0 ? (
-          <div className="w-full rounded-2xl border border-dashed border-blue-100 p-4 text-xs text-blue-600">
+          <div className={`w-full rounded-2xl border border-dashed p-4 text-xs ${
+            mode === 'fishes' ? 'border-blue-100 text-blue-600' : 'border-green-100 text-green-700'
+          }`}>
             No live products available right now.
           </div>
         ) : null}
       </MobileScrollSection>
 
       {/* 5. NEW ARRIVALS */}
-      <MobileScrollSection title="New Arrivals">
+      <MobileScrollSection title={mode === 'fishes' ? 'New Arrivals' : 'New Plant Arrivals'} mode={mode}>
         {newArrivalProducts.map((product) => (
-          <MobileCard key={`new-${product.id}`} product={product} />
+          <MobileCard key={`new-${product.id}`} product={product} mode={mode} />
         ))}
         {!isLoading && newArrivalProducts.length === 0 ? (
-          <div className="w-full rounded-2xl border border-dashed border-blue-100 p-4 text-xs text-blue-600">
+          <div className={`w-full rounded-2xl border border-dashed p-4 text-xs ${
+            mode === 'fishes' ? 'border-blue-100 text-blue-600' : 'border-green-100 text-green-700'
+          }`}>
             New arrivals will appear as soon as products are published.
           </div>
         ) : null}
       </MobileScrollSection>
 
-
-
-      {/* Basic spacing for desktop footer to avoid breaking if viewed on large screen */}
-      <div className="hidden md:block py-10 text-center text-xs text-blue-300">
+      {/* Basic spacing for desktop footer */}
+      <div className={`hidden md:block py-10 text-center text-xs ${mode === 'fishes' ? 'text-blue-300' : 'text-green-700/50'}`}>
         Desktop Footer Hidden for Mobile Wireframe Demo
       </div>
     </div>

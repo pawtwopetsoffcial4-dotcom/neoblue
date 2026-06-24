@@ -3,13 +3,16 @@
 import React from 'react';
 import { AuthProvider } from "@/lib/hooks/useAuth";
 import { CartProvider } from "@/lib/hooks/useCart";
+import { ModeProvider } from "@/lib/hooks/useMode";
 
 export function RootProviders({ children }: { children: React.ReactNode }) {
   return (
-    <AuthProvider>
-      <CartProvider>
-        {children}
-      </CartProvider>
-    </AuthProvider>
+    <ModeProvider>
+      <AuthProvider>
+        <CartProvider>
+          {children}
+        </CartProvider>
+      </AuthProvider>
+    </ModeProvider>
   );
 }

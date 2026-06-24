@@ -11,9 +11,21 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'cdn3d.iconscout.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.stockcake.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+      },
     ],
   },
 };
 
 export default nextConfig;
-// Force configuration reload to clear middleware cache
+// Force configuration reload to clear middleware cache - v2

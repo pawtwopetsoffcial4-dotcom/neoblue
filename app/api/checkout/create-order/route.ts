@@ -63,12 +63,19 @@ export async function POST(request: NextRequest) {
     }
 
     let subtotal = 0;
+    let plantsGstAmount = 0;
     const orderProducts = products.map((item: any) => {
       const product = dbProducts.find((entry) => entry._id.toString() === item.productId);
       if (!product) {
         throw new Error(`Product not found: ${item.productId}`);
       }
-      subtotal += Number(product.price) * Number(item.quantity || 0);
+      const itemSubtotal = Number(product.price) * Number(item.quantity || 0);
+      subtotal += itemSubtotal;
+
+      if (product.category === 'Plants') {
+        plantsGstAmount += itemSubtotal * 0.18;
+      }
+
       return {
         productId: item.productId,
         quantity: item.quantity,
@@ -86,7 +93,7 @@ export async function POST(request: NextRequest) {
         orderItem?.shippingOptionId
       );
     }, 0);
-    const amount = subtotal + shippingAmount;
+    const amount = subtotal + shippingAmount + plantsGstAmount;
 
     if (!amount || Number(amount) <= 0) {
       return createErrorResponse('Invalid amount', 400);
@@ -97,10 +104,14 @@ export async function POST(request: NextRequest) {
       return createErrorResponse('Set CASHFREE_RETURN_URL to your deployed https checkout URL for Cashfree production payments', 400);
     }
 
-    let customerPhone = address?.phone || '';
+    let customerPhone = String(address?.phone || '').trim();
     if (!customerPhone) {
       const user = await User.findById(payload.userId);
-      customerPhone = user?.phone || '9999999999';
+      customerPhone = String(user?.phone || '').trim();
+    }
+
+    if (!customerPhone || customerPhone === '9999999999' || !/^\+?[0-9]{10,15}$/.test(customerPhone)) {
+      return createErrorResponse('A valid contact phone number (10-15 digits) is required to place an order. Please check your delivery details.', 400);
     }
 
     const orderId = `neo_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
@@ -185,11 +196,19 @@ export async function POST(request: NextRequest) {
 
     // Create pending orders in MongoDB
     for (const [vId, group] of Object.entries(vendorGroups)) {
+      const groupGst = group.products.reduce((sum, gp) => {
+        const product = dbProducts.find((entry) => entry._id.toString() === gp.productId);
+        if (product && product.category === 'Plants') {
+          return sum + (gp.price * gp.quantity * 0.18);
+        }
+        return sum;
+      }, 0);
+
       await Order.create({
         userId: payload.userId,
         vendorId: vId,
         products: group.products,
-        totalAmount: group.subtotal + group.shippingAmount,
+        totalAmount: group.subtotal + group.shippingAmount + groupGst,
         shippingAmount: group.shippingAmount,
         address,
         cashfreeOrderId: orderId,

@@ -75,6 +75,7 @@ export const CATEGORY_IMAGES: Record<string, string> = {
   'Ram Cichlid': '/fishes_cat_cover/Rams.jpeg',
   Kribensis: '/fishes_cat_cover/Kribensis.png',
   Apistogramma: '/fishes_cat_cover/Apistogramma.png',
+  Plants: '/fishes_cat_cover/Plants.png',
 };
 
 export const getCategoryImage = (category: string): string => {

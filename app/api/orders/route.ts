@@ -126,14 +126,46 @@ export async function POST(request: NextRequest) {
     const { products, address, paymentId, razorpayOrderId, cashfreeOrderId } = await request.json();
 
     if (cashfreeOrderId) {
+      if (!appId || !secretKey) {
+        return createErrorResponse('Cashfree keys are not configured', 500);
+      }
+
+      const orderRes = await fetch(`${getCashfreeBaseUrl()}/pg/orders/${cashfreeOrderId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-client-id': appId,
+          'x-client-secret': secretKey,
+          'x-api-version': '2023-08-01',
+        },
+      });
+
+      const orderData = await orderRes.json();
+      if (!orderRes.ok) {
+        return createErrorResponse(orderData?.message || 'Failed to verify Cashfree order payment', orderRes.status);
+      }
+
+      if (orderData.order_status !== 'PAID') {
+        return createErrorResponse(`Payment not completed. Status: ${orderData.order_status}`, 400);
+      }
+
       const existingOrders = await Order.find({ cashfreeOrderId });
       if (existingOrders.length > 0) {
+        // Assert that the payment amount matches the calculated total amount of database entries
+        const expectedTotal = existingOrders.reduce((sum, o) => sum + o.totalAmount, 0);
+        const actualPaid = Number(orderData.order_amount);
+        if (Math.abs(expectedTotal - actualPaid) > 0.05) {
+          return createErrorResponse(`Payment amount mismatch. Expected: ₹${expectedTotal.toFixed(2)}, Paid: ₹${actualPaid.toFixed(2)}`, 400);
+        }
+
         const updatedOrders = [];
         for (const order of existingOrders) {
           if (order.status === 'pending') {
             order.status = 'placed';
             if (paymentId) {
               order.paymentId = paymentId;
+            } else {
+              order.paymentId = orderData.order_id;
             }
             await order.save();
           }
@@ -168,12 +200,19 @@ export async function POST(request: NextRequest) {
     }
 
     let totalAmount = 0;
+    let plantsGstAmount = 0;
     const orderProducts = products.map((p: any) => {
       const product = dbProducts.find((dp) => dp._id.toString() === p.productId);
       if (!product) {
         throw new Error(`Product not found: ${p.productId}`);
       }
-      totalAmount += product.price * p.quantity;
+      const itemSubtotal = product.price * p.quantity;
+      totalAmount += itemSubtotal;
+
+      if (product.category === 'Plants') {
+        plantsGstAmount += itemSubtotal * 0.18;
+      }
+
       return {
         productId: p.productId,
         quantity: p.quantity,
@@ -219,7 +258,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Assert that the payment amount matches the calculated total amount (with dynamic tolerance for rounding)
-      const expectedTotal = totalAmount + shippingAmount;
+      const expectedTotal = totalAmount + shippingAmount + plantsGstAmount;
       const actualPaid = Number(orderData.order_amount);
       if (Math.abs(expectedTotal - actualPaid) > 0.05) {
         return createErrorResponse(`Payment amount mismatch. Expected: ₹${expectedTotal.toFixed(2)}, Paid: ₹${actualPaid.toFixed(2)}`, 400);
@@ -275,11 +314,19 @@ export async function POST(request: NextRequest) {
     // Create order for each vendor
     const createdOrders = [];
     for (const [vId, group] of Object.entries(vendorGroups)) {
+      const groupGst = group.products.reduce((sum, gp) => {
+        const product = dbProducts.find((entry) => entry._id.toString() === gp.productId);
+        if (product && product.category === 'Plants') {
+          return sum + (gp.price * gp.quantity * 0.18);
+        }
+        return sum;
+      }, 0);
+
       const order = await Order.create({
         userId: payload.userId,
         vendorId: vId,
         products: group.products,
-        totalAmount: group.subtotal + group.shippingAmount,
+        totalAmount: group.subtotal + group.shippingAmount + groupGst,
         shippingAmount: group.shippingAmount,
         address,
         paymentId,

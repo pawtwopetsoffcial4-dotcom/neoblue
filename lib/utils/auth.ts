@@ -2,9 +2,9 @@ import jwt from 'jsonwebtoken';
 import { NextRequest, NextResponse } from 'next/server';
 
 function getJwtSecret(): string {
-  const secret = process.env.JWT_SECRET || 'your_jwt_secret_key_change_in_production_12345';
-  if (process.env.NODE_ENV === 'production' && (!process.env.JWT_SECRET || process.env.JWT_SECRET === 'your_jwt_secret_key_change_in_production_12345')) {
-    throw new Error('CRITICAL SECURITY ERROR: JWT_SECRET must be securely set in a production environment.');
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error('FATAL CONFIGURATION ERROR: JWT_SECRET environment variable is missing.');
   }
   return secret;
 }

@@ -4,6 +4,7 @@ import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 import BlogCard from '@/app/components/BlogCard';
 import BlogFilters from '@/app/components/BlogFilters';
+import LoadingSpinner from '@/app/components/LoadingSpinner';
 import { useBlogs, useCategories, useTags } from '@/lib/hooks/useBlog';
 
 function BlogPageContent() {
@@ -52,7 +53,7 @@ function BlogPageContent() {
             {/* Loading State */}
             {loading && (
               <div className="flex justify-center items-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                <LoadingSpinner size={48} label="Loading Articles..." />
               </div>
             )}
 
@@ -123,7 +124,11 @@ function BlogPageContent() {
 
 export default function BlogPage() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <LoadingSpinner size={48} label="Loading Blog..." />
+      </div>
+    }>
       <BlogPageContent />
     </Suspense>
   );

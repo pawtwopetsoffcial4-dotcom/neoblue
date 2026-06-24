@@ -10,6 +10,7 @@ import { apiClient } from '@/lib/api-client';
 import { Trash2, Plus, Minus, MapPin, ShoppingBag, ArrowRight, ShieldCheck, ArrowLeft, CheckSquare, AlertCircle } from 'lucide-react';
 import type { MarketplaceProduct } from '@/lib/types/marketplace';
 import { calculateProductShippingAmount, getShippingModeLabel, getRegionFromState, getTierFromQuantity, calculateRegionalShipping } from '@/lib/utils/shipping';
+import { useMode } from '@/lib/hooks/useMode';
 
 const PENDING_CASHFREE_CHECKOUT_KEY = 'pendingCashfreeCheckout';
 
@@ -23,6 +24,22 @@ function CheckoutPageContent() {
   const [isPaying, setIsPaying] = useState(false);
   const [isFinalizing, setIsFinalizing] = useState(false);
   const [productDetails, setProductDetails] = useState<Record<string, MarketplaceProduct>>({});
+  const { mode } = useMode();
+  const isPlants = mode === 'plants';
+
+  const textTheme = isPlants ? 'text-green-700' : 'text-blue-600';
+  const textThemeHover = isPlants ? 'hover:text-green-800' : 'hover:text-blue-700';
+  const textThemeDark = isPlants ? 'text-green-800' : 'text-blue-800';
+  const bgTheme = isPlants ? 'bg-green-700' : 'bg-blue-600';
+  const bgThemeHover = isPlants ? 'hover:bg-green-800' : 'hover:bg-blue-700';
+  const bgThemeLight = isPlants ? 'bg-green-50' : 'bg-blue-50';
+  const bgThemeLight70 = isPlants ? 'bg-green-50/70' : 'bg-blue-50/70';
+  const bgThemeLight50 = isPlants ? 'bg-green-50/50' : 'bg-blue-50/50';
+  const borderThemeLight = isPlants ? 'border-green-100' : 'border-blue-100';
+  const borderThemeLight50 = isPlants ? 'border-green-100/50' : 'border-blue-100/50';
+  const borderThemeTop = isPlants ? 'border-t-green-700' : 'border-t-blue-600';
+  const focusRingTheme = isPlants ? 'focus:ring-green-500 focus:border-green-500' : 'focus:ring-blue-500 focus:border-blue-500';
+  const shadowTheme = isPlants ? 'shadow-green-500/20' : 'shadow-blue-500/20';
   const [isSavingAddress, setIsSavingAddress] = useState(false);
   const [saveAddress, setSaveAddress] = useState(true);
   const [address, setAddress] = useState({ street: '', city: '', state: '', zipcode: '', phone: '' });
@@ -216,7 +233,14 @@ function CheckoutPageContent() {
     const selectedOptionId = selectedShipping[item.productId];
     return sum + calculateRegionalShipping(product, address.state, item.quantity, selectedOptionId);
   }, 0);
-  const orderTotal = totalAmount + shippingAmount;
+  const plantsGstAmount = items.reduce((sum, item) => {
+    const product = productDetails[item.productId];
+    if (product && product.category === 'Plants') {
+      return sum + (0.18 * item.price * item.quantity);
+    }
+    return sum;
+  }, 0);
+  const orderTotal = totalAmount + shippingAmount + plantsGstAmount;
 
   const handlePayNow = async () => {
     if (!user || user.role !== 'user') {
@@ -334,12 +358,12 @@ function CheckoutPageContent() {
       <div className="bg-white border-b border-gray-200 pt-8 pb-8 md:pt-12 md:pb-12 shadow-sm">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-2 text-sm text-gray-500 mb-4 font-medium">
-            <Link href="/" className="hover:text-blue-600 transition-colors">Home</Link>
+            <Link href="/" className={`hover:${textTheme} transition-colors`}>Home</Link>
             <span>/</span>
             <span className="text-gray-900">Cart & Checkout</span>
           </div>
           <h1 className="text-3xl md:text-5xl font-black tracking-tight text-gray-900 flex items-center gap-3">
-            <ShoppingBag className="h-8 w-8 md:h-10 md:w-10 text-blue-600" />
+            <ShoppingBag className={`h-8 w-8 md:h-10 md:w-10 ${textTheme}`} />
             Your Cart
           </h1>
           <p className="text-gray-500 mt-2 font-medium max-w-xl">
@@ -351,14 +375,14 @@ function CheckoutPageContent() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 md:mt-10">
         {items.length === 0 ? (
           <div className="bg-white rounded-3xl border border-gray-200 p-12 text-center shadow-sm max-w-2xl mx-auto mt-12">
-            <div className="w-24 h-24 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-6">
+            <div className={`w-24 h-24 ${bgThemeLight} ${isPlants ? 'text-green-600' : 'text-blue-500'} rounded-full flex items-center justify-center mx-auto mb-6`}>
               <ShoppingBag className="h-10 w-10" />
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-3">Your cart is empty</h2>
             <p className="text-gray-500 mb-8 max-w-sm mx-auto">
               Looks like you haven't added any premium aquatic life or supplies to your cart yet.
             </p>
-            <Link href="/products" className="inline-flex h-12 px-8 items-center justify-center rounded-full bg-blue-600 text-white font-bold hover:bg-blue-700 transition-all shadow-sm gap-2">
+            <Link href="/products" className={`inline-flex h-12 px-8 items-center justify-center rounded-full ${bgTheme} text-white font-bold ${bgThemeHover} transition-all shadow-sm gap-2`}>
               Browse Products <ArrowRight className="h-5 w-5" />
             </Link>
           </div>
@@ -414,12 +438,12 @@ function CheckoutPageContent() {
                               const activeRanges = getProductActiveRanges(product, address.state, item.quantity);
                               if (activeRanges.length > 0) {
                                 return (
-                                  <div className="mt-3 bg-blue-50/50 rounded-2xl border border-blue-100/50 p-3.5 space-y-2.5">
+                                  <div className={`mt-3 ${bgThemeLight50} rounded-2xl border ${borderThemeLight50} p-3.5 space-y-2.5`}>
                                     <div className="flex items-center justify-between">
-                                      <span className="text-[10px] font-bold uppercase tracking-wider text-blue-800">
+                                      <span className={`text-[10px] font-bold uppercase tracking-wider ${textThemeDark}`}>
                                         📦 Select Shipping Option ({getRegionFromState(address.state)} India)
                                       </span>
-                                      <span className="text-[10px] font-bold bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
+                                      <span className={`text-[10px] font-bold ${isPlants ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'} px-2 py-0.5 rounded-full`}>
                                         Tier {getTierFromQuantity(item.quantity)}
                                       </span>
                                     </div>
@@ -427,13 +451,13 @@ function CheckoutPageContent() {
                                       {activeRanges.map((opt: any) => {
                                         const optId = opt.id || opt._id?.toString();
                                         return (
-                                          <label key={optId} className="flex items-center gap-3 p-2 rounded-xl bg-white border border-slate-100 hover:border-blue-200 hover:bg-blue-50/20 cursor-pointer transition-all shadow-2xs">
+                                          <label key={optId} className={`flex items-center gap-3 p-2 rounded-xl bg-white border border-slate-100 hover:${isPlants ? 'border-green-200 hover:bg-green-50/20' : 'border-blue-200 hover:bg-blue-50/20'} cursor-pointer transition-all shadow-2xs`}>
                                             <input
                                               type="radio"
                                               name={`shipping-${item.productId}`}
                                               checked={selectedShipping[item.productId] === optId}
                                               onChange={() => setSelectedShipping(prev => ({ ...prev, [item.productId]: optId }))}
-                                              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-slate-300"
+                                              className={`h-4 w-4 ${textTheme} ${isPlants ? 'focus:ring-green-500' : 'focus:ring-blue-500'} border-slate-300`}
                                             />
                                             <div className="flex-1 flex items-center justify-between text-xs font-semibold text-slate-700">
                                               <span>{opt.weightRange} <span className="text-slate-400 font-medium ml-1">({opt.estimatedQuantity})</span></span>
@@ -489,7 +513,7 @@ function CheckoutPageContent() {
                 </div>
               </div>
 
-              <Link href="/products" className="inline-flex items-center text-sm font-bold text-blue-600 hover:text-blue-700 w-fit gap-2 px-2 py-4">
+              <Link href="/products" className={`inline-flex items-center text-sm font-bold ${textTheme} ${textThemeHover} w-fit gap-2 px-2 py-4`}>
                 <ArrowLeft className="h-4 w-4" /> Continue Shopping
               </Link>
             </div>
@@ -500,14 +524,14 @@ function CheckoutPageContent() {
               {/* Address Form */}
               <div className="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden">
                 <div className="p-6 border-b border-gray-100 bg-gray-50/50 flex items-center gap-2">
-                  <MapPin className="h-5 w-5 text-blue-600" />
+                  <MapPin className={`h-5 w-5 ${textTheme}`} />
                   <h2 className="text-lg font-bold text-gray-900">Delivery Details</h2>
                 </div>
                 <div className="p-6 space-y-4">
                   <div>
                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Street Address</label>
                     <input 
-                      className="w-full h-12 px-4 rounded-xl bg-gray-50 border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all font-medium placeholder:text-gray-400 text-gray-900" 
+                      className={`w-full h-12 px-4 rounded-xl bg-gray-50 border border-gray-200 focus:ring-2 ${focusRingTheme} outline-none transition-all font-medium placeholder:text-gray-400 text-gray-900`} 
                       placeholder="123 Ocean Avenue, Apt 4B" 
                       value={address.street} 
                       onChange={(e) => setAddress((prev) => ({ ...prev, street: e.target.value }))} 
@@ -517,7 +541,7 @@ function CheckoutPageContent() {
                     <div>
                       <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">City</label>
                       <input 
-                        className="w-full h-12 px-4 rounded-xl bg-gray-50 border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all font-medium placeholder:text-gray-400 text-gray-900" 
+                        className={`w-full h-12 px-4 rounded-xl bg-gray-50 border border-gray-200 focus:ring-2 ${focusRingTheme} outline-none transition-all font-medium placeholder:text-gray-400 text-gray-900`} 
                         placeholder="Mumbai" 
                         value={address.city} 
                         onChange={(e) => setAddress((prev) => ({ ...prev, city: e.target.value }))} 
@@ -526,39 +550,41 @@ function CheckoutPageContent() {
                     <div>
                       <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">State</label>
                       <input 
-                        className="w-full h-12 px-4 rounded-xl bg-gray-50 border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all font-medium placeholder:text-gray-400 text-gray-900" 
+                        className={`w-full h-12 px-4 rounded-xl bg-gray-50 border border-gray-200 focus:ring-2 ${focusRingTheme} outline-none transition-all font-medium placeholder:text-gray-400 text-gray-900`} 
                         placeholder="Maharashtra" 
                         value={address.state} 
                         onChange={(e) => setAddress((prev) => ({ ...prev, state: e.target.value }))} 
                       />
                     </div>
                   </div>
-                  <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Zipcode / PIN</label>
-                    <input 
-                      className="w-full h-12 px-4 rounded-xl bg-gray-50 border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all font-medium placeholder:text-gray-400 text-gray-900" 
-                      placeholder="400001" 
-                      value={address.zipcode} 
-                      onChange={(e) => setAddress((prev) => ({ ...prev, zipcode: e.target.value }))} 
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Phone Number</label>
-                    <input 
-                      type="tel"
-                      className="w-full h-12 px-4 rounded-xl bg-gray-50 border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all font-medium placeholder:text-gray-400 text-gray-900" 
-                      placeholder="9999999999" 
-                      value={address.phone} 
-                      onChange={(e) => setAddress((prev) => ({ ...prev, phone: e.target.value }))} 
-                    />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Zipcode</label>
+                      <input 
+                        className={`w-full h-12 px-4 rounded-xl bg-gray-50 border border-gray-200 focus:ring-2 ${focusRingTheme} outline-none transition-all font-medium placeholder:text-gray-400 text-gray-900`} 
+                        placeholder="400001" 
+                        value={address.zipcode} 
+                        onChange={(e) => setAddress((prev) => ({ ...prev, zipcode: e.target.value }))} 
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Phone Number</label>
+                      <input 
+                        type="tel"
+                        className={`w-full h-12 px-4 rounded-xl bg-gray-50 border border-gray-200 focus:ring-2 ${focusRingTheme} outline-none transition-all font-medium placeholder:text-gray-400 text-gray-900`} 
+                        placeholder="9999999999" 
+                        value={address.phone} 
+                        onChange={(e) => setAddress((prev) => ({ ...prev, phone: e.target.value }))} 
+                      />
+                    </div>
                   </div>
 
-                  <label className="flex items-start gap-3 rounded-2xl border border-blue-100 bg-blue-50/70 p-4">
+                  <label className={`flex items-start gap-3 rounded-2xl border ${borderThemeLight} ${bgThemeLight70} p-4`}>
                     <input
                       type="checkbox"
                       checked={saveAddress}
                       onChange={(e) => setSaveAddress(e.target.checked)}
-                      className="mt-1 h-4 w-4 rounded border-blue-300 text-blue-600 focus:ring-blue-500"
+                      className={`mt-1 h-4 w-4 rounded ${isPlants ? 'border-green-300 text-green-600 focus:ring-green-500' : 'border-blue-300 text-blue-600 focus:ring-blue-500'}`}
                     />
                     <span className="text-sm text-slate-700">
                       <span className="block font-bold text-slate-900">Save this address</span>
@@ -569,7 +595,7 @@ function CheckoutPageContent() {
               </div>
 
               {/* Order Summary */}
-              <div className="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden border-t-4 border-t-blue-600">
+              <div className={`bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden border-t-4 ${borderThemeTop}`}>
                 <div className="p-6 md:p-8 space-y-6">
                   <h2 className="text-xl font-bold text-gray-900 mb-2">Order Summary</h2>
                   
@@ -582,6 +608,12 @@ function CheckoutPageContent() {
                       <span>Shipping from products</span>
                       <span>₹{shippingAmount.toFixed(2)}</span>
                     </div>
+                    {plantsGstAmount > 0 && (
+                      <div className="flex justify-between items-center text-green-700 font-bold">
+                        <span>GST on Plants (18%)</span>
+                        <span>₹{plantsGstAmount.toFixed(2)}</span>
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex justify-between items-end py-2">
@@ -605,7 +637,7 @@ function CheckoutPageContent() {
                   <button
                     onClick={handlePayNow}
                     disabled={isPaying || isFinalizing || items.length === 0 || isDeliveryBlocked}
-                    className="w-full h-14 rounded-2xl bg-blue-600 text-white font-bold text-lg hover:bg-blue-700 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-blue-500/20 active:scale-[0.98]"
+                    className={`w-full h-14 rounded-2xl ${bgTheme} text-white font-bold text-lg ${bgThemeHover} transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-md ${shadowTheme} active:scale-[0.98]`}
                   >
                     {isPaying || isFinalizing ? (
                       <span className="flex items-center gap-2">
