@@ -233,14 +233,7 @@ function CheckoutPageContent() {
     const selectedOptionId = selectedShipping[item.productId];
     return sum + calculateRegionalShipping(product, address.state, item.quantity, selectedOptionId);
   }, 0);
-  const plantsGstAmount = items.reduce((sum, item) => {
-    const product = productDetails[item.productId];
-    if (product && product.category === 'Plants') {
-      return sum + (0.18 * item.price * item.quantity);
-    }
-    return sum;
-  }, 0);
-  const orderTotal = totalAmount + shippingAmount + plantsGstAmount;
+  const orderTotal = totalAmount + shippingAmount;
 
   const handlePayNow = async () => {
     if (!user || user.role !== 'user') {
@@ -608,12 +601,7 @@ function CheckoutPageContent() {
                       <span>Shipping from products</span>
                       <span>₹{shippingAmount.toFixed(2)}</span>
                     </div>
-                    {plantsGstAmount > 0 && (
-                      <div className="flex justify-between items-center text-green-700 font-bold">
-                        <span>GST on Plants (18%)</span>
-                        <span>₹{plantsGstAmount.toFixed(2)}</span>
-                      </div>
-                    )}
+
                   </div>
 
                   <div className="flex justify-between items-end py-2">

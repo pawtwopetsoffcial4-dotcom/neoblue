@@ -200,7 +200,6 @@ export async function POST(request: NextRequest) {
     }
 
     let totalAmount = 0;
-    let plantsGstAmount = 0;
     const orderProducts = products.map((p: any) => {
       const product = dbProducts.find((dp) => dp._id.toString() === p.productId);
       if (!product) {
@@ -208,10 +207,6 @@ export async function POST(request: NextRequest) {
       }
       const itemSubtotal = product.price * p.quantity;
       totalAmount += itemSubtotal;
-
-      if (product.category === 'Plants') {
-        plantsGstAmount += itemSubtotal * 0.18;
-      }
 
       return {
         productId: p.productId,
@@ -258,7 +253,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Assert that the payment amount matches the calculated total amount (with dynamic tolerance for rounding)
-      const expectedTotal = totalAmount + shippingAmount + plantsGstAmount;
+      const expectedTotal = totalAmount + shippingAmount;
       const actualPaid = Number(orderData.order_amount);
       if (Math.abs(expectedTotal - actualPaid) > 0.05) {
         return createErrorResponse(`Payment amount mismatch. Expected: ₹${expectedTotal.toFixed(2)}, Paid: ₹${actualPaid.toFixed(2)}`, 400);

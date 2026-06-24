@@ -63,7 +63,6 @@ export async function POST(request: NextRequest) {
     }
 
     let subtotal = 0;
-    let plantsGstAmount = 0;
     const orderProducts = products.map((item: any) => {
       const product = dbProducts.find((entry) => entry._id.toString() === item.productId);
       if (!product) {
@@ -71,10 +70,6 @@ export async function POST(request: NextRequest) {
       }
       const itemSubtotal = Number(product.price) * Number(item.quantity || 0);
       subtotal += itemSubtotal;
-
-      if (product.category === 'Plants') {
-        plantsGstAmount += itemSubtotal * 0.18;
-      }
 
       return {
         productId: item.productId,
@@ -93,7 +88,7 @@ export async function POST(request: NextRequest) {
         orderItem?.shippingOptionId
       );
     }, 0);
-    const amount = subtotal + shippingAmount + plantsGstAmount;
+    const amount = subtotal + shippingAmount;
 
     if (!amount || Number(amount) <= 0) {
       return createErrorResponse('Invalid amount', 400);
