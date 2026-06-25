@@ -201,8 +201,12 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
             )}
 
             {/* Profile Dropdown Menu */}
-            {isProfileOpen && user && (
-              <div className="absolute right-0 mt-2.5 w-60 rounded-2xl border border-white/10 bg-slate-900/95 backdrop-blur-xl p-3 shadow-2xl z-50 text-slate-100 flex flex-col gap-1 transition-all duration-300 animate-menu-slide">
+            {user && (
+              <div className={`absolute right-0 mt-2.5 w-60 rounded-2xl border border-white/10 bg-slate-900/95 backdrop-blur-xl p-3 shadow-2xl z-50 text-slate-100 flex flex-col gap-1 transition-all duration-300 ${
+                isProfileOpen
+                  ? 'opacity-100 translate-y-0 pointer-events-auto visible scale-100'
+                  : 'opacity-0 -translate-y-3 pointer-events-none invisible scale-95'
+              }`}>
                 <div className="px-3 py-2 border-b border-white/5 mb-1 text-left">
                   <p className="font-extrabold text-sm truncate">{user.name}</p>
                   <p className="text-[10px] text-slate-400 truncate mt-0.5">{user.email}</p>
@@ -332,10 +336,13 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
       </div>
 
       {/* Mobile Drawer-Style Overlay Menu */}
-      {isMenuOpen && (
-        <div className={`absolute w-full left-0 top-full border-t shadow-2xl p-5 flex flex-col gap-6 text-sm font-medium z-50 max-h-[85vh] overflow-y-auto transition-colors duration-500 animate-menu-slide ${
-          isFishes ? 'border-blue-500 bg-blue-600/95' : 'border-green-600 bg-green-700/95'
-        }`}>
+      <div className={`absolute w-full left-0 top-full border-t shadow-2xl p-5 flex flex-col gap-6 text-sm font-medium z-50 max-h-[85vh] overflow-y-auto transition-all duration-300 ${
+        isMenuOpen
+          ? 'opacity-100 translate-y-0 pointer-events-auto visible'
+          : 'opacity-0 -translate-y-4 pointer-events-none invisible'
+      } ${
+        isFishes ? 'border-blue-500 bg-blue-600/95' : 'border-green-600 bg-green-700/95'
+      }`}>
           
           {/* Main Navigation Links */}
           <div className="grid grid-cols-2 gap-3.5">
@@ -429,11 +436,13 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
             )}
           </div>
         </div>
-      )}
 
       {/* Floating Search Form Panel */}
-      {isSearchOpen && (
-        <div className={`border-t border-white/10 px-4 py-3.5 shadow-2xl transition-colors duration-500 animate-menu-slide ${headerBgClass}`}>
+      <div className={`border-t border-white/10 px-4 py-3.5 shadow-2xl transition-all duration-300 ${
+        isSearchOpen
+          ? 'opacity-100 translate-y-0 pointer-events-auto visible'
+          : 'opacity-0 -translate-y-3 pointer-events-none invisible'
+      } ${headerBgClass}`}>
           <form onSubmit={handleSearchSubmit} className="max-w-4xl mx-auto flex gap-2">
             <input
               type="text"
@@ -460,7 +469,6 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
             </button>
           </form>
         </div>
-      )}
     </header>
   );
 }
