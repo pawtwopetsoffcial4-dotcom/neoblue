@@ -112,10 +112,17 @@ export class APIClient {
     return this.request(`/orders/${id}`);
   }
 
-  async updateOrderStatus(id: string, status: string, notes?: string) {
+  async updateOrderStatus(
+    id: string,
+    status: string,
+    notes?: string,
+    carrier?: string,
+    trackingNumber?: string,
+    trackingLink?: string
+  ) {
     return this.request(`/orders/${id}`, {
       method: 'PATCH',
-      body: JSON.stringify({ status, notes }),
+      body: JSON.stringify({ status, notes, carrier, trackingNumber, trackingLink }),
     });
   }
 

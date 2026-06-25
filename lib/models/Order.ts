@@ -15,12 +15,16 @@ export interface IOrder extends Document {
     city: string;
     state: string;
     zipcode: string;
+    phone: string;
   };
-  status: 'pending' | 'placed' | 'accepted' | 'preparing' | 'completed' | 'cancelled';
+  status: 'pending' | 'placed' | 'accepted' | 'preparing' | 'shipped' | 'completed' | 'cancelled';
   paymentId?: string;
   razorpayOrderId?: string;
   cashfreeOrderId?: string;
   notes?: string;
+  carrier?: string;
+  trackingNumber?: string;
+  trackingLink?: string;
   completedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -71,16 +75,20 @@ const orderSchema = new Schema<IOrder>(
       city: { type: String, required: true },
       state: { type: String, required: true },
       zipcode: { type: String, required: true },
+      phone: { type: String, required: true },
     },
     status: {
       type: String,
-      enum: ['pending', 'placed', 'accepted', 'preparing', 'completed', 'cancelled'],
+      enum: ['pending', 'placed', 'accepted', 'preparing', 'shipped', 'completed', 'cancelled'],
       default: 'pending',
     },
     paymentId: String,
     razorpayOrderId: String,
     cashfreeOrderId: String,
     notes: String,
+    carrier: String,
+    trackingNumber: String,
+    trackingLink: String,
     completedAt: Date,
   },
   { timestamps: true }

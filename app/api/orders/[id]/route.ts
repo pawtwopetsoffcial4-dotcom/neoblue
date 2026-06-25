@@ -73,9 +73,9 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
       return createErrorResponse('Invalid order ID', 400);
     }
 
-    const { status, notes } = await request.json();
+    const { status, notes, carrier, trackingNumber, trackingLink } = await request.json();
 
-    const validStatuses = ['placed', 'accepted', 'preparing', 'completed', 'cancelled'];
+    const validStatuses = ['placed', 'accepted', 'preparing', 'shipped', 'completed', 'cancelled'];
     if (!status || !validStatuses.includes(status)) {
       return createErrorResponse('Invalid status', 400);
     }
@@ -94,6 +94,10 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
     }
     order.status = status;
     if (notes) order.notes = notes;
+    if (carrier !== undefined) order.carrier = carrier;
+    if (trackingNumber !== undefined) order.trackingNumber = trackingNumber;
+    if (trackingLink !== undefined) order.trackingLink = trackingLink;
+    
     await order.save();
 
     return createSuccessResponse({

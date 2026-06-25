@@ -11,10 +11,13 @@ type UserOrder = {
   _id: string;
   totalAmount: number;
   shippingAmount?: number;
-  status: 'placed' | 'accepted' | 'preparing' | 'completed' | 'cancelled';
+  status: 'placed' | 'accepted' | 'preparing' | 'shipped' | 'completed' | 'cancelled';
   createdAt: string;
   completedAt?: string;
   updatedAt: string;
+  carrier?: string;
+  trackingNumber?: string;
+  trackingLink?: string;
   products: Array<{
     productId: {
       _id: string;
@@ -206,6 +209,7 @@ export default function OrdersPage() {
                     <p className="font-extrabold text-lg text-slate-900">Order #{order._id.slice(-6).toUpperCase()}</p>
                     <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold capitalize
                       ${order.status === 'completed' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 
+                        order.status === 'shipped' ? 'bg-amber-50 text-amber-700 border border-amber-100' :
                         order.status === 'cancelled' ? 'bg-slate-100 text-slate-600 border border-slate-200' : 
                         'bg-blue-50 text-blue-700 border border-blue-100'}`}
                     >
@@ -222,6 +226,29 @@ export default function OrdersPage() {
                   </div>
                 </div>
               </div>
+
+              {/* Shipping/Tracking details */}
+              {(order.carrier || order.trackingNumber) && (
+                <div className="mt-4 p-4 rounded-2xl bg-amber-500/5 border border-amber-500/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                  <div>
+                    <p className="font-bold text-slate-800">Tracking Information</p>
+                    <p className="text-slate-500 mt-1">
+                      {order.carrier && <span>Courier Partner: <strong className="font-semibold text-slate-700">{order.carrier}</strong></span>}
+                      {order.trackingNumber && <span className="ml-2">AWB/Tracking ID: <strong className="font-semibold text-slate-700">{order.trackingNumber}</strong></span>}
+                    </p>
+                  </div>
+                  {order.trackingLink && (
+                    <a
+                      href={order.trackingLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 font-bold text-amber-700 hover:text-amber-800 transition-colors uppercase tracking-wider text-[10px] shrink-0"
+                    >
+                      Track Order <span>→</span>
+                    </a>
+                  )}
+                </div>
+              )}
 
               {/* Products List */}
               <div className="py-6 space-y-4">

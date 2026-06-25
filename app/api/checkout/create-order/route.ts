@@ -191,19 +191,11 @@ export async function POST(request: NextRequest) {
 
     // Create pending orders in MongoDB
     for (const [vId, group] of Object.entries(vendorGroups)) {
-      const groupGst = group.products.reduce((sum, gp) => {
-        const product = dbProducts.find((entry) => entry._id.toString() === gp.productId);
-        if (product && product.category === 'Plants') {
-          return sum + (gp.price * gp.quantity * 0.18);
-        }
-        return sum;
-      }, 0);
-
       await Order.create({
         userId: payload.userId,
         vendorId: vId,
         products: group.products,
-        totalAmount: group.subtotal + group.shippingAmount + groupGst,
+        totalAmount: group.subtotal + group.shippingAmount,
         shippingAmount: group.shippingAmount,
         address,
         cashfreeOrderId: orderId,
