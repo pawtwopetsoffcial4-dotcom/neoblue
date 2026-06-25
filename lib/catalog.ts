@@ -56,6 +56,7 @@ export const PRODUCT_CATALOG = {
     'Agazzizi Double Red',
     'Agazzizi Fire Gold',
   ],
+  Molly: [],
 } as const;
 
 export type ProductCategory = keyof typeof PRODUCT_CATALOG;
@@ -75,6 +76,7 @@ export const CATEGORY_IMAGES: Record<string, string> = {
   'Ram Cichlid': '/fishes_cat_cover/Rams.jpeg',
   Kribensis: '/fishes_cat_cover/Kribensis.png',
   Apistogramma: '/fishes_cat_cover/Apistogramma.png',
+  Molly: '/fishes_cat_cover/Guppies.jpeg',
   Plants: '/fishes_cat_cover/Plants.png',
 };
 
