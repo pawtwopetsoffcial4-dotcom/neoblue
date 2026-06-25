@@ -47,11 +47,7 @@ export async function verifyFirebaseIdToken(token: string): Promise<{ email: str
       return null;
     }
 
-    const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
-    if (!projectId) {
-      console.warn('NEXT_PUBLIC_FIREBASE_PROJECT_ID is not defined in environment variables. Firebase token validation might fail.');
-      return null;
-    }
+    const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'neoblue-72119';
 
     const verified = jwt.verify(token, cert, {
       algorithms: ['RS256'],
