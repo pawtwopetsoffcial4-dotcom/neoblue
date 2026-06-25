@@ -438,7 +438,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
         </div>
 
       {/* Floating Search Form Panel */}
-      <div className={`border-t border-white/10 px-4 py-3.5 shadow-2xl transition-all duration-300 ${
+      <div className={`border-t border-white/10 px-4 py-3.5 shadow-2xl transition-all duration-300 absolute w-full left-0 top-full z-40 ${
         isSearchOpen
           ? 'opacity-100 translate-y-0 pointer-events-auto visible'
           : 'opacity-0 -translate-y-3 pointer-events-none invisible'
