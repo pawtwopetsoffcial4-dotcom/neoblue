@@ -93,16 +93,17 @@ function MobileScrollSection({
 /* ------------------------------------------------------------------ */
 /* ULTRA-CLEAN PRODUCT CARD                                           */
 /* ------------------------------------------------------------------ */
-function MobileCard({ product, mode }: { product: any; mode: 'fishes' | 'plants' }) {
+function MobileCard({ product, mode, index = 0 }: { product: any; mode: 'fishes' | 'plants'; index?: number }) {
   const rating = typeof product.rating === 'number' ? product.rating : 5;
   const reviewsCount = product.reviewsCount ?? 0;
   return (
     <Link
       href={`/products/${product.id}`}
-      className={`group w-40 md:w-55 shrink-0 snap-start flex flex-col rounded-2xl overflow-hidden border bg-white transition-all duration-300 ${
+      style={{ animationDelay: `${index * 60}ms` }}
+      className={`group w-40 md:w-55 shrink-0 snap-start flex flex-col rounded-2xl overflow-hidden border bg-white transition-all duration-500 ease-out animate-fade-in-up hover:-translate-y-1.5 hover:shadow-xl ${
         mode === 'fishes' 
-          ? 'border-blue-50/50 shadow-[0_4px_20px_-10px_rgba(37,99,235,0.1)]' 
-          : 'border-green-50/50 shadow-[0_4px_20px_-10px_rgba(21,158,75,0.1)]'
+          ? 'border-blue-50/50 shadow-[0_4px_20px_-10px_rgba(37,99,235,0.15)] hover:border-blue-100/80' 
+          : 'border-green-50/50 shadow-[0_4px_20px_-10px_rgba(21,158,75,0.15)] hover:border-green-100/80'
       }`}
     >
       <div className={`relative aspect-square overflow-hidden ${mode === 'fishes' ? 'bg-blue-50/30' : 'bg-green-50/30'}`}>
@@ -255,10 +256,10 @@ export default function NeoBlueMobileOptimized() {
         <div className={`relative w-full rounded-3xl overflow-hidden shadow-sm flex flex-col justify-center p-6 min-h-55 transition-colors duration-500 ${
           mode === 'fishes' ? 'bg-blue-600' : 'bg-green-700'
         }`}>
-          <div className="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-2xl" />
-          <div className="absolute -left-10 -bottom-10 w-32 h-32 bg-white/10 rounded-full blur-xl" />
+          <div className="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-2xl animate-float-slow" />
+          <div className="absolute -left-10 -bottom-10 w-32 h-32 bg-white/10 rounded-full blur-xl animate-float-reverse" />
           
-          <div className="relative z-10">
+          <div className="relative z-10 animate-fade-in-up">
             <h1 className="text-2xl font-black text-white leading-tight mb-2">
               {mode === 'fishes' ? (
                 <>Save 35% on All<br/>Premium Stock</>
@@ -296,15 +297,26 @@ export default function NeoBlueMobileOptimized() {
                 <Link
                   key={i}
                   href={`/categories/${toCategorySlug(cat.label)}`}
-                  className="flex flex-col items-center gap-2 shrink-0 snap-start"
+                  style={{ animationDelay: `${i * 50}ms` }}
+                  className="flex flex-col items-center gap-2 shrink-0 snap-start group animate-fade-in-up"
                 >
-                  <div className={`relative h-16 w-16 rounded-full border bg-white shadow-sm flex items-center justify-center overflow-hidden transition-all duration-300 ${
-                    isPlants ? 'border-green-300 ring-2 ring-green-100' : 'border-blue-100'
+                  <div className={`relative w-15 h-15 rounded-full overflow-hidden border bg-slate-50 transition-all duration-300 group-hover:scale-110 group-hover:shadow-md ${
+                    isPlants 
+                      ? 'border-green-300 ring-2 ring-green-100 group-hover:ring-green-300' 
+                      : 'border-blue-100 group-hover:border-blue-300 group-hover:ring-4 group-hover:ring-blue-100/50'
                   }`}>
-                    <Image src={cat.image} alt={cat.label} width={64} height={64} className="h-full w-full object-cover" />
+                    <Image 
+                      src={cat.image} 
+                      alt={cat.label} 
+                      fill
+                      sizes="60px"
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
                   </div>
-                  <span className={`text-[10px] font-bold uppercase tracking-wider transition-colors duration-300 ${
-                    isPlants ? 'text-green-700 font-extrabold' : 'text-blue-900/70'
+                  <span className={`text-[10px] font-semibold tracking-wide transition-all duration-300 ${
+                    isPlants 
+                      ? 'text-green-700 font-extrabold group-hover:text-green-800' 
+                      : 'text-blue-900/70 group-hover:text-blue-950 font-bold'
                   }`}>{cat.label}</span>
                 </Link>
               );
@@ -315,8 +327,8 @@ export default function NeoBlueMobileOptimized() {
 
       {/* 4. TRENDING */}
       <MobileScrollSection title={mode === 'fishes' ? 'Trending Stock' : 'Trending Plants'} mode={mode}>
-        {trendingProducts.map((product) => (
-          <MobileCard key={`trend-${product.id}`} product={product} mode={mode} />
+        {trendingProducts.map((product, idx) => (
+          <MobileCard key={`trend-${product.id}`} product={product} mode={mode} index={idx} />
         ))}
         {!isLoading && trendingProducts.length === 0 ? (
           <div className={`w-full rounded-2xl border border-dashed p-4 text-xs ${
@@ -329,8 +341,8 @@ export default function NeoBlueMobileOptimized() {
 
       {/* 5. NEW ARRIVALS */}
       <MobileScrollSection title={mode === 'fishes' ? 'New Arrivals' : 'New Plant Arrivals'} mode={mode}>
-        {newArrivalProducts.map((product) => (
-          <MobileCard key={`new-${product.id}`} product={product} mode={mode} />
+        {newArrivalProducts.map((product, idx) => (
+          <MobileCard key={`new-${product.id}`} product={product} mode={mode} index={idx} />
         ))}
         {!isLoading && newArrivalProducts.length === 0 ? (
           <div className={`w-full rounded-2xl border border-dashed p-4 text-xs ${

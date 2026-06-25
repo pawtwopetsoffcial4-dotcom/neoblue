@@ -245,7 +245,7 @@ export default function ProductsPage() {
           <>
             {/* 2-column Grid */}
             <div className="grid grid-cols-2 gap-3 mb-6">
-              {filteredProducts.map((product) => {
+              {filteredProducts.map((product, idx) => {
                 const rating = typeof product.rating === 'number' ? product.rating : 5;
                 const reviewsCount = product.reviewsCount ?? 0;
                 const unitPrice = typeof product.perPairPrice === 'number'
@@ -257,8 +257,9 @@ export default function ProductsPage() {
                   <Link
                     href={`/products/${product._id}`}
                     key={product._id}
-                    className={`group flex w-full flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/70 active:scale-[0.98] transition-all duration-300 ${
-                      mode === 'fishes' ? 'hover:ring-blue-200' : 'hover:ring-green-200'
+                    style={{ animationDelay: `${idx * 45}ms` }}
+                    className={`group flex w-full flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/70 active:scale-[0.98] animate-fade-in-up hover:-translate-y-1.5 hover:shadow-md hover:shadow-slate-350/20 transition-all duration-500 ease-out ${
+                      mode === 'fishes' ? 'hover:ring-blue-300' : 'hover:ring-green-300'
                     }`}
                   >
                     {/* Image Container */}
@@ -268,7 +269,7 @@ export default function ProductsPage() {
                         alt={product.title}
                         fill
                         sizes="(max-width: 640px) 50vw, 25vw"
-                        className="object-cover"
+                        className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                       />
 
                       {/* Out of Stock Badge */}
