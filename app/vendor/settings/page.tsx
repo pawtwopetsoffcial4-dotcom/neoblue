@@ -30,6 +30,8 @@ export default function VendorShippingSettingsPage() {
     slab500g: 0, slab1kg: 0, slab2kg: 0, slab3kg: 0, slab5kg: 0, slab10kg: 0
   });
   const [nonServiceableStates, setNonServiceableStates] = useState<string[]>([]);
+  const [deliverNorth, setDeliverNorth] = useState(true);
+  const [deliverSouth, setDeliverSouth] = useState(true);
   
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -45,6 +47,8 @@ export default function VendorShippingSettingsPage() {
         if (data.shippingRatesSouth) setRatesSouth(data.shippingRatesSouth);
         if (data.shippingRatesNorth) setRatesNorth(data.shippingRatesNorth);
         if (data.nonServiceableStates) setNonServiceableStates(data.nonServiceableStates);
+        if (data.deliverNorth !== undefined) setDeliverNorth(data.deliverNorth);
+        if (data.deliverSouth !== undefined) setDeliverSouth(data.deliverSouth);
       } catch (err: any) {
         setMessage({ type: 'error', text: err.message || 'Failed to load shipping configurations.' });
       } finally {
@@ -91,6 +95,8 @@ export default function VendorShippingSettingsPage() {
           shippingRatesSouth: ratesSouth,
           shippingRatesNorth: ratesNorth,
           nonServiceableStates,
+          deliverNorth,
+          deliverSouth,
         }),
       });
       const data = await res.json();
@@ -143,62 +149,102 @@ export default function VendorShippingSettingsPage() {
           
           {/* North India Slabs */}
           <div className="rounded-3xl border border-slate-100 bg-[#F8FAFC] p-6 shadow-sm">
-            <div className="flex items-center gap-3 mb-5 border-b border-slate-200/50 pb-3">
-              <span className="text-2xl">🏔️</span>
-              <div>
-                <h2 className="text-lg font-black text-slate-900">North India Rates</h2>
-                <p className="text-xs text-slate-500">Configure shipping charges for deliveries within Northern states</p>
+            <div className="flex items-center justify-between gap-3 mb-5 border-b border-slate-200/50 pb-3">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">🏔️</span>
+                <div>
+                  <h2 className="text-lg font-black text-slate-900">North India Rates</h2>
+                  <p className="text-xs text-slate-500">Configure shipping charges for deliveries within Northern states</p>
+                </div>
               </div>
+              
+              <label className="relative inline-flex items-center cursor-pointer select-none">
+                <input 
+                  type="checkbox" 
+                  checked={deliverNorth}
+                  onChange={(e) => setDeliverNorth(e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                <span className="ml-2 text-xs font-bold text-slate-600 uppercase tracking-wider">{deliverNorth ? 'Enabled' : 'Disabled'}</span>
+              </label>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {SLABS.map((slab) => (
-                <div key={slab.key} className="bg-white p-4 rounded-2xl border border-slate-200/60 shadow-2xs flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">{slab.label}</label>
-                  <div className="relative flex items-center">
-                    <span className="absolute left-3.5 text-slate-400 font-extrabold text-sm">₹</span>
-                    <input 
-                      type="number" 
-                      min="0"
-                      value={ratesNorth[slab.key] || ''}
-                      onChange={(e) => handleRateChange('North', slab.key, e.target.value)}
-                      placeholder="0"
-                      className="w-full h-10 pl-8 pr-4 rounded-xl border border-slate-200 font-semibold text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 bg-slate-50/30"
-                    />
+            {!deliverNorth ? (
+              <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-center">
+                <p className="text-xs font-bold text-slate-500">🏔️ North India deliveries are completely disabled.</p>
+                <p className="text-[10px] text-slate-400 mt-1">Enable above if you want to deliver to Northern states.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {SLABS.map((slab) => (
+                  <div key={slab.key} className="bg-white p-4 rounded-2xl border border-slate-200/60 shadow-2xs flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">{slab.label}</label>
+                    <div className="relative flex items-center">
+                      <span className="absolute left-3.5 text-slate-400 font-extrabold text-sm">₹</span>
+                      <input 
+                        type="number" 
+                        min="0"
+                        value={ratesNorth[slab.key] || ''}
+                        onChange={(e) => handleRateChange('North', slab.key, e.target.value)}
+                        placeholder="0"
+                        className="w-full h-10 pl-8 pr-4 rounded-xl border border-slate-200 font-semibold text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 bg-slate-50/30"
+                      />
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* South India Slabs */}
           <div className="rounded-3xl border border-slate-100 bg-[#F8FAFC] p-6 shadow-sm">
-            <div className="flex items-center gap-3 mb-5 border-b border-slate-200/50 pb-3">
-              <span className="text-2xl">🌴</span>
-              <div>
-                <h2 className="text-lg font-black text-slate-900">South India Rates</h2>
-                <p className="text-xs text-slate-500">Configure shipping charges for deliveries within Southern states</p>
+            <div className="flex items-center justify-between gap-3 mb-5 border-b border-slate-200/50 pb-3">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">🌴</span>
+                <div>
+                  <h2 className="text-lg font-black text-slate-900">South India Rates</h2>
+                  <p className="text-xs text-slate-500">Configure shipping charges for deliveries within Southern states</p>
+                </div>
               </div>
+              
+              <label className="relative inline-flex items-pointer select-none">
+                <input 
+                  type="checkbox" 
+                  checked={deliverSouth}
+                  onChange={(e) => setDeliverSouth(e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-600"></div>
+                <span className="ml-2 text-xs font-bold text-slate-600 uppercase tracking-wider">{deliverSouth ? 'Enabled' : 'Disabled'}</span>
+              </label>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {SLABS.map((slab) => (
-                <div key={slab.key} className="bg-white p-4 rounded-2xl border border-slate-200/60 shadow-2xs flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">{slab.label}</label>
-                  <div className="relative flex items-center">
-                    <span className="absolute left-3.5 text-slate-400 font-extrabold text-sm">₹</span>
-                    <input 
-                      type="number" 
-                      min="0"
-                      value={ratesSouth[slab.key] || ''}
-                      onChange={(e) => handleRateChange('South', slab.key, e.target.value)}
-                      placeholder="0"
-                      className="w-full h-10 pl-8 pr-4 rounded-xl border border-slate-200 font-semibold text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 bg-slate-50/30"
-                    />
+            {!deliverSouth ? (
+              <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-center">
+                <p className="text-xs font-bold text-slate-500">🌴 South India deliveries are completely disabled.</p>
+                <p className="text-[10px] text-slate-400 mt-1">Enable above if you want to deliver to Southern states.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {SLABS.map((slab) => (
+                  <div key={slab.key} className="bg-white p-4 rounded-2xl border border-slate-200/60 shadow-2xs flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">{slab.label}</label>
+                    <div className="relative flex items-center">
+                      <span className="absolute left-3.5 text-slate-400 font-extrabold text-sm">₹</span>
+                      <input 
+                        type="number" 
+                        min="0"
+                        value={ratesSouth[slab.key] || ''}
+                        onChange={(e) => handleRateChange('South', slab.key, e.target.value)}
+                        placeholder="0"
+                        className="w-full h-10 pl-8 pr-4 rounded-xl border border-slate-200 font-semibold text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 bg-slate-50/30"
+                      />
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
 
         </div>

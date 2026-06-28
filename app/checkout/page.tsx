@@ -201,6 +201,7 @@ function CheckoutPageContent() {
   const cartQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
 
   // Group cart items by vendor for shipping calculation
+  const region = getRegionFromState(address.state);
   const vendorShippingGroups: Record<string, { totalWeight: number; vendor: any }> = {};
   let isLocationServiceable = true;
   let nonServiceableMessage = '';
@@ -219,15 +220,22 @@ function CheckoutPageContent() {
     const weight = product.weightPerPiece || 0;
     vendorShippingGroups[vId].totalWeight += weight * qty;
 
-    // Check non-serviceable states
+    // Check non-serviceable states and regional switches
     const nonServiceable = vendor?.nonServiceableStates || [];
     if (address.state && nonServiceable.some((s: string) => s.toLowerCase().trim() === address.state.toLowerCase().trim())) {
       isLocationServiceable = false;
       nonServiceableMessage = `Sorry, this product cannot be delivered to your location.`;
     }
+    if (region === 'North' && vendor?.deliverNorth === false) {
+      isLocationServiceable = false;
+      nonServiceableMessage = `Sorry, this product cannot be delivered to your location.`;
+    }
+    if (region === 'South' && vendor?.deliverSouth === false) {
+      isLocationServiceable = false;
+      nonServiceableMessage = `Sorry, this product cannot be delivered to your location.`;
+    }
   });
 
-  const region = getRegionFromState(address.state);
   const shippingAmount = Object.values(vendorShippingGroups).reduce((sum, group) => {
     return sum + getShippingChargeForWeight(group.totalWeight, region, group.vendor);
   }, 0);

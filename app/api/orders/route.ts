@@ -255,10 +255,16 @@ export async function POST(request: NextRequest) {
       vendorGroups[vId].subtotal += op.price * qty;
       vendorGroups[vId].totalWeight += (op.weightPerPiece || 0) * qty;
 
-      // Check if state is non-serviceable
+      // Check if state is non-serviceable or if region delivery is disabled by vendor
       const vendorUser = op.vendorId; // populated
       const nonServiceable = vendorUser?.nonServiceableStates || [];
       if (stateName && nonServiceable.some((s: string) => s.toLowerCase().trim() === stateName.toLowerCase().trim())) {
+        vendorGroups[vId].isServiceable = false;
+      }
+      if (region === 'North' && vendorUser?.deliverNorth === false) {
+        vendorGroups[vId].isServiceable = false;
+      }
+      if (region === 'South' && vendorUser?.deliverSouth === false) {
         vendorGroups[vId].isServiceable = false;
       }
     }

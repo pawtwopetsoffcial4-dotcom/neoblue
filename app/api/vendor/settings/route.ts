@@ -33,7 +33,9 @@ export async function GET(request: Request) {
     return NextResponse.json({ 
       shippingRatesSouth: user.shippingRatesSouth || { slab500g: 0, slab1kg: 0, slab2kg: 0, slab3kg: 0, slab5kg: 0, slab10kg: 0 },
       shippingRatesNorth: user.shippingRatesNorth || { slab500g: 0, slab1kg: 0, slab2kg: 0, slab3kg: 0, slab5kg: 0, slab10kg: 0 },
-      nonServiceableStates: user.nonServiceableStates || []
+      nonServiceableStates: user.nonServiceableStates || [],
+      deliverNorth: user.deliverNorth !== false,
+      deliverSouth: user.deliverSouth !== false,
     });
   } catch (error: any) {
     return NextResponse.json(
@@ -50,7 +52,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { shippingRatesSouth, shippingRatesNorth, nonServiceableStates } = await request.json();
+    const { shippingRatesSouth, shippingRatesNorth, nonServiceableStates, deliverNorth, deliverSouth } = await request.json();
 
     await connectDB();
     const user = await User.findById(userId);
@@ -62,6 +64,8 @@ export async function POST(request: Request) {
     if (shippingRatesSouth) user.shippingRatesSouth = shippingRatesSouth;
     if (shippingRatesNorth) user.shippingRatesNorth = shippingRatesNorth;
     if (nonServiceableStates) user.nonServiceableStates = nonServiceableStates;
+    if (typeof deliverNorth === 'boolean') user.deliverNorth = deliverNorth;
+    if (typeof deliverSouth === 'boolean') user.deliverSouth = deliverSouth;
     
     await user.save();
 
@@ -69,7 +73,9 @@ export async function POST(request: Request) {
       success: true, 
       shippingRatesSouth: user.shippingRatesSouth, 
       shippingRatesNorth: user.shippingRatesNorth,
-      nonServiceableStates: user.nonServiceableStates 
+      nonServiceableStates: user.nonServiceableStates,
+      deliverNorth: user.deliverNorth,
+      deliverSouth: user.deliverSouth
     });
   } catch (error: any) {
     return NextResponse.json(

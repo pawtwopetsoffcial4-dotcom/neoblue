@@ -34,6 +34,8 @@ export interface IUser extends Document {
     slab10kg: number;
   };
   nonServiceableStates?: string[];
+  deliverNorth?: boolean;
+  deliverSouth?: boolean;
   createdAt: Date;
   updatedat: Date;
   comparePassword(password: string): Promise<boolean>;
@@ -109,6 +111,14 @@ const userSchema = new Schema<IUser>(
     nonServiceableStates: {
       type: [String],
       default: [],
+    },
+    deliverNorth: {
+      type: Boolean,
+      default: true,
+    },
+    deliverSouth: {
+      type: Boolean,
+      default: true,
     },
   },
   { timestamps: true }
