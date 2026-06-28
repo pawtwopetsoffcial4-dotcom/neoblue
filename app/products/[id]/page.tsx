@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Heart, Share2, Info } from 'lucide-react';
+import { Heart, Share2, Info } from 'lucide-react';
 import mongoose from 'mongoose';
 import { connectDB } from '@/lib/db';
 import Product from '@/lib/models/Product';
@@ -21,18 +21,28 @@ export async function generateMetadata({ params }: ProductDetailProps): Promise<
     await connectDB();
     const product = await Product.findById(id).lean() as any;
     if (!product) return {};
+    const productUrl = `https://neoblue.in/products/${product._id}`;
+    const truncatedDesc = product.description 
+      ? product.description.replace(/(\r\n|\n|\r)/gm, " ").slice(0, 155) + "..." 
+      : 'Quarantine-tested premium aquatic specimen on NeoBlue.';
+      
     return {
       title: `${product.title} - Care Requirements & Specs | NeoBlue`,
-      description: product.description || 'Quarantine-tested premium aquatic specimen on NeoBlue.',
+      description: truncatedDesc,
+      alternates: {
+        canonical: productUrl,
+      },
       openGraph: {
-        title: product.title,
-        description: product.description,
+        title: `${product.title} - Care Requirements & Specs | NeoBlue`,
+        description: truncatedDesc,
+        url: productUrl,
         images: product.images?.[0] ? [{ url: product.images[0] }] : [],
+        type: 'website',
       },
       twitter: {
         card: 'summary_large_image',
-        title: product.title,
-        description: product.description,
+        title: `${product.title} - Care Requirements & Specs | NeoBlue`,
+        description: truncatedDesc,
         images: product.images?.[0] ? [product.images[0]] : [],
       },
     };
@@ -119,14 +129,120 @@ export default async function ProductDetailPage({ params }: ProductDetailProps) 
     );
   }
 
+  // Define JSON-LD structured schemas for SEO crawler bots
+  const productSchema = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": product.title,
+    "image": product.images || [],
+    "description": product.description,
+    "sku": `NEO-${product._id.slice(-6).toUpperCase()}`,
+    "offers": {
+      "@type": "Offer",
+      "url": `https://neoblue.in/products/${product._id}`,
+      "priceCurrency": "INR",
+      "price": product.price,
+      "priceValidUntil": "2027-12-31",
+      "itemCondition": "https://schema.org/NewCondition",
+      "availability": product.inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+      "seller": {
+        "@type": "Organization",
+        "name": product.vendorId?.name || "NeoBlue Seller"
+      }
+    },
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": product.rating || 5,
+      "reviewCount": reviews.length || 1
+    }
+  };
+
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://neoblue.in"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Shop",
+        "item": "https://neoblue.in/products"
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": product.category,
+        "item": `https://neoblue.in/products?category=${product.category}`
+      },
+      {
+        "@type": "ListItem",
+        "position": 4,
+        "name": product.title,
+        "item": `https://neoblue.in/products/${product._id}`
+      }
+    ]
+  };
+
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "How should I acclimate this fish after delivery?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Float the bag for 20 to 30 minutes to equalize temperature, then drip acclimate gradually before introducing into your tank."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What tank conditions are recommended?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": `Maintain stable ${product.waterType.toLowerCase()} parameters, avoid sudden pH/temperature shifts, and provide proper filtration and oxygenation.`
+        }
+      }
+    ]
+  };
+
   return (
     <div className="min-h-screen bg-[#F5F7FA] text-slate-900 selection:bg-blue-100 pb-24 md:pb-12">
+      {/* Dynamic JSON-LD structured data scripts */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
+
       {/* Navigation / Breadcrumb */}
       <nav className="sticky top-0 z-40 bg-[#F5F7FA]/80 backdrop-blur-xl border-b border-slate-200/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <Link href="/products" className="inline-flex items-center gap-2 text-slate-500 hover:text-blue-600 transition-colors text-sm font-medium">
-            <ArrowLeft className="h-4 w-4" /> Back to Shop
-          </Link>
+          <div className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-500">
+            <Link href="/" className="hover:text-blue-600 transition-colors">Home</Link>
+            <svg className="h-3 w-3 text-slate-400 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+            
+            <Link href="/products" className="hover:text-blue-600 transition-colors">Shop</Link>
+            <svg className="h-3 w-3 text-slate-400 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+            
+            <Link href={`/products?category=${product.category}`} className="hover:text-blue-600 transition-colors">{product.category}</Link>
+            <svg className="h-3 w-3 text-slate-400 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+            
+            <span className="text-slate-900 font-extrabold truncate max-w-[100px] sm:max-w-[200px]">{product.title}</span>
+          </div>
+
           <div className="flex items-center gap-3">
              <button className="h-10 w-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-rose-500 hover:border-rose-200 transition-all shadow-sm">
                 <Heart className="h-4 w-4" />

@@ -28,7 +28,7 @@ export default function ProductClientPage({
 }: Props) {
   const [product, setProduct] = useState<MarketplaceProduct>(initialProduct);
   const [reviews, setReviews] = useState<any[]>(initialReviews);
-  const [activeTab, setActiveTab] = useState<'description' | 'specifications' | 'faq' | 'reviews'>('description');
+  const [activeTab, setActiveTab] = useState<'description' | 'specifications' | 'policies' | 'faq' | 'reviews'>('description');
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [showForm, setShowForm] = useState(false);
@@ -176,7 +176,7 @@ export default function ProductClientPage({
         <div className="relative aspect-square w-full rounded-none sm:rounded-3xl bg-slate-900 sm:border sm:border-slate-100 sm:shadow-sm overflow-hidden group">
           <img
             src={activeImage}
-            alt={product.title}
+            alt={`${product.title} - Care Requirements & Specifications`}
             className="absolute inset-0 h-full w-full object-cover group-hover:scale-105 transition-transform duration-700 ease-in-out"
           />
           <div className="absolute top-6 left-6 flex flex-col gap-2">
@@ -201,7 +201,7 @@ export default function ProductClientPage({
               key={`${image}-${i}`}
               className={`shrink-0 w-20 h-20 md:w-24 md:h-24 rounded-2xl bg-white border cursor-pointer overflow-hidden ${i === activeImageIndex ? 'border-blue-500 shadow-md ring-2 ring-blue-500/20' : 'border-slate-200 hover:border-blue-300'} transition-all`}
             >
-              <img src={image} alt="thumbnail" className="w-full h-full object-cover" />
+              <img src={image} alt={`${product.title} thumbnail ${i + 1} - NeoBlue Specimen`} className="w-full h-full object-cover" />
             </button>
           ))}
         </div>
@@ -511,6 +511,7 @@ export default function ProductClientPage({
           {[
             { id: 'description', icon: Info, label: 'Description' },
             { id: 'specifications', icon: Thermometer, label: 'Care & Specs' },
+            { id: 'policies', icon: Shield, label: 'Shipping & Guarantees' },
             { id: 'faq', icon: MessageSquare, label: 'FAQ' },
             { id: 'reviews', icon: MessageSquare, label: `Reviews (${reviews.length})` }
           ].map((tab) => (
@@ -559,27 +560,80 @@ export default function ProductClientPage({
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
               <h3 className="text-2xl font-bold text-slate-900 mb-8">Care Requirements & Specifications</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {[
-                  { title: "Water Type", value: product.waterType, icon: Droplets, color: "text-blue-500", bg: "bg-blue-50" },
-                  { title: "Temperature", value: "24°C - 28°C", icon: Thermometer, color: "text-rose-500", bg: "bg-rose-50" },
-                  { 
-                    title: "Category", 
-                    value: product.category, 
-                    icon: Info, 
-                    color: product.category === 'Plants' ? "text-green-600" : "text-indigo-500", 
-                    bg: product.category === 'Plants' ? "bg-green-50" : "bg-indigo-50" 
-                  },
-                ].map((spec, i) => (
-                  <div key={i} className="flex items-center gap-4 p-4 rounded-2xl border border-slate-100 bg-[#F5F7FA] hover:border-slate-200 transition-colors">
-                    <div className={`w-12 h-12 rounded-xl ${spec.bg} flex items-center justify-center shrink-0`}>
-                      <spec.icon className={`h-6 w-6 ${spec.color}`} />
+                {(() => {
+                  const specs = [
+                    { title: "Common Name", value: product.title, icon: MessageSquare, color: "text-blue-500", bg: "bg-blue-50" },
+                    { title: "Scientific Name", value: product.scientific || 'N/A', icon: Info, color: "text-amber-500", bg: "bg-amber-50" },
+                    { title: "Water Type", value: product.waterType, icon: Droplets, color: "text-cyan-500", bg: "bg-cyan-50" },
+                    { title: "pH Range", value: `${product.phMin ?? '6.0'} - ${product.phMax ?? '8.0'} pH`, icon: Droplets, color: "text-teal-500", bg: "bg-teal-50" },
+                    { title: "Temperature Range", value: `${product.tempMin ?? '20'}°C - ${product.tempMax ?? '30'}°C`, icon: Thermometer, color: "text-rose-500", bg: "bg-rose-50" },
+                    { title: "Temperament", value: product.temperament || 'Peaceful', icon: ShieldAlert, color: "text-orange-500", bg: "bg-orange-50" },
+                    { title: "Category", value: product.category, icon: Store, color: "text-purple-500", bg: "bg-purple-50" },
+                    ...(product.subcategory ? [{ title: "Subcategory", value: product.subcategory, icon: Store, color: "text-purple-500", bg: "bg-purple-50" }] : []),
+                    { title: "SKU", value: `NEO-${product._id.slice(-6).toUpperCase()}`, icon: ShoppingBag, color: "text-slate-500", bg: "bg-slate-55" },
+                    { title: "Stock Status", value: product.inStock ? 'Available' : 'Out of Stock', icon: CheckCircle2, color: "text-emerald-500", bg: "bg-emerald-50" },
+                    { title: "Product Tag", value: product.tag || 'Standard', icon: Info, color: "text-indigo-500", bg: "bg-indigo-50" },
+                  ];
+
+                  return specs.map((spec, i) => (
+                    <div key={i} className="flex items-center gap-4 p-4 rounded-2xl border border-slate-100 bg-[#F5F7FA] hover:border-slate-200 transition-colors">
+                      <div className={`w-12 h-12 rounded-xl ${spec.bg} flex items-center justify-center shrink-0`}>
+                        <spec.icon className={`h-6 w-6 ${spec.color}`} />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-slate-500">{spec.title}</p>
+                        <p className="text-base font-bold text-slate-900 uppercase tracking-wide">{spec.value}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-medium text-slate-500">{spec.title}</p>
-                      <p className="text-base font-bold text-slate-900 uppercase tracking-wide">{spec.value}</p>
-                    </div>
+                  ));
+                })()}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'policies' && (
+            <div className="max-w-3xl animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <h3 className="text-2xl font-bold text-slate-900 mb-8">Shipping Information & Policies</h3>
+              
+              <div className="space-y-8">
+                {/* 1. Live Arrival Guarantee */}
+                <div className="flex gap-4 items-start">
+                  <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0 mt-0.5 shadow-sm border border-emerald-100/50">
+                    <Shield className="h-5 w-5" />
                   </div>
-                ))}
+                  <div className="space-y-1">
+                    <h4 className="text-base font-bold text-slate-900">100% Live Arrival Guarantee</h4>
+                    <p className="text-sm text-slate-600 leading-relaxed font-medium">
+                      We guarantee that all live specimens will arrive healthy and active. In the rare event of a Dead-on-Arrival (DOA), please take a clear photo and video of the specimen inside its unopened original vacuum-sealed bag within 2 hours of delivery receipt. Email or message us the media, and we will issue a full replacement or store credit.
+                    </p>
+                  </div>
+                </div>
+
+                {/* 2. Return & Replacement Policy */}
+                <div className="flex gap-4 items-start">
+                  <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 shrink-0 mt-0.5 shadow-sm border border-blue-100/50">
+                    <Info className="h-5 w-5" />
+                  </div>
+                  <div className="space-y-1">
+                    <h4 className="text-base font-bold text-slate-900">Return & Replacement Exclusions</h4>
+                    <p className="text-sm text-slate-600 leading-relaxed font-medium">
+                      Due to strict biological safety standards and the delicate nature of transporting live aquatic life, we cannot accept physical returns of live fish, plants, or invertebrates. If a species fails to thrive post-acclimation, contact our support team with your tank parameters for expert advice.
+                    </p>
+                  </div>
+                </div>
+
+                {/* 3. Specialized Packaging & Shipping */}
+                <div className="flex gap-4 items-start">
+                  <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0 mt-0.5 shadow-sm border border-indigo-100/50">
+                    <Truck className="h-5 w-5" />
+                  </div>
+                  <div className="space-y-1">
+                    <h4 className="text-base font-bold text-slate-900">Thermos-Insulated Packing</h4>
+                    <p className="text-sm text-slate-600 leading-relaxed font-medium">
+                      Our live stocks are placed in thick double-layered oxygenated bags and shipped inside heavy-duty styrofoam boxes. Depending on the seasonal weather, we add heat packs or cold gel-packs to regulate internal temperatures. All live stock is shipped exclusively via express next-day air couriers.
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           )}
