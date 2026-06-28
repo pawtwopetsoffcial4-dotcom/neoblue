@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import Link from 'next/link';
-import { ShoppingBag, Star, Truck, Shield, Droplets, Thermometer, Info, MessageSquare, ChevronRight, Heart, Share2, Store, CheckCircle2, Search, X, ShieldAlert, Sparkles, Scale, HeartHandshake } from 'lucide-react';
+import { ShoppingBag, Star, Truck, Shield, Droplets, Thermometer, Info, MessageSquare, ChevronRight, Store, CheckCircle2, Search, X, ShieldAlert, Sparkles, Scale } from 'lucide-react';
 import ReviewList from '@/app/components/ReviewList';
 import ReviewForm from '@/app/components/ReviewForm';
 import ReviewStars from '@/app/components/ReviewStars';
@@ -172,273 +172,91 @@ export default function ProductClientPage({
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
       
-      {/* LEFT COLUMN: Gallery & Main tabs */}
-      <div className="lg:col-span-8 space-y-8">
-        
-        {/* Gallery Panel */}
-        <div className="bg-white rounded-3xl p-4 md:p-6 border border-slate-100 shadow-xs relative overflow-hidden">
-          <div className="relative aspect-[4/3] w-full rounded-2xl bg-slate-950 overflow-hidden group shadow-inner">
-            <img
-              src={activeImage}
-              alt={`${product.title} - Care Requirements & Specifications`}
-              className="absolute inset-0 h-full w-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-            />
-            
-            {/* Live Indicator overlay */}
-            <div className="absolute top-4 left-4 flex flex-col gap-2">
-              {product.tag && (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-blue-600 text-white shadow-lg">
-                  <Sparkles className="h-3 w-3" /> {product.tag}
-                </span>
-              )}
-              {!product.inStock && (
-                <span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-rose-500 text-white shadow-lg">
-                  Out of Stock
-                </span>
-              )}
-            </div>
-
-            <div className="absolute bottom-4 right-4 bg-slate-950/80 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10 flex items-center gap-1.5">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+      {/* 1. GALLERY PANEL (lg:col-span-7) */}
+      <div className="lg:col-span-7 bg-white rounded-3xl p-4 md:p-6 border border-slate-100 shadow-xs relative overflow-hidden">
+        <div className="relative aspect-[4/3] w-full rounded-2xl bg-slate-950 overflow-hidden group shadow-inner">
+          <img
+            src={activeImage}
+            alt={`${product.title} - Care Requirements & Specifications`}
+            className="absolute inset-0 h-full w-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+          />
+          
+          {/* Live Indicator overlay */}
+          <div className="absolute top-4 left-4 flex flex-col gap-2">
+            {product.tag && (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-blue-600 text-white shadow-lg">
+                <Sparkles className="h-3 w-3" /> {product.tag}
               </span>
-              <span className="text-[10px] font-bold text-white uppercase tracking-wider">Live Arrival Protected</span>
-            </div>
+            )}
+            {!product.inStock && (
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-rose-500 text-white shadow-lg">
+                Out of Stock
+              </span>
+            )}
           </div>
 
-          {/* Thumbnail Strip */}
-          {productImages.length > 1 && (
-            <div className="flex gap-3 overflow-x-auto hide-scrollbar pt-4">
-              {productImages.map((image, i) => (
-                <button
-                  type="button"
-                  onClick={() => setActiveImageIndex(i)}
-                  key={`${image}-${i}`}
-                  className={`shrink-0 w-16 h-16 md:w-20 md:h-20 rounded-xl bg-slate-50 border cursor-pointer overflow-hidden transition-all duration-300 ${
-                    i === activeImageIndex 
-                      ? 'border-blue-500 ring-4 ring-blue-500/10 scale-95 shadow-sm' 
-                      : 'border-slate-200/60 hover:border-blue-300'
-                  }`}
-                >
-                  <img src={image} alt={`${product.title} thumbnail ${i + 1}`} className="w-full h-full object-cover" />
-                </button>
-              ))}
-            </div>
-          )}
+          <div className="absolute bottom-4 right-4 bg-slate-950/80 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10 flex items-center gap-1.5">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span className="text-[10px] font-bold text-white uppercase tracking-wider">Live Arrival Protected</span>
+          </div>
         </div>
 
-        {/* Tab Selection */}
-        <div className="space-y-6">
-          <div className="flex overflow-x-auto hide-scrollbar gap-1 border-b border-slate-100 pb-px">
-            {[
-              { id: 'description', icon: Info, label: 'Overview' },
-              { id: 'specifications', icon: Thermometer, label: 'Care Guidelines' },
-              { id: 'policies', icon: Shield, label: 'Guarantees & Returns' },
-              { id: 'faq', icon: MessageSquare, label: 'FAQs' },
-              { id: 'reviews', icon: Star, label: `Reviews (${reviews.length})` }
-            ].map((tab) => (
+        {/* Thumbnail Strip */}
+        {productImages.length > 1 && (
+          <div className="flex gap-3 overflow-x-auto hide-scrollbar pt-4">
+            {productImages.map((image, i) => (
               <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
-                className={`flex items-center gap-2 px-5 py-3.5 text-xs font-bold transition-all border-b-2 whitespace-nowrap uppercase tracking-wider
-                  ${activeTab === tab.id 
-                    ? 'border-blue-600 text-blue-600 font-extrabold' 
-                    : 'border-transparent text-slate-400 hover:text-slate-700 hover:border-slate-200'}`}
+                type="button"
+                onClick={() => setActiveImageIndex(i)}
+                key={`${image}-${i}`}
+                className={`shrink-0 w-16 h-16 md:w-20 md:h-20 rounded-xl bg-slate-55 border cursor-pointer overflow-hidden transition-all duration-300 ${
+                  i === activeImageIndex 
+                    ? 'border-blue-500 ring-4 ring-blue-500/10 scale-95 shadow-sm' 
+                    : 'border-slate-200/60 hover:border-blue-300'
+                }`}
               >
-                <tab.icon className="h-4 w-4 shrink-0" />
-                {tab.label}
+                <img src={image} alt={`${product.title} thumbnail ${i + 1}`} className="w-full h-full object-cover" />
               </button>
             ))}
           </div>
-
-          {/* Tab Screen Content */}
-          <div className="bg-white rounded-3xl p-6 md:p-8 border border-slate-100 shadow-xs min-h-[300px]">
-            
-            {activeTab === 'description' && (
-              <div className="max-w-3xl animate-fadeIn space-y-6">
-                <h3 className="text-xl font-black text-slate-900 tracking-tight">Product Overview</h3>
-                <p className="text-slate-600 text-sm leading-relaxed whitespace-pre-wrap font-medium">{product.description}</p>
-                
-                <div className="pt-6 border-t border-slate-100">
-                  <h4 className="text-sm font-bold text-slate-900 uppercase tracking-widest mb-4">The NeoBlue Standard</h4>
-                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {[
-                      "Strict 14-day quarantine & pathogen screening.",
-                      "Custom nutrition programs for vibrant colors.",
-                      "Bespoke oxygenated thermo-insulated packing.",
-                      "Post-purchase veterinary/husbandry assistance."
-                    ].map((item, idx) => (
-                      <li key={idx} className="flex items-start gap-2 text-xs font-semibold text-slate-600">
-                        <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'specifications' && (
-              <div className="animate-fadeIn space-y-6">
-                <h3 className="text-xl font-black text-slate-900 tracking-tight">Care Requirements & Specifications</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                  {(() => {
-                    const specs = [
-                      { title: "Common Name", value: product.title, icon: Sparkles, color: "text-blue-600 bg-blue-50" },
-                      { title: "Scientific Name", value: product.scientific || 'N/A', icon: Info, color: "text-indigo-600 bg-indigo-50" },
-                      { title: "Water Type", value: product.waterType, icon: Droplets, color: "text-cyan-600 bg-cyan-50" },
-                      { title: "pH Range", value: `${product.phMin ?? '6.0'} - ${product.phMax ?? '8.0'} pH`, icon: Droplets, color: "text-teal-600 bg-teal-50" },
-                      { title: "Temperature", value: `${product.tempMin ?? '20'}°C - ${product.tempMax ?? '30'}°C`, icon: Thermometer, color: "text-rose-600 bg-rose-50" },
-                      { title: "Temperament", value: product.temperament || 'Peaceful', icon: ShieldAlert, color: "text-amber-600 bg-amber-50" },
-                      { title: "Category", value: product.category, icon: Store, color: "text-purple-600 bg-purple-50" },
-                      ...(product.subcategory ? [{ title: "Subcategory", value: product.subcategory, icon: Store, color: "text-purple-600 bg-purple-50" }] : []),
-                      { title: "Weight Per Piece", value: `${product.weightPerPiece || '250'} gm`, icon: Scale, color: "text-slate-600 bg-slate-100" },
-                    ];
-
-                    return specs.map((spec, i) => (
-                      <div key={i} className="flex items-center gap-3.5 p-4 rounded-2xl border border-slate-100 bg-slate-50 hover:bg-white hover:shadow-xs transition-all duration-300">
-                        <div className={`w-10 h-10 rounded-xl ${spec.color} flex items-center justify-center shrink-0`}>
-                          <spec.icon className="h-5 w-5" />
-                        </div>
-                        <div>
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{spec.title}</p>
-                          <p className="text-xs font-black text-slate-800 uppercase mt-0.5">{spec.value}</p>
-                        </div>
-                      </div>
-                    ));
-                  })()}
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'policies' && (
-              <div className="max-w-3xl animate-fadeIn space-y-6">
-                <h3 className="text-xl font-black text-slate-900 tracking-tight">Shipping Policies & Exclusions</h3>
-                
-                <div className="divide-y divide-slate-100">
-                  <div className="py-4 first:pt-0 flex gap-4 items-start">
-                    <Shield className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
-                    <div>
-                      <h4 className="text-sm font-bold text-slate-900">100% Live Arrival Guarantee</h4>
-                      <p className="text-xs text-slate-500 leading-relaxed font-medium mt-1">
-                        We guarantee that all live specimens will arrive healthy. In the rare event of Dead-on-Arrival (DOA), please send a clear photo and video of the unopened bag within 2 hours of delivery for a full credit/replacement.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="py-4 flex gap-4 items-start">
-                    <Info className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
-                    <div>
-                      <h4 className="text-sm font-bold text-slate-900">Biological Return Policies</h4>
-                      <p className="text-xs text-slate-500 leading-relaxed font-medium mt-1">
-                        Due to health protocols and biosecurity regulations, we cannot accept physical returns of live species. Please contact support for transition guidelines.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="py-4 last:pb-0 flex gap-4 items-start">
-                    <Truck className="h-5 w-5 text-indigo-600 shrink-0 mt-0.5" />
-                    <div>
-                      <h4 className="text-sm font-bold text-slate-900">Specialized Thermos Insulated Boxes</h4>
-                      <p className="text-xs text-slate-500 leading-relaxed font-medium mt-1">
-                        Specimens are packed with pure oxygen in thick double bags, protected in styrofoam containers with heat/gel packs to counter local weather shifts.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'reviews' && (
-              <div className="animate-fadeIn space-y-6">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100">
-                  <div className="flex items-center gap-4">
-                    <div className="px-4 py-2.5 bg-slate-50 rounded-2xl border border-slate-100 flex flex-col items-center justify-center shrink-0">
-                      <span className="text-2xl font-black text-slate-900">{product.rating.toFixed(1)}</span>
-                      <div className="flex text-amber-400 mt-0.5">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <Star key={star} className={`h-2.5 w-2.5 ${star <= Math.round(product.rating) ? 'text-amber-400 fill-current' : 'text-slate-200'}`} />
-                        ))}
-                      </div>
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-bold text-slate-900">Certified Buyer Reviews</h4>
-                      <p className="text-xs text-slate-500 font-medium">Based on {reviews.length} purchase(s)</p>
-                    </div>
-                  </div>
-                  <button 
-                    onClick={() => setShowForm(!showForm)} 
-                    className="h-10 px-5 bg-slate-950 hover:bg-slate-800 text-white font-bold rounded-xl text-xs uppercase tracking-wider transition-all cursor-pointer shadow-xs active:scale-95"
-                  >
-                    {showForm ? 'Close' : 'Write a Review'}
-                  </button>
-                </div>
-
-                {showForm && (
-                  <div className="p-4 bg-slate-50/50 rounded-2xl border border-slate-100">
-                    <ReviewForm productId={productId} onSubmit={() => {
-                      refetchReviews();
-                      refetchProductStats();
-                      setShowForm(false);
-                    }} />
-                  </div>
-                )}
-
-                <ReviewList reviews={reviews} />
-              </div>
-            )}
-
-            {activeTab === 'faq' && (
-              <div className="animate-fadeIn space-y-3">
-                <h3 className="text-xl font-black text-slate-900 tracking-tight mb-4">Frequently Asked Questions</h3>
-                {[
-                  {
-                    q: 'How should I acclimate this specimen after delivery?',
-                    a: 'Float the bag for 20-30 minutes to equalize temperature, then drip-acclimate gradually to match pH before transferring it to your tank.',
-                  },
-                  {
-                    q: 'What tank parameters are recommended?',
-                    a: `Ensure you maintain a stable ${product.waterType.toLowerCase()} setup, avoid spikes in ammonia/nitrites, and keep parameters in ideal ranges.`,
-                  },
-                  {
-                    q: 'What if the fish arrives stressed?',
-                    a: 'Keep the tank lights off for 3-4 hours post-release, minimize noise, and monitor breathing closely. Reach out immediately if stress persists.',
-                  },
-                ].map((item, idx) => (
-                  <details
-                    key={idx}
-                    className="group rounded-2xl border border-slate-200/70 bg-slate-50/50 px-4 py-3.5 open:bg-white open:border-blue-200 transition-all duration-300"
-                  >
-                    <summary className="cursor-pointer list-none flex items-center justify-between gap-4 font-bold text-xs uppercase tracking-wider text-slate-700">
-                      <span>{item.q}</span>
-                      <ChevronRight className="h-4 w-4 text-slate-400 transition-transform group-open:rotate-90" />
-                    </summary>
-                    <p className="pt-3 text-xs leading-relaxed text-slate-500 font-semibold">{item.a}</p>
-                  </details>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-
+        )}
       </div>
 
-      {/* RIGHT COLUMN: Buying card, Storefront & Compatibility widget */}
-      <div className="lg:col-span-4 space-y-6">
-        
-        {/* Info & Cart Panel */}
-        <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm space-y-5">
-          <div>
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{product.category} • {product.waterType}</span>
-            <h1 className="text-2xl font-black text-slate-900 tracking-tight leading-tight mt-1">{product.title}</h1>
-            <p className="text-xs text-slate-400 italic font-medium mt-0.5">{product.scientific ?? 'Aquatic specimen'}</p>
-          </div>
+      {/* 2. PRODUCT INFO & BUYING PANEL (lg:col-span-5) */}
+      <div className="lg:col-span-5 flex flex-col space-y-6">
+        <div>
+          <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{product.category} • {product.waterType}</span>
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight leading-[1.1] mt-1 mb-2">{product.title}</h1>
+          <p className="text-sm text-slate-400 italic font-medium mt-0.5">{product.scientific ?? 'Aquatic specimen'}</p>
+        </div>
 
+        {/* Sold by vendor badge */}
+        {(() => {
+          const vendor = typeof product.vendorId === 'object' && product.vendorId !== null ? product.vendorId : null;
+          if (!vendor) return null;
+          const shopHref = vendor.slug ? `/shop/${vendor.slug}` : `/shop/${vendor._id}`;
+          return (
+            <div className="flex items-center gap-2 text-xs text-slate-600 bg-slate-50 border border-slate-100 rounded-2xl py-2 px-3.5 w-fit">
+              <Store className="h-4 w-4 text-blue-600" />
+              <span className="font-medium">Sold by:</span>
+              <Link 
+                href={shopHref}
+                className="font-extrabold text-slate-900 hover:text-blue-600 transition-colors"
+              >
+                {vendor.name}
+              </Link>
+            </div>
+          );
+        })()}
+
+        <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm space-y-5">
           <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex items-center justify-between">
             <div>
               <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Premium Price</p>
-              <p className="text-3xl font-black text-slate-950 mt-0.5">{formatPrice(product.price)}</p>
+              <p className="text-3xl font-black text-slate-955 mt-0.5">{formatPrice(product.price)}</p>
             </div>
             {product.originalPrice && (
               <div className="text-right">
@@ -492,6 +310,224 @@ export default function ProductClientPage({
           </div>
         </div>
 
+        {/* Trust Badges */}
+        <div className="grid grid-cols-2 gap-4 bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
+              <Truck className="h-5 w-5" />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-xs font-bold text-slate-900">Live Delivery</span>
+              <span className="text-[10px] text-slate-500">100% Guarantee</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
+              <Shield className="h-5 w-5" />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-xs font-bold text-slate-900">Quality Checked</span>
+              <span className="text-[10px] text-slate-500">Quarantined</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 3. MAIN TAB CONTENT (lg:col-span-8) */}
+      <div className="lg:col-span-8 flex flex-col gap-6">
+        <div className="flex overflow-x-auto hide-scrollbar gap-1 border-b border-slate-150 pb-px">
+          {[
+            { id: 'description', icon: Info, label: 'Overview' },
+            { id: 'specifications', icon: Thermometer, label: 'Care Guidelines' },
+            { id: 'policies', icon: Shield, label: 'Guarantees & Returns' },
+            { id: 'faq', icon: MessageSquare, label: 'FAQs' },
+            { id: 'reviews', icon: Star, label: `Reviews (${reviews.length})` }
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              className={`flex items-center gap-2 px-5 py-3.5 text-xs font-bold transition-all border-b-2 whitespace-nowrap uppercase tracking-wider
+                ${activeTab === tab.id 
+                  ? 'border-blue-600 text-blue-600 font-extrabold' 
+                  : 'border-transparent text-slate-400 hover:text-slate-700 hover:border-slate-200'}`}
+            >
+              <tab.icon className="h-4 w-4 shrink-0" />
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="bg-white rounded-3xl p-6 md:p-8 border border-slate-100 shadow-xs min-h-[300px]">
+          {activeTab === 'description' && (
+            <div className="max-w-3xl animate-fadeIn space-y-6">
+              <h3 className="text-xl font-black text-slate-900 tracking-tight">Product Overview</h3>
+              <p className="text-slate-600 text-sm leading-relaxed whitespace-pre-wrap font-medium">{product.description}</p>
+              
+              <div className="pt-6 border-t border-slate-100">
+                <h4 className="text-sm font-bold text-slate-900 uppercase tracking-widest mb-4">The NeoBlue Standard</h4>
+                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {[
+                    "Strict 14-day quarantine & pathogen screening.",
+                    "Custom nutrition programs for vibrant colors.",
+                    "Bespoke oxygenated thermo-insulated packing.",
+                    "Post-purchase veterinary/husbandry assistance."
+                  ].map((item, idx) => (
+                    <li key={idx} className="flex items-start gap-2 text-xs font-semibold text-slate-600">
+                      <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'specifications' && (
+            <div className="animate-fadeIn space-y-6">
+              <h3 className="text-xl font-black text-slate-900 tracking-tight">Care Requirements & Specifications</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                {(() => {
+                  const specs = [
+                    { title: "Common Name", value: product.title, icon: Sparkles, color: "text-blue-600 bg-blue-50" },
+                    { title: "Scientific Name", value: product.scientific || 'N/A', icon: Info, color: "text-indigo-600 bg-indigo-50" },
+                    { title: "Water Type", value: product.waterType, icon: Droplets, color: "text-cyan-600 bg-cyan-50" },
+                    { title: "pH Range", value: `${product.phMin ?? '6.0'} - ${product.phMax ?? '8.0'} pH`, icon: Droplets, color: "text-teal-600 bg-teal-50" },
+                    { title: "Temperature", value: `${product.tempMin ?? '20'}°C - ${product.tempMax ?? '30'}°C`, icon: Thermometer, color: "text-rose-600 bg-rose-50" },
+                    { title: "Temperament", value: product.temperament || 'Peaceful', icon: ShieldAlert, color: "text-amber-600 bg-amber-50" },
+                    { title: "Category", value: product.category, icon: Store, color: "text-purple-600 bg-purple-50" },
+                    ...(product.subcategory ? [{ title: "Subcategory", value: product.subcategory, icon: Store, color: "text-purple-600 bg-purple-50" }] : []),
+                    { title: "Weight Per Piece", value: `${product.weightPerPiece || '250'} gm`, icon: Scale, color: "text-slate-600 bg-slate-100" },
+                  ];
+
+                  return specs.map((spec, i) => (
+                    <div key={i} className="flex items-center gap-3.5 p-4 rounded-2xl border border-slate-100 bg-slate-50 hover:bg-white hover:shadow-xs transition-all duration-300">
+                      <div className={`w-10 h-10 rounded-xl ${spec.color} flex items-center justify-center shrink-0`}>
+                        <spec.icon className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{spec.title}</p>
+                        <p className="text-xs font-black text-slate-800 uppercase mt-0.5">{spec.value}</p>
+                      </div>
+                    </div>
+                  ));
+                })()}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'policies' && (
+            <div className="max-w-3xl animate-fadeIn space-y-6">
+              <h3 className="text-xl font-black text-slate-900 tracking-tight">Shipping Policies & Guarantees</h3>
+              
+              <div className="divide-y divide-slate-100">
+                <div className="py-4 first:pt-0 flex gap-4 items-start">
+                  <Shield className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-900">100% Live Arrival Guarantee</h4>
+                    <p className="text-xs text-slate-500 leading-relaxed font-medium mt-1">
+                      We guarantee that all live specimens will arrive healthy. In the rare event of Dead-on-Arrival (DOA), please send a clear photo and video of the unopened bag within 2 hours of delivery for a full credit/replacement.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="py-4 flex gap-4 items-start">
+                  <Info className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-950">Biological Return Policies</h4>
+                    <p className="text-xs text-slate-500 leading-relaxed font-medium mt-1">
+                      Due to health protocols and biosecurity regulations, we cannot accept physical returns of live species. Please contact support for transition guidelines.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="py-4 last:pb-0 flex gap-4 items-start">
+                  <Truck className="h-5 w-5 text-indigo-600 shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-950">Specialized Insulated Containers</h4>
+                    <p className="text-xs text-slate-500 leading-relaxed font-medium mt-1">
+                      Specimens are packed with pure oxygen in thick double bags, protected in styrofoam boxes with heat/gel packs to counter local weather shifts.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'reviews' && (
+            <div className="animate-fadeIn space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100">
+                <div className="flex items-center gap-4">
+                  <div className="px-4 py-2.5 bg-slate-50 rounded-2xl border border-slate-100 flex flex-col items-center justify-center shrink-0">
+                    <span className="text-2xl font-black text-slate-900">{product.rating.toFixed(1)}</span>
+                    <div className="flex text-amber-400 mt-0.5">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star key={star} className={`h-2.5 w-2.5 ${star <= Math.round(product.rating) ? 'text-amber-400 fill-current' : 'text-slate-200'}`} />
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-950">Certified Buyer Reviews</h4>
+                    <p className="text-xs text-slate-500 font-medium">Based on {reviews.length} purchase(s)</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setShowForm(!showForm)} 
+                  className="h-10 px-5 bg-slate-950 hover:bg-slate-800 text-white font-bold rounded-xl text-xs uppercase tracking-wider transition-all cursor-pointer shadow-xs active:scale-95"
+                >
+                  {showForm ? 'Close' : 'Write a Review'}
+                </button>
+              </div>
+
+              {showForm && (
+                <div className="p-4 bg-slate-50/50 rounded-2xl border border-slate-100">
+                  <ReviewForm productId={productId} onSubmit={() => {
+                    refetchReviews();
+                    refetchProductStats();
+                    setShowForm(false);
+                  }} />
+                </div>
+              )}
+
+              <ReviewList reviews={reviews} />
+            </div>
+          )}
+
+          {activeTab === 'faq' && (
+            <div className="animate-fadeIn space-y-3">
+              <h3 className="text-xl font-black text-slate-900 tracking-tight mb-4">Frequently Asked Questions</h3>
+              {[
+                {
+                  q: 'How should I acclimate this specimen after delivery?',
+                  a: 'Float the bag for 20-30 minutes to equalize temperature, then drip-acclimate gradually to match pH before transferring it to your tank.',
+                },
+                {
+                  q: 'What tank conditions are recommended?',
+                  a: `Ensure you maintain a stable ${product.waterType.toLowerCase()} setup, avoid spikes in ammonia/nitrites, and keep parameters in ideal ranges.`,
+                },
+                {
+                  q: 'What if the fish arrives stressed?',
+                  a: 'Keep the tank lights off for 3-4 hours post-release, minimize noise, and monitor breathing closely. Reach out immediately if stress persists.',
+                },
+              ].map((item, idx) => (
+                <details
+                  key={idx}
+                  className="group rounded-2xl border border-slate-200/70 bg-slate-50/50 px-4 py-3.5 open:bg-white open:border-blue-200 transition-all duration-300"
+                >
+                  <summary className="cursor-pointer list-none flex items-center justify-between gap-4 font-bold text-xs uppercase tracking-wider text-slate-700">
+                    <span>{item.q}</span>
+                    <ChevronRight className="h-4 w-4 text-slate-400 transition-transform group-open:rotate-90" />
+                  </summary>
+                  <p className="pt-3 text-xs leading-relaxed text-slate-500 font-semibold">{item.a}</p>
+                </details>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 4. RECOMMENDED PRODUCTS SIDEBAR (lg:col-span-4) */}
+      <aside className="lg:col-span-4 flex flex-col gap-6">
+        
         {/* COMPATIBILITY CALCULATOR */}
         <div className="bg-slate-900 rounded-3xl p-6 shadow-xl border border-slate-800 text-white space-y-5 relative overflow-hidden">
           <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-blue-500/10 blur-xl pointer-events-none" />
@@ -504,7 +540,7 @@ export default function ProductClientPage({
             </div>
             
             <p className="text-[11px] text-slate-400 leading-relaxed font-semibold">
-              Adjust parameters below to match your home aquarium setup and check safety warnings.
+              Adjust parameters below to match your aquarium setup and check compatibility alerts.
             </p>
 
             {/* pH Slider */}
@@ -604,7 +640,7 @@ export default function ProductClientPage({
                     >
                       <div>
                         <span>{p.title}</span>
-                        <span className="text-[9px] text-slate-500 block">{p.scientific || p.category}</span>
+                        <span className="text-[9px] text-slate-505 block">{p.scientific || p.category}</span>
                       </div>
                       <span className="text-[8px] px-1.5 py-0.5 rounded bg-slate-950 text-slate-400 uppercase font-black tracking-wider">
                         {p.temperament || 'Peaceful'}
@@ -717,7 +753,7 @@ export default function ProductClientPage({
                 <Link
                   href={`/products/${rec._id}`}
                   key={rec._id}
-                  className="group flex gap-3 p-2 rounded-2xl border border-slate-50 hover:border-blue-200 hover:bg-blue-50/5 transition-all duration-300"
+                  className="group flex gap-3 p-2 rounded-2xl border border-slate-55 hover:border-blue-200 hover:bg-blue-50/5 transition-all duration-300"
                 >
                   <div className="relative h-14 w-14 rounded-xl overflow-hidden shrink-0 bg-slate-100 border border-slate-100">
                     <img
@@ -733,7 +769,7 @@ export default function ProductClientPage({
                     <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">
                       {rec.category} • {rec.waterType}
                     </p>
-                    <p className="font-black text-xs text-slate-950 mt-1">{formatPrice(rec.price)}</p>
+                    <p className="font-black text-xs text-slate-955 mt-1">{formatPrice(rec.price)}</p>
                   </div>
                 </Link>
               ))
@@ -743,7 +779,7 @@ export default function ProductClientPage({
           </div>
         </div>
 
-      </div>
+      </aside>
 
     </div>
   );
