@@ -150,12 +150,9 @@ export default function VendorShippingSettingsPage() {
           {/* North India Slabs */}
           <div className="rounded-3xl border border-slate-100 bg-[#F8FAFC] p-6 shadow-sm">
             <div className="flex items-center justify-between gap-3 mb-5 border-b border-slate-200/50 pb-3">
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">🏔️</span>
-                <div>
-                  <h2 className="text-lg font-black text-slate-900">North India Rates</h2>
-                  <p className="text-xs text-slate-500">Configure shipping charges for deliveries within Northern states</p>
-                </div>
+              <div>
+                <h2 className="text-lg font-black text-slate-900">North India Rates</h2>
+                <p className="text-xs text-slate-500">Configure shipping charges for deliveries within Northern states</p>
               </div>
               
               <label className="relative inline-flex items-center cursor-pointer select-none">
@@ -172,7 +169,7 @@ export default function VendorShippingSettingsPage() {
 
             {!deliverNorth ? (
               <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-center">
-                <p className="text-xs font-bold text-slate-500">🏔️ North India deliveries are completely disabled.</p>
+                <p className="text-xs font-bold text-slate-500">North India deliveries are completely disabled.</p>
                 <p className="text-[10px] text-slate-400 mt-1">Enable above if you want to deliver to Northern states.</p>
               </div>
             ) : (
@@ -200,12 +197,9 @@ export default function VendorShippingSettingsPage() {
           {/* South India Slabs */}
           <div className="rounded-3xl border border-slate-100 bg-[#F8FAFC] p-6 shadow-sm">
             <div className="flex items-center justify-between gap-3 mb-5 border-b border-slate-200/50 pb-3">
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">🌴</span>
-                <div>
-                  <h2 className="text-lg font-black text-slate-900">South India Rates</h2>
-                  <p className="text-xs text-slate-500">Configure shipping charges for deliveries within Southern states</p>
-                </div>
+              <div>
+                <h2 className="text-lg font-black text-slate-900">South India Rates</h2>
+                <p className="text-xs text-slate-500">Configure shipping charges for deliveries within Southern states</p>
               </div>
               
               <label className="relative inline-flex items-pointer select-none">
@@ -222,7 +216,7 @@ export default function VendorShippingSettingsPage() {
 
             {!deliverSouth ? (
               <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-center">
-                <p className="text-xs font-bold text-slate-500">🌴 South India deliveries are completely disabled.</p>
+                <p className="text-xs font-bold text-slate-500">South India deliveries are completely disabled.</p>
                 <p className="text-[10px] text-slate-400 mt-1">Enable above if you want to deliver to Southern states.</p>
               </div>
             ) : (
