@@ -16,7 +16,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
       return createErrorResponse('Invalid product ID', 400);
     }
 
-    const product = await Product.findById(id).populate('vendorId', 'name email slug logo');
+    const product = await Product.findById(id).populate('vendorId', 'name email slug logo shippingRatesSouth shippingRatesNorth nonServiceableStates');
 
     if (!product) {
       return createErrorResponse('Product not found', 404);
@@ -65,6 +65,14 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
     const hasPerPieceKey = 'perPiecePrice' in updateData;
     const hasPerPairKey = 'perPairPrice' in updateData;
     const hasShippingChargeKey = 'shippingCharge' in updateData;
+
+    if ('weightPerPiece' in updateData) {
+      const weight = Number(updateData.weightPerPiece);
+      if (isNaN(weight) || weight < 0) {
+        return createErrorResponse('Invalid weightPerPiece', 400);
+      }
+      updateData.weightPerPiece = weight;
+    }
 
     if ('shippingType' in updateData) {
       updateData.shippingType = updateData.shippingType === 'weight' ? 'weight' : 'piece';

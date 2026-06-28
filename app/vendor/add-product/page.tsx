@@ -39,38 +39,7 @@ export default function VendorAddProductPage() {
     tempMin: '20',
     tempMax: '30',
     temperament: 'Peaceful',
-    shippingNorth1Ranges: [
-      { id: uuidv4(), weightRange: 'Up to 0.5 KG', estimatedQuantity: '~ 1 - 2 Pieces', charge: 60 as number | '' },
-      { id: uuidv4(), weightRange: '0.5 - 1 KG', estimatedQuantity: '~ 1 - 2 Pieces', charge: 90 },
-    ],
-    shippingNorth2Ranges: [
-      { id: uuidv4(), weightRange: 'Up to 0.5 KG', estimatedQuantity: '~ 3 - 5 Pieces', charge: 80 as number | '' },
-      { id: uuidv4(), weightRange: '0.5 - 1 KG', estimatedQuantity: '~ 4 - 6 Pieces', charge: 110 },
-    ],
-    shippingNorth3Ranges: [
-      { id: uuidv4(), weightRange: 'Up to 0.5 KG', estimatedQuantity: '~ 6 - 8 Pieces', charge: 120 as number | '' },
-      { id: uuidv4(), weightRange: '0.5 - 1 KG', estimatedQuantity: '~ 8 - 10 Pieces', charge: 150 },
-    ],
-    shippingNorth4Ranges: [
-      { id: uuidv4(), weightRange: 'Up to 0.5 KG', estimatedQuantity: '~ 10+ Pieces', charge: 160 as number | '' },
-      { id: uuidv4(), weightRange: '0.5 - 1 KG', estimatedQuantity: '~ 12+ Pieces', charge: 200 },
-    ],
-    shippingSouth1Ranges: [
-      { id: uuidv4(), weightRange: 'Up to 0.5 KG', estimatedQuantity: '~ 1 - 2 Pieces', charge: 100 as number | '' },
-      { id: uuidv4(), weightRange: '0.5 - 1 KG', estimatedQuantity: '~ 1 - 2 Pieces', charge: 140 },
-    ],
-    shippingSouth2Ranges: [
-      { id: uuidv4(), weightRange: 'Up to 0.5 KG', estimatedQuantity: '~ 3 - 5 Pieces', charge: 130 as number | '' },
-      { id: uuidv4(), weightRange: '0.5 - 1 KG', estimatedQuantity: '~ 4 - 6 Pieces', charge: 170 },
-    ],
-    shippingSouth3Ranges: [
-      { id: uuidv4(), weightRange: 'Up to 0.5 KG', estimatedQuantity: '~ 6 - 8 Pieces', charge: 180 as number | '' },
-      { id: uuidv4(), weightRange: '0.5 - 1 KG', estimatedQuantity: '~ 8 - 10 Pieces', charge: 220 },
-    ],
-    shippingSouth4Ranges: [
-      { id: uuidv4(), weightRange: 'Up to 0.5 KG', estimatedQuantity: '~ 10+ Pieces', charge: 240 as number | '' },
-      { id: uuidv4(), weightRange: '0.5 - 1 KG', estimatedQuantity: '~ 12+ Pieces', charge: 300 },
-    ],
+    weightPerPiece: 250,
   });
 
   const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'neoblue_products';
@@ -118,35 +87,7 @@ export default function VendorAddProductPage() {
     setUploadError('');
   };
 
-  const handleAddShippingRange = (fieldName: string) => {
-    setForm(prev => ({
-      ...prev,
-      [fieldName]: [
-        ...(prev as any)[fieldName],
-        { id: uuidv4(), weightRange: '', estimatedQuantity: '', charge: '' }
-      ]
-    }));
-  };
-
-  const handleRemoveShippingRange = (fieldName: string, id: string) => {
-    setForm(prev => ({
-      ...prev,
-      [fieldName]: (prev as any)[fieldName].filter((r: any) => r.id !== id)
-    }));
-  };
-
-  const handleShippingRangeChange = (fieldName: string, id: string, field: string, value: any) => {
-    setForm(prev => ({
-      ...prev,
-      [fieldName]: (prev as any)[fieldName].map((r: any) => {
-        if (r.id === id) {
-          if (field === 'charge') return { ...r, charge: value === '' ? '' : Number(value) };
-          return { ...r, [field]: value };
-        }
-        return r;
-      })
-    }));
-  };
+  // Legacy range handlers removed
 
   const validateStep = (step: number) => {
     setSubmitError('');
@@ -168,26 +109,12 @@ export default function VendorAddProductPage() {
         return false;
       }
     } else if (step === 4) {
-      // Validate that all shipping charges entered are numbers
-      let valid = true;
-      const regions = ['North', 'South'];
-      const categoriesKeys = ['1', '2', '3', '4'];
-      for (const r of regions) {
-        for (const c of categoriesKeys) {
-          const fieldName = `shipping${r}${c}Ranges`;
-          const ranges = (form as any)[fieldName] || [];
-          for (const range of ranges) {
-            if (range.charge !== '' && (isNaN(Number(range.charge)) || Number(range.charge) < 0)) {
-              setSubmitError(`Invalid shipping charge in ${r} India Tier ${c}.`);
-              valid = false;
-              break;
-            }
-          }
-          if (!valid) break;
-        }
-        if (!valid) break;
+      const weight = Number(form.weightPerPiece);
+      if (isNaN(weight) || weight <= 0) {
+        setSubmitError('Please select a valid shipping weight.');
+        return false;
       }
-      return valid;
+      return true;
     }
     return true;
   };
@@ -240,14 +167,7 @@ export default function VendorAddProductPage() {
         tempMin: form.tempMin ? Number(form.tempMin) : undefined,
         tempMax: form.tempMax ? Number(form.tempMax) : undefined,
         temperament: form.temperament,
-        shippingNorth1Ranges: form.shippingNorth1Ranges,
-        shippingNorth2Ranges: form.shippingNorth2Ranges,
-        shippingNorth3Ranges: form.shippingNorth3Ranges,
-        shippingNorth4Ranges: form.shippingNorth4Ranges,
-        shippingSouth1Ranges: form.shippingSouth1Ranges,
-        shippingSouth2Ranges: form.shippingSouth2Ranges,
-        shippingSouth3Ranges: form.shippingSouth3Ranges,
-        shippingSouth4Ranges: form.shippingSouth4Ranges,
+        weightPerPiece: Number(form.weightPerPiece),
         deliverNorth: form.deliverNorth,
         deliverSouth: form.deliverSouth,
       });
@@ -267,83 +187,6 @@ export default function VendorAddProductPage() {
     { number: 5, name: 'Publish' },
   ];
 
-  const renderShippingTable = (catKey: '1' | '2' | '3' | '4', label: string, subtitle: string) => {
-    const fieldName = `shipping${shippingRegion}${catKey}Ranges`;
-    const ranges = (form as any)[fieldName] || [];
-
-    return (
-      <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-xs space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
-          <div>
-            <h3 className="text-xs font-bold text-slate-700 flex items-center gap-1.5 uppercase tracking-wider">
-              {label}
-            </h3>
-            <p className="text-[11px] text-slate-500 mt-0.5">{subtitle}</p>
-          </div>
-          <button
-            type="button"
-            onClick={() => handleAddShippingRange(fieldName)}
-            className="flex h-7 items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 text-[11px] font-bold text-blue-600 hover:bg-slate-50 transition-colors shadow-2xs shrink-0"
-          >
-            <Plus className="h-3 w-3" /> Add Range
-          </button>
-        </div>
-
-        <div className="hidden md:grid grid-cols-[1.3fr_1.3fr_1fr_36px] gap-3 mb-1 px-1">
-          <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Weight Range</div>
-          <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Est. Quantity</div>
-          <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Shipping Charge</div>
-          <div></div>
-        </div>
-
-        <div className="space-y-2.5">
-          {ranges.map((range: any) => (
-            <div key={range.id} className="grid grid-cols-1 md:grid-cols-[1.3fr_1.3fr_1fr_36px] gap-2 md:gap-3 items-center">
-              <div>
-                <label className="text-[9px] font-bold text-slate-400 mb-0.5 block md:hidden uppercase tracking-wider">Weight Range</label>
-                <WeightRangeSlider
-                  value={range.weightRange}
-                  onChange={(val) => handleShippingRangeChange(fieldName, range.id, 'weightRange', val)}
-                />
-              </div>
-              <div>
-                <label className="text-[9px] font-bold text-slate-400 mb-0.5 block md:hidden uppercase tracking-wider">Est. Quantity</label>
-                <input
-                  type="text"
-                  value={range.estimatedQuantity}
-                  onChange={(e) => handleShippingRangeChange(fieldName, range.id, 'estimatedQuantity', e.target.value)}
-                  placeholder="e.g. ~ 1 - 2 Pieces"
-                  className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs font-medium outline-hidden focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white"
-                />
-              </div>
-              <div className="relative">
-                <label className="text-[9px] font-bold text-slate-400 mb-0.5 block md:hidden uppercase tracking-wider">Shipping Charge</label>
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-medium text-xs">₹</span>
-                <input
-                  type="number"
-                  value={range.charge}
-                  onChange={(e) => handleShippingRangeChange(fieldName, range.id, 'charge', e.target.value)}
-                  placeholder="0"
-                  min="0"
-                  className="w-full h-9 rounded-lg border border-slate-200 pl-6 pr-3 text-xs font-medium outline-hidden focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white"
-                />
-              </div>
-              <div className="flex justify-end md:justify-center">
-                <button
-                  type="button"
-                  onClick={() => handleRemoveShippingRange(fieldName, range.id)}
-                  disabled={ranges.length === 1}
-                  className="flex h-8 w-8 items-center justify-center rounded-lg text-rose-500 hover:bg-rose-50 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  };
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-16 text-slate-800">
@@ -750,119 +593,42 @@ export default function VendorAddProductPage() {
         {/* STEP 4: SHIPPING CONFIG */}
         {currentStep === 4 && (
           <div className="space-y-5 animate-fadeIn">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div>
-                <h2 className="text-lg font-bold text-slate-900">4. Shipping Setup</h2>
-                <p className="text-xs text-slate-500 mt-0.5">Define weight-based shipping charges across regional zones.</p>
-              </div>
-              
-              {/* Region Selector */}
-              <div className="inline-flex rounded-xl bg-slate-100 p-0.5 shadow-2xs border border-slate-200/50">
-                <button
-                  type="button"
-                  onClick={() => setShippingRegion('North')}
-                  className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                    shippingRegion === 'North'
-                      ? 'bg-blue-600 text-white shadow-2xs'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  🏔️ North India
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShippingRegion('South')}
-                  className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                    shippingRegion === 'South'
-                      ? 'bg-orange-600 text-white shadow-2xs'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  🌴 South India
-                </button>
-              </div>
+            <div>
+              <h2 className="text-lg font-bold text-slate-900">4. Shipping Setup</h2>
+              <p className="text-xs text-slate-500 mt-0.5">Specify the shipping weight per piece for this variety.</p>
             </div>
 
-            {/* Delivery Regions Selector */}
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-2xs space-y-4">
-              <div>
-                <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-                  🌍 Delivery Region Coverage
-                </h3>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Select which regions you support for shipping this product. If a region is disabled, buyers from that region will not be able to purchase this product.
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-2xs space-y-4">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Weight Per Piece</label>
+                <p className="text-xs text-slate-400">
+                  Select the average shipping weight of a single piece (including water, package insulation, and container).
                 </p>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <label className={`flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                  form.deliverNorth 
-                    ? 'border-blue-500 bg-blue-50/20' 
-                    : 'border-slate-200 bg-white hover:border-slate-300'
-                }`}>
-                  <input
-                    type="checkbox"
-                    checked={form.deliverNorth}
-                    onChange={(e) => setForm(prev => ({ ...prev, deliverNorth: e.target.checked }))}
-                    className="mt-1 h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  <div>
-                    <span className="block text-sm font-bold text-slate-900">🏔️ Deliver to North India</span>
-                    <span className="block text-xs text-slate-500 mt-0.5">Delhi, UP, Rajasthan, Punjab, Haryana, MP, etc.</span>
-                  </div>
-                </label>
-
-                <label className={`flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                  form.deliverSouth 
-                    ? 'border-orange-500 bg-orange-50/20' 
-                    : 'border-slate-200 bg-white hover:border-slate-300'
-                }`}>
-                  <input
-                    type="checkbox"
-                    checked={form.deliverSouth}
-                    onChange={(e) => setForm(prev => ({ ...prev, deliverSouth: e.target.checked }))}
-                    className="mt-1 h-4 w-4 rounded border-slate-300 text-orange-600 focus:ring-orange-500"
-                  />
-                  <div>
-                    <span className="block text-sm font-bold text-slate-900">🌴 Deliver to South India</span>
-                    <span className="block text-xs text-slate-500 mt-0.5">Tamil Nadu, Kerala, Karnataka, Andhra Pradesh, Telangana, etc.</span>
-                  </div>
-                </label>
-              </div>
-            </div>
-
-            {((shippingRegion === 'North' && !form.deliverNorth) || (shippingRegion === 'South' && !form.deliverSouth)) ? (
-              <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
-                <p className="text-sm font-bold text-slate-500">
-                  {shippingRegion === 'North' ? '🏔️ North India' : '🌴 South India'} delivery is disabled.
-                </p>
-                <p className="text-xs text-slate-400 mt-1">
-                  Enable this region above if you want to configure shipping charges and deliver here.
-                </p>
-              </div>
-            ) : (
-              <div className={`rounded-2xl border-2 p-4 sm:p-5 space-y-4 transition-all duration-300 ${
-                shippingRegion === 'North' 
-                  ? 'border-blue-100 bg-blue-50/10' 
-                  : 'border-orange-100 bg-orange-50/10'
-              }`}>
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-lg">{shippingRegion === 'North' ? '🏔️' : '🌴'}</span>
-                  <div>
-                    <h3 className="text-sm font-bold text-slate-900">
-                      {shippingRegion === 'North' ? 'North India shipping settings' : 'South India shipping settings'}
-                    </h3>
-                    <p className="text-slate-500 text-[11px] font-medium">
-                      Configure weight ranges and charges for deliveries to {shippingRegion === 'North' ? 'North India' : 'South India'} states.
-                    </p>
+                <div className="relative mt-2">
+                  <select 
+                    value={form.weightPerPiece}
+                    onChange={(e) => setForm(prev => ({ ...prev, weightPerPiece: Number(e.target.value) }))}
+                    className="w-full h-11 appearance-none rounded-xl border border-slate-200 bg-white pl-4 pr-10 text-sm font-semibold outline-hidden focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                  >
+                    {[50, 75, 100, 120, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900, 950, 1000].map((w) => (
+                      <option key={w} value={w}>
+                        {w >= 1000 ? `${w / 1000} kg (${w} gm)` : `${w} gm`}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none">
+                    <svg className="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" /></svg>
                   </div>
                 </div>
-
-                {renderShippingTable('1', 'A. 1-2 Pieces', 'Shipping charges when buyer orders 1-2 pieces.')}
-                {renderShippingTable('2', 'B. 3-5 Pieces', 'Shipping charges when buyer orders 3-5 pieces.')}
-                {renderShippingTable('3', 'C. 6-10 Pieces', 'Shipping charges when buyer orders 6-10 pieces.')}
-                {renderShippingTable('4', 'D. 10+ Pieces', 'Shipping charges when buyer orders 10 or more pieces.')}
               </div>
-            )}
+
+              <div className="rounded-xl bg-blue-50/50 border border-blue-100 p-4 flex items-start gap-2.5 mt-4">
+                <Info className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
+                <div className="text-xs text-blue-800 leading-relaxed font-semibold">
+                  <strong>Automatic Shipping Charge:</strong> NeoBlue will dynamically aggregate weights at checkout, map them to your configured regional weight slabs (South/North India), and charge the buyer automatically. Make sure your global shipping rates are set up in your Settings.
+                </div>
+              </div>
+            </div>
           </div>
         )}
 

@@ -1,237 +1,105 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Info, Plus, Trash2, AlertCircle, Pencil, ChevronDown } from 'lucide-react';
-import { v4 as uuidv4 } from 'uuid';
-import Image from 'next/image';
+import { Info, AlertCircle, Save, ShieldAlert } from 'lucide-react';
 
-interface ShippingRange {
-  id: string;
-  weightRange: string;
-  estimatedQuantity: string;
-  charge: number | '';
-}
-
-interface VendorProduct {
-  _id: string;
-  title: string;
-  images: string[];
-  category: string;
-  subcategory?: string;
-  waterType: string;
-  approvalStatus: string;
-  [key: string]: any;
-}
-
-// Category definitions
-const CATEGORIES = [
-  { key: '1', label: 'A. 1-2 Pieces', subtitle: 'Shipping charges when buyer orders 1-2 pieces.' },
-  { key: '2', label: 'B. 3-5 Pieces', subtitle: 'Shipping charges when buyer orders 3-5 pieces.' },
-  { key: '3', label: 'C. 6-10 Pieces', subtitle: 'Shipping charges when buyer orders 6-10 pieces.' },
-  { key: '4', label: 'D. 10+ Pieces', subtitle: 'Shipping charges when buyer orders 10 or more pieces.' },
+const SLABS = [
+  { key: 'slab500g', label: '500 gm' },
+  { key: 'slab1kg', label: '1 kg' },
+  { key: 'slab2kg', label: '2 kg' },
+  { key: 'slab3kg', label: '3 kg' },
+  { key: 'slab5kg', label: '5 kg' },
+  { key: 'slab10kg', label: '10 kg' },
 ];
 
-const REGIONS = [
-  { key: 'North', emoji: '🏔️', label: 'North India Shipping', subtitle: 'Shipping charges for deliveries within North India', borderColor: 'border-blue-100', bgColor: 'bg-blue-50/30', tipBg: 'bg-[#e8f0fe]', tipBorder: 'border-blue-200', tipText: 'text-blue-800', tipIcon: 'text-blue-600', iconBg: 'bg-blue-600', tip: 'North India includes states like Delhi, UP, Rajasthan, Punjab, Haryana, MP, etc.' },
-  { key: 'South', emoji: '🌴', label: 'South India Shipping', subtitle: 'Shipping charges for deliveries within South India', borderColor: 'border-orange-100', bgColor: 'bg-orange-50/30', tipBg: 'bg-[#fff3e0]', tipBorder: 'border-orange-200', tipText: 'text-orange-800', tipIcon: 'text-orange-600', iconBg: 'bg-orange-500', tip: 'South India includes states like Tamil Nadu, Kerala, Karnataka, Andhra Pradesh, Telangana, etc.' },
+const INDIAN_STATES = [
+  'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 'Goa',
+  'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka', 'Kerala',
+  'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram', 'Nagaland',
+  'Odisha', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura',
+  'Uttar Pradesh', 'Uttarakhand', 'West Bengal', 'Andaman and Nicobar Islands',
+  'Chandigarh', 'Dadra and Nagar Haveli and Daman and Diu', 'Delhi',
+  'Jammu and Kashmir', 'Ladakh', 'Lakshadweep', 'Puducherry'
 ];
-
-// Default ranges per category
-function getDefaults(region: string, cat: string): ShippingRange[] {
-  const isSouth = region === 'South';
-  const base = isSouth ? 40 : 0; // South India surcharge
-
-  if (cat === '1') return [
-    { id: uuidv4(), weightRange: 'Up to 0.5 KG', estimatedQuantity: '~ 1 - 2 Pieces', charge: 60 + base },
-    { id: uuidv4(), weightRange: '0.5 - 1 KG', estimatedQuantity: '~ 1 - 2 Pieces', charge: 90 + base },
-  ];
-  if (cat === '2') return [
-    { id: uuidv4(), weightRange: 'Up to 0.5 KG', estimatedQuantity: '~ 3 - 5 Pieces', charge: 80 + base },
-    { id: uuidv4(), weightRange: '0.5 - 1 KG', estimatedQuantity: '~ 4 - 6 Pieces', charge: 110 + base },
-    { id: uuidv4(), weightRange: '1 - 1.5 KG', estimatedQuantity: '~ 5 - 7 Pieces', charge: 140 + base },
-  ];
-  if (cat === '3') return [
-    { id: uuidv4(), weightRange: 'Up to 0.5 KG', estimatedQuantity: '~ 6 - 8 Pieces', charge: 120 + base },
-    { id: uuidv4(), weightRange: '0.5 - 1 KG', estimatedQuantity: '~ 7 - 9 Pieces', charge: 150 + base },
-    { id: uuidv4(), weightRange: '1 - 1.5 KG', estimatedQuantity: '~ 8 - 10 Pieces', charge: 180 + base },
-    { id: uuidv4(), weightRange: '1.5 - 2 KG', estimatedQuantity: '~ 9 - 12 Pieces', charge: 210 + base },
-  ];
-  // cat === '4'
-  return [
-    { id: uuidv4(), weightRange: 'Up to 1 KG', estimatedQuantity: '~ 10 - 12 Pieces', charge: 180 + base },
-    { id: uuidv4(), weightRange: '1 - 2 KG', estimatedQuantity: '~ 12 - 15 Pieces', charge: 220 + base },
-    { id: uuidv4(), weightRange: '2 - 3 KG', estimatedQuantity: '~ 15 - 20 Pieces', charge: 280 + base },
-    { id: uuidv4(), weightRange: 'Above 3 KG', estimatedQuantity: '20+ Pieces', charge: 350 + base },
-  ];
-}
-
-function cloneRanges(ranges: ShippingRange[]): ShippingRange[] {
-  return ranges.map(r => ({ ...r, id: uuidv4() }));
-}
-
-// Helper to build the field name
-function fieldName(region: string, cat: string) {
-  return `shipping${region}${cat}Ranges`;
-}
-
-// Reusable table component
-function ShippingTable({
-  title, subtitle, ranges, onAdd, onRemove, onChange,
-}: {
-  title: string; subtitle: string; ranges: ShippingRange[];
-  onAdd: () => void; onRemove: (id: string) => void;
-  onChange: (id: string, field: keyof ShippingRange, value: string) => void;
-}) {
-  return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4 sm:p-5 shadow-sm">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3">
-        <div>
-          <h3 className="flex items-center gap-2 text-sm font-bold text-slate-900">
-            {title} <Info className="h-3.5 w-3.5 text-slate-400" />
-          </h3>
-          <p className="mt-0.5 text-xs text-slate-500">{subtitle}</p>
-        </div>
-        <button onClick={onAdd} className="flex h-8 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-blue-600 hover:bg-slate-50 transition-colors shadow-sm shrink-0">
-          <Plus className="h-3.5 w-3.5" /> Add Range
-        </button>
-      </div>
-      <div className="hidden md:grid grid-cols-[1.3fr_1.3fr_1fr_36px] gap-3 mb-2 px-1">
-        <div className="text-xs font-bold text-slate-600">Weight Range</div>
-        <div className="text-xs font-bold text-slate-600 flex items-center gap-1">Estimated Quantity <Info className="h-3 w-3 text-slate-400" /></div>
-        <div className="text-xs font-bold text-slate-600">Shipping Charge (₹)</div>
-        <div></div>
-      </div>
-      <div className="space-y-2">
-        {ranges.map((range) => (
-          <div key={range.id} className="grid grid-cols-1 md:grid-cols-[1.3fr_1.3fr_1fr_36px] gap-2 md:gap-3 items-center">
-            <div>
-              <label className="text-[10px] font-semibold text-slate-500 mb-1 block md:hidden">Weight Range</label>
-              <WeightRangeSlider value={range.weightRange} onChange={(val) => onChange(range.id, 'weightRange', val)} />
-            </div>
-            <div>
-              <label className="text-[10px] font-semibold text-slate-500 mb-1 block md:hidden">Estimated Quantity</label>
-              <input type="text" value={range.estimatedQuantity} onChange={(e) => onChange(range.id, 'estimatedQuantity', e.target.value)} placeholder="e.g. ~ 2 - 4 Pieces" className="w-full h-9 rounded-lg border border-slate-200 px-3 text-sm font-medium outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white" />
-            </div>
-            <div className="relative">
-              <label className="text-[10px] font-semibold text-slate-500 mb-1 block md:hidden">Shipping Charge</label>
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-medium text-sm">₹</span>
-              <input type="number" value={range.charge} onChange={(e) => onChange(range.id, 'charge', e.target.value)} placeholder="0" min="0" className="w-full h-9 rounded-lg border border-slate-200 pl-7 pr-3 text-sm font-medium outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white" />
-            </div>
-            <div className="flex justify-end md:justify-center">
-              <button onClick={() => onRemove(range.id)} disabled={ranges.length === 1} className="flex h-8 w-8 items-center justify-center rounded-lg text-rose-500 hover:bg-rose-50 disabled:opacity-30 disabled:hover:bg-transparent transition-colors">
-                <Trash2 className="h-3.5 w-3.5" />
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
 
 export default function VendorShippingSettingsPage() {
-  const [products, setProducts] = useState<VendorProduct[]>([]);
-  const [selectedProductId, setSelectedProductId] = useState<string>('');
-
-  // 8 state arrays: North1-4, South1-4
-  const [ranges, setRanges] = useState<Record<string, ShippingRange[]>>(() => {
-    const init: Record<string, ShippingRange[]> = {};
-    for (const r of REGIONS) {
-      for (const c of CATEGORIES) {
-        init[fieldName(r.key, c.key)] = cloneRanges(getDefaults(r.key, c.key));
-      }
-    }
-    return init;
+  const [ratesSouth, setRatesSouth] = useState<Record<string, number>>({
+    slab500g: 0, slab1kg: 0, slab2kg: 0, slab3kg: 0, slab5kg: 0, slab10kg: 0
   });
-
+  const [ratesNorth, setRatesNorth] = useState<Record<string, number>>({
+    slab500g: 0, slab1kg: 0, slab2kg: 0, slab3kg: 0, slab5kg: 0, slab10kg: 0
+  });
+  const [nonServiceableStates, setNonServiceableStates] = useState<string[]>([]);
+  
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchSettings = async () => {
       try {
-        const res = await fetch('/api/products');
+        const res = await fetch('/api/vendor/settings');
+        if (!res.ok) throw new Error('Failed to fetch settings');
         const data = await res.json();
-        if (data.products) {
-          setProducts(data.products);
-          if (data.products.length > 0) {
-            const first = data.products[0];
-            setSelectedProductId(first._id);
-            loadProductShipping(first);
-          }
-        }
-      } catch {
-        setMessage({ type: 'error', text: 'Failed to load products.' });
+        
+        if (data.shippingRatesSouth) setRatesSouth(data.shippingRatesSouth);
+        if (data.shippingRatesNorth) setRatesNorth(data.shippingRatesNorth);
+        if (data.nonServiceableStates) setNonServiceableStates(data.nonServiceableStates);
+      } catch (err: any) {
+        setMessage({ type: 'error', text: err.message || 'Failed to load shipping configurations.' });
       } finally {
         setIsLoading(false);
       }
     };
-    fetchProducts();
+    fetchSettings();
   }, []);
 
-  const loadProductShipping = (product: VendorProduct) => {
-    const newRanges: Record<string, ShippingRange[]> = {};
-    for (const r of REGIONS) {
-      for (const c of CATEGORIES) {
-        const key = fieldName(r.key, c.key);
-        const productRanges = product[key];
-        newRanges[key] = productRanges?.length
-          ? productRanges.map((x: any) => ({ ...x, id: x.id || uuidv4() }))
-          : cloneRanges(getDefaults(r.key, c.key));
-      }
+  const handleRateChange = (region: 'North' | 'South', slabKey: string, val: string) => {
+    const numericVal = val === '' ? 0 : Math.max(0, Number(val));
+    if (region === 'South') {
+      setRatesSouth(prev => ({ ...prev, [slabKey]: numericVal }));
+    } else {
+      setRatesNorth(prev => ({ ...prev, [slabKey]: numericVal }));
     }
-    setRanges(newRanges);
   };
 
-  const handleSelectProduct = (productId: string) => {
-    setSelectedProductId(productId);
-    setMessage({ type: '', text: '' });
-    const product = products.find(p => p._id === productId);
-    if (product) loadProductShipping(product);
+  const handleStateToggle = (stateName: string) => {
+    setNonServiceableStates(prev => 
+      prev.includes(stateName) 
+        ? prev.filter(s => s !== stateName) 
+        : [...prev, stateName]
+    );
   };
 
-  const selectedProduct = products.find(p => p._id === selectedProductId);
+  const handleSelectAllStates = () => {
+    setNonServiceableStates(INDIAN_STATES);
+  };
 
-  // Generic handlers for any field key
-  const handleAdd = (key: string) => {
-    setRanges(prev => ({ ...prev, [key]: [...prev[key], { id: uuidv4(), weightRange: '', estimatedQuantity: '', charge: '' }] }));
-  };
-  const handleRemove = (key: string, id: string) => {
-    setRanges(prev => ({ ...prev, [key]: prev[key].filter(r => r.id !== id) }));
-  };
-  const handleChange = (key: string, id: string, field: keyof ShippingRange, value: string) => {
-    setRanges(prev => ({
-      ...prev,
-      [key]: prev[key].map(r => {
-        if (r.id === id) {
-          if (field === 'charge') return { ...r, charge: value === '' ? '' : Number(value) };
-          return { ...r, [field]: value };
-        }
-        return r;
-      }),
-    }));
+  const handleClearAllStates = () => {
+    setNonServiceableStates([]);
   };
 
   const handleSave = async () => {
-    if (!selectedProductId) {
-      setMessage({ type: 'error', text: 'Please select a product first.' });
-      return;
-    }
     try {
       setIsSaving(true);
       setMessage({ type: '', text: '' });
-      const res = await fetch(`/api/products/${selectedProductId}`, {
-        method: 'PUT',
+      
+      const res = await fetch('/api/vendor/settings', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(ranges),
+        body: JSON.stringify({
+          shippingRatesSouth: ratesSouth,
+          shippingRatesNorth: ratesNorth,
+          nonServiceableStates,
+        }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to save');
-      setProducts(prev => prev.map(p => p._id === selectedProductId ? { ...p, ...ranges } : p));
-      setMessage({ type: 'success', text: 'Shipping charges saved successfully.' });
+      if (!res.ok) throw new Error(data.error || 'Failed to save settings');
+      
+      setMessage({ type: 'success', text: 'Shipping configuration saved successfully!' });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err: any) {
-      setMessage({ type: 'error', text: err.message });
+      setMessage({ type: 'error', text: err.message || 'Failed to save configurations.' });
     } finally {
       setIsSaving(false);
     }
@@ -239,255 +107,179 @@ export default function VendorShippingSettingsPage() {
 
   if (isLoading) {
     return (
-      <div className="mx-auto max-w-5xl py-20 flex justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600" />
+      <div className="mx-auto max-w-5xl py-20 flex flex-col items-center justify-center min-h-[60vh]">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600 mb-4" />
+        <p className="text-slate-500 font-medium text-sm">Loading settings...</p>
       </div>
     );
   }
 
-  const generateSKU = (product: VendorProduct) => {
-    const cat = product.title.split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 3);
-    return `NBS-${cat}-001`;
-  };
-
   return (
-    <div className="mx-auto max-w-5xl space-y-5 py-6 text-slate-900 bg-white min-h-screen p-4 sm:p-6 lg:p-8">
-
-      <div className="mb-2">
-        <h1 className="text-2xl font-bold tracking-tight">Shipping Charges Setup</h1>
-        <p className="text-sm text-slate-500 mt-1">Set shipping charges for your aquatic products and varieties.</p>
+    <div className="mx-auto max-w-6xl space-y-6 py-6 text-slate-900 bg-white min-h-screen p-4 sm:p-6 lg:p-8">
+      
+      {/* Title Header */}
+      <div className="border-b border-slate-100 pb-4">
+        <h1 className="text-3xl font-black tracking-tight text-slate-900">Shipping Configuration</h1>
+        <p className="text-sm text-slate-500 mt-1.5">
+          Configure regional weight-slab shipping charges and select non-serviceable delivery regions.
+        </p>
       </div>
 
       {message.text && (
-        <div className={`p-4 rounded-xl flex items-center gap-3 ${message.type === 'error' ? 'bg-rose-50 text-rose-600 border border-rose-100' : 'bg-emerald-50 text-emerald-600 border border-emerald-100'}`}>
-          <AlertCircle className="h-5 w-5" />
+        <div className={`p-4 rounded-2xl flex items-center gap-3 border transition-all ${
+          message.type === 'error' 
+            ? 'bg-rose-50 text-rose-700 border-rose-100' 
+            : 'bg-emerald-50 text-emerald-700 border-emerald-100'
+        }`}>
+          <AlertCircle className="h-5 w-5 shrink-0" />
           <span className="text-sm font-bold">{message.text}</span>
         </div>
       )}
 
-      {/* Select Variety */}
-      <div className="rounded-xl border border-slate-200 bg-white p-5 sm:p-6 shadow-sm">
-        <div className="flex flex-col md:flex-row md:items-center gap-6">
-          <div className="flex-1 min-w-0">
-            <label className="text-sm font-medium text-slate-500 mb-2 block">Select Variety</label>
-            <div className="relative">
-              <select value={selectedProductId} onChange={(e) => handleSelectProduct(e.target.value)} className="w-full h-11 appearance-none rounded-lg border border-slate-200 bg-white pl-4 pr-10 text-sm font-medium outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-                {products.map((product) => (
-                  <option key={product._id} value={product._id}>{product.title}</option>
-                ))}
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
-            </div>
-          </div>
-          {selectedProduct && (
-            <div className="flex items-center gap-4 p-3 rounded-xl border border-slate-100 bg-slate-50/50 flex-1 min-w-0">
-              <div className="h-20 w-20 rounded-lg overflow-hidden border border-slate-200 bg-slate-100 shrink-0">
-                {selectedProduct.images?.[0] && (
-                  <Image src={selectedProduct.images[0]} alt={selectedProduct.title} width={80} height={80} className="h-full w-full object-cover" />
-                )}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        {/* Left Side: Slabs Setup */}
+        <div className="lg:col-span-7 space-y-6">
+          
+          {/* North India Slabs */}
+          <div className="rounded-3xl border border-slate-100 bg-[#F8FAFC] p-6 shadow-sm">
+            <div className="flex items-center gap-3 mb-5 border-b border-slate-200/50 pb-3">
+              <span className="text-2xl">🏔️</span>
+              <div>
+                <h2 className="text-lg font-black text-slate-900">North India Rates</h2>
+                <p className="text-xs text-slate-500">Configure shipping charges for deliveries within Northern states</p>
               </div>
-              <div className="min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <h3 className="text-sm font-bold text-slate-900 truncate">{selectedProduct.title}</h3>
-                  <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full shrink-0 ${selectedProduct.approvalStatus === 'approved' ? 'bg-emerald-100 text-emerald-700' : selectedProduct.approvalStatus === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700'}`}>
-                    {selectedProduct.approvalStatus === 'approved' ? 'Active' : selectedProduct.approvalStatus}
-                  </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {SLABS.map((slab) => (
+                <div key={slab.key} className="bg-white p-4 rounded-2xl border border-slate-200/60 shadow-2xs flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">{slab.label}</label>
+                  <div className="relative flex items-center">
+                    <span className="absolute left-3.5 text-slate-400 font-extrabold text-sm">₹</span>
+                    <input 
+                      type="number" 
+                      min="0"
+                      value={ratesNorth[slab.key] || ''}
+                      onChange={(e) => handleRateChange('North', slab.key, e.target.value)}
+                      placeholder="0"
+                      className="w-full h-10 pl-8 pr-4 rounded-xl border border-slate-200 font-semibold text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 bg-slate-50/30"
+                    />
+                  </div>
                 </div>
-                <p className="text-xs text-slate-500">Category: {selectedProduct.waterType} {selectedProduct.category}</p>
-                <p className="text-xs text-slate-500">SKU: {generateSKU(selectedProduct)}</p>
-                <button onClick={() => document.querySelector('select')?.focus()} className="mt-1 text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1">
-                  Change Variety <Pencil className="h-3 w-3" />
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Region sections */}
-      {REGIONS.map((region) => (
-        <div key={region.key} className={`rounded-2xl border-2 ${region.borderColor} ${region.bgColor} p-4 sm:p-6 space-y-4`}>
-          <div className="flex items-center gap-3 mb-1">
-            <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${region.iconBg} text-white text-lg`}>{region.emoji}</div>
-            <div>
-              <h2 className="text-lg font-bold text-slate-900">{region.label}</h2>
-              <p className="text-xs text-slate-500">{region.subtitle}</p>
+              ))}
             </div>
           </div>
 
-          {CATEGORIES.map((cat) => {
-            const key = fieldName(region.key, cat.key);
-            return (
-              <ShippingTable
-                key={key}
-                title={cat.label}
-                subtitle={cat.subtitle}
-                ranges={ranges[key] || []}
-                onAdd={() => handleAdd(key)}
-                onRemove={(id) => handleRemove(key, id)}
-                onChange={(id, field, value) => handleChange(key, id, field, value)}
-              />
-            );
-          })}
+          {/* South India Slabs */}
+          <div className="rounded-3xl border border-slate-100 bg-[#F8FAFC] p-6 shadow-sm">
+            <div className="flex items-center gap-3 mb-5 border-b border-slate-200/50 pb-3">
+              <span className="text-2xl">🌴</span>
+              <div>
+                <h2 className="text-lg font-black text-slate-900">South India Rates</h2>
+                <p className="text-xs text-slate-500">Configure shipping charges for deliveries within Southern states</p>
+              </div>
+            </div>
 
-          <div className={`rounded-lg ${region.tipBg} p-3 ${region.tipBorder} border flex items-start gap-2`}>
-            <Info className={`h-4 w-4 ${region.tipIcon} shrink-0 mt-0.5`} />
-            <p className={`text-sm font-medium ${region.tipText}`}>
-              Tip: {region.tip}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {SLABS.map((slab) => (
+                <div key={slab.key} className="bg-white p-4 rounded-2xl border border-slate-200/60 shadow-2xs flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">{slab.label}</label>
+                  <div className="relative flex items-center">
+                    <span className="absolute left-3.5 text-slate-400 font-extrabold text-sm">₹</span>
+                    <input 
+                      type="number" 
+                      min="0"
+                      value={ratesSouth[slab.key] || ''}
+                      onChange={(e) => handleRateChange('South', slab.key, e.target.value)}
+                      placeholder="0"
+                      className="w-full h-10 pl-8 pr-4 rounded-xl border border-slate-200 font-semibold text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 bg-slate-50/30"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+        </div>
+
+        {/* Right Side: Non-Serviceable States Selection */}
+        <div className="lg:col-span-5 space-y-6">
+          <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
+            <div className="flex items-center gap-3 mb-3 pb-3 border-b border-slate-100">
+              <ShieldAlert className="h-5 w-5 text-rose-500" />
+              <div>
+                <h2 className="text-lg font-black text-slate-900">Non-Serviceable States</h2>
+                <p className="text-xs text-slate-500">Select states where delivery is not available</p>
+              </div>
+            </div>
+
+            <div className="flex justify-between items-center gap-2 mb-4">
+              <button 
+                type="button" 
+                onClick={handleSelectAllStates}
+                className="text-xs font-bold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100/50 py-1.5 px-3 rounded-lg transition-colors"
+              >
+                Restrict All States
+              </button>
+              <button 
+                type="button" 
+                onClick={handleClearAllStates}
+                className="text-xs font-bold text-slate-600 hover:text-slate-700 bg-slate-100 hover:bg-slate-200/50 py-1.5 px-3 rounded-lg transition-colors"
+              >
+                Clear Restrictions (Deliver All)
+              </button>
+            </div>
+
+            <div className="max-h-100 overflow-y-auto border border-slate-100 rounded-2xl p-2 space-y-1 bg-slate-50/50 pr-4">
+              {INDIAN_STATES.map((state) => {
+                const isRestricted = nonServiceableStates.includes(state);
+                return (
+                  <button
+                    key={state}
+                    type="button"
+                    onClick={() => handleStateToggle(state)}
+                    className={`w-full flex items-center justify-between p-3 rounded-xl text-left text-xs font-bold transition-all border ${
+                      isRestricted 
+                        ? 'bg-rose-50 border-rose-200 text-rose-800' 
+                        : 'bg-white border-slate-200/60 text-slate-700 hover:bg-slate-50'
+                    }`}
+                  >
+                    <span>{state}</span>
+                    {isRestricted ? (
+                      <span className="flex items-center gap-0.5 text-[10px] font-black text-rose-600 uppercase">
+                        Not Deliverable
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-0.5 text-[10px] font-bold text-emerald-600 uppercase">
+                        Serviceable
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+            
+            <p className="text-[10px] text-slate-400 font-semibold mt-3.5 leading-relaxed">
+              * Delivery configurations are applied automatically during checkout based on the buyer's shipping address.
             </p>
           </div>
         </div>
-      ))}
 
-      {/* Important Notes */}
-      <div className="rounded-xl bg-[#f4f7fa] p-5 sm:p-6 shadow-sm border border-slate-100">
-        <h3 className="flex items-center gap-2 text-base font-bold text-slate-900 mb-3">
-          <Info className="h-5 w-5 text-blue-500" />
-          Important Notes
-        </h3>
-        <ul className="list-disc pl-9 text-sm text-slate-700 space-y-1.5">
-          <li>Shipping charges will be visible to buyers at checkout based on their delivery region.</li>
-          <li>You can update these charges anytime.</li>
-          <li>Make sure the ranges are correct to avoid calculation issues.</li>
-          <li>Weight includes water, packing, and container.</li>
-        </ul>
       </div>
 
       {/* Save Button */}
-      <div className="flex justify-end pt-2 pb-10">
-        <button onClick={handleSave} disabled={isSaving || !selectedProductId} className="flex h-12 items-center justify-center gap-2 rounded-xl bg-blue-600 px-8 font-bold text-white transition-colors hover:bg-blue-700 disabled:opacity-70 disabled:cursor-not-allowed shadow-md shadow-blue-600/20">
-          {isSaving ? 'Saving...' : '💾 Save Shipping Charges'}
+      <div className="flex justify-end pt-4 pb-12 border-t border-slate-100">
+        <button 
+          onClick={handleSave} 
+          disabled={isSaving} 
+          className="flex h-12 items-center justify-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 px-8 font-black text-sm text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-blue-600/20 active:scale-[0.98]"
+        >
+          <Save className="h-4 w-4" />
+          {isSaving ? 'Saving configs...' : 'Save Shipping Settings'}
         </button>
       </div>
 
-    </div>
-  );
-}
-
-interface WeightRangeSliderProps {
-  value: string;
-  onChange: (value: string) => void;
-}
-
-function WeightRangeSlider({ value, onChange }: WeightRangeSliderProps) {
-  const parseWeightRange = (str: string) => {
-    const clean = (str || '').toLowerCase().trim();
-    if (!clean) return { min: 0, max: 1, hasMax: true };
-
-    if (clean.startsWith('up to')) {
-      const match = clean.match(/up to\s+([\d.]+)/);
-      const val = match ? parseFloat(match[1]) : 1;
-      return { min: 0, max: isNaN(val) ? 1 : val, hasMax: true };
-    }
-
-    if (clean.startsWith('above')) {
-      const match = clean.match(/above\s+([\d.]+)/);
-      const val = match ? parseFloat(match[1]) : 3;
-      return { min: isNaN(val) ? 3 : val, max: 100, hasMax: false };
-    }
-
-    const parts = clean.split('-');
-    if (parts.length === 2) {
-      const minVal = parseFloat(parts[0]);
-      const maxVal = parseFloat(parts[1]);
-      return {
-        min: isNaN(minVal) ? 0 : minVal,
-        max: isNaN(maxVal) ? 100 : maxVal,
-        hasMax: true
-      };
-    }
-
-    const matchNum = clean.match(/([\d.]+)/);
-    const val = matchNum ? parseFloat(matchNum[1]) : 1;
-    return { min: 0, max: isNaN(val) ? 1 : val, hasMax: true };
-  };
-
-  const formatWeightRange = (min: number, max: number, hasMax: boolean): string => {
-    if (min === 0 && hasMax) {
-      return `Up to ${max} KG`;
-    }
-    if (!hasMax) {
-      return `Above ${min} KG`;
-    }
-    return `${min} - ${max} KG`;
-  };
-
-  const { min, max, hasMax } = parseWeightRange(value);
-
-  const handleMinChange = (newMin: number) => {
-    let newMax = max;
-    if (newMin > max) {
-      newMax = newMin;
-    }
-    onChange(formatWeightRange(newMin, newMax, hasMax));
-  };
-
-  const handleMaxChange = (newMax: number) => {
-    let newMin = min;
-    if (newMax < min) {
-      newMin = newMax;
-    }
-    onChange(formatWeightRange(newMin, newMax, hasMax));
-  };
-
-  const handleToggleHasMax = () => {
-    onChange(formatWeightRange(min, max, !hasMax));
-  };
-
-  return (
-    <div className="flex flex-col gap-1.5 p-2 bg-slate-50 rounded-xl border border-slate-200/60 shadow-2xs w-full text-slate-800">
-      <div className="flex items-center justify-between gap-1 text-[11px] font-bold text-slate-700">
-        <span className="truncate bg-blue-50 text-blue-700 px-2 py-0.5 rounded-md border border-blue-100/50">
-          {value || '0 - 1 KG'}
-        </span>
-        <label className="flex items-center gap-1.5 cursor-pointer shrink-0 select-none">
-          <input
-            type="checkbox"
-            checked={!hasMax}
-            onChange={handleToggleHasMax}
-            className="h-3.5 w-3.5 rounded-sm border-slate-300 text-blue-600 focus:ring-blue-500/20 cursor-pointer"
-          />
-          <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">No Max Limit</span>
-        </label>
-      </div>
-
-      <div className="space-y-1.5 pt-0.5">
-        {/* Min weight slider */}
-        <div className="flex flex-col gap-0.5">
-          <div className="flex justify-between items-center text-[9px] text-slate-400 font-bold uppercase tracking-wider">
-            <span>Min Weight</span>
-            <span className="text-slate-600 font-semibold">{min} KG</span>
-          </div>
-          <input
-            type="range"
-            min="0"
-            max="100"
-            step="0.5"
-            value={min}
-            onChange={(e) => handleMinChange(parseFloat(e.target.value))}
-            className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600 focus:outline-none"
-          />
-        </div>
-
-        {/* Max weight slider */}
-        {hasMax && (
-          <div className="flex flex-col gap-0.5">
-            <div className="flex justify-between items-center text-[9px] text-slate-400 font-bold uppercase tracking-wider">
-              <span>Max Weight</span>
-              <span className="text-slate-600 font-semibold">{max} KG</span>
-            </div>
-            <input
-              type="range"
-              min="0.5"
-              max="100"
-              step="0.5"
-              value={max}
-              onChange={(e) => handleMaxChange(parseFloat(e.target.value))}
-              className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600 focus:outline-none"
-            />
-          </div>
-        )}
-      </div>
     </div>
   );
 }

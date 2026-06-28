@@ -9,7 +9,7 @@ import { useAuth } from '@/lib/hooks/useAuth';
 import { apiClient } from '@/lib/api-client';
 import { Trash2, Plus, Minus, MapPin, ShoppingBag, ArrowRight, ShieldCheck, ArrowLeft, CheckSquare, AlertCircle } from 'lucide-react';
 import type { MarketplaceProduct } from '@/lib/types/marketplace';
-import { calculateProductShippingAmount, getShippingModeLabel, getRegionFromState, getTierFromQuantity, calculateRegionalShipping } from '@/lib/utils/shipping';
+import { getRegionFromState, getShippingChargeForWeight } from '@/lib/utils/shipping';
 import { useMode } from '@/lib/hooks/useMode';
 
 const PENDING_CASHFREE_CHECKOUT_KEY = 'pendingCashfreeCheckout';
@@ -43,7 +43,7 @@ function CheckoutPageContent() {
   const [isSavingAddress, setIsSavingAddress] = useState(false);
   const [saveAddress, setSaveAddress] = useState(true);
   const [address, setAddress] = useState({ street: '', city: '', state: '', zipcode: '', phone: '' });
-  const [selectedShipping, setSelectedShipping] = useState<Record<string, string>>({});
+
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -140,36 +140,7 @@ function CheckoutPageContent() {
     };
   }, [items, productDetails]);
 
-  const getProductActiveRanges = (product: any, stateName: string, qty: number) => {
-    if (!product) return [];
-    const region = getRegionFromState(stateName);
-    const tier = getTierFromQuantity(qty);
-    const fieldName = `shipping${region}${tier}Ranges`;
-    const ranges = product[fieldName] || [];
-    return ranges.filter((r: any) => r.charge !== '' && r.charge != null);
-  };
 
-  useEffect(() => {
-    const nextSelected = { ...selectedShipping };
-    let changed = false;
-
-    items.forEach((item) => {
-      const product = productDetails[item.productId];
-      const activeRanges = getProductActiveRanges(product, address.state, item.quantity);
-      if (activeRanges.length > 0) {
-        const current = selectedShipping[item.productId];
-        const isValid = activeRanges.some((r: any) => (r.id || r._id?.toString()) === current);
-        if (!current || !isValid) {
-          nextSelected[item.productId] = activeRanges[0].id || activeRanges[0]._id?.toString();
-          changed = true;
-        }
-      }
-    });
-
-    if (changed) {
-      setSelectedShipping(nextSelected);
-    }
-  }, [items, productDetails, address.state, selectedShipping]);
 
   useEffect(() => {
     const cashfreeOrderId = searchParams.get('cashfree_order_id');
@@ -228,11 +199,39 @@ function CheckoutPageContent() {
   }, [searchParams, router, clearCart, isFinalizing]);
 
   const cartQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
-  const shippingAmount = items.reduce((sum, item) => {
+
+  // Group cart items by vendor for shipping calculation
+  const vendorShippingGroups: Record<string, { totalWeight: number; vendor: any }> = {};
+  let isLocationServiceable = true;
+  let nonServiceableMessage = '';
+
+  items.forEach((item) => {
     const product = productDetails[item.productId];
-    const selectedOptionId = selectedShipping[item.productId];
-    return sum + calculateRegionalShipping(product, address.state, item.quantity, selectedOptionId);
+    if (!product) return;
+    const vendor = (typeof product.vendorId === 'object' && product.vendorId !== null ? product.vendorId : null) as any;
+    const vId = vendor?._id || (typeof product.vendorId === 'string' ? product.vendorId : '');
+    if (!vId) return;
+
+    if (!vendorShippingGroups[vId]) {
+      vendorShippingGroups[vId] = { totalWeight: 0, vendor };
+    }
+    const qty = item.quantity;
+    const weight = product.weightPerPiece || 0;
+    vendorShippingGroups[vId].totalWeight += weight * qty;
+
+    // Check non-serviceable states
+    const nonServiceable = vendor?.nonServiceableStates || [];
+    if (address.state && nonServiceable.some((s: string) => s.toLowerCase().trim() === address.state.toLowerCase().trim())) {
+      isLocationServiceable = false;
+      nonServiceableMessage = `Sorry, this product cannot be delivered to your location.`;
+    }
+  });
+
+  const region = getRegionFromState(address.state);
+  const shippingAmount = Object.values(vendorShippingGroups).reduce((sum, group) => {
+    return sum + getShippingChargeForWeight(group.totalWeight, region, group.vendor);
   }, 0);
+
   const orderTotal = totalAmount + shippingAmount;
 
   const handlePayNow = async () => {
@@ -277,8 +276,7 @@ function CheckoutPageContent() {
 
       const products = items.map((item) => ({
         productId: item.productId,
-        quantity: item.quantity,
-        shippingOptionId: selectedShipping[item.productId]
+        quantity: item.quantity
       }));
 
       const cashfreeOrder = await apiClient.request<{
@@ -333,16 +331,7 @@ function CheckoutPageContent() {
     }
   };
 
-  const isDeliveryBlocked = items.some((item) => {
-    const product = productDetails[item.productId];
-    if (!product) return false;
-    if (!address.state) return false; // Do not block checkout if the state has not been entered yet
-    const region = getRegionFromState(address.state);
-    return (
-      (region === 'North' && product.deliverNorth === false) ||
-      (region === 'South' && product.deliverSouth === false)
-    );
-  });
+  const isDeliveryBlocked = !isLocationServiceable;
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 pb-24 md:pb-32 font-sans">
@@ -409,66 +398,29 @@ function CheckoutPageContent() {
                           {productDetails[item.productId] ? (
                             (() => {
                               const product = productDetails[item.productId];
-                              const region = getRegionFromState(address.state);
-                              const cannotDeliver = address.state ? (
-                                (region === 'North' && product.deliverNorth === false) ||
-                                (region === 'South' && product.deliverSouth === false)
-                              ) : false;
-                              if (cannotDeliver) {
+                              const vendor = (typeof product.vendorId === 'object' && product.vendorId !== null ? product.vendorId : null) as any;
+                              const nonServiceable = vendor?.nonServiceableStates || [];
+                              const isRestricted = address.state && nonServiceable.some((s: string) => s.toLowerCase().trim() === address.state.toLowerCase().trim());
+
+                              if (isRestricted) {
                                 return (
                                   <div className="mt-3 bg-rose-50 rounded-2xl border border-rose-100 p-3.5 flex items-start gap-2.5 text-rose-700">
                                     <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
                                     <div>
                                       <p className="text-xs font-bold">Delivery Unavailable</p>
                                       <p className="text-[11px] font-medium mt-0.5">
-                                        The vendor does not deliver this product to {region} India ({address.state || 'your location'}).
+                                        Sorry, this product cannot be delivered to your location.
                                       </p>
                                     </div>
                                   </div>
                                 );
                               }
 
-                              const activeRanges = getProductActiveRanges(product, address.state, item.quantity);
-                              if (activeRanges.length > 0) {
-                                return (
-                                  <div className={`mt-3 ${bgThemeLight50} rounded-2xl border ${borderThemeLight50} p-3.5 space-y-2.5`}>
-                                    <div className="flex items-center justify-between">
-                                      <span className={`text-[10px] font-bold uppercase tracking-wider ${textThemeDark}`}>
-                                        📦 Select Shipping Option ({getRegionFromState(address.state)} India)
-                                      </span>
-                                      <span className={`text-[10px] font-bold ${isPlants ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'} px-2 py-0.5 rounded-full`}>
-                                        Tier {getTierFromQuantity(item.quantity)}
-                                      </span>
-                                    </div>
-                                    <div className="grid gap-2">
-                                      {activeRanges.map((opt: any) => {
-                                        const optId = opt.id || opt._id?.toString();
-                                        return (
-                                          <label key={optId} className={`flex items-center gap-3 p-2 rounded-xl bg-white border border-slate-100 hover:${isPlants ? 'border-green-200 hover:bg-green-50/20' : 'border-blue-200 hover:bg-blue-50/20'} cursor-pointer transition-all shadow-2xs`}>
-                                            <input
-                                              type="radio"
-                                              name={`shipping-${item.productId}`}
-                                              checked={selectedShipping[item.productId] === optId}
-                                              onChange={() => setSelectedShipping(prev => ({ ...prev, [item.productId]: optId }))}
-                                              className={`h-4 w-4 ${textTheme} ${isPlants ? 'focus:ring-green-500' : 'focus:ring-blue-500'} border-slate-300`}
-                                            />
-                                            <div className="flex-1 flex items-center justify-between text-xs font-semibold text-slate-700">
-                                              <span>{opt.weightRange} <span className="text-slate-400 font-medium ml-1">({opt.estimatedQuantity})</span></span>
-                                              <span className="text-slate-900 font-bold">₹{Number(opt.charge).toFixed(2)}</span>
-                                            </div>
-                                          </label>
-                                        );
-                                      })}
-                                    </div>
-                                  </div>
-                                );
-                              } else {
-                                return (
-                                  <p className="text-xs text-gray-400 mt-1 font-medium">
-                                    Shipping: ₹{Number(productDetails[item.productId].shippingCharge || 0).toFixed(2)} per {productDetails[item.productId].shippingLotSize || 1} {getShippingModeLabel(productDetails[item.productId].shippingType)}
-                                  </p>
-                                );
-                              }
+                              return (
+                                <p className="text-xs text-gray-400 mt-1 font-medium">
+                                  Weight: {product.weightPerPiece || 0} gm per piece
+                                </p>
+                              );
                             })()
                           ) : (
                             <p className="text-xs text-gray-400 mt-1 font-medium">Loading shipping...</p>
@@ -617,7 +569,7 @@ function CheckoutPageContent() {
                       <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
                       <div>
                         <p className="font-bold">Delivery Blocked</p>
-                        <p className="font-semibold mt-0.5">Some items in your cart cannot be delivered to your location.</p>
+                        <p className="font-semibold mt-0.5">{nonServiceableMessage || "Sorry, this product cannot be delivered to your location."}</p>
                       </div>
                     </div>
                   )}

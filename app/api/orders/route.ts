@@ -2,7 +2,7 @@ import { connectDB } from '@/lib/db';
 import Order from '@/lib/models/Order';
 import Product from '@/lib/models/Product';
 import { createErrorResponse, createSuccessResponse, getTokenFromRequest, verifyToken } from '@/lib/utils/auth';
-import { calculateProductShippingAmount, calculateRegionalShipping } from '@/lib/utils/shipping';
+import { getShippingChargeForWeight, getRegionFromState } from '@/lib/utils/shipping';
 import { NextRequest } from 'next/server';
 
 const appId = process.env.CASHFREE_APP_ID;
@@ -217,15 +217,65 @@ export async function POST(request: NextRequest) {
     });
 
     const stateName = address?.state || '';
-    const shippingAmount = dbProducts.reduce((sum, product) => {
-      const orderItem = products.find((item: any) => item.productId === product._id.toString());
-      return sum + calculateRegionalShipping(
-        product,
-        stateName,
-        Number(orderItem?.quantity || 0),
-        orderItem?.shippingOptionId
-      );
-    }, 0);
+    const region = getRegionFromState(stateName);
+
+    // Group products by vendor to calculate shipping per vendor group
+    const vendorGroups: Record<
+      string,
+      {
+        products: Array<{ productId: string; quantity: number; price: number }>;
+        subtotal: number;
+        shippingAmount: number;
+        totalWeight: number;
+        isServiceable: boolean;
+      }
+    > = {};
+
+    for (const op of dbProducts) {
+      const orderItem = products.find((item: any) => item.productId === op._id.toString());
+      const qty = Number(orderItem?.quantity || 0);
+      const vId = op.vendorId._id ? op.vendorId._id.toString() : op.vendorId.toString();
+
+      if (!vendorGroups[vId]) {
+        vendorGroups[vId] = {
+          products: [],
+          subtotal: 0,
+          shippingAmount: 0,
+          totalWeight: 0,
+          isServiceable: true,
+        };
+      }
+
+      vendorGroups[vId].products.push({
+        productId: op._id.toString(),
+        quantity: qty,
+        price: op.price,
+      });
+
+      vendorGroups[vId].subtotal += op.price * qty;
+      vendorGroups[vId].totalWeight += (op.weightPerPiece || 0) * qty;
+
+      // Check if state is non-serviceable
+      const vendorUser = op.vendorId; // populated
+      const nonServiceable = vendorUser?.nonServiceableStates || [];
+      if (stateName && nonServiceable.some((s: string) => s.toLowerCase().trim() === stateName.toLowerCase().trim())) {
+        vendorGroups[vId].isServiceable = false;
+      }
+    }
+
+    // Now compute shipping per vendor group and get total shippingAmount
+    let shippingAmount = 0;
+    for (const [vId, group] of Object.entries(vendorGroups)) {
+      if (!group.isServiceable) {
+        return createErrorResponse(`Sorry, this product cannot be delivered to your location.`, 400);
+      }
+
+      const firstProd = dbProducts.find((dp) => (dp.vendorId._id ? dp.vendorId._id.toString() : dp.vendorId.toString()) === vId);
+      const vendorUser = firstProd?.vendorId;
+      const charge = getShippingChargeForWeight(group.totalWeight, region, vendorUser);
+      group.shippingAmount = charge;
+      shippingAmount += charge;
+    }
 
     // Verify cashfree payment if Cashfree is used
     if (cashfreeOrderId) {
@@ -262,48 +312,6 @@ export async function POST(request: NextRequest) {
       if (process.env.NODE_ENV === 'production') {
         return createErrorResponse('Payment verification identifier (cashfreeOrderId) is required', 400);
       }
-    }
-
-    // Group products by vendor
-    const vendorGroups: Record<
-      string,
-      {
-        products: Array<{ productId: string; quantity: number; price: number }>;
-        subtotal: number;
-        shippingAmount: number;
-      }
-    > = {};
-
-    for (const op of orderProducts) {
-      const vId = op.vendorId;
-      if (!vendorGroups[vId]) {
-        vendorGroups[vId] = {
-          products: [],
-          subtotal: 0,
-          shippingAmount: 0,
-        };
-      }
-      vendorGroups[vId].products.push({
-        productId: op.productId,
-        quantity: op.quantity,
-        price: op.price,
-      });
-      vendorGroups[vId].subtotal += op.price * op.quantity;
-    }
-
-    // Calculate shipping amount per vendor group
-    for (const vId of Object.keys(vendorGroups)) {
-      const vendorDbProducts = dbProducts.filter((dp) => dp.vendorId.toString() === vId);
-      const groupShipping = vendorDbProducts.reduce((sum, product) => {
-        const orderItem = products.find((item: any) => item.productId === product._id.toString());
-        return sum + calculateRegionalShipping(
-          product,
-          stateName,
-          Number(orderItem?.quantity || 0),
-          orderItem?.shippingOptionId
-        );
-      }, 0);
-      vendorGroups[vId].shippingAmount = groupShipping;
     }
 
     // Create order for each vendor

@@ -17,6 +17,23 @@ export interface IUser extends Document {
     isDefault: boolean;
   }>;
   isApproved: boolean; // for vendors
+  shippingRatesSouth?: {
+    slab500g: number;
+    slab1kg: number;
+    slab2kg: number;
+    slab3kg: number;
+    slab5kg: number;
+    slab10kg: number;
+  };
+  shippingRatesNorth?: {
+    slab500g: number;
+    slab1kg: number;
+    slab2kg: number;
+    slab3kg: number;
+    slab5kg: number;
+    slab10kg: number;
+  };
+  nonServiceableStates?: string[];
   createdAt: Date;
   updatedat: Date;
   comparePassword(password: string): Promise<boolean>;
@@ -72,6 +89,26 @@ const userSchema = new Schema<IUser>(
     isApproved: {
       type: Boolean,
       default: false,
+    },
+    shippingRatesSouth: {
+      slab500g: { type: Number, default: 0 },
+      slab1kg: { type: Number, default: 0 },
+      slab2kg: { type: Number, default: 0 },
+      slab3kg: { type: Number, default: 0 },
+      slab5kg: { type: Number, default: 0 },
+      slab10kg: { type: Number, default: 0 },
+    },
+    shippingRatesNorth: {
+      slab500g: { type: Number, default: 0 },
+      slab1kg: { type: Number, default: 0 },
+      slab2kg: { type: Number, default: 0 },
+      slab3kg: { type: Number, default: 0 },
+      slab5kg: { type: Number, default: 0 },
+      slab10kg: { type: Number, default: 0 },
+    },
+    nonServiceableStates: {
+      type: [String],
+      default: [],
     },
   },
   { timestamps: true }

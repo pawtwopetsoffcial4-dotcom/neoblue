@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
       return createErrorResponse('Only vendors can create products', 403);
     }
 
-    const { title, description, price, images, category, subcategory, waterType, tag, scientific, originalPrice, discountPercentage, perPiecePrice, perPairPrice, shippingType, shippingCharge, shippingLotSize, shippingPieceRanges, shippingWeightRanges, shippingNorth1Ranges, shippingNorth2Ranges, shippingNorth3Ranges, shippingNorth4Ranges, shippingSouth1Ranges, shippingSouth2Ranges, shippingSouth3Ranges, shippingSouth4Ranges, deliverNorth, deliverSouth, phMin, phMax, tempMin, tempMax, temperament } = await request.json();
+    const { title, description, price, images, category, subcategory, waterType, tag, scientific, originalPrice, discountPercentage, perPiecePrice, perPairPrice, weightPerPiece, shippingType, shippingCharge, shippingLotSize, shippingPieceRanges, shippingWeightRanges, shippingNorth1Ranges, shippingNorth2Ranges, shippingNorth3Ranges, shippingNorth4Ranges, shippingSouth1Ranges, shippingSouth2Ranges, shippingSouth3Ranges, shippingSouth4Ranges, deliverNorth, deliverSouth, phMin, phMax, tempMin, tempMax, temperament } = await request.json();
 
     // Validate required fields
     if (!title || !description || price == null || !images || !category || !waterType) {
@@ -92,6 +92,7 @@ export async function POST(request: NextRequest) {
     const safeDiscount = discountPercentage == null ? undefined : Number(discountPercentage);
     const safePerPiecePrice = perPiecePrice == null ? undefined : Number(perPiecePrice);
     const safePerPairPrice = perPairPrice == null ? undefined : Number(perPairPrice);
+    const safeWeightPerPiece = weightPerPiece == null ? 0 : Number(weightPerPiece);
     const safeShippingType = shippingType === 'weight' ? 'weight' : 'piece';
     const safeShippingCharge = normalizeShippingRate(shippingCharge);
     const safeShippingLotSize = Number.isFinite(Number(shippingLotSize)) && Number(shippingLotSize) > 0 ? Math.floor(Number(shippingLotSize)) : 1;
@@ -103,6 +104,9 @@ export async function POST(request: NextRequest) {
     }
     if (safePerPairPrice != null && (isNaN(safePerPairPrice) || safePerPairPrice < 0)) {
       return createErrorResponse('Invalid perPairPrice', 400);
+    }
+    if (isNaN(safeWeightPerPiece) || safeWeightPerPiece < 0) {
+      return createErrorResponse('Invalid weightPerPiece', 400);
     }
     if (shippingCharge != null && (isNaN(safeShippingCharge) || safeShippingCharge < 0)) {
       return createErrorResponse('Invalid shippingCharge', 400);
@@ -128,6 +132,7 @@ export async function POST(request: NextRequest) {
       discountPercentage: safeDiscount,
       perPiecePrice: hasPerPiece ? safePerPiecePrice : null,
       perPairPrice: hasPerPair ? safePerPairPrice : null,
+      weightPerPiece: safeWeightPerPiece,
       shippingType: safeShippingType,
       shippingCharge: safeShippingCharge,
       shippingLotSize: safeShippingLotSize,

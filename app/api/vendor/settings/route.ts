@@ -31,8 +31,9 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json({ 
-      shippingPieceRanges: user.shippingPieceRanges || [],
-      shippingWeightRanges: user.shippingWeightRanges || []
+      shippingRatesSouth: user.shippingRatesSouth || { slab500g: 0, slab1kg: 0, slab2kg: 0, slab3kg: 0, slab5kg: 0, slab10kg: 0 },
+      shippingRatesNorth: user.shippingRatesNorth || { slab500g: 0, slab1kg: 0, slab2kg: 0, slab3kg: 0, slab5kg: 0, slab10kg: 0 },
+      nonServiceableStates: user.nonServiceableStates || []
     });
   } catch (error: any) {
     return NextResponse.json(
@@ -49,11 +50,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { shippingPieceRanges, shippingWeightRanges } = await request.json();
-
-    if (!Array.isArray(shippingPieceRanges) || !Array.isArray(shippingWeightRanges)) {
-      return NextResponse.json({ error: 'Invalid payload format' }, { status: 400 });
-    }
+    const { shippingRatesSouth, shippingRatesNorth, nonServiceableStates } = await request.json();
 
     await connectDB();
     const user = await User.findById(userId);
@@ -62,11 +59,18 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    user.shippingPieceRanges = shippingPieceRanges;
-    user.shippingWeightRanges = shippingWeightRanges;
+    if (shippingRatesSouth) user.shippingRatesSouth = shippingRatesSouth;
+    if (shippingRatesNorth) user.shippingRatesNorth = shippingRatesNorth;
+    if (nonServiceableStates) user.nonServiceableStates = nonServiceableStates;
+    
     await user.save();
 
-    return NextResponse.json({ success: true, shippingPieceRanges: user.shippingPieceRanges, shippingWeightRanges: user.shippingWeightRanges });
+    return NextResponse.json({ 
+      success: true, 
+      shippingRatesSouth: user.shippingRatesSouth, 
+      shippingRatesNorth: user.shippingRatesNorth,
+      nonServiceableStates: user.nonServiceableStates 
+    });
   } catch (error: any) {
     return NextResponse.json(
       { error: error.message || 'Something went wrong' },

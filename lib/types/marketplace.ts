@@ -7,13 +7,23 @@ export type MarketplaceProduct = {
   category: string;
   subcategory?: string;
   waterType: 'Freshwater' | 'Saltwater' | 'Brackish';
-  vendorId: string | { _id: string; name: string; email: string; slug?: string; logo?: string };
+  vendorId: string | { 
+    _id: string; 
+    name: string; 
+    email: string; 
+    slug?: string; 
+    logo?: string;
+    shippingRatesSouth?: any;
+    shippingRatesNorth?: any;
+    nonServiceableStates?: string[];
+  };
   tag: string;
   rating: number;
   reviewsCount?: number;
   inStock: boolean;
   approvalStatus?: 'pending' | 'approved' | 'rejected';
   scientific?: string;
+  weightPerPiece?: number;
   originalPrice?: number;
   discountPercentage?: number;
   perPiecePrice?: number;
