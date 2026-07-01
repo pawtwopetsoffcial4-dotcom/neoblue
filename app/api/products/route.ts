@@ -25,6 +25,26 @@ export async function GET(request: NextRequest) {
     if (waterType) query.waterType = waterType;
     if (vendorId) query.vendorId = vendorId;
 
+    // Check authorization to handle role-based product filtering
+    const token = getTokenFromRequest(request);
+    let userPayload: any = null;
+    if (token) {
+      try {
+        userPayload = verifyToken(token);
+      } catch (err) {
+        // Ignore invalid tokens for reading the public products API
+      }
+    }
+
+    if (userPayload?.role === 'admin') {
+      // Admin sees all products
+    } else if (userPayload?.role === 'vendor' && vendorId && vendorId === userPayload.userId) {
+      // Vendor sees their own products (including pending/rejected)
+    } else {
+      // General public/customers and other vendors only see approved products
+      query.approvalStatus = 'approved';
+    }
+
     const products = await Product.find(query)
       .limit(limit)
       .skip((page - 1) * limit)
