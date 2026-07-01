@@ -6,6 +6,7 @@ import { ArrowRight, PackageSearch, PlusCircle, X } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
 import { FISH_NAMES, PRODUCT_CATEGORIES } from '@/lib/catalog';
 import type { MarketplaceProduct } from '@/lib/types/marketplace';
+import { useAuth } from '@/lib/hooks/useAuth';
 
 type EditProductForm = {
   title: string;
@@ -35,13 +36,15 @@ export default function VendorProductsPage() {
   const [editForm, setEditForm] = useState<EditProductForm | null>(null);
   const [isSavingEdit, setIsSavingEdit] = useState(false);
   const [editError, setEditError] = useState('');
+  const { user } = useAuth();
   const categories = useMemo(() => {
     return Array.from(new Set(products.map((product) => product.category).filter(Boolean)));
   }, [products]);
 
   const loadProducts = async () => {
+    if (!user?.id) return;
     try {
-      const response = (await apiClient.getProducts()) as { products: MarketplaceProduct[] };
+      const response = (await apiClient.getProducts({ vendorId: user.id })) as { products: MarketplaceProduct[] };
       setProducts(response.products ?? []);
     } catch {
       setProducts([]);
@@ -50,7 +53,7 @@ export default function VendorProductsPage() {
 
   useEffect(() => {
     loadProducts();
-  }, []);
+  }, [user?.id]);
 
   const handleDelete = async (id: string) => {
     try {

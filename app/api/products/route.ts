@@ -15,6 +15,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const category = searchParams.get('category');
     const waterType = searchParams.get('waterType');
+    const vendorId = searchParams.get('vendorId');
     const limit = parseInt(searchParams.get('limit') || '500'); // Increased limit to fetch all typical products
     const page = parseInt(searchParams.get('page') || '1');
 
@@ -22,6 +23,7 @@ export async function GET(request: NextRequest) {
 
     if (category) query.category = category;
     if (waterType) query.waterType = waterType;
+    if (vendorId) query.vendorId = vendorId;
 
     const products = await Product.find(query)
       .limit(limit)

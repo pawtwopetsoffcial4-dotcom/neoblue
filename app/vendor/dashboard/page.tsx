@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ArrowRight, Fish, PackageCheck, PlusCircle, ShoppingBag, Sparkles } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
 import type { MarketplaceProduct } from '@/lib/types/marketplace';
+import { useAuth } from '@/lib/hooks/useAuth';
 
 type VendorOrder = {
   _id: string;
@@ -16,12 +17,14 @@ type VendorOrder = {
 export default function VendorDashboardPage() {
   const [products, setProducts] = useState<MarketplaceProduct[]>([]);
   const [orders, setOrders] = useState<VendorOrder[]>([]);
+  const { user } = useAuth();
 
   useEffect(() => {
+    if (!user?.id) return;
     const load = async () => {
       try {
         const [productsRes, ordersRes] = await Promise.all([
-          apiClient.getProducts(),
+          apiClient.getProducts({ vendorId: user.id }),
           apiClient.getOrders(),
         ]);
         setProducts((productsRes as { products: MarketplaceProduct[] }).products ?? []);
@@ -33,7 +36,7 @@ export default function VendorDashboardPage() {
     };
 
     load();
-  }, []);
+  }, [user?.id]);
 
   const revenue = orders.reduce((sum, order) => sum + order.totalAmount, 0);
 
