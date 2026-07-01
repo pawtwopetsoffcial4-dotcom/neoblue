@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
-import { PRODUCT_CATEGORIES } from '@/lib/catalog';
+import { PRODUCT_CATEGORIES, PRODUCT_CATALOG } from '@/lib/catalog';
 import StoreConfig from '@/lib/models/StoreConfig';
 
 // Single, clean GET/PUT implementation for /api/config
@@ -18,6 +18,7 @@ export async function GET() {
     return NextResponse.json({
       ...rest,
       categories: Array.isArray(payload.categories) && payload.categories.length ? payload.categories : PRODUCT_CATEGORIES,
+      subcategories: payload.subcategories && Object.keys(payload.subcategories).length ? payload.subcategories : PRODUCT_CATALOG,
     });
   } catch (error) {
     console.error('Config GET error:', error);

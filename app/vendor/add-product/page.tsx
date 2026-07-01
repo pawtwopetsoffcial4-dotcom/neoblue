@@ -18,6 +18,9 @@ export default function VendorAddProductPage() {
   const [uploadError, setUploadError] = useState<string>('');
   const [submitError, setSubmitError] = useState<string>('');
   const [categories, setCategories] = useState<string[]>(PRODUCT_CATEGORIES as unknown as string[]);
+  const [dbSubcategories, setDbSubcategories] = useState<Record<string, string[]>>({});
+  const [customCategoryMode, setCustomCategoryMode] = useState(false);
+  const [customVarietyMode, setCustomVarietyMode] = useState(false);
   
   const [form, setForm] = useState({
     title: '',
@@ -44,8 +47,14 @@ export default function VendorAddProductPage() {
 
   const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'neoblue_products';
 
+  const getVarietiesForCategory = (cat: string) => {
+    const configSubs = dbSubcategories[cat] || [];
+    const staticSubs = getSubcategoriesForCategory(cat);
+    return Array.from(new Set([...configSubs, ...staticSubs]));
+  };
+
   const handleCategoryChange = (cat: string) => {
-    const varieties = getSubcategoriesForCategory(cat);
+    const varieties = getVarietiesForCategory(cat);
     setForm((prev) => ({
       ...prev,
       category: cat,
@@ -53,23 +62,64 @@ export default function VendorAddProductPage() {
     }));
   };
 
+  const registerCustomCategoryAndVariety = async (category: string, variety: string) => {
+    try {
+      const config = await apiClient.request<{ categories?: string[]; subcategories?: Record<string, string[]> }>('/config');
+      let updated = false;
+
+      // Handle Category
+      const currentCats = Array.isArray(config.categories) ? config.categories : [];
+      let nextCats = [...currentCats];
+      if (category && !currentCats.includes(category)) {
+        nextCats.push(category);
+        updated = true;
+      }
+
+      // Handle Variety
+      const currentSubs = config.subcategories && typeof config.subcategories === 'object' ? config.subcategories : {};
+      let nextSubs = { ...currentSubs };
+      if (category && variety) {
+        const categorySubs = Array.isArray(currentSubs[category]) ? currentSubs[category] : [];
+        if (!categorySubs.includes(variety)) {
+          nextSubs[category] = [...categorySubs, variety];
+          updated = true;
+        }
+      }
+
+      if (updated) {
+        await apiClient.request('/config', {
+          method: 'PUT',
+          body: JSON.stringify({
+            categories: nextCats,
+            subcategories: nextSubs,
+          }),
+        });
+      }
+    } catch (err) {
+      console.error('Failed to register custom category/variety globally:', err);
+    }
+  };
+
   // Fetch dynamic categories from store config and merge with static catalog
   useEffect(() => {
     const loadCategories = async () => {
       try {
-        const data = await apiClient.request<{ categories?: string[] }>('/config');
+        const data = await apiClient.request<{ categories?: string[]; subcategories?: Record<string, string[]> }>('/config');
         const configCats = Array.isArray(data.categories) ? data.categories : [];
         const staticCats = PRODUCT_CATEGORIES as unknown as string[];
         // Merge both lists, deduplicate, preserve order
         const merged = Array.from(new Set([...configCats, ...staticCats]));
         setCategories(merged);
+        setDbSubcategories(data.subcategories && typeof data.subcategories === 'object' ? data.subcategories : {});
 
         const defaultCat = merged.find(c => c === 'Guppies') || merged[0] || 'Guppies';
-        const varieties = getSubcategoriesForCategory(defaultCat);
+        const configSubs = data.subcategories?.[defaultCat] || [];
+        const staticSubs = getSubcategoriesForCategory(defaultCat);
+        const mergedSubs = Array.from(new Set([...configSubs, ...staticSubs]));
         setForm(prev => ({
           ...prev,
           category: defaultCat,
-          title: varieties.length > 0 ? varieties[0] : ''
+          title: mergedSubs.length > 0 ? mergedSubs[0] : ''
         }));
       } catch {
         // Fallback to static categories
@@ -169,6 +219,9 @@ export default function VendorAddProductPage() {
     try {
       setIsSaving(true);
       const price = Number(form.price);
+
+      // Register custom category/variety globally if added
+      await registerCustomCategoryAndVariety(form.category, form.title);
 
       await apiClient.createProduct({
         title: form.title,
@@ -302,35 +355,83 @@ export default function VendorAddProductPage() {
             
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 pt-2">
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Category</label>
-                <select
-                  className="h-11 px-4 rounded-xl border border-slate-200 bg-white text-sm font-medium outline-hidden focus:ring-2 focus:ring-blue-500"
-                  value={form.category}
-                  onChange={(e) => handleCategoryChange(e.target.value)}
-                >
-                  {categories.map((category) => (
-                    <option key={category} value={category}>
-                      {category}
-                    </option>
-                  ))}
-                </select>
+                <div className="flex justify-between items-center">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Category</label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const next = !customCategoryMode;
+                      setCustomCategoryMode(next);
+                      setForm(prev => ({ ...prev, category: next ? '' : (categories[0] || 'Guppies') }));
+                    }}
+                    className="text-[10px] font-bold text-blue-600 hover:underline cursor-pointer"
+                  >
+                    {customCategoryMode ? "Or select category" : "Or enter custom"}
+                  </button>
+                </div>
+                {customCategoryMode ? (
+                  <input
+                    type="text"
+                    className="h-11 px-4 rounded-xl border border-slate-200 outline-hidden focus:ring-2 focus:ring-blue-500 text-sm font-medium bg-white text-slate-900"
+                    placeholder="Enter custom category name..."
+                    value={form.category}
+                    onChange={(e) => setForm((prev) => ({ ...prev, category: e.target.value }))}
+                    required
+                  />
+                ) : (
+                  <select
+                    className="h-11 px-4 rounded-xl border border-slate-200 bg-white text-sm font-medium outline-hidden focus:ring-2 focus:ring-blue-500 text-slate-900"
+                    value={form.category}
+                    onChange={(e) => handleCategoryChange(e.target.value)}
+                  >
+                    {categories.map((category) => (
+                      <option key={category} value={category}>
+                        {category}
+                      </option>
+                    ))}
+                  </select>
+                )}
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Variety Title</label>
-                <select
-                  className="h-11 px-4 rounded-xl border border-slate-200 bg-white text-sm font-medium outline-hidden focus:ring-2 focus:ring-blue-500"
-                  value={form.title}
-                  onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))}
-                  required
-                >
-                  <option value="" disabled>Select variety</option>
-                  {getSubcategoriesForCategory(form.category).map((variety) => (
-                    <option key={variety} value={variety}>
-                      {variety}
-                    </option>
-                  ))}
-                </select>
+                <div className="flex justify-between items-center">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Variety Title</label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const next = !customVarietyMode;
+                      setCustomVarietyMode(next);
+                      setForm(prev => ({ ...prev, title: next ? '' : (getVarietiesForCategory(form.category)[0] || '') }));
+                    }}
+                    className="text-[10px] font-bold text-blue-600 hover:underline cursor-pointer"
+                  >
+                    {customVarietyMode ? "Or select variety" : "Or enter custom"}
+                  </button>
+                </div>
+                {customVarietyMode ? (
+                  <input
+                    type="text"
+                    className="h-11 px-4 rounded-xl border border-slate-200 outline-hidden focus:ring-2 focus:ring-blue-500 text-sm font-medium bg-white text-slate-900"
+                    placeholder="Enter custom variety name..."
+                    value={form.title}
+                    onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))}
+                    required
+                  />
+                ) : (
+                  <select
+                    className="h-11 px-4 rounded-xl border border-slate-200 bg-white text-sm font-medium outline-hidden focus:ring-2 focus:ring-blue-500 text-slate-900"
+                    value={form.title}
+                    onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))}
+                    required
+                  >
+                    <option value="" disabled>Select variety</option>
+                    {getVarietiesForCategory(form.category).map((variety) => (
+                      <option key={variety} value={variety}>
+                        {variety}
+                      </option>
+                    ))}
+                  </select>
+                )}
               </div>
 
               <div className="flex flex-col gap-1.5">

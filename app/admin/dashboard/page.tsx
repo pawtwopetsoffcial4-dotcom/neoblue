@@ -7,7 +7,7 @@ import { Plus, Loader2, Trash2, BookOpen, FolderTree, Tags, MessageSquare, Star,
 
 type AdminOrder = { _id: string; totalAmount: number; status: string };
 type AdminUser = { _id: string; role: 'user' | 'vendor' | 'admin' };
-type AdminConfig = { categories?: string[] };
+type AdminConfig = { categories?: string[]; subcategories?: Record<string, string[]> };
 type DashboardProduct = {
   _id: string;
   title: string;
@@ -25,6 +25,11 @@ export default function AdminDashboardPage() {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [categoryInput, setCategoryInput] = useState('');
+  const [subcategories, setSubcategories] = useState<Record<string, string[]>>({});
+  const [selectedCategoryForVarieties, setSelectedCategoryForVarieties] = useState<string>('');
+  const [varietyInput, setVarietyInput] = useState('');
+  const [varietiesSaving, setVarietiesSaving] = useState(false);
+  const [varietiesMessage, setVarietiesMessage] = useState<string | null>(null);
   const [configLoading, setConfigLoading] = useState(true);
   const [configSaving, setConfigSaving] = useState(false);
   const [configMessage, setConfigMessage] = useState<string | null>(null);
@@ -59,9 +64,15 @@ export default function AdminDashboardPage() {
       try {
         setConfigLoading(true);
         const data = (await apiClient.request<AdminConfig>('/config')) as AdminConfig;
-        setCategories(Array.isArray(data.categories) ? data.categories : []);
+        const loadedCats = Array.isArray(data.categories) ? data.categories : [];
+        setCategories(loadedCats);
+        setSubcategories(data.subcategories && typeof data.subcategories === 'object' ? data.subcategories : {});
+        if (loadedCats.length > 0) {
+          setSelectedCategoryForVarieties(loadedCats[0]);
+        }
       } catch (err) {
         setCategories([]);
+        setSubcategories({});
       } finally {
         setConfigLoading(false);
       }
@@ -157,6 +168,52 @@ export default function AdminDashboardPage() {
       setConfigMessage(error?.message || 'Unable to save categories.');
     } finally {
       setConfigSaving(false);
+    }
+  };
+
+  const addVariety = () => {
+    const nextVariety = normalizeCategory(varietyInput);
+    if (!nextVariety || !selectedCategoryForVarieties) return;
+
+    setSubcategories((current) => {
+      const currentList = Array.isArray(current[selectedCategoryForVarieties]) ? current[selectedCategoryForVarieties] : [];
+      return {
+        ...current,
+        [selectedCategoryForVarieties]: Array.from(new Set([...currentList, nextVariety])),
+      };
+    });
+    setVarietyInput('');
+    setVarietiesMessage(null);
+  };
+
+  const removeVariety = (variety: string) => {
+    if (!selectedCategoryForVarieties) return;
+    setSubcategories((current) => {
+      const currentList = Array.isArray(current[selectedCategoryForVarieties]) ? current[selectedCategoryForVarieties] : [];
+      return {
+        ...current,
+        [selectedCategoryForVarieties]: currentList.filter((v) => v !== variety),
+      };
+    });
+    setVarietiesMessage(null);
+  };
+
+  const saveVarieties = async () => {
+    try {
+      setVarietiesSaving(true);
+      setVarietiesMessage(null);
+
+      const data = (await apiClient.request<AdminConfig>('/config', {
+        method: 'PUT',
+        body: JSON.stringify({ subcategories }),
+      })) as AdminConfig;
+
+      setSubcategories(data.subcategories && typeof data.subcategories === 'object' ? data.subcategories : subcategories);
+      setVarietiesMessage('Varieties saved.');
+    } catch (error: any) {
+      setVarietiesMessage(error?.message || 'Unable to save varieties.');
+    } finally {
+      setVarietiesSaving(false);
     }
   };
 
@@ -282,79 +339,178 @@ export default function AdminDashboardPage() {
           </div>
         </section>
 
-        {/* Category Management Card */}
-        <section className="lg:col-span-5 rounded-3xl bg-white border border-blue-100/80 p-6 shadow-sm space-y-5 flex flex-col h-full">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue-600 mb-1">Catalog</p>
-            <h2 className="text-2xl font-black tracking-tight text-slate-900">Categories</h2>
-            <p className="text-sm text-slate-500 mt-0.5">Control product categories available in the store.</p>
-          </div>
-
-          <div className="flex flex-col gap-3">
-            <input
-              value={categoryInput}
-              onChange={(event) => setCategoryInput(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter') {
-                  event.preventDefault();
-                  addCategory();
-                }
-              }}
-              placeholder="Enter category name..."
-              className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500 text-sm transition-shadow focus:shadow-md bg-white text-slate-900"
-            />
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={addCategory}
-                className="h-10 flex-1 rounded-xl bg-blue-600 text-white font-semibold inline-flex items-center justify-center gap-2 hover:bg-blue-700 hover:shadow-md transition-all active:scale-[0.98]"
-              >
-                <Plus className="h-4 w-4" /> Add
-              </button>
-              <button
-                type="button"
-                onClick={saveCategories}
-                disabled={configSaving}
-                className="h-10 px-5 rounded-xl border border-blue-200 text-blue-700 font-semibold inline-flex items-center justify-center gap-2 hover:bg-blue-50 transition-colors disabled:opacity-60 bg-white"
-              >
-                {configSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                Save
-              </button>
+        {/* Left Column: Categories and Varieties stacked */}
+        <div className="lg:col-span-5 space-y-6">
+          {/* Category Management Card */}
+          <section className="rounded-3xl bg-white border border-blue-100/80 p-6 shadow-sm space-y-5 flex flex-col">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue-600 mb-1">Catalog</p>
+              <h2 className="text-2xl font-black tracking-tight text-slate-900">Categories</h2>
+              <p className="text-sm text-slate-500 mt-0.5">Control product categories available in the store.</p>
             </div>
-          </div>
 
-          {configMessage ? (
-            <p className="text-xs font-medium text-emerald-600 bg-emerald-50 px-3 py-2 rounded-xl border border-emerald-100">{configMessage}</p>
-          ) : null}
+            <div className="flex flex-col gap-3">
+              <input
+                value={categoryInput}
+                onChange={(event) => setCategoryInput(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    event.preventDefault();
+                    addCategory();
+                  }
+                }}
+                placeholder="Enter category name..."
+                className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500 text-sm transition-shadow focus:shadow-md bg-white text-slate-900"
+              />
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={addCategory}
+                  className="h-10 flex-1 rounded-xl bg-blue-600 text-white font-semibold inline-flex items-center justify-center gap-2 hover:bg-blue-700 hover:shadow-md transition-all active:scale-[0.98]"
+                >
+                  <Plus className="h-4 w-4" /> Add
+                </button>
+                <button
+                  type="button"
+                  onClick={saveCategories}
+                  disabled={configSaving}
+                  className="h-10 px-5 rounded-xl border border-blue-200 text-blue-700 font-semibold inline-flex items-center justify-center gap-2 hover:bg-blue-50 transition-colors disabled:opacity-60 bg-white"
+                >
+                  {configSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                  Save
+                </button>
+              </div>
+            </div>
 
-          <div className="flex-1 overflow-y-auto max-h-64 pr-1">
-            {configLoading ? (
-              <div className="text-sm text-slate-500 py-4">Loading categories...</div>
-            ) : (
-              <div className="flex flex-wrap gap-2">
-                {uniqueCategories.map((category) => (
-                  <span
-                    key={category}
-                    className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50/50 px-3.5 py-1.5 text-xs font-bold text-blue-800 hover:bg-blue-100/60 transition-colors"
-                  >
-                    {category}
-                    <button
-                      type="button"
-                      onClick={() => removeCategory(category)}
-                      className="text-blue-400 hover:text-rose-600 transition-colors"
-                      aria-label={`Remove ${category}`}
+            {configMessage ? (
+              <p className="text-xs font-medium text-emerald-600 bg-emerald-50 px-3 py-2 rounded-xl border border-emerald-100">{configMessage}</p>
+            ) : null}
+
+            <div className="flex-1 overflow-y-auto max-h-64 pr-1">
+              {configLoading ? (
+                <div className="text-sm text-slate-500 py-4">Loading categories...</div>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {uniqueCategories.map((category) => (
+                    <span
+                      key={category}
+                      className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50/50 px-3.5 py-1.5 text-xs font-bold text-blue-800 hover:bg-blue-100/60 transition-colors"
                     >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
-                  </span>
-                ))}
-                {uniqueCategories.length === 0 ? (
-                  <p className="text-sm text-slate-400 py-4">No custom categories yet.</p>
+                      {category}
+                      <button
+                        type="button"
+                        onClick={() => removeCategory(category)}
+                        className="text-blue-400 hover:text-rose-600 transition-colors"
+                        aria-label={`Remove ${category}`}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </span>
+                  ))}
+                  {uniqueCategories.length === 0 ? (
+                    <p className="text-sm text-slate-400 py-4">No custom categories yet.</p>
+                  ) : null}
+                </div>
+              )}
+            </div>
+          </section>
+
+          {/* Varieties Management Card */}
+          <section className="rounded-3xl bg-white border border-blue-100/80 p-6 shadow-sm space-y-5 flex flex-col">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue-600 mb-1">Catalog</p>
+              <h2 className="text-2xl font-black tracking-tight text-slate-900">Varieties</h2>
+              <p className="text-sm text-slate-500 mt-0.5">Control species variety names for each category.</p>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-slate-450 uppercase tracking-widest text-slate-400">Select Category</label>
+                <select
+                  value={selectedCategoryForVarieties}
+                  onChange={(e) => {
+                    setSelectedCategoryForVarieties(e.target.value);
+                    setVarietiesMessage(null);
+                  }}
+                  className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white text-slate-900"
+                >
+                  <option value="" disabled>Choose a category...</option>
+                  {uniqueCategories.map((cat) => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex flex-col gap-1.5 mt-1">
+                <label className="text-xs font-bold text-slate-450 uppercase tracking-widest text-slate-400">Add Variety Name</label>
+                <input
+                  value={varietyInput}
+                  onChange={(e) => setVarietyInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      addVariety();
+                    }
+                  }}
+                  placeholder="Enter variety/species name..."
+                  className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white text-slate-900"
+                />
+              </div>
+
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={addVariety}
+                  className="h-10 flex-1 rounded-xl bg-blue-600 text-white font-semibold inline-flex items-center justify-center gap-2 hover:bg-blue-700 hover:shadow-md transition-all active:scale-[0.98]"
+                >
+                  <Plus className="h-4 w-4" /> Add
+                </button>
+                <button
+                  type="button"
+                  onClick={saveVarieties}
+                  disabled={varietiesSaving}
+                  className="h-10 px-5 rounded-xl border border-blue-200 text-blue-700 font-semibold inline-flex items-center justify-center gap-2 hover:bg-blue-50 transition-colors disabled:opacity-60 bg-white"
+                >
+                  {varietiesSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                  Save
+                </button>
+              </div>
+            </div>
+
+            {varietiesMessage ? (
+              <p className={`text-xs font-medium px-3 py-2 rounded-xl border ${
+                varietiesMessage.includes('saved') 
+                  ? 'text-emerald-600 bg-emerald-50 border-emerald-100' 
+                  : 'text-rose-600 bg-rose-50 border-rose-100'
+              }`}>{varietiesMessage}</p>
+            ) : null}
+
+            <div className="flex-1 overflow-y-auto max-h-64 pr-1">
+              <div className="flex flex-wrap gap-2">
+                {selectedCategoryForVarieties && Array.isArray(subcategories[selectedCategoryForVarieties]) &&
+                  subcategories[selectedCategoryForVarieties].map((variety) => (
+                    <span
+                      key={variety}
+                      className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50/50 px-3.5 py-1.5 text-xs font-bold text-blue-800 hover:bg-blue-100/60 transition-colors"
+                    >
+                      {variety}
+                      <button
+                        type="button"
+                        onClick={() => removeVariety(variety)}
+                        className="text-blue-400 hover:text-rose-600 transition-colors"
+                        aria-label={`Remove ${variety}`}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </span>
+                  ))}
+                {(!selectedCategoryForVarieties || !Array.isArray(subcategories[selectedCategoryForVarieties]) || subcategories[selectedCategoryForVarieties].length === 0) ? (
+                  <p className="text-sm text-slate-400 py-4">No varieties defined yet for this category.</p>
                 ) : null}
               </div>
-            )}
-          </div>
-        </section>
+            </div>
+          </section>
+        </div>
 
         {/* Featured Fishes Curation Card */}
         <section className="lg:col-span-7 rounded-3xl bg-white border border-blue-100/80 p-6 shadow-sm space-y-5 flex flex-col h-full">

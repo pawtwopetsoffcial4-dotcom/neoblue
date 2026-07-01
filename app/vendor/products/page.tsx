@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { ArrowRight, PackageSearch, PlusCircle, X } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
-import { FISH_NAMES, PRODUCT_CATEGORIES } from '@/lib/catalog';
+import { FISH_NAMES, PRODUCT_CATEGORIES, getSubcategoriesForCategory } from '@/lib/catalog';
 import type { MarketplaceProduct } from '@/lib/types/marketplace';
 import { useAuth } from '@/lib/hooks/useAuth';
 
@@ -37,7 +37,55 @@ export default function VendorProductsPage() {
   const [isSavingEdit, setIsSavingEdit] = useState(false);
   const [editError, setEditError] = useState('');
   const [dropdownCategories, setDropdownCategories] = useState<string[]>(PRODUCT_CATEGORIES as unknown as string[]);
+  const [dbSubcategories, setDbSubcategories] = useState<Record<string, string[]>>({});
+  const [customCategoryMode, setCustomCategoryMode] = useState(false);
+  const [customVarietyMode, setCustomVarietyMode] = useState(false);
   const { user } = useAuth();
+
+  const getVarietiesForCategory = (cat: string) => {
+    const configSubs = dbSubcategories[cat] || [];
+    const staticSubs = getSubcategoriesForCategory(cat);
+    return Array.from(new Set([...configSubs, ...staticSubs]));
+  };
+
+  const registerCustomCategoryAndVariety = async (category: string, variety: string) => {
+    try {
+      const config = await apiClient.request<{ categories?: string[]; subcategories?: Record<string, string[]> }>('/config');
+      let updated = false;
+
+      // Handle Category
+      const currentCats = Array.isArray(config.categories) ? config.categories : [];
+      let nextCats = [...currentCats];
+      if (category && !currentCats.includes(category)) {
+        nextCats.push(category);
+        updated = true;
+      }
+
+      // Handle Variety
+      const currentSubs = config.subcategories && typeof config.subcategories === 'object' ? config.subcategories : {};
+      let nextSubs = { ...currentSubs };
+      if (category && variety) {
+        const categorySubs = Array.isArray(currentSubs[category]) ? currentSubs[category] : [];
+        if (!categorySubs.includes(variety)) {
+          nextSubs[category] = [...categorySubs, variety];
+          updated = true;
+        }
+      }
+
+      if (updated) {
+        await apiClient.request('/config', {
+          method: 'PUT',
+          body: JSON.stringify({
+            categories: nextCats,
+            subcategories: nextSubs,
+          }),
+        });
+      }
+    } catch (err) {
+      console.error('Failed to register custom category/variety globally:', err);
+    }
+  };
+
   const categories = useMemo(() => {
     return Array.from(new Set(products.map((product) => product.category).filter(Boolean)));
   }, [products]);
@@ -59,11 +107,12 @@ export default function VendorProductsPage() {
   useEffect(() => {
     const loadCategories = async () => {
       try {
-        const data = await apiClient.request<{ categories?: string[] }>('/config');
+        const data = await apiClient.request<{ categories?: string[]; subcategories?: Record<string, string[]> }>('/config');
         const configCats = Array.isArray(data.categories) ? data.categories : [];
         const staticCats = PRODUCT_CATEGORIES as unknown as string[];
         const merged = Array.from(new Set([...configCats, ...staticCats]));
         setDropdownCategories(merged);
+        setDbSubcategories(data.subcategories && typeof data.subcategories === 'object' ? data.subcategories : {});
       } catch {
         // Keep fallback static categories
       }
@@ -135,6 +184,7 @@ export default function VendorProductsPage() {
     try {
       setIsSavingEdit(true);
       setEditError('');
+      await registerCustomCategoryAndVariety(editForm.category, editForm.title);
       await apiClient.updateProduct(editingProduct._id, {
         title: editForm.title,
         description: editForm.description,
@@ -361,15 +411,46 @@ export default function VendorProductsPage() {
                   value={editForm.discountPercentage}
                   onChange={(event) => setEditForm((current) => current ? { ...current, discountPercentage: event.target.value } : current)}
                 />
-                <select
-                  className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
-                  value={editForm.category}
-                  onChange={(event) => setEditForm((current) => current ? { ...current, category: event.target.value } : current)}
-                >
-                  {dropdownCategories.map((category) => (
-                    <option key={category} value={category}>{category}</option>
-                  ))}
-                </select>
+                <div className="flex flex-col gap-1 md:col-span-1">
+                  <div className="flex justify-between items-center px-1">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Category</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const next = !customCategoryMode;
+                        setCustomCategoryMode(next);
+                        if (next) {
+                          setEditForm(current => current ? { ...current, category: '' } : null);
+                        } else {
+                          setEditForm(current => current ? { ...current, category: dropdownCategories[0] || 'Guppies' } : null);
+                        }
+                      }}
+                      className="text-[10px] font-bold text-blue-600 hover:underline cursor-pointer"
+                    >
+                      {customCategoryMode ? "Or select category" : "Or enter custom"}
+                    </button>
+                  </div>
+                  {customCategoryMode ? (
+                    <input
+                      type="text"
+                      className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium bg-white text-slate-900"
+                      placeholder="Enter custom category name..."
+                      value={editForm.category}
+                      onChange={(event) => setEditForm((current) => current ? { ...current, category: event.target.value } : current)}
+                      required
+                    />
+                  ) : (
+                    <select
+                      className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500 bg-white text-slate-900"
+                      value={editForm.category}
+                      onChange={(event) => setEditForm((current) => current ? { ...current, category: event.target.value } : current)}
+                    >
+                      {dropdownCategories.map((category) => (
+                        <option key={category} value={category}>{category}</option>
+                      ))}
+                    </select>
+                  )}
+                </div>
                 <select
                   className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
                   value={editForm.waterType}

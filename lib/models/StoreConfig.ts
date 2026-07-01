@@ -8,6 +8,7 @@ export interface IStoreConfig {
   offerButtonText: string;
   offerButtonLink: string;
   categories: string[];
+  subcategories?: Record<string, string[]>;
   stat1Value: string;
   stat1Label: string;
   stat2Value: string;
@@ -24,6 +25,7 @@ const StoreConfigSchema = new mongoose.Schema<IStoreConfig>(
     offerButtonText: { type: String, default: 'Shop The Offer' },
     offerButtonLink: { type: String, default: '/products' },
     categories: { type: [String], default: PRODUCT_CATEGORIES },
+    subcategories: { type: mongoose.Schema.Types.Mixed, default: {} },
     stat1Value: { type: String, default: '500+' },
     stat1Label: { type: String, default: 'Species Curated' },
     stat2Value: { type: String, default: '24h' },
