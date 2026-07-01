@@ -36,6 +36,7 @@ export default function VendorProductsPage() {
   const [editForm, setEditForm] = useState<EditProductForm | null>(null);
   const [isSavingEdit, setIsSavingEdit] = useState(false);
   const [editError, setEditError] = useState('');
+  const [dropdownCategories, setDropdownCategories] = useState<string[]>(PRODUCT_CATEGORIES as unknown as string[]);
   const { user } = useAuth();
   const categories = useMemo(() => {
     return Array.from(new Set(products.map((product) => product.category).filter(Boolean)));
@@ -54,6 +55,21 @@ export default function VendorProductsPage() {
   useEffect(() => {
     loadProducts();
   }, [user?.id]);
+
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const data = await apiClient.request<{ categories?: string[] }>('/config');
+        const configCats = Array.isArray(data.categories) ? data.categories : [];
+        const staticCats = PRODUCT_CATEGORIES as unknown as string[];
+        const merged = Array.from(new Set([...configCats, ...staticCats]));
+        setDropdownCategories(merged);
+      } catch {
+        // Keep fallback static categories
+      }
+    };
+    loadCategories();
+  }, []);
 
   const handleDelete = async (id: string) => {
     try {
@@ -350,7 +366,7 @@ export default function VendorProductsPage() {
                   value={editForm.category}
                   onChange={(event) => setEditForm((current) => current ? { ...current, category: event.target.value } : current)}
                 >
-                  {PRODUCT_CATEGORIES.map((category) => (
+                  {dropdownCategories.map((category) => (
                     <option key={category} value={category}>{category}</option>
                   ))}
                 </select>

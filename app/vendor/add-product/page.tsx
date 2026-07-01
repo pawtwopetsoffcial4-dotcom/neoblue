@@ -53,14 +53,37 @@ export default function VendorAddProductPage() {
     }));
   };
 
+  // Fetch dynamic categories from store config and merge with static catalog
   useEffect(() => {
-    const defaultCat = (PRODUCT_CATEGORIES as unknown as string[]).find((c: string) => c === 'Guppies') || PRODUCT_CATEGORIES[0];
-    const varieties = getSubcategoriesForCategory(defaultCat);
-    setForm(prev => ({
-      ...prev,
-      category: defaultCat,
-      title: varieties.length > 0 ? varieties[0] : ''
-    }));
+    const loadCategories = async () => {
+      try {
+        const data = await apiClient.request<{ categories?: string[] }>('/config');
+        const configCats = Array.isArray(data.categories) ? data.categories : [];
+        const staticCats = PRODUCT_CATEGORIES as unknown as string[];
+        // Merge both lists, deduplicate, preserve order
+        const merged = Array.from(new Set([...configCats, ...staticCats]));
+        setCategories(merged);
+
+        const defaultCat = merged.find(c => c === 'Guppies') || merged[0] || 'Guppies';
+        const varieties = getSubcategoriesForCategory(defaultCat);
+        setForm(prev => ({
+          ...prev,
+          category: defaultCat,
+          title: varieties.length > 0 ? varieties[0] : ''
+        }));
+      } catch {
+        // Fallback to static categories
+        const defaultCat = (PRODUCT_CATEGORIES as unknown as string[]).find(c => c === 'Guppies') || PRODUCT_CATEGORIES[0];
+        const varieties = getSubcategoriesForCategory(defaultCat);
+        setForm(prev => ({
+          ...prev,
+          category: defaultCat,
+          title: varieties.length > 0 ? varieties[0] : ''
+        }));
+      }
+    };
+
+    loadCategories();
   }, []);
 
   useEffect(() => {
