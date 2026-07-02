@@ -110,6 +110,17 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
 
       updateData.perPiecePrice = hasPerPiece ? nextPerPiece : null;
       updateData.perPairPrice = hasPerPair ? nextPerPair : null;
+    } else if ('price' in updateData) {
+      const nextPrice = Number(updateData.price);
+      if (!isNaN(nextPrice) && nextPrice >= 0) {
+        if (product.perPairPrice != null) {
+          updateData.perPairPrice = nextPrice;
+          updateData.perPiecePrice = null;
+        } else {
+          updateData.perPiecePrice = nextPrice;
+          updateData.perPairPrice = null;
+        }
+      }
     }
 
     const updatedProduct = await Product.findByIdAndUpdate(id, updateData, {

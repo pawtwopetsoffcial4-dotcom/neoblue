@@ -657,7 +657,12 @@ export default function ProductClientPage({
                     <div className="flex-1 min-w-0 flex flex-col justify-center">
                       <h4 className="text-xs font-bold text-slate-800 truncate group-hover:text-blue-600 transition-colors">{rec.title}</h4>
                       <p className="text-[11px] text-slate-400 mt-0.5">{rec.category} · {rec.waterType}</p>
-                      <p className="text-xs font-bold text-slate-900 mt-1">{formatPrice(rec.price)}</p>
+                      <div className="flex items-baseline gap-0.5 mt-1">
+                        <span className="text-xs font-bold text-slate-900">{formatPrice(rec.price)}</span>
+                        <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">
+                          /{rec.perPairPrice != null && typeof rec.perPairPrice === 'number' ? 'Pair' : 'Piece'}
+                        </span>
+                      </div>
                     </div>
                   </Link>
                 ))}

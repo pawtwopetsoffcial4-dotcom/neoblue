@@ -26,6 +26,8 @@ type HeroCardProduct = {
   isTrending?: boolean;
   isNewArrival?: boolean;
   category: string;
+  perPairPrice?: number;
+  perPiecePrice?: number;
 };
 
 const DEFAULT_IMAGE = 'https://images.stockcake.com/public/1/9/4/194f4315-a8d9-422b-b237-18b1e224b7a1_large/colorful-tropical-fish-stockcake.jpg';
@@ -125,7 +127,12 @@ function MobileCard({ product, mode, index = 0 }: { product: any; mode: 'fishes'
       <div className="p-3">
         <h3 className={`text-sm font-semibold truncate mb-1 ${mode === 'fishes' ? 'text-blue-950' : 'text-green-950'}`}>{product.title}</h3>
         <div className="flex items-center justify-between gap-2">
-          <p className={`text-sm font-black ${mode === 'fishes' ? 'text-blue-600' : 'text-green-700'}`}>₹{product.price}</p>
+          <div className="flex items-baseline gap-0.5 min-w-0">
+            <span className={`text-sm font-black truncate ${mode === 'fishes' ? 'text-blue-600' : 'text-green-700'}`}>₹{product.price}</span>
+            <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider shrink-0">
+              /{product.perPairPrice != null && typeof product.perPairPrice === 'number' ? 'Pair' : 'Piece'}
+            </span>
+          </div>
           <div className="flex items-center gap-2">
             <ReviewStars rating={rating} count={reviewsCount} compact />
           </div>
@@ -209,6 +216,8 @@ export default function NeoBlueMobileOptimized() {
         isTrending: product.isTrending,
         isNewArrival: product.isNewArrival,
         category: product.category,
+        perPairPrice: product.perPairPrice,
+        perPiecePrice: product.perPiecePrice,
       })),
     [modeFilteredProducts]
   );

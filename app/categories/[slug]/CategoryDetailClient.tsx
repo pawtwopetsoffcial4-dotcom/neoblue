@@ -17,6 +17,8 @@ interface ProductItem {
   reviewsCount?: number;
   price: number;
   images?: string[];
+  perPairPrice?: number;
+  perPiecePrice?: number;
 }
 
 interface CategoryDetailClientProps {
@@ -168,7 +170,12 @@ export default function CategoryDetailClient({
                     <ReviewStars rating={product.rating} count={product.reviewsCount} compact size={12} />
                   </div>
                   <div className="mt-4 flex items-center justify-between">
-                    <span className="text-xl font-black text-slate-900">₹{product.price.toFixed(2)}</span>
+                    <div className="flex items-baseline gap-0.5">
+                      <span className="text-xl font-black text-slate-900">₹{product.price.toFixed(2)}</span>
+                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                        /{product.perPairPrice != null && typeof product.perPairPrice === 'number' ? 'Pair' : 'Piece'}
+                      </span>
+                    </div>
                     <Link 
                       href={`/products/${product._id}`} 
                       className={`inline-flex items-center gap-2 font-semibold transition-colors ${

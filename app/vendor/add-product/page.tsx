@@ -680,36 +680,6 @@ export default function VendorAddProductPage() {
                 </div>
               </div>
 
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Original Price (Optional, ₹)</label>
-                <div className="relative">
-                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-medium text-sm">₹</span>
-                  <input
-                    type="number"
-                    className="w-full h-11 pl-8 pr-4 rounded-xl border border-slate-200 outline-hidden focus:ring-2 focus:ring-blue-500 text-sm font-medium"
-                    placeholder="0"
-                    min={0}
-                    value={form.originalPrice}
-                    onChange={(e) => setForm((prev) => ({ ...prev, originalPrice: e.target.value }))}
-                  />
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Discount Percentage (%)</label>
-                <div className="relative">
-                  <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-medium text-sm">%</span>
-                  <input
-                    type="number"
-                    className="w-full h-11 pl-4 pr-8 rounded-xl border border-slate-200 outline-hidden focus:ring-2 focus:ring-blue-500 text-sm font-medium"
-                    placeholder="0"
-                    min={0}
-                    max={100}
-                    value={form.discountPercentage}
-                    onChange={(e) => setForm((prev) => ({ ...prev, discountPercentage: e.target.value }))}
-                  />
-                </div>
-              </div>
             </div>
           </div>
         )}
