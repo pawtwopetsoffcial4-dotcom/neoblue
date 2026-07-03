@@ -38,7 +38,9 @@ export default function VendorDashboardPage() {
     load();
   }, [user?.id]);
 
-  const revenue = orders.reduce((sum, order) => sum + order.totalAmount, 0);
+  const activeOrders = orders.filter((order) => order.status !== 'pending' && order.status !== 'cancelled');
+  const revenue = activeOrders.reduce((sum, order) => sum + order.totalAmount, 0);
+  const newOrdersCount = orders.filter((order) => order.status === 'placed').length;
 
   return (
     <div className="space-y-6">
@@ -60,7 +62,7 @@ export default function VendorDashboardPage() {
               </div>
               <div className="rounded-2xl bg-white/10 px-4 py-3">
                 <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-blue-100">Orders</p>
-                <p className="mt-2 text-2xl font-black text-white">{orders.length}</p>
+                <p className="mt-2 text-2xl font-black text-white">{activeOrders.length}</p>
               </div>
             </div>
             <div className="mt-3 rounded-2xl bg-white/10 px-4 py-3">
@@ -70,6 +72,23 @@ export default function VendorDashboardPage() {
           </div>
         </div>
       </section>
+
+      {newOrdersCount > 0 && (
+        <div className="rounded-3xl border border-blue-200 bg-blue-50/70 p-5 shadow-xs flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-md shadow-blue-600/20 shrink-0">
+              <ShoppingBag className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-blue-950">You have received {newOrdersCount} new order{newOrdersCount > 1 ? 's' : ''}!</h3>
+              <p className="text-xs text-blue-700/80 mt-0.5">Please check and accept them to start processing shipment.</p>
+            </div>
+          </div>
+          <Link href="/vendor/orders" className="shrink-0 rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-blue-700 transition-colors">
+            View Orders
+          </Link>
+        </div>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="rounded-3xl border border-blue-100 bg-white p-5 shadow-sm">
@@ -86,7 +105,7 @@ export default function VendorDashboardPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.3em] text-blue-600">Orders</p>
-              <p className="mt-2 text-3xl font-black text-slate-900">{orders.length}</p>
+              <p className="mt-2 text-3xl font-black text-slate-900">{activeOrders.length}</p>
             </div>
             <PackageCheck className="h-10 w-10 text-blue-600" />
           </div>

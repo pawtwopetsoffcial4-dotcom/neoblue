@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     const type = searchParams.get('type') || 'all';
 
     if (type === 'orders') {
-      const orders = await Order.find({})
+      const orders = await Order.find({ status: { $ne: 'pending' } })
         .populate('userId', 'name email role')
         .populate('vendorId', 'name email')
         .populate('products.productId', 'title price')
@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
     }
 
     const [orders, users] = await Promise.all([
-      Order.find({})
+      Order.find({ status: { $ne: 'pending' } })
         .populate('userId', 'name email role')
         .populate('vendorId', 'name email')
         .sort({ createdAt: -1 }),

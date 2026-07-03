@@ -133,7 +133,9 @@ export default function AdminDashboardPage() {
     });
   }, [products, searchTerm, searchCategory]);
 
-  const totalRevenue = orders.reduce((sum, order) => sum + order.totalAmount, 0);
+  const totalRevenue = orders
+    .filter((order) => order.status !== 'cancelled' && order.status !== 'pending')
+    .reduce((sum, order) => sum + order.totalAmount, 0);
   const vendorCount = users.filter((user) => user.role === 'vendor').length;
 
   const uniqueCategories = useMemo(() => Array.from(new Set(categories.map(normalizeCategory))).filter(Boolean), [categories]);
