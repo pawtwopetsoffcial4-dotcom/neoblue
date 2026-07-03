@@ -96,6 +96,52 @@ export function getShippingChargeForWeight(
   return 0;
 }
 
+export function getProductShippingCharge(
+  product: any,
+  quantity: number,
+  customerState: string
+): number {
+  if (!product) return 0;
+  
+  const region = getRegionFromState(customerState);
+  const tier = getTierFromQuantity(quantity);
+  
+  const rangeKey = `shipping${region}${tier}Ranges` as keyof any;
+  const ranges = product[rangeKey];
+  
+  if (!Array.isArray(ranges) || ranges.length === 0) {
+    return getShippingChargeForWeight((product.weightPerPiece || 0) * quantity, region, product.vendorId);
+  }
+  
+  const totalWeightGrams = (product.weightPerPiece || 0) * quantity;
+  
+  for (const slab of ranges) {
+    const desc = (slab.weightRange || '').toLowerCase();
+    const charge = Number(slab.charge);
+    if (Number.isNaN(charge)) continue;
+    
+    if (desc.includes('up to 0.5') || desc.includes('0.5 kg') || desc.includes('500 gm') || desc.includes('500g')) {
+      if (totalWeightGrams <= 500) return charge;
+    } else if (desc.includes('0.5 - 1') || desc.includes('1 kg') || desc.includes('1000 gm') || desc.includes('1kg')) {
+      if (totalWeightGrams <= 1000) return charge;
+    } else if (desc.includes('1.5') || desc.includes('1.5 kg') || desc.includes('1500')) {
+      if (totalWeightGrams <= 1500) return charge;
+    } else if (desc.includes('2') || desc.includes('2 kg') || desc.includes('2000')) {
+      if (totalWeightGrams <= 2000) return charge;
+    } else if (desc.includes('3') || desc.includes('3 kg') || desc.includes('3000')) {
+      if (totalWeightGrams <= 3000) return charge;
+    } else if (desc.includes('above 3') || desc.includes('above 3 kg') || desc.includes('3+')) {
+      if (totalWeightGrams > 3000) return charge;
+    }
+  }
+  
+  if (ranges[0] && typeof ranges[0].charge === 'number') {
+    return Number(ranges[ranges.length - 1].charge) || 0;
+  }
+  
+  return getShippingChargeForWeight(totalWeightGrams, region, product.vendorId);
+}
+
 export function calculateCartShipping(
   items: Array<{ productId: string; quantity: number }>,
   productDetails: Record<string, any>,
@@ -106,10 +152,10 @@ export function calculateCartShipping(
   isServiceable: boolean; 
   nonServiceableMessage: string | null; 
 } {
-  const vendorWeights: Record<string, { weight: number; vendor: any }> = {};
+  let totalShipping = 0;
+  const vendorShipping: Record<string, number> = {};
   let isServiceable = true;
   let nonServiceableMessage: string | null = null;
-  const region = getRegionFromState(stateName);
 
   for (const item of items) {
     const product = productDetails[item.productId];
@@ -126,22 +172,13 @@ export function calculateCartShipping(
       nonServiceableMessage = `Sorry, this product (${product.title}) cannot be delivered to your location.`;
     }
 
-    const weightPerPiece = product.weightPerPiece || 0;
-    const totalWeight = weightPerPiece * item.quantity;
-
-    if (!vendorWeights[vendorId]) {
-      vendorWeights[vendorId] = { weight: 0, vendor };
+    const itemShippingCharge = getProductShippingCharge(product, item.quantity, stateName);
+    
+    if (!vendorShipping[vendorId]) {
+      vendorShipping[vendorId] = 0;
     }
-    vendorWeights[vendorId].weight += totalWeight;
-  }
-
-  let totalShipping = 0;
-  const vendorShipping: Record<string, number> = {};
-
-  for (const [vendorId, group] of Object.entries(vendorWeights)) {
-    const charge = getShippingChargeForWeight(group.weight, region, group.vendor, stateName);
-    vendorShipping[vendorId] = charge;
-    totalShipping += charge;
+    vendorShipping[vendorId] += itemShippingCharge;
+    totalShipping += itemShippingCharge;
   }
 
   return { totalShipping, vendorShipping, isServiceable, nonServiceableMessage };

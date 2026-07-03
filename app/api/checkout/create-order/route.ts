@@ -4,7 +4,7 @@ import { connectDB } from '@/lib/db';
 import Product from '@/lib/models/Product';
 import Order from '@/lib/models/Order';
 import User from '@/lib/models/User';
-import { getShippingChargeForWeight, getRegionFromState } from '@/lib/utils/shipping';
+import { getProductShippingCharge, getRegionFromState } from '@/lib/utils/shipping';
 
 const appId = process.env.CASHFREE_APP_ID;
 const secretKey = process.env.CASHFREE_SECRET_KEY;
@@ -138,11 +138,13 @@ export async function POST(request: NextRequest) {
         return createErrorResponse(`Sorry, this product cannot be delivered to your location.`, 400);
       }
 
-      const firstProd = dbProducts.find((dp) => (dp.vendorId._id ? dp.vendorId._id.toString() : dp.vendorId.toString()) === vId);
-      const vendorUser = firstProd?.vendorId;
-      const charge = getShippingChargeForWeight(group.totalWeight, region, vendorUser);
-      group.shippingAmount = charge;
-      shippingAmount += charge;
+      let groupShipping = 0;
+      for (const gp of group.products) {
+        const productDoc = dbProducts.find((p) => p._id.toString() === gp.productId);
+        groupShipping += getProductShippingCharge(productDoc, gp.quantity, stateName);
+      }
+      group.shippingAmount = groupShipping;
+      shippingAmount += groupShipping;
     }
 
     const amount = subtotal + shippingAmount;

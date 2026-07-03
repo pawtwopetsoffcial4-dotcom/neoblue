@@ -9,7 +9,7 @@ import { useAuth } from '@/lib/hooks/useAuth';
 import { apiClient } from '@/lib/api-client';
 import { Trash2, Plus, Minus, MapPin, ShoppingBag, ArrowRight, ShieldCheck, ArrowLeft, CheckSquare, AlertCircle } from 'lucide-react';
 import type { MarketplaceProduct } from '@/lib/types/marketplace';
-import { getRegionFromState, getShippingChargeForWeight } from '@/lib/utils/shipping';
+import { getRegionFromState, getProductShippingCharge } from '@/lib/utils/shipping';
 import { useMode } from '@/lib/hooks/useMode';
 
 const PENDING_CASHFREE_CHECKOUT_KEY = 'pendingCashfreeCheckout';
@@ -202,23 +202,14 @@ function CheckoutPageContent() {
 
   // Group cart items by vendor for shipping calculation
   const region = getRegionFromState(address.state);
-  const vendorShippingGroups: Record<string, { totalWeight: number; vendor: any }> = {};
   let isLocationServiceable = true;
   let nonServiceableMessage = '';
+  let shippingAmount = 0;
 
   items.forEach((item) => {
     const product = productDetails[item.productId];
     if (!product) return;
     const vendor = (typeof product.vendorId === 'object' && product.vendorId !== null ? product.vendorId : null) as any;
-    const vId = vendor?._id || (typeof product.vendorId === 'string' ? product.vendorId : '');
-    if (!vId) return;
-
-    if (!vendorShippingGroups[vId]) {
-      vendorShippingGroups[vId] = { totalWeight: 0, vendor };
-    }
-    const qty = item.quantity;
-    const weight = product.weightPerPiece || 0;
-    vendorShippingGroups[vId].totalWeight += weight * qty;
 
     // Check non-serviceable states and regional switches
     const nonServiceable = vendor?.nonServiceableStates || [];
@@ -234,11 +225,10 @@ function CheckoutPageContent() {
       isLocationServiceable = false;
       nonServiceableMessage = `Sorry, this product cannot be delivered to your location.`;
     }
-  });
 
-  const shippingAmount = Object.values(vendorShippingGroups).reduce((sum, group) => {
-    return sum + getShippingChargeForWeight(group.totalWeight, region, group.vendor, address.state);
-  }, 0);
+    const itemShipping = getProductShippingCharge(product, item.quantity, address.state);
+    shippingAmount += itemShipping;
+  });
 
   const orderTotal = totalAmount + shippingAmount;
 
@@ -424,10 +414,9 @@ function CheckoutPageContent() {
                                 );
                               }
 
-                              const itemShipping = getShippingChargeForWeight(
-                                (product.weightPerPiece || 0) * item.quantity,
-                                region,
-                                vendor,
+                              const itemShipping = getProductShippingCharge(
+                                product,
+                                item.quantity,
                                 address.state
                               );
 
