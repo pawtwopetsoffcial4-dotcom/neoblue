@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import Link from 'next/link';
 import { ShoppingBag, Star, Truck, Shield, Droplets, Thermometer, Info, MessageSquare, ChevronRight, ChevronDown, Store, CheckCircle2, Search, X, ShieldAlert, Sparkles, Scale, Heart, Package, Leaf } from 'lucide-react';
 import ReviewList from '@/app/components/ReviewList';
@@ -39,6 +39,40 @@ export default function ProductClientPage({
   const [mateSearchQuery, setMateSearchQuery] = useState('');
   const [showMatesDropdown, setShowMatesDropdown] = useState(false);
   const [liked, setLiked] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('neoblue_wishlist');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          setLiked(parsed.includes(productId));
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }, [productId]);
+
+  const toggleLike = () => {
+    const saved = localStorage.getItem('neoblue_wishlist');
+    let list: string[] = [];
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          list = parsed;
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    const next = list.includes(productId)
+      ? list.filter((id) => id !== productId)
+      : [...list, productId];
+    localStorage.setItem('neoblue_wishlist', JSON.stringify(next));
+    setLiked(next.includes(productId));
+  };
 
   const refetchProductStats = useCallback(async () => {
     try {
@@ -157,7 +191,7 @@ export default function ProductClientPage({
             {/* floating actions */}
             <div className="absolute top-4 right-4 flex flex-col gap-2 z-10">
               <button
-                onClick={() => setLiked(!liked)}
+                onClick={toggleLike}
                 className={`h-10 w-10 rounded-full backdrop-blur-sm flex items-center justify-center transition-all shadow-lg cursor-pointer ${
                   liked ? 'bg-rose-500 text-white' : 'bg-white/90 text-slate-600 hover:text-rose-500'
                 }`}

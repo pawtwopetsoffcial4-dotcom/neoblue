@@ -44,6 +44,31 @@ export default function ProductsPage() {
   const [inStockOnly, setInStockOnly] = useState(false);
   const [availableCategories, setAvailableCategories] = useState<string[]>([]);
   const [filterModalOpen, setFilterModalOpen] = useState(false);
+  const [wishlistedIds, setWishlistedIds] = useState<string[]>([]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('neoblue_wishlist');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          setWishlistedIds(parsed);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }, []);
+
+  const toggleWishlist = (productId: string) => {
+    setWishlistedIds((current) => {
+      const next = current.includes(productId)
+        ? current.filter((id) => id !== productId)
+        : [...current, productId];
+      localStorage.setItem('neoblue_wishlist', JSON.stringify(next));
+      return next;
+    });
+  };
 
   useEffect(() => {
     document.title = mode === 'fishes' ? "Fishes & Live Stock | NeoBlue" : "Aquarium Plants & Moss | NeoBlue";
@@ -284,10 +309,16 @@ export default function ProductsPage() {
                         type="button"
                         onClick={(e) => {
                           e.preventDefault();
+                          e.stopPropagation();
+                          toggleWishlist(product._id);
                         }}
-                        className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-white text-slate-300 shadow-sm active:text-rose-500 transition-colors"
+                        className={`absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-white shadow-sm transition-all duration-300 ${
+                          wishlistedIds.includes(product._id)
+                            ? 'text-rose-500 scale-110 shadow-md'
+                            : 'text-slate-300 hover:text-rose-500 hover:scale-105'
+                        }`}
                       >
-                        <Heart className="h-4 w-4" />
+                        <Heart className={`h-4 w-4 ${wishlistedIds.includes(product._id) ? 'fill-current' : ''}`} />
                       </button>
                     </div>
 
