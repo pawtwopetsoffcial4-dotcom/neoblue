@@ -87,8 +87,11 @@ export function getShippingChargeForWeight(
   // If vendor is populated and has rates
   if (vendor && typeof vendor === 'object') {
     const rates = region === 'South' ? vendor.shippingRatesSouth : vendor.shippingRatesNorth;
-    if (rates && rates[key] !== undefined && rates[key] !== null) {
-      return Number(rates[key]) || 0;
+    if (rates) {
+      const hasConfigured = Object.values(rates).some(v => Number(v) > 0);
+      if (hasConfigured && rates[key] !== undefined && rates[key] !== null) {
+        return Number(rates[key]) || 0;
+      }
     }
   }
 
