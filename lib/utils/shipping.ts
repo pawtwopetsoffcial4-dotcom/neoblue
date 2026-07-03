@@ -65,96 +65,19 @@ export function calculateRegionalShipping(
   return getShippingChargeForWeight(totalWeight, region, vendor, stateName);
 }
 
-export function getDistanceZoneMultiplier(vendorState: string, customerState: string): number {
-  if (!vendorState || !customerState) return 1.0;
-  
-  const vState = vendorState.toLowerCase().trim();
-  const cState = customerState.toLowerCase().trim();
-  
-  if (vState === cState) {
-    return 0.6; // Local state delivery: 40% discount
-  }
-
-  const zones: Record<string, string> = {
-    // South
-    'karnataka': 'south', 'ka': 'south',
-    'tamil nadu': 'south', 'tamilnadu': 'south', 'tn': 'south',
-    'kerala': 'south', 'kl': 'south',
-    'andhra pradesh': 'south', 'andhra': 'south', 'ap': 'south',
-    'telangana': 'south', 'ts': 'south',
-    'puducherry': 'south', 'pondicherry': 'south', 'py': 'south',
-    'lakshadweep': 'south', 'ld': 'south',
-    'andaman': 'south', 'an': 'south',
-
-    // North
-    'delhi': 'north', 'dl': 'north',
-    'haryana': 'north', 'hr': 'north',
-    'punjab': 'north', 'pb': 'north',
-    'himachal pradesh': 'north', 'himachal': 'north', 'hp': 'north',
-    'jammu': 'north', 'kashmir': 'north', 'jk': 'north',
-    'uttarakhand': 'north', 'uk': 'north',
-    'uttar pradesh': 'north', 'up': 'north',
-    'rajasthan': 'north', 'rj': 'north',
-
-    // West
-    'maharashtra': 'west', 'mh': 'west',
-    'goa': 'west', 'ga': 'west',
-    'gujarat': 'west', 'gj': 'west',
-    'daman': 'west', 'diu': 'west', 'dd': 'west',
-
-    // East
-    'west bengal': 'east', 'wb': 'east',
-    'bihar': 'east', 'br': 'east',
-    'jharkhand': 'east', 'jh': 'east',
-    'odisha': 'east', 'orissa': 'east', 'or': 'east',
-    'sikkim': 'east', 'sk': 'east',
-    'assam': 'east', 'as': 'east',
-    'arunachal': 'east', 'arunachal pradesh': 'east', 'ar': 'east',
-    'nagaland': 'east', 'nl': 'east',
-    'manipur': 'east', 'mn': 'east',
-    'mizoram': 'east', 'mz': 'east',
-    'tripura': 'east', 'tr': 'east',
-    'meghalaya': 'east', 'ml': 'east',
-
-    // Central
-    'madhya pradesh': 'central', 'mp': 'central',
-    'chhattisgarh': 'central', 'cg': 'central'
-  };
-
-  const vZone = zones[vState] || Object.keys(zones).find(k => vState.includes(k) || k.includes(vState)) ? zones[vState] : null;
-  const cZone = zones[cState] || Object.keys(zones).find(k => cState.includes(k) || k.includes(cState)) ? zones[cState] : null;
-
-  if (!vZone || !cZone) return 1.0; 
-  if (vZone === cZone) return 1.0; 
-
-  const adjacencies: Record<string, string[]> = {
-    'central': ['north', 'south', 'west', 'east'],
-    'west': ['north', 'south', 'central'],
-    'north': ['west', 'east', 'central'],
-    'south': ['west', 'east', 'central'],
-    'east': ['north', 'south', 'central']
-  };
-
-  if (adjacencies[vZone]?.includes(cZone)) {
-    return 1.3; 
-  }
-
-  return 1.6; 
-}
-
 export function getShippingChargeForWeight(
   weightGrams: number,
   region: 'North' | 'South',
   vendor: any,
   customerState?: string
 ): number {
-  const finalWeight = weightGrams <= 0 ? 500 : weightGrams;
+  if (weightGrams <= 0) return 0;
 
   // Slabs: 500g, 1kg, 2kg, 3kg, 5kg, 10kg
   const slabLimits = [500, 1000, 2000, 3000, 5000, 10000];
   let selectedLimit = 10000;
   for (const limit of slabLimits) {
-    if (finalWeight <= limit) {
+    if (weightGrams <= limit) {
       selectedLimit = limit;
       break;
     }
@@ -162,51 +85,15 @@ export function getShippingChargeForWeight(
 
   const key = `slab${selectedLimit >= 1000 ? (selectedLimit / 1000) + 'kg' : selectedLimit + 'g'}`;
 
-  let baseCharge = 0;
-  let hasConfigured = false;
-
   // If vendor is populated and has rates
   if (vendor && typeof vendor === 'object') {
     const rates = region === 'South' ? vendor.shippingRatesSouth : vendor.shippingRatesNorth;
-    if (rates) {
-      hasConfigured = Object.values(rates).some(v => Number(v) > 0);
-      if (hasConfigured && rates[key] !== undefined && rates[key] !== null) {
-        baseCharge = Number(rates[key]) || 0;
-      }
+    if (rates && rates[key] !== undefined && rates[key] !== null) {
+      return Number(rates[key]) || 0;
     }
   }
 
-  if (!hasConfigured) {
-    // Sensible default fallback charges if rates are not configured or vendor is not populated
-    const fallbacks: Record<string, number> = {
-      slab500g: 80,
-      slab1kg: 120,
-      slab2kg: 180,
-      slab3kg: 240,
-      slab5kg: 350,
-      slab10kg: 600
-    };
-    baseCharge = fallbacks[key] || 0;
-  }
-
-  // Adjust charge based on distance from vendor state to customer state
-  if (customerState && vendor && typeof vendor === 'object') {
-    let vendorState = '';
-    if (Array.isArray(vendor.addresses)) {
-      const defaultAddr = vendor.addresses.find((a: any) => a.isDefault);
-      if (defaultAddr?.state) vendorState = defaultAddr.state;
-      else if (vendor.addresses[0]?.state) vendorState = vendor.addresses[0].state;
-    }
-    if (!vendorState && vendor.state) {
-      vendorState = vendor.state;
-    }
-    if (vendorState) {
-      const multiplier = getDistanceZoneMultiplier(vendorState, customerState);
-      return Math.round(baseCharge * multiplier);
-    }
-  }
-
-  return baseCharge;
+  return 0;
 }
 
 export function calculateCartShipping(
