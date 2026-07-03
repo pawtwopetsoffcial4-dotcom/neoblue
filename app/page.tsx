@@ -126,16 +126,14 @@ function MobileCard({ product, mode, index = 0 }: { product: any; mode: 'fishes'
       </div>
       <div className="p-3">
         <h3 className={`text-sm font-semibold truncate mb-1 ${mode === 'fishes' ? 'text-blue-950' : 'text-green-950'}`}>{product.title}</h3>
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-baseline gap-0.5 min-w-0">
-            <span className={`text-sm font-black truncate ${mode === 'fishes' ? 'text-blue-600' : 'text-green-700'}`}>₹{product.price}</span>
-            <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider shrink-0">
-              /{product.perPairPrice != null && typeof product.perPairPrice === 'number' ? 'Pair' : 'Piece'}
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <ReviewStars rating={rating} count={reviewsCount} compact />
-          </div>
+        <div className="flex items-center gap-2 mt-0.5">
+          <ReviewStars rating={rating} count={reviewsCount} compact />
+        </div>
+        <div className="mt-2 flex items-baseline gap-0.5">
+          <span className={`text-sm font-black ${mode === 'fishes' ? 'text-blue-600' : 'text-green-700'}`}>₹{product.price}</span>
+          <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">
+            /{product.perPairPrice != null && typeof product.perPairPrice === 'number' ? 'Pair' : 'Piece'}
+          </span>
         </div>
       </div>
     </Link>
