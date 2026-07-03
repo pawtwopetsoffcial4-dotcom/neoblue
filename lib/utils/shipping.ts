@@ -70,13 +70,13 @@ export function getShippingChargeForWeight(
   region: 'North' | 'South',
   vendor: any
 ): number {
-  if (weightGrams <= 0) return 0;
+  const finalWeight = weightGrams <= 0 ? 500 : weightGrams;
 
   // Slabs: 500g, 1kg, 2kg, 3kg, 5kg, 10kg
   const slabLimits = [500, 1000, 2000, 3000, 5000, 10000];
   let selectedLimit = 10000;
   for (const limit of slabLimits) {
-    if (weightGrams <= limit) {
+    if (finalWeight <= limit) {
       selectedLimit = limit;
       break;
     }
