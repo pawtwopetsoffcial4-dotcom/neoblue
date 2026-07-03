@@ -193,7 +193,7 @@ export async function POST(request: NextRequest) {
 
     // Validate products exist and get vendor info
     const productIds = products.map((p) => p.productId);
-    const dbProducts = await Product.find({ _id: { $in: productIds } });
+    const dbProducts = await Product.find({ _id: { $in: productIds } }).populate('vendorId');
 
     if (dbProducts.length !== productIds.length) {
       return createErrorResponse('Some products not found', 404);

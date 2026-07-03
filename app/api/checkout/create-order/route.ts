@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
     const stateName = address?.state || '';
 
     const productIds = products.map((product: any) => product.productId);
-    const dbProducts = await Product.find({ _id: { $in: productIds } });
+    const dbProducts = await Product.find({ _id: { $in: productIds } }).populate('vendorId');
 
     if (dbProducts.length !== productIds.length) {
       return createErrorResponse('Some products not found', 404);

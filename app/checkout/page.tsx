@@ -237,7 +237,7 @@ function CheckoutPageContent() {
   });
 
   const shippingAmount = Object.values(vendorShippingGroups).reduce((sum, group) => {
-    return sum + getShippingChargeForWeight(group.totalWeight, region, group.vendor);
+    return sum + getShippingChargeForWeight(group.totalWeight, region, group.vendor, address.state);
   }, 0);
 
   const orderTotal = totalAmount + shippingAmount;
@@ -427,7 +427,8 @@ function CheckoutPageContent() {
                               const itemShipping = getShippingChargeForWeight(
                                 (product.weightPerPiece || 0) * item.quantity,
                                 region,
-                                vendor
+                                vendor,
+                                address.state
                               );
 
                               return (
