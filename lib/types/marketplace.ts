@@ -4,6 +4,7 @@ export type MarketplaceProduct = {
   description: string;
   price: number;
   images: string[];
+  videos?: string[];
   category: string;
   subcategory?: string;
   waterType: 'Freshwater' | 'Saltwater' | 'Brackish';

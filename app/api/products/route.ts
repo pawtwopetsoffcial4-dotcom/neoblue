@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
       return createErrorResponse('Only vendors can create products', 403);
     }
 
-    const { title, description, price, images, category, subcategory, waterType, tag, scientific, originalPrice, discountPercentage, perPiecePrice, perPairPrice, weightPerPiece, shippingType, shippingCharge, shippingLotSize, shippingPieceRanges, shippingWeightRanges, shippingNorth1Ranges, shippingNorth2Ranges, shippingNorth3Ranges, shippingNorth4Ranges, shippingSouth1Ranges, shippingSouth2Ranges, shippingSouth3Ranges, shippingSouth4Ranges, deliverNorth, deliverSouth, phMin, phMax, tempMin, tempMax, temperament } = await request.json();
+    const { title, description, price, images, videos, category, subcategory, waterType, tag, scientific, originalPrice, discountPercentage, perPiecePrice, perPairPrice, weightPerPiece, shippingType, shippingCharge, shippingLotSize, shippingPieceRanges, shippingWeightRanges, shippingNorth1Ranges, shippingNorth2Ranges, shippingNorth3Ranges, shippingNorth4Ranges, shippingSouth1Ranges, shippingSouth2Ranges, shippingSouth3Ranges, shippingSouth4Ranges, deliverNorth, deliverSouth, phMin, phMax, tempMin, tempMax, temperament } = await request.json();
 
     // Validate required fields
     if (!title || !description || price == null || !images || !category || !waterType) {
@@ -145,6 +145,7 @@ export async function POST(request: NextRequest) {
       description,
       price,
       images,
+      videos: Array.isArray(videos) ? videos : [],
       category,
       subcategory: subcategory || '',
       waterType,

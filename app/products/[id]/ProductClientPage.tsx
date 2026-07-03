@@ -153,7 +153,13 @@ export default function ProductClientPage({
   const productImages = product.images && product.images.length > 0
     ? product.images
     : ['https://images.stockcake.com/public/1/9/4/194f4315-a8d9-422b-b237-18b1e224b7a1_large/colorful-tropical-fish-stockcake.jpg'];
-  const activeImage = productImages[Math.min(activeImageIndex, productImages.length - 1)];
+  const productVideos = Array.isArray(product.videos) ? product.videos : [];
+
+  const mediaItems = [
+    ...productImages.map((url) => ({ type: 'image' as const, url })),
+    ...productVideos.map((url) => ({ type: 'video' as const, url })),
+  ];
+  const activeMedia = mediaItems[Math.min(activeImageIndex, mediaItems.length - 1)] || mediaItems[0];
 
   const vendor = typeof product.vendorId === 'object' && product.vendorId !== null ? product.vendorId : null;
   const shopHref = vendor ? (vendor.slug ? `/shop/${vendor.slug}` : `/shop/${vendor._id}`) : '#';
@@ -166,11 +172,23 @@ export default function ProductClientPage({
         {/* ── Image Gallery ── */}
         <div className="space-y-3">
           <div className="relative aspect-square w-full rounded-2xl lg:rounded-3xl bg-slate-950 overflow-hidden group">
-            <img
-              src={activeImage}
-              alt={`${product.title} - NeoBlue`}
-              className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
-            />
+            {activeMedia.type === 'video' ? (
+              <video
+                src={activeMedia.url}
+                className="absolute inset-0 h-full w-full object-cover"
+                controls
+                autoPlay
+                muted
+                loop
+                playsInline
+              />
+            ) : (
+              <img
+                src={activeMedia.url}
+                alt={`${product.title} - NeoBlue`}
+                className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+              />
+            )}
             {/* gradient vignette */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent pointer-events-none" />
 
@@ -209,29 +227,40 @@ export default function ProductClientPage({
                 </span>
                 <span className="text-[11px] font-semibold text-white/90">Live Arrival Guaranteed</span>
               </div>
-              {productImages.length > 1 && (
+              {mediaItems.length > 1 && (
                 <span className="bg-black/50 backdrop-blur-md text-white/80 text-[11px] font-semibold px-2.5 py-1 rounded-full border border-white/10">
-                  {activeImageIndex + 1}/{productImages.length}
+                  {activeImageIndex + 1}/{mediaItems.length}
                 </span>
               )}
             </div>
           </div>
 
           {/* thumbnails */}
-          {productImages.length > 1 && (
+          {mediaItems.length > 1 && (
             <div className="flex gap-2 overflow-x-auto hide-scrollbar">
-              {productImages.map((image, i) => (
+              {mediaItems.map((item, i) => (
                 <button
                   type="button"
                   onClick={() => setActiveImageIndex(i)}
                   key={`thumb-${i}`}
-                  className={`shrink-0 w-16 h-16 md:w-[72px] md:h-[72px] rounded-xl border-2 cursor-pointer overflow-hidden transition-all duration-200 ${
+                  className={`relative shrink-0 w-16 h-16 md:w-[72px] md:h-[72px] rounded-xl border-2 cursor-pointer overflow-hidden transition-all duration-200 ${
                     i === activeImageIndex
                       ? 'border-blue-600 shadow-md shadow-blue-600/20'
                       : 'border-transparent opacity-60 hover:opacity-100'
                   }`}
                 >
-                  <img src={image} alt={`${product.title} view ${i + 1}`} className="w-full h-full object-cover" />
+                  {item.type === 'video' ? (
+                    <>
+                      <video src={item.url} className="w-full h-full object-cover" muted playsInline />
+                      <div className="absolute inset-0 bg-black/45 flex items-center justify-center">
+                        <svg className="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M8 5v14l11-7z" />
+                        </svg>
+                      </div>
+                    </>
+                  ) : (
+                    <img src={item.url} alt={`${product.title} view ${i + 1}`} className="w-full h-full object-cover" />
+                  )}
                 </button>
               ))}
             </div>

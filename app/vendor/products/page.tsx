@@ -2,7 +2,8 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight, PackageSearch, PlusCircle, X } from 'lucide-react';
+import { ArrowRight, PackageSearch, PlusCircle, X, Trash2, Plus } from 'lucide-react';
+import { CldUploadWidget } from 'next-cloudinary';
 import { apiClient } from '@/lib/api-client';
 import { FISH_NAMES, PRODUCT_CATEGORIES, getSubcategoriesForCategory } from '@/lib/catalog';
 import type { MarketplaceProduct } from '@/lib/types/marketplace';
@@ -28,6 +29,8 @@ type EditProductForm = {
   tempMin: string;
   tempMax: string;
   temperament: 'Peaceful' | 'Semi-aggressive' | 'Aggressive';
+  images: string[];
+  videos: string[];
 };
 
 export default function VendorProductsPage() {
@@ -155,6 +158,8 @@ export default function VendorProductsPage() {
       tempMin: product.tempMin != null ? String(product.tempMin) : '20',
       tempMax: product.tempMax != null ? String(product.tempMax) : '30',
       temperament: product.temperament ?? 'Peaceful',
+      images: Array.isArray(product.images) ? product.images : [],
+      videos: Array.isArray(product.videos) ? product.videos : [],
     });
   };
 
@@ -188,6 +193,8 @@ export default function VendorProductsPage() {
       await apiClient.updateProduct(editingProduct._id, {
         title: editForm.title,
         description: editForm.description,
+        images: editForm.images,
+        videos: editForm.videos,
         price: unitPrice,
         category: editForm.category,
         waterType: editForm.waterType,
@@ -534,13 +541,116 @@ export default function VendorProductsPage() {
                 </label>
               </div>
 
-              {/* Legacy shipping charge slider block removed */}
+              {/* Product Media Edit Section */}
+              <div className="space-y-4 pt-4 border-t border-slate-100">
+                <h3 className="text-sm font-bold text-slate-700">Product Media</h3>
+                
+                {/* Images */}
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Pictures (Min 1, Max 5)</label>
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 md:grid-cols-6">
+                    {editForm.images.map((img, index) => (
+                      <div key={index} className="relative aspect-square rounded-xl overflow-hidden border border-slate-200 shadow-xs group bg-slate-50">
+                        <img src={img} alt={`Product ${index + 1}`} className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditForm((curr) => curr ? { ...curr, images: curr.images.filter((_, i) => i !== index) } : null);
+                          }}
+                          className="absolute top-1.5 right-1.5 h-6 w-6 rounded-full bg-rose-500 text-white flex items-center justify-center hover:bg-rose-600 transition-colors shadow-md border border-white opacity-0 group-hover:opacity-100"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                    
+                    {editForm.images.length < 5 && (
+                      <CldUploadWidget
+                        uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'neoblue_products'}
+                        options={{
+                          sources: ['local', 'camera', 'url'],
+                          multiple: true,
+                          resourceType: 'image',
+                          cropping: true,
+                          croppingAspectRatio: 1,
+                          showSkipCropButton: true,
+                        }}
+                        onSuccess={(result: any) => {
+                          const info = result?.info;
+                          if (info && typeof info === 'object' && 'secure_url' in info) {
+                            let url = String(info.secure_url);
+                            if (url.includes('/upload/')) {
+                              url = url.replace('/upload/', '/upload/c_crop,g_custom/');
+                            }
+                            setEditForm((curr) => curr ? { ...curr, images: [...curr.images, url] } : null);
+                          }
+                        }}
+                      >
+                        {({ open }) => (
+                          <button
+                            type="button"
+                            onClick={() => open()}
+                            className="aspect-square border border-dashed border-slate-300 hover:border-blue-400 hover:bg-slate-50/50 rounded-xl flex flex-col items-center justify-center gap-1 transition-colors cursor-pointer"
+                          >
+                            <Plus className="h-5 w-5 text-slate-400" />
+                            <span className="text-[10px] font-bold text-slate-500">Add Picture</span>
+                          </button>
+                        )}
+                      </CldUploadWidget>
+                    )}
+                  </div>
+                </div>
 
-              <datalist id="vendor-fish-name-autofill">
-                {FISH_NAMES.map((fishName) => (
-                  <option key={fishName} value={fishName} />
-                ))}
-              </datalist>
+                {/* Videos */}
+                <div className="space-y-2 pt-2">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Videos (Optional, Max 2)</label>
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 md:grid-cols-6">
+                    {editForm.videos.map((vid, index) => (
+                      <div key={index} className="relative aspect-square rounded-xl overflow-hidden border border-slate-200 shadow-xs group bg-slate-50">
+                        <video src={vid} className="w-full h-full object-cover" muted playsInline loop />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditForm((curr) => curr ? { ...curr, videos: curr.videos.filter((_, i) => i !== index) } : null);
+                          }}
+                          className="absolute top-1.5 right-1.5 h-6 w-6 rounded-full bg-rose-500 text-white flex items-center justify-center hover:bg-rose-600 transition-colors shadow-md border border-white opacity-0 group-hover:opacity-100"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                    
+                    {editForm.videos.length < 2 && (
+                      <CldUploadWidget
+                        uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'neoblue_products'}
+                        options={{
+                          sources: ['local', 'url'],
+                          multiple: false,
+                          resourceType: 'video',
+                        }}
+                        onSuccess={(result: any) => {
+                          const info = result?.info;
+                          if (info && typeof info === 'object' && 'secure_url' in info) {
+                            let url = String(info.secure_url);
+                            setEditForm((curr) => curr ? { ...curr, videos: [...curr.videos, url] } : null);
+                          }
+                        }}
+                      >
+                        {({ open }) => (
+                          <button
+                            type="button"
+                            onClick={() => open()}
+                            className="aspect-square border border-dashed border-slate-300 hover:border-blue-400 hover:bg-slate-50/50 rounded-xl flex flex-col items-center justify-center gap-1 transition-colors cursor-pointer"
+                          >
+                            <Plus className="h-5 w-5 text-slate-400" />
+                            <span className="text-[10px] font-bold text-slate-500">Add Video</span>
+                          </button>
+                        )}
+                      </CldUploadWidget>
+                    )}
+                  </div>
+                </div>
+              </div>
 
               <textarea
                 className="w-full min-h-32 px-4 py-3 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"

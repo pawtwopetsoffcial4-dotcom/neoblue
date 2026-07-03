@@ -424,10 +424,21 @@ function CheckoutPageContent() {
                                 );
                               }
 
+                              const itemShipping = getShippingChargeForWeight(
+                                (product.weightPerPiece || 0) * item.quantity,
+                                region,
+                                vendor
+                              );
+
                               return (
-                                <p className="text-xs text-gray-400 mt-1 font-medium">
-                                  Weight: {product.weightPerPiece || 0} gm per piece
-                                </p>
+                                <div className="mt-1 space-y-0.5">
+                                  <p className="text-xs text-gray-400 font-medium">
+                                    Weight: {product.weightPerPiece || 0} gm per piece
+                                  </p>
+                                  <p className="text-xs text-slate-500 font-bold">
+                                    Est. Shipping: ₹{itemShipping.toFixed(2)}
+                                  </p>
+                                </div>
                               );
                             })()
                           ) : (

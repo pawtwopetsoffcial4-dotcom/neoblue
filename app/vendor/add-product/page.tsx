@@ -14,7 +14,8 @@ export default function VendorAddProductPage() {
   const [shippingRegion, setShippingRegion] = useState<'North' | 'South'>('North');
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [imageUrl, setImageUrl] = useState<string>('');
+  const [images, setImages] = useState<string[]>([]);
+  const [videos, setVideos] = useState<string[]>([]);
   const [uploadError, setUploadError] = useState<string>('');
   const [submitError, setSubmitError] = useState<string>('');
   const [categories, setCategories] = useState<string[]>(PRODUCT_CATEGORIES as unknown as string[]);
@@ -155,8 +156,13 @@ export default function VendorAddProductPage() {
     }
   }, [form.title]);
 
-  const removeImage = () => {
-    setImageUrl('');
+  const removeImage = (index: number) => {
+    setImages((prev) => prev.filter((_, i) => i !== index));
+    setUploadError('');
+  };
+
+  const removeVideo = (index: number) => {
+    setVideos((prev) => prev.filter((_, i) => i !== index));
     setUploadError('');
   };
 
@@ -170,8 +176,8 @@ export default function VendorAddProductPage() {
         return false;
       }
     } else if (step === 2) {
-      if (!imageUrl) {
-        setUploadError('Please upload a product image before proceeding.');
+      if (images.length === 0) {
+        setUploadError('Please upload at least one product image before proceeding.');
         return false;
       }
       setUploadError('');
@@ -226,7 +232,8 @@ export default function VendorAddProductPage() {
       await apiClient.createProduct({
         title: form.title,
         description: form.description,
-        images: [imageUrl],
+        images: images,
+        videos: videos,
         price: price,
         category: form.category,
         waterType: form.waterType,
@@ -546,82 +553,143 @@ export default function VendorAddProductPage() {
 
         {/* STEP 2: MEDIA */}
         {currentStep === 2 && (
-          <div className="space-y-4 animate-fadeIn">
+          <div className="space-y-6 animate-fadeIn">
             <div>
-              <h2 className="text-lg font-bold text-slate-900">2. Upload Product Image</h2>
-              <p className="text-xs text-slate-500 mt-0.5">Upload a clear high-resolution image of the aquatic specimen.</p>
+              <h2 className="text-lg font-bold text-slate-900">2. Product Media Upload</h2>
+              <p className="text-xs text-slate-500 mt-0.5">Upload high-resolution pictures and videos of the aquatic specimen.</p>
             </div>
 
-            <div className="pt-2 flex flex-col items-center justify-center">
-              <CldUploadWidget
-                uploadPreset={uploadPreset}
-                options={{
-                  sources: ['local', 'camera', 'url'],
-                  multiple: false,
-                  resourceType: 'image',
-                  cropping: true,
-                  croppingAspectRatio: 1,
-                  showSkipCropButton: false,
-                  croppingDefaultSelectionRatio: 1.0,
-                }}
-                onOpen={() => setUploadError('')}
-                onClose={() => setIsUploading(false)}
-                onSuccess={(result: any) => {
-                  const info = result?.info;
-                  if (info && typeof info === 'object' && 'secure_url' in info) {
-                    let url = String(info.secure_url);
-                    if (url.includes('/upload/')) {
-                      url = url.replace('/upload/', '/upload/c_crop,g_custom/');
-                    }
-                    setImageUrl(url);
-                    setUploadError('');
-                  } else {
-                    setUploadError('Upload succeeded but secure URL could not be retrieved.');
-                  }
-                  setIsUploading(false);
-                }}
-                onError={() => {
-                  setUploadError('Image upload failed. Please verify Cloudinary configuration.');
-                  setIsUploading(false);
-                }}
-              >
-                {({ open }) => (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsUploading(true);
-                      open();
+            {/* Images Upload Section */}
+            <div className="space-y-3">
+              <h3 className="text-sm font-bold text-slate-700">Pictures (Min 1, Max 5)</h3>
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5">
+                {images.map((img, index) => (
+                  <div key={index} className="relative aspect-square rounded-2xl overflow-hidden border border-slate-200 shadow-xs group bg-slate-50">
+                    <img src={img} alt={`Product ${index + 1}`} className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => removeImage(index)}
+                      className="absolute top-2 right-2 h-7 w-7 rounded-full bg-rose-500 text-white flex items-center justify-center hover:bg-rose-600 transition-colors shadow-md border border-white opacity-0 group-hover:opacity-100"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ))}
+
+                {images.length < 5 && (
+                  <CldUploadWidget
+                    uploadPreset={uploadPreset}
+                    options={{
+                      sources: ['local', 'camera', 'url'],
+                      multiple: true,
+                      resourceType: 'image',
+                      cropping: true,
+                      croppingAspectRatio: 1,
+                      showSkipCropButton: true,
                     }}
-                    className={`w-full max-w-md h-40 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center gap-3 transition-colors ${
-                      imageUrl ? 'border-emerald-300 bg-emerald-50/10' : 'border-slate-300 hover:border-blue-400 hover:bg-slate-50/50'
-                    }`}
+                    onOpen={() => setUploadError('')}
+                    onClose={() => setIsUploading(false)}
+                    onSuccess={(result: any) => {
+                      const info = result?.info;
+                      if (info && typeof info === 'object' && 'secure_url' in info) {
+                        let url = String(info.secure_url);
+                        if (url.includes('/upload/')) {
+                          url = url.replace('/upload/', '/upload/c_crop,g_custom/');
+                        }
+                        setImages((prev) => [...prev, url]);
+                        setUploadError('');
+                      } else {
+                        setUploadError('Upload succeeded but secure URL could not be retrieved.');
+                      }
+                      setIsUploading(false);
+                    }}
+                    onError={() => {
+                      setUploadError('Image upload failed. Please verify Cloudinary configuration.');
+                      setIsUploading(false);
+                    }}
                   >
-                    <Upload className={`h-8 w-8 ${imageUrl ? 'text-emerald-500' : 'text-slate-400'}`} />
-                    <span className="text-sm font-bold text-slate-700">
-                      {isUploading ? 'Uploading Image...' : imageUrl ? 'Change Product Image' : 'Click to Upload Image'}
-                    </span>
-                    <span className="text-xs text-slate-400">Supported formats: JPG, PNG, WEBP</span>
-                  </button>
+                    {({ open }) => (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsUploading(true);
+                          open();
+                        }}
+                        className="aspect-square border-2 border-dashed border-slate-300 hover:border-blue-400 hover:bg-slate-50/50 rounded-2xl flex flex-col items-center justify-center gap-2 transition-colors cursor-pointer"
+                      >
+                        <Plus className="h-6 w-6 text-slate-400" />
+                        <span className="text-xs font-bold text-slate-500">Add Picture</span>
+                      </button>
+                    )}
+                  </CldUploadWidget>
                 )}
-              </CldUploadWidget>
-
-              {uploadError && (
-                <p className="text-xs text-rose-500 font-bold mt-2">{uploadError}</p>
-              )}
-
-              {imageUrl && (
-                <div className="relative w-48 h-48 rounded-2xl overflow-hidden border border-slate-200 shadow-md mt-6">
-                  <img src={imageUrl} alt="Uploaded variety preview" className="w-full h-full object-cover" />
-                  <button
-                    type="button"
-                    onClick={removeImage}
-                    className="absolute top-2 right-2 h-7 w-7 rounded-full bg-rose-500 text-white flex items-center justify-center hover:bg-rose-600 transition-colors shadow-md border border-white"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                </div>
-              )}
+              </div>
             </div>
+
+            {/* Videos Upload Section */}
+            <div className="space-y-3 pt-2">
+              <h3 className="text-sm font-bold text-slate-700">Videos (Optional, Max 2)</h3>
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5">
+                {videos.map((vid, index) => (
+                  <div key={index} className="relative aspect-square rounded-2xl overflow-hidden border border-slate-200 shadow-xs group bg-slate-50">
+                    <video src={vid} className="w-full h-full object-cover" muted playsInline loop />
+                    <button
+                      type="button"
+                      onClick={() => removeVideo(index)}
+                      className="absolute top-2 right-2 h-7 w-7 rounded-full bg-rose-500 text-white flex items-center justify-center hover:bg-rose-600 transition-colors shadow-md border border-white opacity-0 group-hover:opacity-100"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ))}
+
+                {videos.length < 2 && (
+                  <CldUploadWidget
+                    uploadPreset={uploadPreset}
+                    options={{
+                      sources: ['local', 'url'],
+                      multiple: false,
+                      resourceType: 'video',
+                    }}
+                    onOpen={() => setUploadError('')}
+                    onClose={() => setIsUploading(false)}
+                    onSuccess={(result: any) => {
+                      const info = result?.info;
+                      if (info && typeof info === 'object' && 'secure_url' in info) {
+                        let url = String(info.secure_url);
+                        setVideos((prev) => [...prev, url]);
+                        setUploadError('');
+                      } else {
+                        setUploadError('Upload succeeded but secure URL could not be retrieved.');
+                      }
+                      setIsUploading(false);
+                    }}
+                    onError={() => {
+                      setUploadError('Video upload failed. Please verify Cloudinary configuration.');
+                      setIsUploading(false);
+                    }}
+                  >
+                    {({ open }) => (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsUploading(true);
+                          open();
+                        }}
+                        className="aspect-square border-2 border-dashed border-slate-300 hover:border-blue-400 hover:bg-slate-50/50 rounded-2xl flex flex-col items-center justify-center gap-2 transition-colors cursor-pointer"
+                      >
+                        <Plus className="h-6 w-6 text-slate-400" />
+                        <span className="text-xs font-bold text-slate-500">Add Video</span>
+                      </button>
+                    )}
+                  </CldUploadWidget>
+                )}
+              </div>
+            </div>
+
+            {uploadError && (
+              <p className="text-xs text-rose-500 font-bold mt-2">{uploadError}</p>
+            )}
           </div>
         )}
 

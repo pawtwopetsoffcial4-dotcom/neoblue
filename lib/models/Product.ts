@@ -5,6 +5,7 @@ export interface IProduct extends Document {
   description: string;
   price: number;
   images: string[];
+  videos?: string[];
   category: string;
   subcategory?: string;
   waterType: 'Freshwater' | 'Saltwater' | 'Brackish';
@@ -74,6 +75,10 @@ const productSchema = new Schema<IProduct>(
     images: {
       type: [String],
       required: [true, 'Please provide at least one image'],
+    },
+    videos: {
+      type: [String],
+      default: [],
     },
     category: {
       type: String,
