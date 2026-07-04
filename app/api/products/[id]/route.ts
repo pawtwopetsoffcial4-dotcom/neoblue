@@ -66,6 +66,23 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
     const hasPerPairKey = 'perPairPrice' in updateData;
     const hasShippingChargeKey = 'shippingCharge' in updateData;
 
+    if ('stockQuantity' in updateData) {
+      const stock = Number(updateData.stockQuantity);
+      if (isNaN(stock) || stock < 0) {
+        return createErrorResponse('Invalid stockQuantity', 400);
+      }
+      updateData.stockQuantity = stock;
+      updateData.inStock = stock > 0;
+    }
+
+    if ('soldQuantity' in updateData) {
+      const sold = Number(updateData.soldQuantity);
+      if (isNaN(sold) || sold < 0) {
+        return createErrorResponse('Invalid soldQuantity', 400);
+      }
+      updateData.soldQuantity = sold;
+    }
+
     if ('weightPerPiece' in updateData) {
       const weight = Number(updateData.weightPerPiece);
       if (isNaN(weight) || weight < 0) {

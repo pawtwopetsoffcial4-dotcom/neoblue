@@ -14,6 +14,8 @@ export interface IProduct extends Document {
   rating: number;
   reviewsCount?: number;
   inStock: boolean;
+  stockQuantity?: number;
+  soldQuantity?: number;
   approvalStatus: 'pending' | 'approved' | 'rejected';
   scientific?: string;
   originalPrice?: number;
@@ -115,6 +117,16 @@ const productSchema = new Schema<IProduct>(
     inStock: {
       type: Boolean,
       default: true,
+    },
+    stockQuantity: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    soldQuantity: {
+      type: Number,
+      default: 0,
+      min: 0,
     },
     approvalStatus: {
       type: String,

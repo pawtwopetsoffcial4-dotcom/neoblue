@@ -3,6 +3,7 @@ import Order from '@/lib/models/Order';
 import Product from '@/lib/models/Product';
 import { createErrorResponse, createSuccessResponse, getTokenFromRequest, verifyToken } from '@/lib/utils/auth';
 import { getProductShippingCharge, getRegionFromState } from '@/lib/utils/shipping';
+import { decrementStockForOrder } from '@/lib/utils/stock';
 import { NextRequest } from 'next/server';
 
 const appId = process.env.CASHFREE_APP_ID;
@@ -70,10 +71,14 @@ export async function GET(request: NextRequest) {
                   : null;
                 cfPaymentId = successPayment?.cf_payment_id || null;
               }
-              await Order.updateMany(
-                { cashfreeOrderId: cfId },
-                { status: 'placed', paymentId: cfPaymentId || cfId }
-              );
+              const ordersToUpdate = await Order.find({ cashfreeOrderId: cfId });
+              for (const order of ordersToUpdate) {
+                if (order.status !== 'placed') {
+                  order.status = 'placed';
+                  order.paymentId = cfPaymentId || cfId;
+                  await decrementStockForOrder(order);
+                }
+              }
             }
           }
         }
@@ -337,6 +342,7 @@ export async function POST(request: NextRequest) {
         cashfreeOrderId,
         status: 'placed',
       });
+      await decrementStockForOrder(order);
       createdOrders.push(order);
     }
 

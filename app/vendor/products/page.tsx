@@ -21,6 +21,8 @@ type EditProductForm = {
   scientific: string;
   originalPrice: string;
   discountPercentage: string;
+  stockQuantity: string;
+  soldQuantity: string;
   inStock: boolean;
   deliverNorth: boolean;
   deliverSouth: boolean;
@@ -150,6 +152,8 @@ export default function VendorProductsPage() {
       scientific: product.scientific ?? '',
       originalPrice: product.originalPrice != null ? String(product.originalPrice) : '',
       discountPercentage: product.discountPercentage != null ? String(product.discountPercentage) : '',
+      stockQuantity: product.stockQuantity != null ? String(product.stockQuantity) : '0',
+      soldQuantity: product.soldQuantity != null ? String(product.soldQuantity) : '0',
       inStock: product.inStock,
       deliverNorth: product.deliverNorth !== false,
       deliverSouth: product.deliverSouth !== false,
@@ -205,7 +209,9 @@ export default function VendorProductsPage() {
         perPiecePrice: editForm.pricingType === 'piece' ? unitPrice : null,
         perPairPrice: editForm.pricingType === 'pair' ? unitPrice : null,
         weightPerPiece,
-        inStock: editForm.inStock,
+        stockQuantity: Number(editForm.stockQuantity) || 0,
+        soldQuantity: Number(editForm.soldQuantity) || 0,
+        inStock: (Number(editForm.stockQuantity) || 0) > 0,
         deliverNorth: editForm.deliverNorth,
         deliverSouth: editForm.deliverSouth,
         phMin: Number(editForm.phMin),
@@ -274,7 +280,7 @@ export default function VendorProductsPage() {
                     </div>
                     <div className="rounded-xl bg-white px-3 py-2">
                       <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">Stock</p>
-                      <p className="mt-1 font-bold text-slate-900">{product.inStock ? 'Available' : 'Unavailable'}</p>
+                      <p className="mt-1 font-bold text-slate-900">{product.stockQuantity ?? 0} ({product.soldQuantity ?? 0} sold)</p>
                     </div>
                   </div>
 
@@ -315,7 +321,7 @@ export default function VendorProductsPage() {
                       <td className="px-5 py-4 font-semibold text-slate-900">{product.title}</td>
                       <td className="px-5 py-4 text-slate-600">{product.category}</td>
                       <td className="px-5 py-4 text-slate-900">₹{product.price.toFixed(2)}</td>
-                      <td className="px-5 py-4 text-slate-600">{product.inStock ? 'In stock' : 'Out of stock'}</td>
+                      <td className="px-5 py-4 text-slate-600">{product.stockQuantity ?? 0} ({product.soldQuantity ?? 0} sold)</td>
                       <td className="px-5 py-4 text-right">
                           <div className="inline-flex gap-2">
                           <button
@@ -512,6 +518,22 @@ export default function VendorProductsPage() {
                   <option value="Semi-aggressive">Semi-aggressive</option>
                   <option value="Aggressive">Aggressive</option>
                 </select>
+                <input
+                  type="number"
+                  className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Stock Quantity"
+                  min={0}
+                  value={editForm.stockQuantity}
+                  onChange={(event) => setEditForm((current) => current ? { ...current, stockQuantity: event.target.value } : current)}
+                />
+                <input
+                  type="number"
+                  className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Sold Quantity"
+                  min={0}
+                  value={editForm.soldQuantity}
+                  onChange={(event) => setEditForm((current) => current ? { ...current, soldQuantity: event.target.value } : current)}
+                />
                 <label className="flex items-center gap-3 h-11 px-4 rounded-xl border border-blue-200 bg-white">
                   <input
                     type="checkbox"

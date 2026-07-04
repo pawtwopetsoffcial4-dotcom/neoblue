@@ -22,6 +22,8 @@ export type MarketplaceProduct = {
   rating: number;
   reviewsCount?: number;
   inStock: boolean;
+  stockQuantity?: number;
+  soldQuantity?: number;
   approvalStatus?: 'pending' | 'approved' | 'rejected';
   scientific?: string;
   weightPerPiece?: number;

@@ -25,6 +25,8 @@ type AdminProduct = {
   waterType: 'Freshwater' | 'Saltwater' | 'Brackish' | string;
   tag: string;
   inStock: boolean;
+  stockQuantity?: number;
+  soldQuantity?: number;
   approvalStatus?: 'pending' | 'approved' | 'rejected';
   scientific?: string;
   vendorId?: { _id?: string; name?: string; email?: string };
@@ -40,6 +42,8 @@ type EditFormState = {
   waterType: AdminProduct['waterType'];
   tag: string;
   scientific: string;
+  stockQuantity: string;
+  soldQuantity: string;
   inStock: boolean;
   approvalStatus: 'pending' | 'approved' | 'rejected';
   images: string[];
@@ -123,6 +127,8 @@ export default function AdminProductsPage() {
       waterType: product.waterType,
       tag: product.tag || 'Standard',
       scientific: product.scientific || '',
+      stockQuantity: product.stockQuantity != null ? String(product.stockQuantity) : '0',
+      soldQuantity: product.soldQuantity != null ? String(product.soldQuantity) : '0',
       inStock: product.inStock,
       approvalStatus: product.approvalStatus ?? 'pending',
       images: product.images?.length ? [...product.images] : [],
@@ -211,7 +217,9 @@ export default function AdminProductsPage() {
         waterType: editForm.waterType,
         tag: editForm.tag,
         scientific: editForm.scientific,
-        inStock: editForm.inStock,
+        stockQuantity: Number(editForm.stockQuantity) || 0,
+        soldQuantity: Number(editForm.soldQuantity) || 0,
+        inStock: (Number(editForm.stockQuantity) || 0) > 0,
         approvalStatus: editForm.approvalStatus,
         isTrending: editForm.isTrending,
         isNewArrival: editForm.isNewArrival,
@@ -348,7 +356,12 @@ export default function AdminProductsPage() {
                     Vendor: {product.vendorId?.name ?? product.vendorId?.email ?? 'Unknown'}
                   </p>
                   <div className="flex items-center gap-2 mt-2">
-                    <p className="text-sm text-slate-500">₹{product.price.toFixed(2)} • {product.category} • {product.waterType}</p>
+                    <p className="text-sm text-slate-500">
+                      ₹{product.price.toFixed(2)} • {product.category} • {product.waterType}
+                      {product.stockQuantity !== undefined && (
+                        <span> • Stock: {product.stockQuantity} ({product.soldQuantity || 0} sold)</span>
+                      )}
+                    </p>
                     <button
                       onClick={() => openQuickEditPrice(product)}
                       className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-700 font-semibold hover:bg-blue-200 transition-colors"
@@ -495,6 +508,22 @@ export default function AdminProductsPage() {
                   <option value="approved">Approved</option>
                   <option value="rejected">Rejected</option>
                 </select>
+                <input
+                  type="number"
+                  className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Stock Quantity"
+                  min={0}
+                  value={editForm.stockQuantity}
+                  onChange={(event) => setEditForm((current) => current ? { ...current, stockQuantity: event.target.value } : current)}
+                />
+                <input
+                  type="number"
+                  className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Sold Quantity"
+                  min={0}
+                  value={editForm.soldQuantity}
+                  onChange={(event) => setEditForm((current) => current ? { ...current, soldQuantity: event.target.value } : current)}
+                />
 
 
                 <label className="flex items-center gap-3 h-11 px-4 rounded-xl border border-blue-200 bg-white">

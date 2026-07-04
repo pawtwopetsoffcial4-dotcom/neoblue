@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createErrorResponse, getTokenFromRequest, verifyToken } from '@/lib/utils/auth';
 import { connectDB } from '@/lib/db';
 import Order from '@/lib/models/Order';
+import { decrementStockForOrder } from '@/lib/utils/stock';
 
 const appId = process.env.CASHFREE_APP_ID;
 const secretKey = process.env.CASHFREE_SECRET_KEY;
@@ -70,10 +71,14 @@ export async function GET(request: NextRequest) {
 
     const isPaid = orderData.order_status === 'PAID';
     if (isPaid) {
-      await Order.updateMany(
-        { cashfreeOrderId: orderId },
-        { status: 'placed', paymentId: cfPaymentId || orderId }
-      );
+      const ordersToUpdate = await Order.find({ cashfreeOrderId: orderId });
+      for (const order of ordersToUpdate) {
+        if (order.status !== 'placed') {
+          order.status = 'placed';
+          order.paymentId = cfPaymentId || orderId;
+          await decrementStockForOrder(order);
+        }
+      }
     }
 
     return NextResponse.json({

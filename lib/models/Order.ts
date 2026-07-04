@@ -18,6 +18,7 @@ export interface IOrder extends Document {
     phone: string;
   };
   status: 'pending' | 'placed' | 'accepted' | 'preparing' | 'shipped' | 'completed' | 'cancelled';
+  stockDecremented?: boolean;
   paymentId?: string;
   razorpayOrderId?: string;
   cashfreeOrderId?: string;
@@ -81,6 +82,10 @@ const orderSchema = new Schema<IOrder>(
       type: String,
       enum: ['pending', 'placed', 'accepted', 'preparing', 'shipped', 'completed', 'cancelled'],
       default: 'pending',
+    },
+    stockDecremented: {
+      type: Boolean,
+      default: false,
     },
     paymentId: String,
     razorpayOrderId: String,
