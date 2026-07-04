@@ -7,12 +7,11 @@ import { useRouter, usePathname } from 'next/navigation';
 import { 
   Menu, X, ShoppingBag, Search, Fish, Leaf, User, LogOut, 
   LayoutDashboard, ClipboardList, ChevronDown, Home, BookOpen, 
-  FolderHeart, Info, LogIn
+  FolderHeart, Info, LogIn, Bell
 } from 'lucide-react';
 import { useCart } from '@/lib/hooks/useCart';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useMode } from '@/lib/hooks/useMode';
-import NotificationBell from './NotificationBell';
 
 type HeaderProps = {
   cartCount?: number;
@@ -29,9 +28,53 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
+  const [knownNotificationIds, setKnownNotificationIds] = useState<string[]>([]);
   
   const profileDropdownRef = useRef<HTMLDivElement>(null);
   const visibleCartCount = contextCartCount || cartCount;
+
+  // Poll for unread notifications and trigger browser popups
+  useEffect(() => {
+    if (!user) {
+      setUnreadNotifications(0);
+      setKnownNotificationIds([]);
+      return;
+    }
+
+    const fetchNotifications = async () => {
+      try {
+        const res = await fetch('/api/notifications', { cache: 'no-store' });
+        if (res.ok) {
+          const data = await res.json();
+          const list = data.notifications || [];
+          const unreads = list.filter((n: any) => !n.read);
+          setUnreadNotifications(unreads.length);
+
+          // Desktop popup support
+          if (knownNotificationIds.length > 0 && typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+            const knownSet = new Set(knownNotificationIds);
+            const freshUnreads = unreads.filter((n: any) => !knownSet.has(n._id));
+            if (freshUnreads.length > 0) {
+              freshUnreads.forEach((n: any) => {
+                new Notification(n.title, {
+                  body: n.message,
+                  icon: '/logo.ico',
+                });
+              });
+            }
+          }
+          setKnownNotificationIds(list.map((n: any) => n._id));
+        }
+      } catch (error) {
+        console.error('Error fetching unread count:', error);
+      }
+    };
+
+    fetchNotifications();
+    const timer = setInterval(fetchNotifications, 15000);
+    return () => clearInterval(timer);
+  }, [user, knownNotificationIds]);
 
   // Close profile dropdown when clicking outside
   useEffect(() => {
@@ -161,9 +204,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
             <Search className="h-4.5 w-4.5" />
           </button>
 
-          {/* Real-time Notification Bell */}
-          <NotificationBell />
-          
+
           {/* Shopping Bag / Cart */}
           <Link 
             href="/checkout" 
@@ -187,10 +228,15 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
                   isProfileOpen ? 'ring-2 ring-white/30' : ''
                 }`}
               >
-                <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-black text-white shrink-0 ${
-                  isFishes ? 'bg-blue-700' : 'bg-green-800'
-                }`}>
-                  {getInitials(user.name)}
+                <div className="relative">
+                  <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-black text-white shrink-0 ${
+                    isFishes ? 'bg-blue-700' : 'bg-green-800'
+                  }`}>
+                    {getInitials(user.name)}
+                  </div>
+                  {unreadNotifications > 0 && (
+                    <span className="absolute -top-1 -right-1 flex h-2 w-2 rounded-full bg-rose-500 ring-1 ring-blue-600 animate-pulse" />
+                  )}
                 </div>
                 <span className="text-xs font-bold truncate max-w-[80px]">{user.name.split(' ')[0]}</span>
                 <ChevronDown className={`w-3.5 h-3.5 text-white/75 transition-transform duration-300 ${isProfileOpen ? 'rotate-180' : ''}`} />
@@ -222,6 +268,21 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
                     {user.role}
                   </span>
                 </div>
+
+                <Link
+                  href="/profile?tab=notifications"
+                  className="flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold text-slate-300 hover:bg-white/5 hover:text-white transition-colors text-left"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <Bell className="w-4 h-4 text-slate-400" />
+                    <span>Notifications</span>
+                  </div>
+                  {unreadNotifications > 0 && (
+                    <span className="bg-rose-500 text-[10px] font-extrabold text-white px-2 py-0.5 rounded-full animate-pulse">
+                      {unreadNotifications}
+                    </span>
+                  )}
+                </Link>
 
                 <Link
                   href="/profile"
@@ -371,10 +432,15 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
             {user ? (
               <div className="flex flex-col gap-4">
                 <div className="flex items-center gap-3 p-2 bg-white/10 rounded-2xl border border-white/10">
-                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs font-black text-white shrink-0 ${
-                    isFishes ? 'bg-blue-700' : 'bg-green-800'
-                  }`}>
-                    {getInitials(user.name)}
+                  <div className="relative shrink-0">
+                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs font-black text-white ${
+                      isFishes ? 'bg-blue-700' : 'bg-green-800'
+                    }`}>
+                      {getInitials(user.name)}
+                    </div>
+                    {unreadNotifications > 0 && (
+                      <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5 rounded-full bg-rose-500 ring-2 ring-blue-600 animate-pulse" />
+                    )}
                   </div>
                   <div className="truncate">
                     <p className="font-extrabold text-xs text-white leading-tight">{user.name}</p>
@@ -383,6 +449,20 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
                 </div>
 
                 <div className="flex flex-col gap-2">
+                  <Link
+                    href="/profile?tab=notifications"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="flex h-11 items-center justify-center gap-2 rounded-xl bg-white/10 text-white text-xs font-black uppercase tracking-wider border border-white/10 hover:bg-white/15 relative"
+                  >
+                    <Bell className="w-4 h-4 text-white" />
+                    <span>Notifications</span>
+                    {unreadNotifications > 0 && (
+                      <span className="absolute right-3 bg-rose-500 text-[9px] font-black text-white px-2 py-0.5 rounded-full animate-pulse">
+                        {unreadNotifications}
+                      </span>
+                    )}
+                  </Link>
+
                   <Link
                     href="/profile"
                     onClick={() => setIsMenuOpen(false)}

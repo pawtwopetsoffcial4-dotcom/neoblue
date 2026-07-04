@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, Suspense } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useSearchParams } from 'next/navigation';
 import { 
   Search, Heart, X, SlidersHorizontal, ArrowUpDown, 
   Star, ArrowDown, ShieldCheck, Truck, Headset 
@@ -27,7 +28,7 @@ const extractProducts = (payload: unknown): MarketplaceProduct[] => {
   return [];
 };
 
-export default function ProductsPage() {
+function ProductsPageContent() {
   const { addToCart } = useCart();
   const { mode } = useMode();
   const [products, setProducts] = useState<MarketplaceProduct[]>([]);
@@ -36,6 +37,15 @@ export default function ProductsPage() {
   
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
+  const searchParams = useSearchParams();
+  const urlSearchTerm = searchParams.get('search') || '';
+
+  useEffect(() => {
+    if (urlSearchTerm) {
+      setSearchTerm(urlSearchTerm);
+    }
+  }, [urlSearchTerm]);
+
   const [sortBy, setSortBy] = useState('featured');
   const [category, setCategory] = useState('All');
   const [subcategory, setSubcategory] = useState('All');
@@ -502,5 +512,17 @@ export default function ProductsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function ProductsPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-[50vh] items-center justify-center">
+        <LoadingSpinner />
+      </div>
+    }>
+      <ProductsPageContent />
+    </Suspense>
   );
 }

@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   CreditCard, MapPin, Package, UserRound, LayoutDashboard, Fish,
   PlusCircle, PackageCheck, LogOut, Shield, ChevronRight, Phone,
   Mail, ShoppingBag, ArrowUpRight, Clock, Loader2,
-  Truck, CheckCircle2, XCircle, Star
+  Truck, CheckCircle2, XCircle, Star, Bell
 } from 'lucide-react';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { apiClient } from '@/lib/api-client';
@@ -49,6 +49,7 @@ const statusConfig: Record<string, { icon: React.ComponentType<{ className?: str
 const customerQuickLinks = [
   { href: '/orders', label: 'My Orders', desc: 'Track & manage orders', icon: Package, color: 'text-blue-600', bg: 'bg-blue-50' },
   { href: '/profile/addresses', label: 'Addresses', desc: 'Manage delivery locations', icon: MapPin, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+  { href: '/profile?tab=notifications', label: 'Notifications', desc: 'View order alerts & updates', icon: Bell, color: 'text-rose-600', bg: 'bg-rose-50' },
   { href: '/checkout', label: 'Checkout', desc: 'Complete a purchase', icon: CreditCard, color: 'text-violet-600', bg: 'bg-violet-50' },
   { href: '/products', label: 'Browse Products', desc: 'Explore our collection', icon: Fish, color: 'text-amber-600', bg: 'bg-amber-50' },
 ];
@@ -58,6 +59,7 @@ const vendorQuickLinks = [
   { href: '/vendor/products', label: 'My Products', desc: 'Manage your catalog', icon: Fish, color: 'text-cyan-600', bg: 'bg-cyan-50' },
   { href: '/vendor/add-product', label: 'Add Product', desc: 'List a new product', icon: PlusCircle, color: 'text-emerald-600', bg: 'bg-emerald-50' },
   { href: '/vendor/orders', label: 'Vendor Orders', desc: 'Manage customer orders', icon: PackageCheck, color: 'text-violet-600', bg: 'bg-violet-50' },
+  { href: '/profile?tab=notifications', label: 'Notifications', desc: 'Track sales, order updates & claims', icon: Bell, color: 'text-rose-600', bg: 'bg-rose-50' },
   { href: '/vendor/claims', label: 'DOA Claims', desc: 'Handle arrival claims', icon: Shield, color: 'text-amber-600', bg: 'bg-amber-50' },
   { href: '/profile/addresses', label: 'Addresses', desc: 'Manage delivery locations', icon: MapPin, color: 'text-rose-600', bg: 'bg-rose-50' },
 ];
@@ -86,14 +88,79 @@ function AnimatedCounter({ target, prefix = '', suffix = '' }: { target: number;
   return <span>{prefix}{count.toLocaleString('en-IN')}{suffix}</span>;
 }
 
-export default function ProfilePage() {
+function ProfilePageContent() {
   const { user, isAuthenticated, logout } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const activeTab = searchParams.get('tab') || 'profile';
 
   const [orders, setOrders] = useState<UserOrder[]>([]);
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [phone, setPhone] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [notifications, setNotifications] = useState<any[]>([]);
+
+  const fetchProfileNotifications = async () => {
+    try {
+      const res = await fetch('/api/notifications', { cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
+        setNotifications(data.notifications || []);
+      }
+    } catch (error) {
+      console.error('Error fetching profile notifications:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'notifications') {
+      fetchProfileNotifications();
+    }
+  }, [activeTab]);
+
+  const markAllReadOnProfile = async () => {
+    try {
+      const res = await fetch('/api/notifications', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ all: true }),
+      });
+      if (res.ok) {
+        setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+      }
+    } catch (error) {
+      console.error('Error marking all notifications read:', error);
+    }
+  };
+
+  const clearAllOnProfile = async () => {
+    try {
+      const res = await fetch('/api/notifications', { method: 'DELETE' });
+      if (res.ok) {
+        setNotifications([]);
+      }
+    } catch (error) {
+      console.error('Error clearing profile notifications:', error);
+    }
+  };
+
+  const markSingleRead = async (id: string, link?: string) => {
+    try {
+      const res = await fetch('/api/notifications', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      });
+      if (res.ok) {
+        setNotifications(prev => prev.map(n => n._id === id ? { ...n, read: true } : n));
+      }
+    } catch (error) {
+      console.error('Error marking notification read:', error);
+    }
+    if (link) {
+      router.push(link);
+    }
+  };
 
   const handleLogout = () => {
     logout();
@@ -248,72 +315,163 @@ export default function ProfilePage() {
             {/* ── Main Grid: Orders + Sidebar ── */}
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6">
 
-              {/* ── Recent Orders ── */}
-              <section className="rounded-3xl border border-blue-100 bg-white shadow-sm overflow-hidden">
-                <div className="p-5 md:p-6 border-b border-slate-100 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="h-9 w-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
-                      <Package className="h-4 w-4" />
+              {activeTab === 'notifications' ? (
+                /* ── Notifications View ── */
+                <section className="rounded-3xl border border-blue-100 bg-white shadow-sm overflow-hidden p-5 md:p-6 flex flex-col">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="h-9 w-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                        <Bell className="h-4.5 w-4.5" />
+                      </div>
+                      <div>
+                        <h3 className="font-black text-lg text-slate-900 font-extrabold">Notifications</h3>
+                        <p className="text-xs text-slate-400">Keep track of order updates and claims</p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-black text-lg text-slate-900">Recent Orders</h3>
-                      <p className="text-xs text-slate-400">Your latest {isVendor ? 'vendor' : ''} orders</p>
+                    <div className="flex items-center gap-2">
+                      {notifications.some(n => !n.read) && (
+                        <button
+                          type="button"
+                          onClick={markAllReadOnProfile}
+                          className="text-xs font-bold text-blue-600 hover:text-blue-750 px-3 py-1.5 rounded-lg hover:bg-blue-50 transition-colors"
+                        >
+                          Mark all read
+                        </button>
+                      )}
+                      {notifications.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={clearAllOnProfile}
+                          className="text-xs font-bold text-rose-600 hover:text-rose-750 px-3 py-1.5 rounded-lg hover:bg-rose-50 transition-colors"
+                        >
+                          Clear all
+                        </button>
+                      )}
                     </div>
                   </div>
-                  <Link href={isVendor ? '/vendor/orders' : '/orders'} className="text-sm font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1 transition-colors">
-                    View All <ChevronRight className="h-4 w-4" />
-                  </Link>
-                </div>
 
-                {isLoading ? (
-                  <div className="flex items-center justify-center py-16">
-                    <Loader2 className="w-8 h-8 text-blue-400 animate-spin" />
-                  </div>
-                ) : recentOrders.length === 0 ? (
-                  <div className="py-16 text-center">
-                    <div className="h-16 w-16 rounded-2xl bg-slate-50 text-slate-300 flex items-center justify-center mx-auto mb-4">
-                      <ShoppingBag className="h-8 w-8" />
-                    </div>
-                    <p className="font-bold text-slate-700 mb-1">No orders yet</p>
-                    <p className="text-sm text-slate-400 mb-6">
-                      {isVendor ? 'Orders from customers will appear here' : 'Browse our collection and find something you love'}
-                    </p>
-                    <Link href={isVendor ? '/vendor/dashboard' : '/products'} className="h-10 px-6 rounded-full bg-blue-600 text-white font-semibold text-sm hover:bg-blue-700 transition-colors inline-flex items-center gap-2">
-                      {isVendor ? 'Go to Dashboard' : 'Shop Now'} <ArrowUpRight className="h-3.5 w-3.5" />
-                    </Link>
-                  </div>
-                ) : (
-                  <div className="divide-y divide-slate-50">
-                    {recentOrders.map((order) => {
-                      const config = statusConfig[order.status] || statusConfig.placed;
-                      const StatusIcon = config.icon;
-                      const itemCount = order.products.reduce((s, p) => s + p.quantity, 0);
-                      return (
-                        <Link key={order._id} href={isVendor ? '/vendor/orders' : '/orders'} className="flex items-center gap-4 p-5 md:p-6 hover:bg-slate-50/50 transition-colors group cursor-pointer">
-                          <div className={`h-11 w-11 rounded-xl ${config.bg} ${config.color} flex items-center justify-center shrink-0`}>
-                            <StatusIcon className="h-5 w-5" />
+                  <div className="space-y-3">
+                    {notifications.length === 0 ? (
+                      <div className="py-16 text-center text-slate-400">
+                        <Bell className="h-10 w-10 text-slate-300 stroke-[1.5] mb-2 mx-auto" />
+                        <p className="text-xs font-semibold">No notifications yet</p>
+                        <p className="text-[10px] mt-0.5">We will let you know when things happen.</p>
+                      </div>
+                    ) : (
+                      notifications.map((n) => (
+                        <div
+                          key={n._id}
+                          onClick={() => markSingleRead(n._id, n.link)}
+                          className={`flex items-start gap-3.5 p-4 rounded-2xl border transition-all cursor-pointer ${
+                            !n.read
+                              ? 'bg-slate-50 border-blue-100/70 hover:bg-slate-100'
+                              : 'bg-white border-slate-100 hover:bg-slate-50'
+                          }`}
+                        >
+                          <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 text-base ${
+                            n.type === 'new_order' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' :
+                            n.type === 'order_status' ? 'bg-blue-50 text-blue-600 border border-blue-100' :
+                            n.type === 'claim' ? 'bg-amber-50 text-amber-600 border border-amber-100' :
+                            'bg-slate-50 text-slate-600 border border-slate-100'
+                          }`}>
+                            {n.type === 'new_order' ? '💰' :
+                             n.type === 'order_status' ? '📦' :
+                             n.type === 'claim' ? '⚠️' : '🔔'}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-0.5">
-                              <p className="font-bold text-sm text-slate-900">Order #{order._id.slice(-6).toUpperCase()}</p>
-                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold capitalize ${config.bg} ${config.color} ${config.border} border`}>
-                                {order.status}
-                              </span>
+                            <div className="flex items-center justify-between gap-2">
+                              <p className={`text-xs ${!n.read ? 'font-black text-slate-900' : 'font-bold text-slate-700'}`}>
+                                {n.title}
+                              </p>
+                              {!n.read && (
+                                <span className="h-1.5 w-1.5 rounded-full bg-blue-600 animate-pulse" />
+                              )}
                             </div>
-                            <p className="text-xs text-slate-400">
-                              {itemCount} item{itemCount !== 1 ? 's' : ''} · {new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            <p className="text-[11px] text-slate-500 font-medium mt-1 leading-relaxed">
+                              {n.message}
+                            </p>
+                            <p className="text-[9px] text-slate-400 font-bold mt-1.5">
+                              {new Date(n.createdAt).toLocaleDateString([], {
+                                month: 'short',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })}
                             </p>
                           </div>
-                          <div className="text-right shrink-0">
-                            <p className="font-black text-slate-900">₹{order.totalAmount.toLocaleString('en-IN')}</p>
-                            <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-blue-500 transition-colors ml-auto mt-1" />
-                          </div>
-                        </Link>
-                      );
-                    })}
+                        </div>
+                      ))
+                    )}
                   </div>
-                )}
-              </section>
+                </section>
+              ) : (
+                /* ── Recent Orders ── */
+                <section className="rounded-3xl border border-blue-100 bg-white shadow-sm overflow-hidden">
+                  <div className="p-5 md:p-6 border-b border-slate-100 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="h-9 w-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                        <Package className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <h3 className="font-black text-lg text-slate-900">Recent Orders</h3>
+                        <p className="text-xs text-slate-400">Your latest {isVendor ? 'vendor' : ''} orders</p>
+                      </div>
+                    </div>
+                    <Link href={isVendor ? '/vendor/orders' : '/orders'} className="text-sm font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1 transition-colors">
+                      View All <ChevronRight className="h-4 w-4" />
+                    </Link>
+                  </div>
+
+                  {isLoading ? (
+                    <div className="flex items-center justify-center py-16">
+                      <Loader2 className="w-8 h-8 text-blue-400 animate-spin" />
+                    </div>
+                  ) : recentOrders.length === 0 ? (
+                    <div className="py-16 text-center">
+                      <div className="h-16 w-16 rounded-2xl bg-slate-50 text-slate-300 flex items-center justify-center mx-auto mb-4">
+                        <ShoppingBag className="h-8 w-8" />
+                      </div>
+                      <p className="font-bold text-slate-700 mb-1">No orders yet</p>
+                      <p className="text-sm text-slate-400 mb-6">
+                        {isVendor ? 'Orders from customers will appear here' : 'Browse our collection and find something you love'}
+                      </p>
+                      <Link href={isVendor ? '/vendor/dashboard' : '/products'} className="h-10 px-6 rounded-full bg-blue-600 text-white font-semibold text-sm hover:bg-blue-700 transition-colors inline-flex items-center gap-2">
+                        {isVendor ? 'Go to Dashboard' : 'Shop Now'} <ArrowUpRight className="h-3.5 w-3.5" />
+                      </Link>
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-slate-50">
+                      {recentOrders.map((order) => {
+                        const config = statusConfig[order.status] || statusConfig.placed;
+                        const StatusIcon = config.icon;
+                        const itemCount = order.products.reduce((s, p) => s + p.quantity, 0);
+                        return (
+                          <Link key={order._id} href={isVendor ? '/vendor/orders' : '/orders'} className="flex items-center gap-4 p-5 md:p-6 hover:bg-slate-50/50 transition-colors group cursor-pointer">
+                            <div className={`h-11 w-11 rounded-xl ${config.bg} ${config.color} flex items-center justify-center shrink-0`}>
+                              <StatusIcon className="h-5 w-5" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-0.5">
+                                <p className="font-bold text-sm text-slate-900">Order #{order._id.slice(-6).toUpperCase()}</p>
+                                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold capitalize ${config.bg} ${config.color} ${config.border} border`}>
+                                  {order.status}
+                                </span>
+                              </div>
+                              <p className="text-xs text-slate-400">
+                                {itemCount} item{itemCount !== 1 ? 's' : ''} · {new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                              </p>
+                            </div>
+                            <div className="text-right shrink-0">
+                              <p className="font-black text-slate-900">₹{order.totalAmount.toLocaleString('en-IN')}</p>
+                              <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-blue-500 transition-colors ml-auto mt-1" />
+                            </div>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
+                </section>
+              )}
 
               {/* ── Sidebar ── */}
               <div className="space-y-5">
@@ -451,5 +609,17 @@ export default function ProfilePage() {
         )}
       </main>
     </div>
+  );
+}
+
+export default function ProfilePage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-[50vh] items-center justify-center">
+        <Loader2 className="w-8 h-8 text-blue-400 animate-spin" />
+      </div>
+    }>
+      <ProfilePageContent />
+    </Suspense>
   );
 }
