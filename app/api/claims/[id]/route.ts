@@ -4,6 +4,7 @@ import { connectDB } from '@/lib/db';
 import Claim from '@/lib/models/Claim';
 import Order from '@/lib/models/Order';
 import { createErrorResponse, createSuccessResponse, getTokenFromRequest, verifyToken } from '@/lib/utils/auth';
+import { createNotification } from '@/lib/utils/notifications';
 
 export async function GET(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
@@ -137,6 +138,15 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
     }
 
     await claim.save();
+
+    // Trigger notification for the buyer
+    await createNotification(
+      claim.userId,
+      'DOA Claim Status Updated',
+      `Your DOA claim for Order #${claim.orderId.toString().toUpperCase().slice(-6)} has been ${status}.`,
+      'claim',
+      '/profile'
+    );
 
     return createSuccessResponse({
       message: 'Claim processed successfully',

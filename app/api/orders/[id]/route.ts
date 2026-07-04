@@ -1,6 +1,7 @@
 import { connectDB } from '@/lib/db';
 import Order from '@/lib/models/Order';
 import { createErrorResponse, createSuccessResponse, getTokenFromRequest, verifyToken } from '@/lib/utils/auth';
+import { createNotification } from '@/lib/utils/notifications';
 import { NextRequest } from 'next/server';
 import mongoose from 'mongoose';
 
@@ -99,6 +100,15 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
     if (trackingLink !== undefined) order.trackingLink = trackingLink;
     
     await order.save();
+
+    // Trigger notification for the buyer
+    await createNotification(
+      order.userId,
+      'Order Status Updated',
+      `Your order #${order._id.toString().toUpperCase().slice(-6)} status has been updated to: ${status}.`,
+      'order_status',
+      '/orders'
+    );
 
     return createSuccessResponse({
       message: 'Order updated successfully',

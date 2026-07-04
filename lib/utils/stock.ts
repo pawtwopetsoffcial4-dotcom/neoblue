@@ -1,4 +1,5 @@
 import Product from '@/lib/models/Product';
+import { createNotification } from '@/lib/utils/notifications';
 
 /**
  * Decrements the stockQuantity and increments the soldQuantity for all products in a paid/placed order.
@@ -35,6 +36,24 @@ export async function decrementStockForOrder(order: any) {
     // Set flag to prevent double-decrementing stock
     order.stockDecremented = true;
     await order.save();
+
+    // Trigger notification for the vendor
+    await createNotification(
+      order.vendorId,
+      'New Order Received!',
+      `You have received a new order #${order._id.toString().toUpperCase().slice(-6)} for ₹${order.totalAmount.toFixed(2)}.`,
+      'new_order',
+      '/vendor/orders'
+    );
+
+    // Trigger notification for the buyer
+    await createNotification(
+      order.userId,
+      'Order Confirmed!',
+      `Your order #${order._id.toString().toUpperCase().slice(-6)} of ₹${order.totalAmount.toFixed(2)} has been placed successfully.`,
+      'order_status',
+      '/orders'
+    );
   } catch (error) {
     console.error(`Failed to decrement stock for order ${order._id}:`, error);
   }

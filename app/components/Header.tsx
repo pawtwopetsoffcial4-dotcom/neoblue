@@ -12,6 +12,7 @@ import {
 import { useCart } from '@/lib/hooks/useCart';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useMode } from '@/lib/hooks/useMode';
+import NotificationBell from './NotificationBell';
 
 type HeaderProps = {
   cartCount?: number;
@@ -159,6 +160,9 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
           >
             <Search className="h-4.5 w-4.5" />
           </button>
+
+          {/* Real-time Notification Bell */}
+          <NotificationBell />
           
           {/* Shopping Bag / Cart */}
           <Link 

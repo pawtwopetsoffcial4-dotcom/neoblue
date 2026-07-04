@@ -3,6 +3,7 @@ import { connectDB } from '@/lib/db';
 import Claim from '@/lib/models/Claim';
 import Order from '@/lib/models/Order';
 import { createErrorResponse, createSuccessResponse, getTokenFromRequest, verifyToken } from '@/lib/utils/auth';
+import { createNotification } from '@/lib/utils/notifications';
 
 export async function POST(request: NextRequest) {
   try {
@@ -96,6 +97,24 @@ export async function POST(request: NextRequest) {
       description,
       status: 'pending',
     });
+
+    // Trigger notification for the vendor
+    await createNotification(
+      order.vendorId,
+      'New DOA Claim Filed!',
+      `A buyer has filed a DOA claim for Order #${orderId.toUpperCase().slice(-6)}.`,
+      'claim',
+      '/vendor/claims'
+    );
+
+    // Trigger notification for the buyer
+    await createNotification(
+      payload.userId,
+      'DOA Claim Submitted',
+      `Your DOA claim for Order #${orderId.toUpperCase().slice(-6)} has been submitted successfully.`,
+      'claim',
+      '/profile'
+    );
 
     return createSuccessResponse(
       {
