@@ -473,6 +473,7 @@ export default function VendorAddProductPage() {
                 >
                   <option value="adult">Adult</option>
                   <option value="semi-adult">Semi adult</option>
+                  <option value="juvenile">Juvenile</option>
                   <option value="first-season-breeding-pair">First season breeding pair</option>
                 </select>
               </div>
