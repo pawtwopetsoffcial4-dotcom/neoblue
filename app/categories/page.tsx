@@ -4,7 +4,7 @@ import { ArrowUpRight } from 'lucide-react';
 import { connectDB } from '@/lib/db';
 import Product from '@/lib/models/Product';
 import StoreConfig from '@/lib/models/StoreConfig';
-import { PRODUCT_CATEGORIES } from '@/lib/catalog';
+import { PRODUCT_CATEGORIES, getCategoryImage } from '@/lib/catalog';
 import type { Metadata } from 'next';
 import CategoriesClient from './CategoriesClient';
 
@@ -45,7 +45,7 @@ export default async function CategoriesPage() {
     const cleaned = String(category);
     const categoryProducts = products.filter((p) => p.category === cleaned);
     const subcategories = Array.from(new Set(categoryProducts.map((p) => p.subcategory).filter(Boolean))) as string[];
-    const image = categoryProducts.find((p) => Array.isArray(p.images) && p.images.length > 0)?.images?.[0] ?? 'https://img.freepik.com/free-photo/beautiful-fish-undersea_23-2150737797.jpg?w=800';
+    const image = config?.categoryImages?.[cleaned] || getCategoryImage(cleaned) || categoryProducts.find((p) => Array.isArray(p.images) && p.images.length > 0)?.images?.[0] || 'https://img.freepik.com/free-photo/beautiful-fish-undersea_23-2150737797.jpg?w=800';
 
     return {
       slug: toSlug(cleaned),

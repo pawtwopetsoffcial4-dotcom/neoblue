@@ -29,7 +29,7 @@ export async function GET(_request: NextRequest) {
 
     const categoriesWithImages = categories.map((name) => ({
       name,
-      image: getCategoryImage(name),
+      image: config?.categoryImages?.[name] || getCategoryImage(name),
     }));
 
     return createSuccessResponse({
