@@ -29,7 +29,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [unreadNotifications, setUnreadNotifications] = useState(0);
-  const [knownNotificationIds, setKnownNotificationIds] = useState<string[]>([]);
+  const knownNotificationIdsRef = useRef<string[]>([]);
   
   const profileDropdownRef = useRef<HTMLDivElement>(null);
   const visibleCartCount = contextCartCount || cartCount;
@@ -38,7 +38,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
   useEffect(() => {
     if (!user) {
       setUnreadNotifications(0);
-      setKnownNotificationIds([]);
+      knownNotificationIdsRef.current = [];
       return;
     }
 
@@ -52,8 +52,8 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
           setUnreadNotifications(unreads.length);
 
           // Desktop popup support
-          if (knownNotificationIds.length > 0 && typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
-            const knownSet = new Set(knownNotificationIds);
+          if (knownNotificationIdsRef.current.length > 0 && typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+            const knownSet = new Set(knownNotificationIdsRef.current);
             const freshUnreads = unreads.filter((n: any) => !knownSet.has(n._id));
             if (freshUnreads.length > 0) {
               freshUnreads.forEach((n: any) => {
@@ -64,7 +64,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
               });
             }
           }
-          setKnownNotificationIds(list.map((n: any) => n._id));
+          knownNotificationIdsRef.current = list.map((n: any) => n._id);
         }
       } catch (error) {
         console.error('Error fetching unread count:', error);
@@ -74,7 +74,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
     fetchNotifications();
     const timer = setInterval(fetchNotifications, 15000);
     return () => clearInterval(timer);
-  }, [user, knownNotificationIds]);
+  }, [user]);
 
   // Close profile dropdown when clicking outside
   useEffect(() => {
