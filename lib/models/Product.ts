@@ -18,6 +18,8 @@ export interface IProduct extends Document {
   soldQuantity?: number;
   approvalStatus: 'pending' | 'approved' | 'rejected';
   scientific?: string;
+  size?: string;
+  ageCategory?: string;
   originalPrice?: number;
   discountPercentage?: number;
   perPiecePrice?: number;
@@ -231,6 +233,14 @@ const productSchema = new Schema<IProduct>(
     isNewArrival: {
       type: Boolean,
       default: false,
+    },
+    size: {
+      type: String,
+      default: '',
+    },
+    ageCategory: {
+      type: String,
+      default: 'adult',
     },
   },
   { timestamps: true }

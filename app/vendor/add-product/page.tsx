@@ -29,6 +29,7 @@ export default function VendorAddProductPage() {
     price: '',
     pricingType: 'piece' as 'piece' | 'pair',
     stockQuantity: '',
+    size: '',
     ageCategory: 'adult',
     category: 'Guppies',
     waterType: 'Freshwater',
@@ -244,6 +245,7 @@ export default function VendorAddProductPage() {
         perPiecePrice: form.pricingType === 'piece' ? Number(form.price) : undefined,
         perPairPrice: form.pricingType === 'pair' ? Number(form.price) : undefined,
         stockQuantity: form.stockQuantity ? Number(form.stockQuantity) : undefined,
+        size: form.size,
         ageCategory: form.ageCategory,
         phMin: form.phMin ? Number(form.phMin) : undefined,
         phMax: form.phMax ? Number(form.phMax) : undefined,
@@ -476,6 +478,17 @@ export default function VendorAddProductPage() {
                   <option value="juvenile">Juvenile</option>
                   <option value="first-season-breeding-pair">First season breeding pair</option>
                 </select>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Product Size (e.g. 2 inches, Medium, 5 cm)</label>
+                <input
+                  type="text"
+                  className="h-11 px-4 rounded-xl border border-slate-200 outline-hidden focus:ring-2 focus:ring-blue-500 text-sm font-medium"
+                  placeholder="e.g. 2 inches, Medium, 5 cm"
+                  value={form.size}
+                  onChange={(e) => setForm((prev) => ({ ...prev, size: e.target.value }))}
+                />
               </div>
 
               <div className="flex flex-col gap-1.5">
@@ -834,7 +847,11 @@ export default function VendorAddProductPage() {
                 </div>
                 <div>
                   <p className="text-[10px] uppercase text-slate-400 font-bold">Age Category</p>
-                  <p className="text-slate-900 font-semibold mt-0.5">{form.ageCategory}</p>
+                  <p className="text-slate-900 font-semibold mt-0.5 capitalize">{form.ageCategory}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] uppercase text-slate-400 font-bold">Size</p>
+                  <p className="text-slate-900 font-semibold mt-0.5">{form.size || 'N/A'}</p>
                 </div>
                 <div>
                   <p className="text-[10px] uppercase text-slate-400 font-bold">Listing Price</p>

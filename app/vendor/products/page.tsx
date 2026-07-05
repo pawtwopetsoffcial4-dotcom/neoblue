@@ -23,6 +23,8 @@ type EditProductForm = {
   discountPercentage: string;
   stockQuantity: string;
   soldQuantity: string;
+  size: string;
+  ageCategory: string;
   inStock: boolean;
   deliverNorth: boolean;
   deliverSouth: boolean;
@@ -154,6 +156,8 @@ export default function VendorProductsPage() {
       discountPercentage: product.discountPercentage != null ? String(product.discountPercentage) : '',
       stockQuantity: product.stockQuantity != null ? String(product.stockQuantity) : '0',
       soldQuantity: product.soldQuantity != null ? String(product.soldQuantity) : '0',
+      size: product.size ?? '',
+      ageCategory: product.ageCategory ?? 'adult',
       inStock: product.inStock,
       deliverNorth: product.deliverNorth !== false,
       deliverSouth: product.deliverSouth !== false,
@@ -212,6 +216,8 @@ export default function VendorProductsPage() {
         stockQuantity: Number(editForm.stockQuantity) || 0,
         soldQuantity: Number(editForm.soldQuantity) || 0,
         inStock: (Number(editForm.stockQuantity) || 0) > 0,
+        size: editForm.size,
+        ageCategory: editForm.ageCategory,
         deliverNorth: editForm.deliverNorth,
         deliverSouth: editForm.deliverSouth,
         phMin: Number(editForm.phMin),
@@ -479,6 +485,22 @@ export default function VendorProductsPage() {
                   value={editForm.tag}
                   onChange={(event) => setEditForm((current) => current ? { ...current, tag: event.target.value } : current)}
                 />
+                <input
+                  className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Product Size (e.g. 2 inches, Medium)"
+                  value={editForm.size}
+                  onChange={(event) => setEditForm((current) => current ? { ...current, size: event.target.value } : current)}
+                />
+                <select
+                  className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500 bg-white text-sm"
+                  value={editForm.ageCategory}
+                  onChange={(event) => setEditForm((current) => current ? { ...current, ageCategory: event.target.value } : current)}
+                >
+                  <option value="adult">Adult</option>
+                  <option value="semi-adult">Semi adult</option>
+                  <option value="juvenile">Juvenile</option>
+                  <option value="first-season-breeding-pair">First season breeding pair</option>
+                </select>
                 <input
                   type="number"
                   step="0.1"

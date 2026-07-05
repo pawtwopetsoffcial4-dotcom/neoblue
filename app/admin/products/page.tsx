@@ -44,6 +44,8 @@ type EditFormState = {
   scientific: string;
   stockQuantity: string;
   soldQuantity: string;
+  size: string;
+  ageCategory: string;
   inStock: boolean;
   approvalStatus: 'pending' | 'approved' | 'rejected';
   images: string[];
@@ -129,6 +131,8 @@ export default function AdminProductsPage() {
       scientific: product.scientific || '',
       stockQuantity: product.stockQuantity != null ? String(product.stockQuantity) : '0',
       soldQuantity: product.soldQuantity != null ? String(product.soldQuantity) : '0',
+      size: (product as any).size ?? '',
+      ageCategory: (product as any).ageCategory ?? 'adult',
       inStock: product.inStock,
       approvalStatus: product.approvalStatus ?? 'pending',
       images: product.images?.length ? [...product.images] : [],
@@ -220,6 +224,8 @@ export default function AdminProductsPage() {
         stockQuantity: Number(editForm.stockQuantity) || 0,
         soldQuantity: Number(editForm.soldQuantity) || 0,
         inStock: (Number(editForm.stockQuantity) || 0) > 0,
+        size: editForm.size,
+        ageCategory: editForm.ageCategory,
         approvalStatus: editForm.approvalStatus,
         isTrending: editForm.isTrending,
         isNewArrival: editForm.isNewArrival,
@@ -476,7 +482,22 @@ export default function AdminProductsPage() {
                   value={editForm.tag}
                   onChange={(event) => setEditForm((current) => current ? { ...current, tag: event.target.value } : current)}
                 />
-
+                <input
+                  className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Product Size (e.g. 2 inches, Medium)"
+                  value={editForm.size}
+                  onChange={(event) => setEditForm((current) => current ? { ...current, size: event.target.value } : current)}
+                />
+                <select
+                  className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500 bg-white text-sm"
+                  value={editForm.ageCategory}
+                  onChange={(event) => setEditForm((current) => current ? { ...current, ageCategory: event.target.value } : current)}
+                >
+                  <option value="adult">Adult</option>
+                  <option value="semi-adult">Semi adult</option>
+                  <option value="juvenile">Juvenile</option>
+                  <option value="first-season-breeding-pair">First season breeding pair</option>
+                </select>
                 <select
                   className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
                   value={editForm.category}

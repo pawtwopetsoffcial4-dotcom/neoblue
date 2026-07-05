@@ -26,6 +26,8 @@ export type MarketplaceProduct = {
   soldQuantity?: number;
   approvalStatus?: 'pending' | 'approved' | 'rejected';
   scientific?: string;
+  size?: string;
+  ageCategory?: string;
   weightPerPiece?: number;
   originalPrice?: number;
   discountPercentage?: number;

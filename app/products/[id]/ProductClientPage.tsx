@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import Link from 'next/link';
-import { ShoppingBag, Star, Truck, Shield, Droplets, Thermometer, Info, MessageSquare, ChevronRight, ChevronDown, Store, CheckCircle2, Search, X, ShieldAlert, Sparkles, Scale, Heart, Package, Leaf } from 'lucide-react';
+import { ShoppingBag, Star, Truck, Shield, Droplets, Thermometer, Info, MessageSquare, ChevronRight, ChevronDown, Store, CheckCircle2, Search, X, ShieldAlert, Sparkles, Scale, Heart, Package, Leaf, Ruler, User } from 'lucide-react';
 import ReviewList from '@/app/components/ReviewList';
 import ReviewForm from '@/app/components/ReviewForm';
 import ReviewStars from '@/app/components/ReviewStars';
@@ -327,6 +327,21 @@ export default function ProductClientPage({
               ) : null}
             </div>
 
+            {(product.size || product.ageCategory) && (
+              <div className="flex flex-wrap gap-2.5 pt-3 border-t border-slate-100">
+                {product.size && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-indigo-50 border border-indigo-100 text-xs font-bold text-indigo-700">
+                    📐 Size: {product.size}
+                  </span>
+                )}
+                {product.ageCategory && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-pink-50 border border-pink-100 text-xs font-bold text-pink-700 capitalize">
+                    🐟 Age: {product.ageCategory}
+                  </span>
+                )}
+              </div>
+            )}
+
             {/* Quantity & Cart */}
             <div className="flex items-center gap-3">
               <div className="flex items-center border border-slate-200 rounded-xl overflow-hidden">
@@ -451,6 +466,8 @@ export default function ProductClientPage({
                     { title: "Temperament", value: product.temperament || 'Peaceful', icon: ShieldAlert, color: "text-amber-600 bg-amber-50" },
                     { title: "Category", value: product.category, icon: Store, color: "text-purple-600 bg-purple-50" },
                     ...(product.subcategory ? [{ title: "Subcategory", value: product.subcategory, icon: Store, color: "text-purple-600 bg-purple-50" }] : []),
+                    ...(product.size ? [{ title: "Size", value: product.size, icon: Ruler, color: "text-indigo-600 bg-indigo-50" }] : []),
+                    ...(product.ageCategory ? [{ title: "Age Category", value: product.ageCategory, icon: User, color: "text-pink-600 bg-pink-50" }] : []),
                     { title: "Weight/Piece", value: `${product.weightPerPiece || 250} gm`, icon: Scale, color: "text-slate-600 bg-slate-100" },
                     { title: "Stock", value: product.inStock ? 'In Stock' : 'Out of Stock', icon: CheckCircle2, color: product.inStock ? "text-emerald-600 bg-emerald-50" : "text-rose-600 bg-rose-50" },
                   ].map((spec, i) => (
