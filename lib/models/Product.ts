@@ -16,6 +16,7 @@ export interface IProduct extends Document {
   inStock: boolean;
   stockQuantity?: number;
   soldQuantity?: number;
+  soldAfterLastStockUpdate?: number;
   approvalStatus: 'pending' | 'approved' | 'rejected';
   scientific?: string;
   size?: string;
@@ -241,6 +242,10 @@ const productSchema = new Schema<IProduct>(
     ageCategory: {
       type: String,
       default: 'adult',
+    },
+    soldAfterLastStockUpdate: {
+      type: Number,
+      default: 0,
     },
   },
   { timestamps: true }

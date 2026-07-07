@@ -284,9 +284,14 @@ export default function VendorProductsPage() {
                       <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">Price</p>
                       <p className="mt-1 font-bold text-slate-900">₹{product.price.toFixed(2)}</p>
                     </div>
-                    <div className="rounded-xl bg-white px-3 py-2">
+                    <div className="rounded-xl bg-white px-3 py-2 col-span-2 sm:col-span-1">
                       <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">Stock</p>
-                      <p className="mt-1 font-bold text-slate-900">{product.stockQuantity ?? 0} ({product.soldQuantity ?? 0} sold)</p>
+                      <p className="mt-1 font-bold text-slate-900">
+                        {product.stockQuantity ?? 0}
+                        <span className="block text-[10px] text-slate-500 font-medium normal-case mt-0.5">
+                          {product.soldQuantity ?? 0} total sold • {(product as any).soldAfterLastStockUpdate ?? 0} sold since reload
+                        </span>
+                      </p>
                     </div>
                   </div>
 
@@ -327,7 +332,12 @@ export default function VendorProductsPage() {
                       <td className="px-5 py-4 font-semibold text-slate-900">{product.title}</td>
                       <td className="px-5 py-4 text-slate-600">{product.category}</td>
                       <td className="px-5 py-4 text-slate-900">₹{product.price.toFixed(2)}</td>
-                      <td className="px-5 py-4 text-slate-600">{product.stockQuantity ?? 0} ({product.soldQuantity ?? 0} sold)</td>
+                      <td className="px-5 py-4 text-slate-600">
+                        <span className="font-semibold text-slate-900">{product.stockQuantity ?? 0}</span>
+                        <span className="block text-[11px] text-slate-500">
+                          {product.soldQuantity ?? 0} total sold • {(product as any).soldAfterLastStockUpdate ?? 0} sold since reload
+                        </span>
+                      </td>
                       <td className="px-5 py-4 text-right">
                           <div className="inline-flex gap-2">
                           <button

@@ -23,6 +23,7 @@ export async function decrementStockForOrder(order: any) {
         
         // Increment total sold units
         product.soldQuantity = (product.soldQuantity || 0) + item.quantity;
+        product.soldAfterLastStockUpdate = (product.soldAfterLastStockUpdate || 0) + item.quantity;
 
         // Auto toggle inStock flag
         if (nextStock <= 0) {

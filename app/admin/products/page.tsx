@@ -365,7 +365,7 @@ export default function AdminProductsPage() {
                     <p className="text-sm text-slate-500">
                       ₹{product.price.toFixed(2)} • {product.category} • {product.waterType}
                       {product.stockQuantity !== undefined && (
-                        <span> • Stock: {product.stockQuantity} ({product.soldQuantity || 0} sold)</span>
+                        <span> • Stock: {product.stockQuantity} ({product.soldQuantity || 0} total sold, {(product as any).soldAfterLastStockUpdate || 0} sold since reload)</span>
                       )}
                     </p>
                     <button

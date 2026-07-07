@@ -24,6 +24,7 @@ export type MarketplaceProduct = {
   inStock: boolean;
   stockQuantity?: number;
   soldQuantity?: number;
+  soldAfterLastStockUpdate?: number;
   approvalStatus?: 'pending' | 'approved' | 'rejected';
   scientific?: string;
   size?: string;

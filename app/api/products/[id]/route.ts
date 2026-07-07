@@ -71,6 +71,9 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
       if (isNaN(stock) || stock < 0) {
         return createErrorResponse('Invalid stockQuantity', 400);
       }
+      if (product.stockQuantity !== stock) {
+        updateData.soldAfterLastStockUpdate = 0;
+      }
       updateData.stockQuantity = stock;
       updateData.inStock = stock > 0;
     }
