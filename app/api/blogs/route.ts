@@ -50,6 +50,7 @@ export async function GET(request: NextRequest) {
     // Access control
     if (!isAdmin) {
       query.isPublished = true;
+      query.publishedAt = { $lte: new Date() };
     } else if (published === 'true') {
       query.isPublished = true;
     } else if (published === 'false') {
@@ -166,6 +167,7 @@ export async function POST(request: NextRequest) {
     const seoTitle = String(body.seoTitle || title).trim();
     const seoDescription = String(body.seoDescription || excerpt).trim();
     const seoImage = String(body.seoImage || coverImage).trim();
+    const publishedAt = body.publishedAt ? new Date(body.publishedAt) : new Date();
 
     if (!title || !excerpt || !content || !coverImage) {
       return createErrorResponse('Please provide title, excerpt, content, and cover image', 400);
@@ -187,6 +189,7 @@ export async function POST(request: NextRequest) {
       tags,
       featured,
       isPublished,
+      publishedAt,
       readTime: Number.isNaN(readTime) ? 5 : readTime,
       seoTitle,
       seoDescription,

@@ -17,6 +17,7 @@ type AdminBlog = {
   author: string;
   featured: boolean;
   isPublished: boolean;
+  publishedAt?: string;
   readTime: number;
   createdAt?: string;
   updatedAt?: string;
@@ -33,6 +34,7 @@ type BlogFormState = {
   author: string;
   featured: boolean;
   isPublished: boolean;
+  publishedAt: string;
   readTime: string;
 };
 
@@ -42,6 +44,12 @@ const slugify = (value: string) =>
     .trim()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
+
+const getLocalDatetimeString = (dateInput?: string | Date) => {
+  const d = dateInput ? new Date(dateInput) : new Date();
+  const pad = (num: number) => String(num).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
 
 export default function AdminBlogsPage() {
   const [blogs, setBlogs] = useState<AdminBlog[]>([]);
@@ -61,6 +69,7 @@ export default function AdminBlogsPage() {
     author: 'Neoblue Team',
     featured: false,
     isPublished: true,
+    publishedAt: getLocalDatetimeString(),
     readTime: '5',
   });
   const [isCreating, setIsCreating] = useState(false);
@@ -109,6 +118,7 @@ export default function AdminBlogsPage() {
         author: 'Neoblue Team',
         featured: false,
         isPublished: true,
+        publishedAt: getLocalDatetimeString(),
         readTime: '5',
       });
       await loadBlogs();
@@ -133,6 +143,7 @@ export default function AdminBlogsPage() {
       author: blog.author,
       featured: blog.featured,
       isPublished: blog.isPublished,
+      publishedAt: getLocalDatetimeString(blog.publishedAt),
       readTime: String(blog.readTime ?? 5),
     });
   };
@@ -240,6 +251,10 @@ export default function AdminBlogsPage() {
           <input className="h-12 text-base px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500" placeholder="Slug" value={createForm.slug} onChange={(event) => setCreateForm((current) => ({ ...current, slug: event.target.value }))} />
           <input className="h-12 text-base px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500" placeholder="Author" value={createForm.author} onChange={(event) => setCreateForm((current) => ({ ...current, author: event.target.value }))} />
           <input className="h-12 text-base px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500" placeholder="Read time (minutes)" type="number" min={1} value={createForm.readTime} onChange={(event) => setCreateForm((current) => ({ ...current, readTime: event.target.value }))} />
+          <div className="md:col-span-2 flex flex-col gap-1 rounded-2xl border border-blue-100 bg-blue-50/20 p-3">
+            <label className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">Publish Date & Time (Schedule future blogs)</label>
+            <input type="datetime-local" className="h-11 text-base px-4 rounded-xl border border-blue-200 bg-white outline-none focus:ring-2 focus:ring-blue-500" value={createForm.publishedAt} onChange={(event) => setCreateForm((current) => ({ ...current, publishedAt: event.target.value }))} />
+          </div>
           <input className="md:col-span-2 h-12 text-base px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500" placeholder="Excerpt" value={createForm.excerpt} onChange={(event) => setCreateForm((current) => ({ ...current, excerpt: event.target.value }))} />
           <textarea className="md:col-span-2 min-h-40 text-base px-4 py-3 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500" placeholder="Content" value={createForm.content} onChange={(event) => setCreateForm((current) => ({ ...current, content: event.target.value }))} />
           <input className="md:col-span-2 h-12 text-base px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500" placeholder="Keywords, separated by commas" value={createForm.keywords} onChange={(event) => setCreateForm((current) => ({ ...current, keywords: event.target.value }))} />
@@ -321,7 +336,19 @@ export default function AdminBlogsPage() {
                 </div>
                 <p className="font-bold text-slate-900 text-lg">{blog.title}</p>
                 <p className="text-sm text-slate-600 mt-1">{blog.excerpt}</p>
-                <p className="text-xs text-slate-500 mt-2">/{blog.slug} • {blog.author} • {blog.readTime} min read</p>
+                <p className="text-xs text-slate-500 mt-2">
+                  /{blog.slug} • {blog.author} • {blog.readTime} min read
+                  {blog.publishedAt && new Date(blog.publishedAt) > new Date() && (
+                    <span className="ml-2 font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md">
+                      Scheduled: {new Date(blog.publishedAt).toLocaleString()}
+                    </span>
+                  )}
+                  {blog.publishedAt && new Date(blog.publishedAt) <= new Date() && (
+                    <span className="ml-2 font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">
+                      Published: {new Date(blog.publishedAt).toLocaleString()}
+                    </span>
+                  )}
+                </p>
                 <div className="flex flex-wrap gap-2 mt-3">
                   {(blog.keywords ?? []).map((keyword) => <span key={keyword} className="text-xs rounded-full bg-blue-50 border border-blue-100 text-blue-700 px-3 py-1">{keyword}</span>)}
                 </div>
@@ -357,6 +384,10 @@ export default function AdminBlogsPage() {
                 <input className="h-12 text-base px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500" value={editForm.slug} onChange={(event) => setEditForm((current) => current ? { ...current, slug: event.target.value } : current)} placeholder="Slug" />
                 <input className="h-12 text-base px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500" value={editForm.author} onChange={(event) => setEditForm((current) => current ? { ...current, author: event.target.value } : current)} placeholder="Author" />
                 <input className="h-12 text-base px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500" type="number" min={1} value={editForm.readTime} onChange={(event) => setEditForm((current) => current ? { ...current, readTime: event.target.value } : current)} placeholder="Read time" />
+                <div className="md:col-span-2 flex flex-col gap-1 rounded-2xl border border-blue-100 bg-blue-50/20 p-3">
+                  <label className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">Publish Date & Time (Schedule future blogs)</label>
+                  <input type="datetime-local" className="h-11 text-base px-4 rounded-xl border border-blue-200 bg-white outline-none focus:ring-2 focus:ring-blue-500" value={editForm.publishedAt} onChange={(event) => setEditForm((current) => current ? { ...current, publishedAt: event.target.value } : current)} />
+                </div>
                 <input className="md:col-span-2 h-12 text-base px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500" value={editForm.excerpt} onChange={(event) => setEditForm((current) => current ? { ...current, excerpt: event.target.value } : current)} placeholder="Excerpt" />
                 <textarea className="md:col-span-2 min-h-40 text-base px-4 py-3 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500" value={editForm.content} onChange={(event) => setEditForm((current) => current ? { ...current, content: event.target.value } : current)} placeholder="Content" />
                 <input className="md:col-span-2 h-12 text-base px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500" value={editForm.keywords} onChange={(event) => setEditForm((current) => current ? { ...current, keywords: event.target.value } : current)} placeholder="Keywords, separated by commas" />

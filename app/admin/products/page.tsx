@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { X } from 'lucide-react';
+import { X, Plus, Trash2 } from 'lucide-react';
 import { CldUploadWidget } from 'next-cloudinary';
 import { apiClient } from '@/lib/api-client';
 
@@ -62,6 +62,9 @@ export default function AdminProductsPage() {
   const [editingProduct, setEditingProduct] = useState<AdminProduct | null>(null);
   const [editForm, setEditForm] = useState<EditFormState | null>(null);
   const [isSavingEdit, setIsSavingEdit] = useState(false);
+  const [editFaq, setEditFaq] = useState<Array<{ q: string; a: string }>>([]);
+  const [editNewQuestion, setEditNewQuestion] = useState('');
+  const [editNewAnswer, setEditNewAnswer] = useState('');
   const [quickEditingPrice, setQuickEditingPrice] = useState<string | null>(null);
   const [quickPriceValue, setQuickPriceValue] = useState<string>('');
   const [isSavingPrice, setIsSavingPrice] = useState(false);
@@ -121,6 +124,9 @@ export default function AdminProductsPage() {
 
   const openEditProduct = (product: AdminProduct) => {
     setEditingProduct(product);
+    setEditFaq(Array.isArray((product as any).faq) ? (product as any).faq : []);
+    setEditNewQuestion('');
+    setEditNewAnswer('');
     setEditForm({
       title: product.title,
       description: product.description,
@@ -144,6 +150,9 @@ export default function AdminProductsPage() {
   const closeEditProduct = () => {
     setEditingProduct(null);
     setEditForm(null);
+    setEditFaq([]);
+    setEditNewQuestion('');
+    setEditNewAnswer('');
     setIsSavingEdit(false);
   };
 
@@ -229,6 +238,7 @@ export default function AdminProductsPage() {
         approvalStatus: editForm.approvalStatus,
         isTrending: editForm.isTrending,
         isNewArrival: editForm.isNewArrival,
+        faq: editFaq,
       });
       await loadProducts();
       setMessage('Product updated successfully');
@@ -584,6 +594,66 @@ export default function AdminProductsPage() {
                 value={editForm.description}
                 onChange={(event) => setEditForm((current) => current ? { ...current, description: event.target.value } : current)}
               />
+
+              {/* Q&A / FAQ Section */}
+              <div className="rounded-2xl border border-slate-200 p-5 bg-white space-y-4">
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                    ❓ Product Q&A / FAQ Section
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-0.5">Type custom questions and answers to show directly on this product page.</p>
+                </div>
+
+                {editFaq.length > 0 && (
+                  <div className="space-y-2.5 max-h-60 overflow-y-auto pr-1">
+                    {editFaq.map((item, idx) => (
+                      <div key={idx} className="flex items-start justify-between gap-3 p-3.5 bg-slate-50 rounded-xl border border-slate-200 text-xs">
+                        <div className="space-y-1 flex-1 min-w-0">
+                          <p className="font-bold text-slate-800">Q: {item.q}</p>
+                          <p className="text-slate-600 mt-0.5">A: {item.a}</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setEditFaq(prev => prev.filter((_, i) => i !== idx))}
+                          className="text-rose-500 hover:text-rose-700 p-1 cursor-pointer shrink-0 transition-colors"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div className="flex flex-col gap-2 pt-2">
+                  <input
+                    type="text"
+                    placeholder="Question (e.g. Is this shrimp community-safe?)"
+                    value={editNewQuestion}
+                    onChange={(e) => setEditNewQuestion(e.target.value)}
+                    className="h-10 px-3 rounded-lg border border-slate-200 outline-none text-xs focus:ring-2 focus:ring-blue-500"
+                  />
+                  <textarea
+                    placeholder="Answer (e.g. Yes, they do great with small, peaceful fish...)"
+                    value={editNewAnswer}
+                    onChange={(e) => setEditNewAnswer(e.target.value)}
+                    rows={2}
+                    className="p-3 rounded-lg border border-slate-200 outline-none text-xs focus:ring-2 focus:ring-blue-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (editNewQuestion.trim() && editNewAnswer.trim()) {
+                        setEditFaq(prev => [...prev, { q: editNewQuestion.trim(), a: editNewAnswer.trim() }]);
+                        setEditNewQuestion('');
+                        setEditNewAnswer('');
+                      }
+                    }}
+                    className="h-9 px-4 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shrink-0 cursor-pointer flex items-center justify-center gap-1.5 transition-colors self-end"
+                  >
+                    <Plus className="h-3.5 w-3.5" /> Add Q&A Item
+                  </button>
+                </div>
+              </div>
 
               <div className="space-y-3">
                 <div className="flex items-center justify-between gap-3 flex-wrap">

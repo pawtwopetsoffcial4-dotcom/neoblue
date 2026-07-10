@@ -546,12 +546,15 @@ export default function ProductClientPage({
             {activeTab === 'faq' && (
               <div className="space-y-3 max-w-3xl">
                 <h3 className="text-xl font-bold text-slate-900 mb-4">Frequently Asked Questions</h3>
-                {[
-                  { q: 'How should I acclimate this fish after delivery?', a: 'Float the bag for 20-30 minutes to equalize temperature, then drip acclimate gradually before introducing into your tank.' },
-                  { q: 'What tank conditions are recommended?', a: `Maintain stable ${product.waterType.toLowerCase()} parameters, avoid sudden pH/temperature shifts, and provide proper filtration and oxygenation.` },
-                  { q: 'Is this suitable for community tanks?', a: 'Compatibility depends on temperament and size. Match tank mates by behavior, adult size, and water requirements.' },
-                  { q: 'What if the fish arrives stressed?', a: 'Keep lights low for the first few hours, reduce handling, and monitor breathing/activity. Contact support promptly if recovery is delayed.' },
-                ].map((item, i) => (
+                {(product.faq && product.faq.length > 0
+                  ? product.faq
+                  : [
+                      { q: 'How should I acclimate this fish after delivery?', a: 'Float the bag for 20-30 minutes to equalize temperature, then drip acclimate gradually before introducing into your tank.' },
+                      { q: 'What tank conditions are recommended?', a: `Maintain stable ${product.waterType.toLowerCase()} parameters, avoid sudden pH/temperature shifts, and provide proper filtration and oxygenation.` },
+                      { q: 'Is this suitable for community tanks?', a: 'Compatibility depends on temperament and size. Match tank mates by behavior, adult size, and water requirements.' },
+                      { q: 'What if the fish arrives stressed?', a: 'Keep lights low for the first few hours, reduce handling, and monitor breathing/activity. Contact support promptly if recovery is delayed.' },
+                    ]
+                ).map((item: any, i: number) => (
                   <details key={i} className="group rounded-xl border border-slate-200 px-5 py-4 open:bg-slate-50 transition-all">
                     <summary className="cursor-pointer list-none flex items-center justify-between gap-4">
                       <span className="font-semibold text-sm text-slate-800">{item.q}</span>
@@ -721,37 +724,53 @@ export default function ProductClientPage({
             );
           })()}
 
-          {/* Recommendations */}
-          {initialRecommendations.length > 0 && (
-            <div className="space-y-3">
-              <h3 className="text-sm font-bold text-slate-900">You may also like</h3>
-              <div className="space-y-2">
-                {initialRecommendations.map(rec => (
-                  <Link key={rec._id} href={`/products/${rec._id}`} className="group flex gap-3 p-2.5 rounded-xl bg-white border border-slate-100 hover:border-slate-200 hover:shadow-sm transition-all">
-                    <div className="h-14 w-14 rounded-lg overflow-hidden shrink-0 bg-slate-100">
-                      <img
-                        src={rec.images?.[0] || 'https://images.stockcake.com/public/1/9/4/194f4315-a8d9-422b-b237-18b1e224b7a1_large/colorful-tropical-fish-stockcake.jpg'}
-                        alt={rec.title} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-                    </div>
-                    <div className="flex-1 min-w-0 flex flex-col justify-center">
-                      <h4 className="text-xs font-bold text-slate-800 truncate group-hover:text-blue-600 transition-colors">{rec.title}</h4>
-                      <p className="text-[11px] text-slate-400 mt-0.5">{rec.category} · {rec.waterType}</p>
-                      <div className="flex items-baseline gap-0.5 mt-1">
-                        <span className="text-xs font-bold text-slate-900">{formatPrice(rec.price)}</span>
-                        <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">
-                          /{rec.perPairPrice != null && typeof rec.perPairPrice === 'number' ? 'Pair' : 'Piece'}
-                        </span>
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
-
         </div>
       </div>
+
+      {/* Related Products Section at the Bottom */}
+      {initialRecommendations.length > 0 && (
+        <div className="mt-12 pt-10 border-t border-slate-200/80 space-y-5">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xl font-bold tracking-tight text-slate-900">You may also like</h3>
+            <span className="text-xs font-semibold text-blue-600 uppercase tracking-widest">Recommended Products</span>
+          </div>
+          <div className="flex flex-col gap-3.5 max-w-3xl">
+            {initialRecommendations.map(rec => (
+              <Link 
+                key={rec._id} 
+                href={`/products/${rec._id}`} 
+                className="group flex gap-4 p-4 rounded-3xl bg-white border border-slate-200/80 hover:border-blue-400 hover:shadow-lg hover:shadow-blue-500/5 transition-all duration-350"
+              >
+                <div className="h-20 w-20 rounded-2xl overflow-hidden shrink-0 bg-slate-100 border border-slate-100">
+                  <img
+                    src={rec.images?.[0] || 'https://images.stockcake.com/public/1/9/4/194f4315-a8d9-422b-b237-18b1e224b7a1_large/colorful-tropical-fish-stockcake.jpg'}
+                    alt={rec.title} 
+                    className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                </div>
+                <div className="flex-1 min-w-0 flex flex-col justify-center">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
+                      {rec.category}
+                    </span>
+                    <span className="text-[10px] font-semibold text-slate-400">
+                      {rec.waterType}
+                    </span>
+                  </div>
+                  <h4 className="text-sm font-bold text-slate-900 mt-1 truncate group-hover:text-blue-600 transition-colors">{rec.title}</h4>
+                  {rec.scientific && <p className="text-xs text-slate-400 italic font-serif truncate mt-0.5">{rec.scientific}</p>}
+                  <div className="flex items-baseline gap-1 mt-2">
+                    <span className="text-sm font-black text-slate-900">{formatPrice(rec.price)}</span>
+                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                      /{rec.perPairPrice != null && typeof rec.perPairPrice === 'number' ? 'Pair' : 'Piece'}
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
     </>
   );
 }

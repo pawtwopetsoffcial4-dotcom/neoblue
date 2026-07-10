@@ -10,6 +10,7 @@ type Props = {
 
 export default function ReviewForm({ productId, onSubmit }: Props) {
   const { token, user: authUser } = useAuth();
+  const isAdmin = authUser?.role === 'admin';
   const [rating, setRating] = useState(5);
   const [hover, setHover] = useState<number | null>(null);
   const [name, setName] = useState('');
@@ -51,7 +52,7 @@ export default function ReviewForm({ productId, onSubmit }: Props) {
       }
 
       setSuccess('Thanks — your review was submitted.');
-      setName('');
+      setName(isAdmin ? '' : (authUser?.name || ''));
       setComment('');
       setRating(5);
       onSubmit && onSubmit();
@@ -96,7 +97,23 @@ export default function ReviewForm({ productId, onSubmit }: Props) {
 
       <div>
         <label className="block text-sm font-semibold text-slate-700 mb-2">Your name</label>
-        <input value={name} onChange={(e) => setName(e.target.value)} className="w-full rounded-xl border border-slate-200 px-3 py-2 outline-none" placeholder="e.g. Anika" />
+        {isAdmin ? (
+          <input 
+            value={name} 
+            onChange={(e) => setName(e.target.value)} 
+            className="w-full rounded-xl border border-slate-200 px-3 py-2 outline-none focus:ring-1 focus:ring-blue-500" 
+            placeholder="Enter custom display name..." 
+          />
+        ) : (
+          <div className="relative">
+            <input 
+              value={name} 
+              readOnly 
+              className="w-full rounded-xl border border-slate-200 bg-slate-50 text-slate-400 cursor-not-allowed px-3 py-2 outline-none" 
+            />
+            <span className="text-[10px] text-slate-400 mt-1 block">Your review will be posted under your account name. Only administrators can use custom names.</span>
+          </div>
+        )}
       </div>
 
       <div>
@@ -108,7 +125,7 @@ export default function ReviewForm({ productId, onSubmit }: Props) {
         <button disabled={submitting} type="submit" className="px-5 py-2 bg-blue-600 text-white rounded-xl font-bold disabled:opacity-60">
           {submitting ? 'Submitting...' : 'Submit Review'}
         </button>
-        <button type="button" onClick={() => { setName(''); setComment(''); setRating(5); }} className="px-4 py-2 rounded-xl border border-slate-200 text-sm">Reset</button>
+        <button type="button" onClick={() => { setName(isAdmin ? '' : (authUser?.name || '')); setComment(''); setRating(5); }} className="px-4 py-2 rounded-xl border border-slate-200 text-sm">Reset</button>
       </div>
     </form>
   );

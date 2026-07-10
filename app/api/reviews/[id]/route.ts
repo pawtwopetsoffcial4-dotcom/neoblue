@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import Product from '@/lib/models/Product';
 import Review from '@/lib/models/Review';
+import User from '@/lib/models/User';
 import { getTokenFromRequest, verifyToken } from '@/lib/utils/auth';
 
 export async function GET(request: NextRequest, context: { params: Promise<{ id: string }> }) {
@@ -38,7 +39,14 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
       return NextResponse.json({ error: 'Invalid payload. Rating must be 1-5.' }, { status: 400 });
     }
 
-    const nameToSave = user || payload.email.split('@')[0];
+    const isAdmin = payload.role === 'admin';
+    let nameToSave = '';
+    if (isAdmin) {
+      nameToSave = user ? String(user).trim() : (payload.email.split('@')[0]);
+    } else {
+      const dbUser = await User.findById(payload.userId).select('name').lean() as any;
+      nameToSave = dbUser?.name || payload.email.split('@')[0];
+    }
 
     const newReview = await Review.create({
       productId: id,

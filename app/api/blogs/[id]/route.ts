@@ -101,6 +101,9 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
     if (body.author !== undefined) updateData.author = String(body.author).trim();
     if (body.featured !== undefined) updateData.featured = Boolean(body.featured);
     if (body.isPublished !== undefined) updateData.isPublished = Boolean(body.isPublished);
+    if (body.publishedAt !== undefined) {
+      updateData.publishedAt = body.publishedAt ? new Date(body.publishedAt) : new Date();
+    }
     if (body.readTime !== undefined) updateData.readTime = Math.max(1, Number(body.readTime));
     if (body.seoTitle !== undefined) updateData.seoTitle = String(body.seoTitle).trim();
     if (body.seoDescription !== undefined) updateData.seoDescription = String(body.seoDescription).trim();
@@ -209,4 +212,8 @@ export async function DELETE(request: NextRequest, context: { params: Promise<{ 
     console.error('Delete blog error:', error);
     return createErrorResponse(error.message || 'Failed to delete blog', 500);
   }
+}
+
+export async function PUT(request: NextRequest, context: { params: Promise<{ id: string }> }) {
+  return PATCH(request, context);
 }

@@ -13,6 +13,7 @@ export interface IBlog extends Document {
   tags: mongoose.Types.ObjectId[];
   featured: boolean;
   isPublished: boolean;
+  publishedAt: Date;
   readTime: number;
   views: number;
   commentsCount: number;
@@ -86,6 +87,11 @@ const blogSchema = new Schema<IBlog>(
     isPublished: {
       type: Boolean,
       default: true,
+      index: true,
+    },
+    publishedAt: {
+      type: Date,
+      default: Date.now,
       index: true,
     },
     readTime: {

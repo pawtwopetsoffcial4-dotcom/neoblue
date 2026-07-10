@@ -98,6 +98,18 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
       updateData.shippingType = updateData.shippingType === 'weight' ? 'weight' : 'piece';
     }
 
+    if ('faq' in updateData) {
+      if (!Array.isArray(updateData.faq)) {
+        return createErrorResponse('Invalid faq structure', 400);
+      }
+      updateData.faq = updateData.faq
+        .map((item: any) => ({
+          q: String(item?.q || '').trim(),
+          a: String(item?.a || '').trim()
+        }))
+        .filter((item: any) => item.q && item.a);
+    }
+
     if (hasShippingChargeKey) {
       const nextShippingCharge = updateData.shippingCharge == null ? 0 : normalizeShippingRate(updateData.shippingCharge);
       if (isNaN(nextShippingCharge) || nextShippingCharge < 0) {

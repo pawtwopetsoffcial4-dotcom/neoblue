@@ -46,6 +46,7 @@ export type MarketplaceProduct = {
   temperament?: 'Peaceful' | 'Semi-aggressive' | 'Aggressive';
   isTrending?: boolean;
   isNewArrival?: boolean;
+  faq?: Array<{ q: string; a: string }>;
   createdAt?: string;
   updatedAt?: string;
 };

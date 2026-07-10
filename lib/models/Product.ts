@@ -58,6 +58,7 @@ export interface IProduct extends Document {
   temperament?: 'Peaceful' | 'Semi-aggressive' | 'Aggressive';
   isTrending?: boolean;
   isNewArrival?: boolean;
+  faq?: Array<{ q: string; a: string }>;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -246,6 +247,13 @@ const productSchema = new Schema<IProduct>(
     soldAfterLastStockUpdate: {
       type: Number,
       default: 0,
+    },
+    faq: {
+      type: [{
+        q: { type: String, required: true },
+        a: { type: String, required: true }
+      }],
+      default: []
     },
   },
   { timestamps: true }

@@ -43,6 +43,7 @@ function CheckoutPageContent() {
   const [isSavingAddress, setIsSavingAddress] = useState(false);
   const [saveAddress, setSaveAddress] = useState(true);
   const [address, setAddress] = useState({ street: '', city: '', state: '', zipcode: '', phone: '' });
+  const [agreeToPolicy, setAgreeToPolicy] = useState(false);
 
 
   useEffect(() => {
@@ -245,6 +246,11 @@ function CheckoutPageContent() {
 
     if (!address.street || !address.city || !address.state || !address.zipcode || !address.phone) {
       alert('Please fill all delivery details including phone number.');
+      return;
+    }
+
+    if (!agreeToPolicy) {
+      alert('Please read and accept the Live Arrival Guarantee, Return Policy, and Terms to proceed.');
       return;
     }
 
@@ -582,6 +588,42 @@ function CheckoutPageContent() {
                       </div>
                     </div>
                   )}
+
+                  {/* Bio-security and Live Arrival Policies */}
+                  <div className="space-y-3 pt-3 border-t border-gray-100">
+                    <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest">Required Policy Checklist</h3>
+                    
+                    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 space-y-3 text-[11px] text-slate-600 leading-relaxed max-h-36 overflow-y-auto">
+                      <div>
+                        <p className="font-extrabold text-slate-800">1. Live Arrival Guarantee (DOA)</p>
+                        <p className="mt-0.5">We guarantee all live specimens arrive healthy. In the rare event of a Dead-on-Arrival (DOA), you must submit a clear unboxing photo/video of the unopened bag within 2 hours of delivery for a full credit/replacement.</p>
+                      </div>
+                      <div>
+                        <p className="font-extrabold text-slate-800">2. Strict Biosecurity Policy (No Returns)</p>
+                        <p className="mt-0.5">To prevent disease transmission and cross-contamination between aquatic systems, physical returns of live livestock, invertebrates, or aquatic plants are strictly prohibited. All sales are final.</p>
+                      </div>
+                      <div>
+                        <p className="font-extrabold text-slate-800">3. Transit Care & Dispatches</p>
+                        <p className="mt-0.5">Livestock is packaged in insulated styrofoam boxes with oxygenation and appropriate heat/ice packs. Orders are shipped via priority express courier routes.</p>
+                      </div>
+                    </div>
+
+                    <label className={`flex items-start gap-2.5 cursor-pointer select-none rounded-xl p-3 border transition-all duration-300 ${
+                      agreeToPolicy 
+                        ? (isPlants ? 'border-green-200 bg-green-50/20' : 'border-blue-200 bg-blue-50/20') 
+                        : 'border-slate-200 bg-white hover:bg-slate-50/50'
+                    }`}>
+                      <input 
+                        type="checkbox"
+                        checked={agreeToPolicy}
+                        onChange={(e) => setAgreeToPolicy(e.target.checked)}
+                        className={`mt-0.5 h-4 w-4 rounded ${isPlants ? 'border-green-300 text-green-600 focus:ring-green-500' : 'border-blue-300 text-blue-600 focus:ring-blue-500'}`}
+                      />
+                      <span className="text-[11px] font-bold text-slate-700 leading-tight">
+                        I agree to the Live Arrival Guarantee, Strict No-Return Policy, and Shipping terms.
+                      </span>
+                    </label>
+                  </div>
 
                   <button
                     onClick={handlePayNow}
