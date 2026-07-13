@@ -145,22 +145,22 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
 
   return (
     <header className={`sticky top-0 z-50 border-b shadow-md transition-colors duration-500 ${headerBgClass}`}>
-      <nav className="w-full max-w-7xl mx-auto px-4 md:px-6 py-3 flex items-center justify-between gap-4">
+      <nav className="w-full max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-3 flex items-center justify-between gap-2 sm:gap-4">
         
         {/* Brand Logo & Name */}
-        <div className="flex items-center gap-2">
-          <Link href="/" className="flex items-center gap-2 group">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          <Link href="/" className="flex items-center gap-1.5 sm:gap-2 group">
             <div className="p-0.5 rounded-lg bg-white/10 border border-white/10 group-hover:bg-white/15 transition-all">
               <Image 
                 src="/logo.png" 
                 alt="NEOBLUE Logo" 
                 width={36} 
                 height={36} 
-                className="h-8 w-auto object-contain transition-transform duration-500 group-hover:scale-105"
+                className="h-7 w-auto sm:h-8 sm:w-auto object-contain transition-transform duration-500 group-hover:scale-105"
                 priority
               />
             </div>
-            <span className="font-black text-lg tracking-[0.2em] text-white uppercase ml-1">
+            <span className="font-black text-sm sm:text-lg tracking-[0.12em] sm:tracking-[0.2em] text-white uppercase ml-0.5 sm:ml-1 shrink-0">
               NEOBLUE
             </span>
           </Link>
@@ -190,31 +190,31 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
         </div>
 
         {/* Actions Bar */}
-        <div className="flex items-center justify-end gap-3 flex-none">
+        <div className="flex items-center justify-end gap-1.5 sm:gap-3 flex-none">
           
           {/* Search Trigger */}
           <button
             type="button"
             onClick={() => setIsSearchOpen(!isSearchOpen)}
-            className={`h-9 w-9 rounded-xl text-white flex items-center justify-center border border-white/10 bg-white/5 hover:bg-white/15 transition-all duration-300 ${
+            className={`h-8.5 w-8.5 sm:h-9 sm:w-9 rounded-xl text-white flex items-center justify-center border border-white/10 bg-white/5 hover:bg-white/15 transition-all duration-300 ${
               isSearchOpen ? 'ring-2 ring-white/30' : ''
             }`}
             aria-label="Search products"
           >
-            <Search className="h-4.5 w-4.5" />
+            <Search className="h-4 w-4 sm:h-4.5 sm:w-4.5" />
           </button>
 
 
           {/* Shopping Bag / Cart */}
           <Link 
             href="/checkout" 
-            className={`h-9 px-4 rounded-xl flex items-center gap-2 font-black text-xs uppercase tracking-wider transition-all duration-300 shadow-md ${
+            className={`h-8.5 px-2.5 sm:h-9 sm:px-4 rounded-xl flex items-center gap-1.5 sm:gap-2 font-black text-xs uppercase tracking-wider transition-all duration-300 shadow-md ${
               isFishes 
                 ? 'bg-blue-700 hover:bg-blue-800 text-white shadow-blue-900/20' 
                 : 'bg-green-800 hover:bg-green-900 text-white shadow-green-900/20'
             }`}
           >
-            <ShoppingBag className="h-4 w-4" />
+            <ShoppingBag className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             <span>{visibleCartCount}</span>
           </Link>
 
@@ -338,11 +338,11 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
           <button
             type="button"
             onClick={() => setIsMenuOpen((value) => !value)}
-            className="lg:hidden h-9 w-9 rounded-xl text-white flex items-center justify-center border border-white/10 bg-white/5 hover:bg-white/15 transition-colors"
+            className="lg:hidden h-8.5 w-8.5 sm:h-9 sm:w-9 rounded-xl text-white flex items-center justify-center border border-white/10 bg-white/5 hover:bg-white/15 transition-colors"
             aria-expanded={isMenuOpen}
             aria-label="Toggle navigation menu"
           >
-            {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            {isMenuOpen ? <X className="h-4.5 w-4.5" /> : <Menu className="h-4.5 w-4.5" />}
           </button>
         </div>
       </nav>
