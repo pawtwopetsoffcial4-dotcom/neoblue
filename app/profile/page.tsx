@@ -10,6 +10,7 @@ import {
   Truck, CheckCircle2, XCircle, Star, Bell
 } from 'lucide-react';
 import { useAuth } from '@/lib/hooks/useAuth';
+import { useNotifications } from '@/lib/hooks/useNotifications';
 import { apiClient } from '@/lib/api-client';
 
 type UserOrder = {
@@ -98,19 +99,13 @@ function ProfilePageContent() {
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [phone, setPhone] = useState('');
   const [isLoading, setIsLoading] = useState(true);
-  const [notifications, setNotifications] = useState<any[]>([]);
-
-  const fetchProfileNotifications = async () => {
-    try {
-      const res = await fetch('/api/notifications', { cache: 'no-store' });
-      if (res.ok) {
-        const data = await res.json();
-        setNotifications(data.notifications || []);
-      }
-    } catch (error) {
-      console.error('Error fetching profile notifications:', error);
-    }
-  };
+  const {
+    notifications,
+    markAllAsRead: markAllReadOnProfile,
+    markAsRead: markAsReadHook,
+    clearAll: clearAllOnProfile,
+    fetchNotifications: fetchProfileNotifications,
+  } = useNotifications();
 
   useEffect(() => {
     if (activeTab === 'notifications') {
@@ -118,45 +113,8 @@ function ProfilePageContent() {
     }
   }, [activeTab]);
 
-  const markAllReadOnProfile = async () => {
-    try {
-      const res = await fetch('/api/notifications', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ all: true }),
-      });
-      if (res.ok) {
-        setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-      }
-    } catch (error) {
-      console.error('Error marking all notifications read:', error);
-    }
-  };
-
-  const clearAllOnProfile = async () => {
-    try {
-      const res = await fetch('/api/notifications', { method: 'DELETE' });
-      if (res.ok) {
-        setNotifications([]);
-      }
-    } catch (error) {
-      console.error('Error clearing profile notifications:', error);
-    }
-  };
-
   const markSingleRead = async (id: string, link?: string) => {
-    try {
-      const res = await fetch('/api/notifications', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id }),
-      });
-      if (res.ok) {
-        setNotifications(prev => prev.map(n => n._id === id ? { ...n, read: true } : n));
-      }
-    } catch (error) {
-      console.error('Error marking notification read:', error);
-    }
+    await markAsReadHook(id);
     if (link) {
       router.push(link);
     }

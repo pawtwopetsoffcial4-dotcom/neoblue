@@ -4,6 +4,7 @@ import Product from '@/lib/models/Product';
 import { createErrorResponse, createSuccessResponse, getTokenFromRequest, verifyToken } from '@/lib/utils/auth';
 import { getProductShippingCharge, getRegionFromState } from '@/lib/utils/shipping';
 import { decrementStockForOrder } from '@/lib/utils/stock';
+import { createNotification } from '@/lib/utils/notifications';
 import { NextRequest } from 'next/server';
 
 const appId = process.env.CASHFREE_APP_ID;
@@ -173,6 +174,24 @@ export async function POST(request: NextRequest) {
               order.paymentId = orderData.order_id;
             }
             await order.save();
+
+            // Trigger notification for the buyer
+            await createNotification(
+              order.userId,
+              'Order Placed',
+              `Your order #${order._id.toString().toUpperCase().slice(-6)} has been placed successfully.`,
+              'order_status',
+              '/orders'
+            );
+
+            // Trigger notification for the vendor
+            await createNotification(
+              order.vendorId,
+              'New Order Received',
+              `You have received a new order #${order._id.toString().toUpperCase().slice(-6)} for ₹${order.totalAmount.toFixed(2)}.`,
+              'new_order',
+              '/vendor/orders'
+            );
           }
           updatedOrders.push(order);
         }
@@ -344,6 +363,24 @@ export async function POST(request: NextRequest) {
       });
       await decrementStockForOrder(order);
       createdOrders.push(order);
+
+      // Trigger notification for the buyer
+      await createNotification(
+        order.userId,
+        'Order Placed',
+        `Your order #${order._id.toString().toUpperCase().slice(-6)} has been placed successfully.`,
+        'order_status',
+        '/orders'
+      );
+
+      // Trigger notification for the vendor
+      await createNotification(
+        order.vendorId,
+        'New Order Received',
+        `You have received a new order #${order._id.toString().toUpperCase().slice(-6)} for ₹${order.totalAmount.toFixed(2)}.`,
+        'new_order',
+        '/vendor/orders'
+      );
     }
 
     return createSuccessResponse(

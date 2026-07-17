@@ -12,6 +12,8 @@ import {
 import { useCart } from '@/lib/hooks/useCart';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useMode } from '@/lib/hooks/useMode';
+import { useNotifications } from '@/lib/hooks/useNotifications';
+import NotificationBell from './NotificationBell';
 
 type HeaderProps = {
   cartCount?: number;
@@ -28,53 +30,10 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [unreadNotifications, setUnreadNotifications] = useState(0);
-  const knownNotificationIdsRef = useRef<string[]>([]);
+  const { unreadCount: unreadNotifications } = useNotifications();
   
   const profileDropdownRef = useRef<HTMLDivElement>(null);
   const visibleCartCount = contextCartCount || cartCount;
-
-  // Poll for unread notifications and trigger browser popups
-  useEffect(() => {
-    if (!user) {
-      setUnreadNotifications(0);
-      knownNotificationIdsRef.current = [];
-      return;
-    }
-
-    const fetchNotifications = async () => {
-      try {
-        const res = await fetch('/api/notifications', { cache: 'no-store' });
-        if (res.ok) {
-          const data = await res.json();
-          const list = data.notifications || [];
-          const unreads = list.filter((n: any) => !n.read);
-          setUnreadNotifications(unreads.length);
-
-          // Desktop popup support
-          if (knownNotificationIdsRef.current.length > 0 && typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
-            const knownSet = new Set(knownNotificationIdsRef.current);
-            const freshUnreads = unreads.filter((n: any) => !knownSet.has(n._id));
-            if (freshUnreads.length > 0) {
-              freshUnreads.forEach((n: any) => {
-                new Notification(n.title, {
-                  body: n.message,
-                  icon: '/logo.ico',
-                });
-              });
-            }
-          }
-          knownNotificationIdsRef.current = list.map((n: any) => n._id);
-        }
-      } catch (error) {
-        console.error('Error fetching unread count:', error);
-      }
-    };
-
-    fetchNotifications();
-    const timer = setInterval(fetchNotifications, 15000);
-    return () => clearInterval(timer);
-  }, [user]);
 
   // Close profile dropdown when clicking outside
   useEffect(() => {
@@ -217,6 +176,13 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
             <ShoppingBag className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             <span>{visibleCartCount}</span>
           </Link>
+
+          {/* Notification Bell (Desktop) */}
+          {user && (
+            <div className="hidden md:block">
+              <NotificationBell />
+            </div>
+          )}
 
           {/* User Account / Profile Dropdown (Desktop) */}
           <div className="relative hidden md:block" ref={profileDropdownRef}>
