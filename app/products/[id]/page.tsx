@@ -22,18 +22,36 @@ export async function generateMetadata({ params }: ProductDetailProps): Promise<
     const product = await Product.findById(id).lean() as any;
     if (!product) return {};
     const productUrl = `https://neoblue.in/products/${product._id}`;
-    const truncatedDesc = product.description 
-      ? product.description.replace(/(\r\n|\n|\r)/gm, " ").slice(0, 155) + "..." 
-      : 'Quarantine-tested premium aquatic specimen on NeoBlue.';
+    
+    // Highly optimized title for transaction and species queries (e.g., "Buy Guppy Fish Online")
+    const titleText = `Buy ${product.title} ${product.scientific ? `(${product.scientific})` : ''} Online - Price & Care | NeoBlue`;
+    
+    // Dynamic meta description containing key parameters to hook user and crawler attention
+    const priceText = product.price ? `₹${product.price}` : '';
+    const tempText = product.tempMin && product.tempMax ? `${product.tempMin}-${product.tempMax}°C` : '';
+    const descPrefix = `Buy ${product.title} ${product.scientific ? `(${product.scientific})` : ''} online. `;
+    const descBody = `Premium quality ${product.waterType.toLowerCase()} specimen at best price (${priceText}). Temp: ${tempText}. View care specifications and order live delivery from NeoBlue.`;
+    const truncatedDesc = (descPrefix + descBody).replace(/(\r\n|\n|\r)/gm, " ").slice(0, 155) + "...";
       
     return {
-      title: `${product.title} - Care Requirements & Specs | NeoBlue`,
+      title: titleText,
       description: truncatedDesc,
+      keywords: [
+        product.title,
+        product.scientific,
+        product.category,
+        product.subcategory,
+        product.waterType,
+        'buy fish online',
+        'aquarium fish price',
+        'live fish delivery',
+        'freshwater aquarium spec'
+      ].filter(Boolean),
       alternates: {
         canonical: productUrl,
       },
       openGraph: {
-        title: `${product.title} - Care Requirements & Specs | NeoBlue`,
+        title: titleText,
         description: truncatedDesc,
         url: productUrl,
         images: product.images?.[0] ? [{ url: product.images[0] }] : [],
@@ -41,7 +59,7 @@ export async function generateMetadata({ params }: ProductDetailProps): Promise<
       },
       twitter: {
         card: 'summary_large_image',
-        title: `${product.title} - Care Requirements & Specs | NeoBlue`,
+        title: titleText,
         description: truncatedDesc,
         images: product.images?.[0] ? [product.images[0]] : [],
       },
@@ -129,14 +147,34 @@ export default async function ProductDetailPage({ params }: ProductDetailProps) 
     );
   }
 
+  // Format reviews for schema
+  const reviewSchemaList = reviews.map((r: any) => ({
+    "@type": "Review",
+    "reviewRating": {
+      "@type": "Rating",
+      "ratingValue": r.rating || 5,
+      "bestRating": "5"
+    },
+    "author": {
+      "@type": "Person",
+      "name": r.userName || "Customer"
+    },
+    "reviewBody": r.comment || "Excellent quality",
+    "datePublished": r.createdAt ? new Date(r.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
+  }));
+
   // Define JSON-LD structured schemas for SEO crawler bots
-  const productSchema = {
+  const productSchema: any = {
     "@context": "https://schema.org",
     "@type": "Product",
     "name": product.title,
     "image": product.images || [],
     "description": product.description,
     "sku": `NEO-${product._id.slice(-6).toUpperCase()}`,
+    "brand": {
+      "@type": "Brand",
+      "name": "NeoBlue"
+    },
     "offers": {
       "@type": "Offer",
       "url": `https://neoblue.in/products/${product._id}`,
@@ -149,13 +187,17 @@ export default async function ProductDetailPage({ params }: ProductDetailProps) 
         "@type": "Organization",
         "name": product.vendorId?.name || "NeoBlue Seller"
       }
-    },
-    "aggregateRating": {
-      "@type": "AggregateRating",
-      "ratingValue": product.rating || 5,
-      "reviewCount": reviews.length || 1
     }
   };
+
+  if (reviews.length > 0) {
+    productSchema.aggregateRating = {
+      "@type": "AggregateRating",
+      "ratingValue": product.rating || 5,
+      "reviewCount": reviews.length
+    };
+    productSchema.review = reviewSchemaList;
+  }
 
   const breadcrumbSchema = {
     "@context": "https://schema.org",
@@ -188,27 +230,43 @@ export default async function ProductDetailPage({ params }: ProductDetailProps) 
     ]
   };
 
+  // Build dynamic FAQ questions based on scientific characteristics and custom FAQs
+  const faqQuestions = [
+    {
+      "@type": "Question",
+      "name": `How should I acclimate ${product.title} after delivery?`,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Float the shipping bag in your aquarium for 20 to 30 minutes to equalize water temperature. Then, drip acclimate or add cupfuls of tank water gradually to match parameters before introducing the specimen into the main aquarium."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": `What water parameters are recommended for ${product.title}?`,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": `For ${product.title}, maintain a stable ${product.waterType.toLowerCase()} environment. Recommended pH range: ${product.phMin || 6.5} - ${product.phMax || 8.0}. Temperature range: ${product.tempMin || 20}°C - ${product.tempMax || 30}°C.`
+      }
+    }
+  ];
+
+  if (product.faq && Array.isArray(product.faq)) {
+    product.faq.forEach((item: any) => {
+      faqQuestions.push({
+        "@type": "Question",
+        "name": item.q,
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": item.a
+        }
+      });
+    });
+  }
+
   const faqSchema = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    "mainEntity": [
-      {
-        "@type": "Question",
-        "name": "How should I acclimate this fish after delivery?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Float the bag for 20 to 30 minutes to equalize temperature, then drip acclimate gradually before introducing into your tank."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "What tank conditions are recommended?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": `Maintain stable ${product.waterType.toLowerCase()} parameters, avoid sudden pH/temperature shifts, and provide proper filtration and oxygenation.`
-        }
-      }
-    ]
+    "mainEntity": faqQuestions
   };
 
   return (
