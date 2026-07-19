@@ -24,11 +24,18 @@ export async function generateMetadata({ params }: Props) {
     }
   }
 
+  const titleText = vendor ? `${vendor.name} Storefront - Buy Live Fish & Plants | NeoBlue` : 'Storefront | NeoBlue';
+  const descText = vendor 
+    ? `Browse and purchase premium quality aquarium fish, live plants, and breeding pairs directly from ${vendor.name} on NeoBlue. Live-arrival guaranteed delivery.` 
+    : 'Browse certified vendor storefronts, breeders, and aquatic varieties on NeoBlue.';
+
   return {
-    title: vendor ? `${vendor.name} - Storefront | Neoblue` : 'Storefront | Neoblue',
-    description: vendor 
-      ? `Browse and purchase premium aquatic fish, plants, and breeding pairs directly from ${vendor.name} on Neoblue.` 
-      : 'Browse vendor storefronts and aquatic varieties on Neoblue.',
+    title: titleText,
+    description: descText,
+    keywords: vendor ? [vendor.name, 'certified breeder', 'live fish store', 'NeoBlue seller'] : ['aquarium vendors', 'live fish breeders'],
+    alternates: {
+      canonical: `https://neoblue.in/shop/${identifier}`,
+    },
   };
 }
 

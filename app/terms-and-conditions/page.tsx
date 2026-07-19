@@ -4,6 +4,9 @@ import Image from 'next/image';
 export const metadata: Metadata = {
   title: 'Terms & Conditions | NeoBlue',
   description: 'Read the NeoBlue terms and conditions for using the platform.',
+  alternates: {
+    canonical: 'https://neoblue.in/terms-and-conditions',
+  },
 };
 
 const CheckIcon = () => (

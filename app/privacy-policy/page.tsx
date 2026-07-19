@@ -4,6 +4,9 @@ import Image from 'next/image';
 export const metadata: Metadata = {
   title: 'Privacy Policy | NeoBlue',
   description: 'Read how NeoBlue collects, uses, and safeguards customer information.',
+  alternates: {
+    canonical: 'https://neoblue.in/privacy-policy',
+  },
 };
 
 const informationWeCollect = [

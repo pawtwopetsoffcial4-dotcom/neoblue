@@ -3,8 +3,12 @@ import Image from 'next/image';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'About NeoBlue',
-  description: 'Learn how NeoBlue is building India\'s trusted aquarium ecosystem.',
+  title: 'About NeoBlue - India\'s Trusted Live Fish & Aquarium Platform',
+  description: 'Discover the story behind NeoBlue. We are building India\'s most trusted, organized, and secure marketplace for premium live aquarium fish, plants, and supplies.',
+  keywords: ['about NeoBlue', 'aquarium platform India', 'trusted live fish seller', 'fish marketplace India'],
+  alternates: {
+    canonical: 'https://neoblue.in/about',
+  },
 };
 
 export default function AboutPage() {

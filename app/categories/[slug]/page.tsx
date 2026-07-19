@@ -68,9 +68,15 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
   const { slug } = await params;
   try {
     const { categoryTitle, filteredProducts } = await getCategoryData(slug);
+    const titleText = `Buy ${categoryTitle} Online - Live Arrival Guaranteed | NeoBlue`;
+    const descText = `Shop premium ${categoryTitle.toLowerCase()} specimens. Explore ${filteredProducts.length} high-quality options available with secure shipping and live-arrival guarantee from NeoBlue.`;
     return {
-      title: `${categoryTitle} Premium Aquatic Stock | NeoBlue`,
-      description: `Browse our active inventory of ${filteredProducts.length} premium ${categoryTitle.toLowerCase()} specimens. Live arrival guaranteed.`,
+      title: titleText,
+      description: descText,
+      keywords: [categoryTitle, `buy ${categoryTitle.toLowerCase()} online`, `${categoryTitle.toLowerCase()} price`, 'live fish shop'],
+      alternates: {
+        canonical: `https://neoblue.in/categories/${slug}`,
+      },
     };
   } catch {
     return {

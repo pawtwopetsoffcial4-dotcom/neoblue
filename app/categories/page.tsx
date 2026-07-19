@@ -11,8 +11,12 @@ import CategoriesClient from './CategoriesClient';
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: 'Aquatic Categories & Species | NeoBlue',
-  description: 'Explore our curated selection of live tropical fish, cichlids, guppies, crayfish, and premium aquatic life.',
+  title: 'Aquarium Fish & Plant Categories - Browse Species | NeoBlue',
+  description: 'Explore our wide selection of live freshwater fish, saltwater invertebrates, aquarium plants, shrimp, and snails categorized by species and care parameters.',
+  keywords: ['aquarium fish categories', 'aquatic species online', 'freshwater fish list', 'buy aquarium fish by type'],
+  alternates: {
+    canonical: 'https://neoblue.in/categories',
+  },
 };
 
 const toSlug = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
