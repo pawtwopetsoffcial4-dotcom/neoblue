@@ -148,15 +148,17 @@ export default function NeoBlueMobileOptimized() {
   const [products, setProducts] = useState<MarketplaceProduct[]>([]);
   const [categoriesFromDb, setCategoriesFromDb] = useState<Array<{ name: string; image: string }>>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [featuredCombos, setFeaturedCombos] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchHomepageData = async () => {
       try {
         setIsLoading(true);
 
-        const [productsResponse, categoriesResponse] = await Promise.all([
+        const [productsResponse, categoriesResponse, combosResponse] = await Promise.all([
           fetch('/api/products?limit=100', { cache: 'no-store' }),
           fetch('/api/categories', { cache: 'no-store' }),
+          fetch('/api/combos?featured=true', { cache: 'no-store' }),
         ]);
 
         if (!productsResponse.ok) {
@@ -177,6 +179,11 @@ export default function NeoBlueMobileOptimized() {
           setCategoriesFromDb(dbCategories);
         } else {
           setCategoriesFromDb([]);
+        }
+
+        if (combosResponse.ok) {
+          const combosData = await combosResponse.json();
+          setFeaturedCombos(combosData.combos ?? []);
         }
       } catch {
         setProducts([]);
@@ -359,6 +366,56 @@ export default function NeoBlueMobileOptimized() {
           </div>
         ) : null}
       </MobileScrollSection>
+
+      {/* 6. FEATURED COMBOS */}
+      {featuredCombos.length > 0 && (
+        <section className="px-4 py-6">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <p className={`text-[10px] font-bold uppercase tracking-[0.2em] mb-0.5 ${mode === 'fishes' ? 'text-blue-500' : 'text-emerald-600'}`}>Exclusive</p>
+              <h2 className="text-lg font-black text-slate-900">Combo Packages</h2>
+            </div>
+            <Link href="/combos" className={`text-xs font-semibold flex items-center gap-1 ${mode === 'fishes' ? 'text-blue-600' : 'text-emerald-600'}`}>
+              See all <ArrowRight className="h-3 w-3" />
+            </Link>
+          </div>
+          <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1">
+            {featuredCombos.slice(0, 6).map((combo: any) => {
+              const savings = combo.originalPrice && combo.originalPrice > combo.price
+                ? Math.round(((combo.originalPrice - combo.price) / combo.originalPrice) * 100)
+                : 0;
+              return (
+                <Link
+                  key={combo._id}
+                  href={`/combos/${combo._id}`}
+                  className="group shrink-0 w-44 bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm active:scale-95 transition-transform"
+                >
+                  <div className="relative h-28 bg-slate-100 overflow-hidden">
+                    {combo.coverImage ? (
+                      <img src={combo.coverImage} alt={combo.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                    ) : (
+                      <div className="flex items-center justify-center h-full">
+                        <Package className="h-8 w-8 text-slate-300" />
+                      </div>
+                    )}
+                    {savings > 0 && (
+                      <span className="absolute top-2 right-2 bg-emerald-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{savings}% off</span>
+                    )}
+                  </div>
+                  <div className="p-3">
+                    <p className="text-xs font-bold text-slate-900 truncate">{combo.name}</p>
+                    <p className="text-xs text-slate-500 mt-0.5">{combo.products?.length ?? 0} items</p>
+                    <div className="flex items-center gap-1.5 mt-1.5">
+                      <span className={`text-sm font-black ${mode === 'fishes' ? 'text-blue-700' : 'text-emerald-700'}`}>₹{combo.price}</span>
+                      {combo.originalPrice && <span className="text-[10px] text-slate-400 line-through">₹{combo.originalPrice}</span>}
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       {/* Basic spacing for desktop footer */}
       <div className={`hidden md:block py-10 text-center text-xs ${mode === 'fishes' ? 'text-blue-300' : 'text-green-700/50'}`}>

@@ -213,6 +213,35 @@ export class APIClient {
       body: JSON.stringify(claimData),
     });
   }
+
+  // Combo methods
+  async getCombos(filters?: Record<string, any>) {
+    return this.request('/combos', { params: filters });
+  }
+
+  async getCombo(id: string) {
+    return this.request(`/combos/${id}`);
+  }
+
+  async createCombo(comboData: any) {
+    return this.request('/combos', {
+      method: 'POST',
+      body: JSON.stringify(comboData),
+    });
+  }
+
+  async updateCombo(id: string, comboData: any) {
+    return this.request(`/combos/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(comboData),
+    });
+  }
+
+  async deleteCombo(id: string) {
+    return this.request(`/combos/${id}`, {
+      method: 'DELETE',
+    });
+  }
 }
 
 export const apiClient = new APIClient();

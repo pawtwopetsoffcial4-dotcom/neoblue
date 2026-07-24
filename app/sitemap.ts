@@ -3,6 +3,7 @@ import { connectDB } from '@/lib/db';
 import Product from '@/lib/models/Product';
 import Blog from '@/lib/models/Blog';
 import User from '@/lib/models/User';
+import Combo from '@/lib/models/Combo';
 
 const toSlug = (value: string) => 
   value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
@@ -15,6 +16,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '',
     '/products',
     '/categories',
+    '/combos',
     '/about',
     '/blog',
     '/privacy-policy',
@@ -27,10 +29,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: route === '' ? 1.0 : 0.8,
   }));
 
+
   let productRoutes: any[] = [];
   let blogRoutes: any[] = [];
   let categoryRoutes: any[] = [];
   let vendorRoutes: any[] = [];
+  let comboRoutes: any[] = [];
 
   try {
     await connectDB();
@@ -82,9 +86,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority: 0.6,
       };
     });
+    // Fetch active combos
+    const combos = await Combo.find({ isActive: true })
+      .select('_id updatedAt')
+      .lean();
+
+    comboRoutes = combos.map((combo: any) => ({
+      url: `${baseUrl}/combos/${combo._id}`,
+      lastModified: new Date(combo.updatedAt || Date.now()).toISOString(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.75,
+    }));
   } catch (error) {
     console.error('Error generating sitemap routes:', error);
   }
 
-  return [...staticRoutes, ...productRoutes, ...categoryRoutes, ...blogRoutes, ...vendorRoutes];
+  return [...staticRoutes, ...productRoutes, ...categoryRoutes, ...comboRoutes, ...blogRoutes, ...vendorRoutes];
 }
