@@ -3,11 +3,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { apiClient } from '@/lib/api-client';
-import { Plus, Loader2, Trash2, BookOpen, FolderTree, Tags, MessageSquare, Star, Sparkles, Search, Users, ShoppingBag, DollarSign, TrendingUp } from 'lucide-react';
+import { Plus, Loader2, Trash2, BookOpen, FolderTree, Tags, MessageSquare, Star, Sparkles, Search, Users, ShoppingBag, DollarSign, TrendingUp, ImageIcon } from 'lucide-react';
+import { CldUploadWidget } from 'next-cloudinary';
 
 type AdminOrder = { _id: string; totalAmount: number; status: string };
 type AdminUser = { _id: string; role: 'user' | 'vendor' | 'admin' };
-type AdminConfig = { categories?: string[]; subcategories?: Record<string, string[]> };
+type AdminConfig = { categories?: string[]; subcategories?: Record<string, string[]>; categoryImages?: Record<string, string> };
 type DashboardProduct = {
   _id: string;
   title: string;
@@ -24,6 +25,8 @@ export default function AdminDashboardPage() {
   const [orders, setOrders] = useState<AdminOrder[]>([]);
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
+  const [allCategories, setAllCategories] = useState<string[]>([]);
+  const [categoryImages, setCategoryImages] = useState<Record<string, string>>({});
   const [categoryInput, setCategoryInput] = useState('');
   const [subcategories, setSubcategories] = useState<Record<string, string[]>>({});
   const [selectedCategoryForVarieties, setSelectedCategoryForVarieties] = useState<string>('');
@@ -63,16 +66,27 @@ export default function AdminDashboardPage() {
     const loadConfig = async () => {
       try {
         setConfigLoading(true);
-        const data = (await apiClient.request<AdminConfig>('/config')) as AdminConfig;
+        const [configRes, catRes] = await Promise.all([
+          apiClient.request<AdminConfig>('/config'),
+          fetch('/api/categories')
+        ]);
+        const data = configRes as AdminConfig;
         const loadedCats = Array.isArray(data.categories) ? data.categories : [];
         setCategories(loadedCats);
+        setCategoryImages(data.categoryImages || {});
         setSubcategories(data.subcategories && typeof data.subcategories === 'object' ? data.subcategories : {});
         if (loadedCats.length > 0) {
           setSelectedCategoryForVarieties(loadedCats[0]);
         }
+
+        if (catRes.ok) {
+          const catData = await catRes.json();
+          if (catData.categories) setAllCategories(catData.categories);
+        }
       } catch (err) {
         setCategories([]);
         setSubcategories({});
+        setCategoryImages({});
       } finally {
         setConfigLoading(false);
       }
@@ -138,7 +152,7 @@ export default function AdminDashboardPage() {
     .reduce((sum, order) => sum + order.totalAmount, 0);
   const vendorCount = users.filter((user) => user.role === 'vendor').length;
 
-  const uniqueCategories = useMemo(() => Array.from(new Set(categories.map(normalizeCategory))).filter(Boolean), [categories]);
+  const uniqueCategories = useMemo(() => Array.from(new Set([...categories, ...allCategories].map(normalizeCategory))).filter(Boolean).sort(), [categories, allCategories]);
 
   const addCategory = () => {
     const nextCategory = normalizeCategory(categoryInput);
@@ -161,10 +175,11 @@ export default function AdminDashboardPage() {
 
       const data = (await apiClient.request<AdminConfig>('/config', {
         method: 'PUT',
-        body: JSON.stringify({ categories: uniqueCategories }),
+        body: JSON.stringify({ categories: categories, categoryImages: categoryImages }), // save custom categories and all images
       })) as AdminConfig;
 
-      setCategories(Array.isArray(data.categories) ? data.categories : uniqueCategories);
+      setCategories(Array.isArray(data.categories) ? data.categories : categories);
+      setCategoryImages(data.categoryImages || categoryImages);
       setConfigMessage('Categories saved.');
     } catch (error: any) {
       setConfigMessage(error?.message || 'Unable to save categories.');
@@ -388,26 +403,64 @@ export default function AdminDashboardPage() {
               <p className="text-xs font-medium text-emerald-600 bg-emerald-50 px-3 py-2 rounded-xl border border-emerald-100">{configMessage}</p>
             ) : null}
 
-            <div className="flex-1 overflow-y-auto max-h-64 pr-1">
+            <div className="flex-1 overflow-y-auto max-h-[28rem] pr-1">
               {configLoading ? (
                 <div className="text-sm text-slate-500 py-4">Loading categories...</div>
               ) : (
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-col gap-3">
                   {uniqueCategories.map((category) => (
-                    <span
+                    <div
                       key={category}
-                      className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50/50 px-3.5 py-1.5 text-xs font-bold text-blue-800 hover:bg-blue-100/60 transition-colors"
+                      className="flex items-center gap-3 bg-slate-50 p-2.5 rounded-xl border border-slate-200/60"
                     >
-                      {category}
-                      <button
-                        type="button"
-                        onClick={() => removeCategory(category)}
-                        className="text-blue-400 hover:text-rose-600 transition-colors"
-                        aria-label={`Remove ${category}`}
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </span>
+                      <div className="h-12 w-16 bg-white rounded-lg overflow-hidden border border-slate-200 shrink-0">
+                        {categoryImages[category] ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={categoryImages[category]} alt={category} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-slate-100 text-slate-400">
+                            <ImageIcon className="h-4 w-4" />
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-slate-800 truncate">{category}</p>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        <CldUploadWidget 
+                          uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'neoblue_products'} 
+                          options={{ sources: ['local', 'camera', 'url'], multiple: false, resourceType: 'image' }} 
+                          onSuccess={(result: any) => {
+                            const secureUrl = result?.info?.secure_url;
+                            if (secureUrl) {
+                              setCategoryImages((prev) => ({ ...prev, [category]: String(secureUrl) }));
+                              setConfigMessage('Image uploaded. Click Save to apply.');
+                            }
+                          }}
+                        >
+                          {({ open }) => (
+                            <button 
+                              type="button" 
+                              onClick={() => open()} 
+                              className="h-8 px-3 rounded-lg border border-blue-200 text-blue-700 text-xs font-bold hover:bg-blue-50 transition-colors"
+                            >
+                              Upload
+                            </button>
+                          )}
+                        </CldUploadWidget>
+
+                        <button
+                          type="button"
+                          onClick={() => removeCategory(category)}
+                          className="h-8 w-8 flex items-center justify-center rounded-lg border border-rose-200 text-rose-600 hover:bg-rose-50 transition-colors"
+                          aria-label={`Remove ${category}`}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
                   ))}
                   {uniqueCategories.length === 0 ? (
                     <p className="text-sm text-slate-400 py-4">No custom categories yet.</p>
