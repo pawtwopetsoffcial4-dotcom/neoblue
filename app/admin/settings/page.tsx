@@ -23,19 +23,27 @@ export default function AdminSettingsPage() {
     stat3Value: '',
     stat3Label: '',
   });
+  const [allCategories, setAllCategories] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchConfig = async () => {
       try {
         const token = localStorage.getItem('authToken') ?? '';
-        const res = await fetch('/api/config', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const [res, catRes] = await Promise.all([
+          fetch('/api/config', {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          fetch('/api/categories')
+        ]);
+        
         if (res.ok) {
           const data = await res.json();
           setConfig(data);
+        }
+
+        if (catRes.ok) {
+          const data = await catRes.json();
+          if (data.categories) setAllCategories(data.categories);
         }
       } catch (error) {
         console.error('Error fetching config:', error);
@@ -210,7 +218,7 @@ export default function AdminSettingsPage() {
           <h3 className="text-lg font-bold text-gray-800 mb-4">Categories</h3>
 
           <div className="space-y-4">
-            {(config.categories || []).map((cat) => (
+            {Array.from(new Set([...(config.categories || []), ...allCategories])).sort().map((cat) => (
               <div key={cat} className="flex items-center gap-4 bg-gray-50 p-3 rounded-lg border border-gray-200">
                 <div className="w-20 h-12 bg-white rounded-md overflow-hidden border">
                   {config.categoryImages && config.categoryImages[cat] ? (
