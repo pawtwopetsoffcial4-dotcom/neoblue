@@ -59,6 +59,19 @@ export interface IProduct extends Document {
   isTrending?: boolean;
   isNewArrival?: boolean;
   faq?: Array<{ q: string; a: string }>;
+  quickOverview?: string;
+  aboutSpecies?: string;
+  behavioralTraits?: string;
+  genderIdentification?: string;
+  sustainabilitySourcing?: string;
+  section5Title?: string;
+  section5Content?: string;
+  careTemp?: string;
+  carePh?: string;
+  careWaterHardness?: string;
+  careWaterCurrent?: string;
+  careTankSetup?: string;
+  careHidingSpots?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -255,6 +268,19 @@ const productSchema = new Schema<IProduct>(
       }],
       default: []
     },
+    quickOverview: { type: String, default: '' },
+    aboutSpecies: { type: String, default: '' },
+    behavioralTraits: { type: String, default: '' },
+    genderIdentification: { type: String, default: '' },
+    sustainabilitySourcing: { type: String, default: '' },
+    section5Title: { type: String, default: '' },
+    section5Content: { type: String, default: '' },
+    careTemp: { type: String, default: '' },
+    carePh: { type: String, default: '' },
+    careWaterHardness: { type: String, default: '' },
+    careWaterCurrent: { type: String, default: '' },
+    careTankSetup: { type: String, default: '' },
+    careHidingSpots: { type: String, default: '' },
   },
   { timestamps: true }
 );

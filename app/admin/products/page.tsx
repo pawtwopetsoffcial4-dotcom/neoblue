@@ -51,6 +51,19 @@ type EditFormState = {
   images: string[];
   isTrending: boolean;
   isNewArrival: boolean;
+  quickOverview: string;
+  aboutSpecies: string;
+  behavioralTraits: string;
+  genderIdentification: string;
+  sustainabilitySourcing: string;
+  section5Title: string;
+  section5Content: string;
+  careTemp: string;
+  carePh: string;
+  careWaterHardness: string;
+  careWaterCurrent: string;
+  careTankSetup: string;
+  careHidingSpots: string;
 };
 
 export default function AdminProductsPage() {
@@ -144,6 +157,19 @@ export default function AdminProductsPage() {
       images: product.images?.length ? [...product.images] : [],
       isTrending: product.isTrending || false,
       isNewArrival: product.isNewArrival || false,
+      quickOverview: (product as any).quickOverview ?? '',
+      aboutSpecies: (product as any).aboutSpecies ?? '',
+      behavioralTraits: (product as any).behavioralTraits ?? '',
+      genderIdentification: (product as any).genderIdentification ?? '',
+      sustainabilitySourcing: (product as any).sustainabilitySourcing ?? '',
+      section5Title: (product as any).section5Title ?? '',
+      section5Content: (product as any).section5Content ?? '',
+      careTemp: (product as any).careTemp ?? '',
+      carePh: (product as any).carePh ?? '',
+      careWaterHardness: (product as any).careWaterHardness ?? '',
+      careWaterCurrent: (product as any).careWaterCurrent ?? '',
+      careTankSetup: (product as any).careTankSetup ?? '',
+      careHidingSpots: (product as any).careHidingSpots ?? '',
     });
   };
 
@@ -239,6 +265,19 @@ export default function AdminProductsPage() {
         isTrending: editForm.isTrending,
         isNewArrival: editForm.isNewArrival,
         faq: editFaq,
+        quickOverview: editForm.quickOverview,
+        aboutSpecies: editForm.aboutSpecies,
+        behavioralTraits: editForm.behavioralTraits,
+        genderIdentification: editForm.genderIdentification,
+        sustainabilitySourcing: editForm.sustainabilitySourcing,
+        section5Title: editForm.section5Title,
+        section5Content: editForm.section5Content,
+        careTemp: editForm.careTemp,
+        carePh: editForm.carePh,
+        careWaterHardness: editForm.careWaterHardness,
+        careWaterCurrent: editForm.careWaterCurrent,
+        careTankSetup: editForm.careTankSetup,
+        careHidingSpots: editForm.careHidingSpots,
       });
       await loadProducts();
       setMessage('Product updated successfully');
@@ -594,6 +633,101 @@ export default function AdminProductsPage() {
                 value={editForm.description}
                 onChange={(event) => setEditForm((current) => current ? { ...current, description: event.target.value } : current)}
               />
+
+              <div className="space-y-4 pt-4 border-t border-slate-200">
+                <h3 className="text-sm font-bold text-slate-900">Species Information</h3>
+                
+                <textarea
+                  className="w-full min-h-[80px] px-4 py-3 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                  placeholder="Quick Overview (2-3 sentences max)"
+                  value={editForm.quickOverview}
+                  onChange={(event) => setEditForm((current) => current ? { ...current, quickOverview: event.target.value } : current)}
+                />
+                <textarea
+                  className="w-full min-h-[120px] px-4 py-3 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                  placeholder="About this species"
+                  value={editForm.aboutSpecies}
+                  onChange={(event) => setEditForm((current) => current ? { ...current, aboutSpecies: event.target.value } : current)}
+                />
+                <textarea
+                  className="w-full min-h-[120px] px-4 py-3 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                  placeholder="Behavioral traits and temperament"
+                  value={editForm.behavioralTraits}
+                  onChange={(event) => setEditForm((current) => current ? { ...current, behavioralTraits: event.target.value } : current)}
+                />
+                <textarea
+                  className="w-full min-h-[120px] px-4 py-3 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                  placeholder="Male and female identification"
+                  value={editForm.genderIdentification}
+                  onChange={(event) => setEditForm((current) => current ? { ...current, genderIdentification: event.target.value } : current)}
+                />
+                <textarea
+                  className="w-full min-h-[120px] px-4 py-3 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                  placeholder="Sustainability and sourcing"
+                  value={editForm.sustainabilitySourcing}
+                  onChange={(event) => setEditForm((current) => current ? { ...current, sustainabilitySourcing: event.target.value } : current)}
+                />
+                
+                <div className="flex flex-col gap-2">
+                  <input
+                    type="text"
+                    className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                    placeholder="Custom Section Title (e.g., Section 5)"
+                    value={editForm.section5Title}
+                    onChange={(event) => setEditForm((current) => current ? { ...current, section5Title: event.target.value } : current)}
+                  />
+                  <textarea
+                    className="w-full min-h-[120px] px-4 py-3 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                    placeholder="Custom Section Content"
+                    value={editForm.section5Content}
+                    onChange={(event) => setEditForm((current) => current ? { ...current, section5Content: event.target.value } : current)}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-4 pt-4 border-t border-slate-200">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-bold text-slate-900">Care Requirements</h3>
+                  <span className="text-xs text-slate-500">Up to 1400+ words total</span>
+                </div>
+                
+                <textarea
+                  className="w-full min-h-[100px] px-4 py-3 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                  placeholder="Temperature Requirements"
+                  value={editForm.careTemp}
+                  onChange={(event) => setEditForm((current) => current ? { ...current, careTemp: event.target.value } : current)}
+                />
+                <textarea
+                  className="w-full min-h-[100px] px-4 py-3 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                  placeholder="pH Level Requirements"
+                  value={editForm.carePh}
+                  onChange={(event) => setEditForm((current) => current ? { ...current, carePh: event.target.value } : current)}
+                />
+                <textarea
+                  className="w-full min-h-[100px] px-4 py-3 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                  placeholder="Water Hardness"
+                  value={editForm.careWaterHardness}
+                  onChange={(event) => setEditForm((current) => current ? { ...current, careWaterHardness: event.target.value } : current)}
+                />
+                <textarea
+                  className="w-full min-h-[100px] px-4 py-3 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                  placeholder="Water current and aeration"
+                  value={editForm.careWaterCurrent}
+                  onChange={(event) => setEditForm((current) => current ? { ...current, careWaterCurrent: event.target.value } : current)}
+                />
+                <textarea
+                  className="w-full min-h-[120px] px-4 py-3 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                  placeholder="Tank set-up and housing"
+                  value={editForm.careTankSetup}
+                  onChange={(event) => setEditForm((current) => current ? { ...current, careTankSetup: event.target.value } : current)}
+                />
+                <textarea
+                  className="w-full min-h-[120px] px-4 py-3 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                  placeholder="Hiding spot of the fish and decor"
+                  value={editForm.careHidingSpots}
+                  onChange={(event) => setEditForm((current) => current ? { ...current, careHidingSpots: event.target.value } : current)}
+                />
+              </div>
 
               {/* Q&A / FAQ Section */}
               <div className="rounded-2xl border border-slate-200 p-5 bg-white space-y-4">

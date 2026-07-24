@@ -24,24 +24,32 @@ export async function generateMetadata({ params }: ProductDetailProps): Promise<
     const productUrl = `https://neoblue.in/products/${product._id}`;
     
     // Highly optimized title for transaction and species queries (e.g., "Buy Guppy Fish Online")
-    const titleText = `Buy ${product.title} ${product.scientific ? `(${product.scientific})` : ''} Online - Price & Care | NeoBlue`;
+    const titleText = `${product.title} ${product.scientific ? `(${product.scientific})` : ''} - Buy Online | NeoBlue Fishes`;
     
     // Dynamic meta description containing key parameters to hook user and crawler attention
-    const priceText = product.price ? `₹${product.price}` : '';
-    const tempText = product.tempMin && product.tempMax ? `${product.tempMin}-${product.tempMax}°C` : '';
-    const descPrefix = `Buy ${product.title} ${product.scientific ? `(${product.scientific})` : ''} online. `;
-    const descBody = `Premium quality ${product.waterType.toLowerCase()} specimen at best price (${priceText}). Temp: ${tempText}. View care specifications and order live delivery from NeoBlue.`;
-    const truncatedDesc = (descPrefix + descBody).replace(/(\r\n|\n|\r)/gm, " ").slice(0, 155) + "...";
+    let truncatedDesc = '';
+    if (product.quickOverview) {
+      truncatedDesc = product.quickOverview.replace(/(\r\n|\n|\r)/gm, " ").slice(0, 155) + "...";
+    } else {
+      const priceText = product.price ? `₹${product.price}` : '';
+      const tempText = product.tempMin && product.tempMax ? `${product.tempMin}-${product.tempMax}°C` : '';
+      const descPrefix = `Buy ${product.title} ${product.scientific ? `(${product.scientific})` : ''} online from NeoBlue. `;
+      const descBody = `Premium quality ${product.waterType.toLowerCase()} specimen at best price (${priceText}). Temp: ${tempText}. View care specifications and order live delivery.`;
+      truncatedDesc = (descPrefix + descBody).replace(/(\r\n|\n|\r)/gm, " ").slice(0, 155) + "...";
+    }
       
     return {
       title: titleText,
       description: truncatedDesc,
       keywords: [
         product.title,
+        `${product.title}s`,
         product.scientific,
         product.category,
         product.subcategory,
         product.waterType,
+        'neoblue',
+        'neoblue fishes',
         'buy fish online',
         'aquarium fish price',
         'live fish delivery',
@@ -56,6 +64,7 @@ export async function generateMetadata({ params }: ProductDetailProps): Promise<
         url: productUrl,
         images: product.images?.[0] ? [{ url: product.images[0] }] : [],
         type: 'website',
+        siteName: 'NeoBlue',
       },
       twitter: {
         card: 'summary_large_image',
@@ -163,14 +172,16 @@ export default async function ProductDetailPage({ params }: ProductDetailProps) 
     "datePublished": r.createdAt ? new Date(r.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
   }));
 
-  // Define JSON-LD structured schemas for SEO crawler bots
+  // Define JSON-LD structured schemas for SEO crawler bots (Optimized for Google Shopping Tab)
   const productSchema: any = {
     "@context": "https://schema.org",
     "@type": "Product",
     "name": product.title,
     "image": product.images || [],
-    "description": product.description,
+    "description": product.quickOverview || product.description,
     "sku": `NEO-${product._id.slice(-6).toUpperCase()}`,
+    "mpn": `NEO-${product._id.slice(-6).toUpperCase()}`,
+    "category": product.category,
     "brand": {
       "@type": "Brand",
       "name": "NeoBlue"
@@ -186,6 +197,41 @@ export default async function ProductDetailPage({ params }: ProductDetailProps) 
       "seller": {
         "@type": "Organization",
         "name": product.vendorId?.name || "NeoBlue Seller"
+      },
+      "hasMerchantReturnPolicy": {
+        "@type": "MerchantReturnPolicy",
+        "applicableCountry": "IN",
+        "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
+        "merchantReturnDays": 7,
+        "returnMethod": "https://schema.org/ReturnByMail",
+        "returnFees": "https://schema.org/FreeReturn"
+      },
+      "shippingDetails": {
+        "@type": "OfferShippingDetails",
+        "shippingRate": {
+          "@type": "MonetaryAmount",
+          "value": "0",
+          "currency": "INR"
+        },
+        "shippingDestination": {
+          "@type": "DefinedRegion",
+          "addressCountry": "IN"
+        },
+        "deliveryTime": {
+          "@type": "ShippingDeliveryTime",
+          "handlingTime": {
+            "@type": "QuantitativeValue",
+            "minValue": 0,
+            "maxValue": 1,
+            "unitCode": "d"
+          },
+          "transitTime": {
+            "@type": "QuantitativeValue",
+            "minValue": 1,
+            "maxValue": 3,
+            "unitCode": "d"
+          }
+        }
       }
     }
   };

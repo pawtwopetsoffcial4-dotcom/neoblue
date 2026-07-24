@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import Link from 'next/link';
-import { ShoppingBag, Star, Truck, Shield, Droplets, Thermometer, Info, MessageSquare, ChevronRight, ChevronDown, Store, CheckCircle2, Search, X, ShieldAlert, Sparkles, Scale, Heart, Package, Leaf, Ruler, User } from 'lucide-react';
+import { ShoppingBag, Star, Truck, Shield, Droplets, Thermometer, Info, MessageSquare, ChevronRight, ChevronDown, Store, CheckCircle2, Search, X, ShieldAlert, Sparkles, Scale, Heart, Package, Leaf, Ruler, User, Activity, Box, Home } from 'lucide-react';
 import ReviewList from '@/app/components/ReviewList';
 import ReviewForm from '@/app/components/ReviewForm';
 import ReviewStars from '@/app/components/ReviewStars';
@@ -185,7 +185,7 @@ export default function ProductClientPage({
             ) : (
               <img
                 src={activeMedia.url}
-                alt={`${product.title} - NeoBlue`}
+                alt={`${product.title} ${product.scientific ? `(${product.scientific})` : ''} - Premium ${product.category} for sale online at NeoBlue`}
                 className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
               />
             )}
@@ -327,20 +327,41 @@ export default function ProductClientPage({
               ) : null}
             </div>
 
-            {(product.size || product.ageCategory) && (
-              <div className="flex flex-wrap gap-2.5 pt-3 border-t border-slate-100">
+            <div className="pt-4 border-t border-slate-100">
+              <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-3">Quick Specs</h4>
+              <div className="flex flex-wrap gap-2.5">
                 {product.size && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-indigo-50 border border-indigo-100 text-xs font-bold text-indigo-700">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 border border-indigo-100 text-xs font-bold text-indigo-700">
                     📐 Size: {product.size}
                   </span>
                 )}
                 {product.ageCategory && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-pink-50 border border-pink-100 text-xs font-bold text-pink-700 capitalize">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-pink-50 border border-pink-100 text-xs font-bold text-pink-700 capitalize">
                     🐟 Age: {product.ageCategory}
                   </span>
                 )}
+                {product.waterType && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-50 border border-cyan-100 text-xs font-bold text-cyan-700">
+                    💧 {product.waterType}
+                  </span>
+                )}
+                {product.phMin && product.phMax && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-50 border border-teal-100 text-xs font-bold text-teal-700">
+                    ⚗️ pH {product.phMin}-{product.phMax}
+                  </span>
+                )}
+                {product.tempMin && product.tempMax && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-50 border border-rose-100 text-xs font-bold text-rose-700">
+                    🌡️ {product.tempMin}-{product.tempMax}°C
+                  </span>
+                )}
+                {product.temperament && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-100 text-xs font-bold text-amber-700">
+                    🎭 {product.temperament}
+                  </span>
+                )}
               </div>
-            )}
+            </div>
 
             {/* Quantity & Cart */}
             <div className="flex items-center gap-3">
@@ -387,10 +408,17 @@ export default function ProductClientPage({
             ))}
           </div>
 
-          {/* Short description */}
-          <p className="text-sm text-slate-500 leading-relaxed line-clamp-3">
-            {product.description || 'Premium aquatic specimen, quarantine-tested and ready for your tank setup.'}
-          </p>
+          {/* Quick Overview & Description */}
+          <div className="space-y-3 bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm">
+            {product.quickOverview && (
+              <p className="text-[15px] font-bold text-slate-800 leading-snug">
+                {product.quickOverview}
+              </p>
+            )}
+            <p className="text-sm text-slate-500 leading-relaxed">
+              {product.description || 'Premium aquatic specimen, quarantine-tested and ready for your tank setup.'}
+            </p>
+          </div>
         </div>
       </div>
 
@@ -427,10 +455,42 @@ export default function ProductClientPage({
           <div className="bg-white rounded-b-2xl rounded-t-none border border-t-0 border-slate-200/80 p-6 md:p-8 min-h-[280px]">
 
             {activeTab === 'description' && (
-              <div className="max-w-3xl space-y-6">
-                <h3 className="text-xl font-bold text-slate-900">About this {product.title}</h3>
-                <div className="prose prose-slate prose-sm max-w-none">
-                  <p className="text-slate-600 leading-relaxed whitespace-pre-wrap">{product.description}</p>
+              <div className="max-w-4xl space-y-8">
+                <h3 className="text-2xl font-black text-slate-900 tracking-tight">About {product.title}</h3>
+                <div className="prose prose-slate prose-base max-w-none space-y-10">
+                  {product.aboutSpecies && (
+                    <div>
+                      <h4 className="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2"><Info className="h-5 w-5 text-blue-500"/> Species Profile</h4>
+                      <p className="text-slate-600 leading-loose whitespace-pre-wrap">{product.aboutSpecies}</p>
+                    </div>
+                  )}
+                  {product.behavioralTraits && (
+                    <div>
+                      <h4 className="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2"><Sparkles className="h-5 w-5 text-amber-500"/> Behavior & Temperament</h4>
+                      <p className="text-slate-600 leading-loose whitespace-pre-wrap">{product.behavioralTraits}</p>
+                    </div>
+                  )}
+                  {product.genderIdentification && (
+                    <div>
+                      <h4 className="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2"><User className="h-5 w-5 text-pink-500"/> Male vs Female Identification</h4>
+                      <p className="text-slate-600 leading-loose whitespace-pre-wrap">{product.genderIdentification}</p>
+                    </div>
+                  )}
+                  {product.sustainabilitySourcing && (
+                    <div>
+                      <h4 className="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2"><Leaf className="h-5 w-5 text-emerald-500"/> Sustainability & Sourcing</h4>
+                      <p className="text-slate-600 leading-loose whitespace-pre-wrap">{product.sustainabilitySourcing}</p>
+                    </div>
+                  )}
+                  {product.section5Title && product.section5Content && (
+                    <div>
+                      <h4 className="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2"><Store className="h-5 w-5 text-purple-500"/> {product.section5Title}</h4>
+                      <p className="text-slate-600 leading-loose whitespace-pre-wrap">{product.section5Content}</p>
+                    </div>
+                  )}
+                  {!product.aboutSpecies && !product.behavioralTraits && (
+                    <p className="text-slate-600 leading-relaxed whitespace-pre-wrap">{product.description}</p>
+                  )}
                 </div>
 
                 <div className="pt-6 border-t border-slate-100">
@@ -481,6 +541,53 @@ export default function ProductClientPage({
                       </div>
                     </div>
                   ))}
+                </div>
+
+                {/* Deep Care Requirements */}
+                <div className="pt-10 border-t border-slate-100 mt-10">
+                  <h3 className="text-2xl font-black text-slate-900 tracking-tight mb-8">Detailed Care Guide</h3>
+                  <div className="prose prose-slate prose-base max-w-4xl space-y-10">
+                    {product.careTemp && (
+                      <div>
+                        <h4 className="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2"><Thermometer className="h-5 w-5 text-rose-500"/> Temperature Requirements</h4>
+                        <p className="text-slate-600 leading-loose whitespace-pre-wrap">{product.careTemp}</p>
+                      </div>
+                    )}
+                    {product.carePh && (
+                      <div>
+                        <h4 className="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2"><Droplets className="h-5 w-5 text-teal-500"/> pH Level & Chemistry</h4>
+                        <p className="text-slate-600 leading-loose whitespace-pre-wrap">{product.carePh}</p>
+                      </div>
+                    )}
+                    {product.careWaterHardness && (
+                      <div>
+                        <h4 className="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2"><ShieldAlert className="h-5 w-5 text-blue-500"/> Water Hardness</h4>
+                        <p className="text-slate-600 leading-loose whitespace-pre-wrap">{product.careWaterHardness}</p>
+                      </div>
+                    )}
+                    {product.careWaterCurrent && (
+                      <div>
+                        <h4 className="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2"><Activity className="h-5 w-5 text-cyan-500"/> Water Current & Aeration</h4>
+                        <p className="text-slate-600 leading-loose whitespace-pre-wrap">{product.careWaterCurrent}</p>
+                      </div>
+                    )}
+                    {product.careTankSetup && (
+                      <div>
+                        <h4 className="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2"><Box className="h-5 w-5 text-indigo-500"/> Tank Setup & Housing</h4>
+                        <p className="text-slate-600 leading-loose whitespace-pre-wrap">{product.careTankSetup}</p>
+                      </div>
+                    )}
+                    {product.careHidingSpots && (
+                      <div>
+                        <h4 className="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2"><Home className="h-5 w-5 text-emerald-500"/> Hiding Spots & Decor</h4>
+                        <p className="text-slate-600 leading-loose whitespace-pre-wrap">{product.careHidingSpots}</p>
+                      </div>
+                    )}
+                    
+                    {!product.careTemp && !product.carePh && !product.careTankSetup && (
+                      <p className="text-slate-500 italic">No detailed care guidelines provided for this product.</p>
+                    )}
+                  </div>
                 </div>
               </div>
             )}
