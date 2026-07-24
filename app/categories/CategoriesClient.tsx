@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
 import { useMode } from '@/lib/hooks/useMode';
+import ComingSoonPlants from '@/app/components/ComingSoonPlants';
 
 interface CategoryItem {
   slug: string;
@@ -25,10 +26,16 @@ export default function CategoriesClient({ categories }: { categories: CategoryI
     }
   });
 
+  if (mode === 'plants') {
+    return (
+      <div className="min-h-screen bg-[#f5f8f6] text-slate-900 pb-24 md:pb-0 font-sans transition-colors duration-500 selection:bg-green-500 selection:text-white">
+        <ComingSoonPlants />
+      </div>
+    );
+  }
+
   return (
-    <div className={`min-h-screen bg-white text-slate-900 pb-24 md:pb-0 font-sans transition-colors duration-500 ${
-      mode === 'fishes' ? 'selection:bg-blue-500 selection:text-white' : 'selection:bg-green-500 selection:text-white'
-    }`}>
+    <div className={`min-h-screen bg-white text-slate-900 pb-24 md:pb-0 font-sans transition-colors duration-500 selection:bg-blue-500 selection:text-white`}>
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 md:pt-10 pb-16">
         {/* Header Section */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-12">

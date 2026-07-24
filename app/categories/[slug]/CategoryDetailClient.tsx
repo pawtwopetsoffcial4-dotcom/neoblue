@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ArrowLeft, ArrowUpRight, Fish, Leaf } from 'lucide-react';
 import { useMode } from '@/lib/hooks/useMode';
 import ReviewStars from '@/app/components/ReviewStars';
+import ComingSoonPlants from '@/app/components/ComingSoonPlants';
 
 interface ProductItem {
   _id: string;
@@ -100,6 +101,14 @@ export default function CategoryDetailClient({
 
   // Under matching mode, apply dynamic theme styling
   const activeColor = mode === 'plants' ? 'green' : 'blue';
+
+  if (mode === 'plants') {
+    return (
+      <div className="min-h-screen bg-[#f5f8f6] text-slate-900 pb-24 md:pb-0 font-sans transition-colors duration-500 selection:bg-green-500 selection:text-white">
+        <ComingSoonPlants />
+      </div>
+    );
+  }
 
   return (
     <div className={`min-h-screen bg-white text-slate-900 pb-24 md:pb-0 font-sans transition-colors duration-500 ${

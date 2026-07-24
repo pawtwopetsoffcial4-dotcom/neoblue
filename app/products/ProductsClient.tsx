@@ -14,6 +14,7 @@ import type { MarketplaceProduct } from '@/lib/types/marketplace';
 import { useCart } from '@/lib/hooks/useCart';
 import { getSubcategoriesForCategory } from '@/lib/catalog';
 import { useMode } from '@/lib/hooks/useMode';
+import ComingSoonPlants from '@/app/components/ComingSoonPlants';
 
 const formatPrice = (price: number) => `₹${price}`;
 
@@ -198,10 +199,16 @@ function ProductsPageContent() {
     return filtered;
   }, [products, searchTerm, category, subcategory, waterType, tag, inStockOnly, sortBy, mode]);
 
+  if (mode === 'plants') {
+    return (
+      <div className="min-h-screen pb-safe pb-24 font-sans w-full overflow-x-hidden transition-colors duration-500 bg-[#f5f8f6] text-slate-900 selection:bg-green-200">
+        <ComingSoonPlants />
+      </div>
+    );
+  }
+
   return (
-    <div className={`min-h-screen pb-safe pb-24 font-sans w-full overflow-x-hidden transition-colors duration-500 ${
-      mode === 'fishes' ? 'bg-[#f5f6f8] text-slate-900 selection:bg-blue-200' : 'bg-[#f5f8f6] text-slate-900 selection:bg-green-200'
-    }`}>
+    <div className={`min-h-screen pb-safe pb-24 font-sans w-full overflow-x-hidden transition-colors duration-500 bg-[#f5f6f8] text-slate-900 selection:bg-blue-200`}>
       
       {/* Sticky Filter & Sort Bar */}
       <div className="sticky top-[72px] z-20 flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3 text-[13px] font-semibold text-slate-700 shadow-sm">
