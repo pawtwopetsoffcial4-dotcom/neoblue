@@ -210,12 +210,12 @@ function ProductsPageContent() {
   return (
     <div className={`min-h-screen pb-safe pb-24 font-sans w-full overflow-x-hidden transition-colors duration-500 bg-[#f5f6f8] text-slate-900 selection:bg-blue-200`}>
       
-      {/* Floating Glassmorphism Filters Capsule (Single Button) */}
+      {/* Floating Glassmorphism Filters Capsule (Single Button - Authentic iOS Glass Feel) */}
       <div className="fixed bottom-[98px] md:bottom-8 left-1/2 -translate-x-1/2 z-[1050] animate-fade-in-up">
         <button
           onClick={() => setFilterModalOpen(true)}
-          className={`flex items-center gap-2 px-5.5 py-2.5 rounded-full border border-white/80 bg-white/70 backdrop-blur-3xl shadow-[0_16px_40px_rgba(0,0,0,0.18)] text-slate-900 font-black text-xs tracking-wide transition-all active:scale-95 hover:bg-white/85 ${
-            mode === 'fishes' ? 'hover:border-blue-300' : 'hover:border-emerald-300'
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-full border border-white/60 bg-white/40 backdrop-blur-2xl backdrop-saturate-200 shadow-[0_10px_32px_rgba(0,0,0,0.12),inset_0_1px_1.5px_rgba(255,255,255,0.9)] text-slate-900 font-black text-xs tracking-wide transition-all active:scale-95 hover:bg-white/55 hover:border-white/80 ${
+            mode === 'fishes' ? 'hover:shadow-blue-500/10' : 'hover:shadow-emerald-500/10'
           }`}
         >
           <SlidersHorizontal className={`h-4 w-4 ${mode === 'fishes' ? 'text-blue-600' : 'text-emerald-700'}`} />
@@ -375,7 +375,7 @@ function ProductsPageContent() {
 
       {/* Unified Filter & Sort Modal / Bottom Sheet */}
       {filterModalOpen && (
-        <div className="fixed inset-0 z-50 flex flex-col justify-end md:justify-center items-center bg-slate-900/60 backdrop-blur-sm transition-opacity p-0 md:p-6">
+        <div className="fixed inset-0 z-[9999] flex flex-col justify-end md:justify-center items-center bg-slate-900/60 backdrop-blur-sm transition-opacity p-0 md:p-6">
           <div className="absolute inset-0 w-full h-full" onClick={() => setFilterModalOpen(false)} />
           
           <div className="relative w-full md:max-w-xl flex flex-col max-h-[85vh] md:max-h-[80vh] rounded-t-3xl md:rounded-3xl bg-white shadow-2xl animate-in slide-in-from-bottom md:zoom-in-95 shrink-0 overflow-hidden">
