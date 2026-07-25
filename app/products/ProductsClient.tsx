@@ -211,8 +211,8 @@ function ProductsPageContent() {
     <div className={`min-h-screen pb-safe pb-24 font-sans w-full overflow-x-hidden transition-colors duration-500 bg-[#f5f6f8] text-slate-900 selection:bg-blue-200`}>
       
       {/* Floating Glassmorphism Filter & Sort Capsule (Above Mobile Dock) */}
-      <div className="fixed bottom-20 md:bottom-8 left-1/2 -translate-x-1/2 z-40 animate-fade-in-up">
-        <div className="flex items-center gap-1 p-1 rounded-full border border-white/60 bg-white/75 backdrop-blur-2xl shadow-[0_12px_32px_rgba(0,0,0,0.12)] text-slate-800 transition-all">
+      <div className="fixed bottom-[98px] md:bottom-8 left-1/2 -translate-x-1/2 z-40 animate-fade-in-up">
+        <div className="flex items-center gap-1 p-1.5 rounded-full border border-white/80 bg-white/65 backdrop-blur-3xl shadow-[0_16px_40px_rgba(0,0,0,0.18)] text-slate-800 transition-all">
           {/* Filter Button */}
           <button
             onClick={() => setFilterModalOpen(true)}
@@ -221,11 +221,11 @@ function ProductsPageContent() {
             }`}
           >
             <SlidersHorizontal className="h-4 w-4" />
-            <span className="text-slate-900 font-extrabold">Filter</span>
+            <span className="text-slate-900 font-black">Filter</span>
           </button>
 
           {/* Vertical Glass Divider */}
-          <span className="h-4 w-[1px] bg-slate-300/60" />
+          <span className="h-4 w-[1px] bg-slate-400/40" />
 
           {/* Sort Button */}
           <button
@@ -235,7 +235,7 @@ function ProductsPageContent() {
             }`}
           >
             <ArrowUpDown className="h-4 w-4" />
-            <span className="text-slate-900 font-extrabold">Sort</span>
+            <span className="text-slate-900 font-black">Sort</span>
           </button>
         </div>
       </div>
