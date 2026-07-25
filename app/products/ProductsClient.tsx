@@ -228,28 +228,18 @@ function ProductsPageContent() {
       </div>
 
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-6 pb-28">
-        {/* Sticky Search Bar Container (Apple Glass Feel) */}
-        <div 
-          className="sticky top-[104px] z-40 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 py-3 mb-6 md:mb-8"
-          style={{
-            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-            backdropFilter: 'blur(20px) saturate(180%)',
-            backgroundColor: 'rgba(245, 246, 248, 0.75)',
-            borderBottom: '1px solid rgba(0, 0, 0, 0.05)'
-          }}
-        >
-          <div className="relative max-w-2xl mx-auto">
-            <Search className="absolute left-4 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-slate-500 z-10" />
-            <input
-              type="search"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder={mode === 'fishes' ? "Search for fishes, species, or tags..." : "Search for plants, moss, or accessories..."}
-              className={`w-full h-12 rounded-full border border-white/60 bg-white/60 backdrop-blur-lg pl-11 pr-5 text-xs md:text-sm font-medium text-slate-900 shadow-[0_4px_16px_rgba(0,0,0,0.04),inset_0_1px_1.5px_rgba(255,255,255,0.8)] outline-none placeholder:text-slate-500 transition-all focus:bg-white/90 focus:shadow-[0_4px_20px_rgba(0,0,0,0.08)] ${
-                mode === 'fishes' ? 'focus:border-blue-300' : 'focus:border-emerald-300'
-              }`}
-            />
-          </div>
+        {/* Search Bar */}
+        <div className="mb-6 md:mb-8 relative max-w-2xl mx-auto">
+          <Search className="absolute left-4 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-slate-400" />
+          <input
+            type="search"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder={mode === 'fishes' ? "Search for fishes, species, or tags..." : "Search for plants, moss, or accessories..."}
+            className={`w-full h-12 rounded-full border border-slate-200/90 bg-white pl-11 pr-5 text-xs md:text-sm font-medium text-slate-900 shadow-xs outline-none placeholder:text-slate-400 transition-all focus:ring-4 ${
+              mode === 'fishes' ? 'focus:ring-blue-500/20 focus:border-blue-500' : 'focus:ring-emerald-500/20 focus:border-emerald-500'
+            }`}
+          />
         </div>
 
         {/* Loading / Error States */}
