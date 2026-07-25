@@ -211,7 +211,9 @@ function ProductsPageContent() {
     <div className={`min-h-screen pb-safe pb-24 font-sans w-full overflow-x-hidden transition-colors duration-500 bg-[#f5f6f8] text-slate-900 selection:bg-blue-200`}>
       
       {/* Integrated Search & Filter Toolbar */}
-      <div className="sticky top-[84px] sm:top-[90px] md:top-[96px] z-30 border-b border-slate-200/80 bg-white/95 backdrop-blur-md shadow-xs py-2 px-3 sm:px-6 transition-all">
+      <div className={`sticky top-[98px] md:top-[102px] z-30 border-b bg-white/95 backdrop-blur-md shadow-xs py-2 px-3 sm:px-6 transition-all ${
+        mode === 'fishes' ? 'border-blue-100/80 shadow-blue-900/5' : 'border-emerald-100/80 shadow-emerald-900/5'
+      }`}>
         <div className="mx-auto max-w-7xl flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
           {/* Search Input Bar */}
           <div className="relative flex-1 w-full">
@@ -256,7 +258,7 @@ function ProductsPageContent() {
         </div>
       </div>
 
-      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-4 pb-12">
+      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-6 pb-12">
 
         {/* Loading / Error States */}
         {isLoading && (
