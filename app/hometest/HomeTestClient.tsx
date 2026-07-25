@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import {
   ArrowRight, Package, Truck, ShieldCheck, Star, Headset,
-  Fish, Sparkles, ChevronLeft, ChevronRight, Tag, Zap
+  Fish, Sparkles, ChevronLeft, ChevronRight, Tag, Zap, Heart
 } from 'lucide-react';
 import ReviewStars from '@/app/components/ReviewStars';
 import type { MarketplaceProduct } from '@/lib/types/marketplace';
@@ -54,56 +54,84 @@ function ProductCard({ product, mode, index = 0 }: { product: HeroCardProduct; m
   const unitPrice = product.perPairPrice ?? product.perPiecePrice ?? product.price;
   const unitLabel = product.perPairPrice != null ? 'pair' : 'piece';
 
+  const accentColor = mode === 'fishes' ? 'text-blue-600' : 'text-emerald-600';
+  const accentBg = mode === 'fishes' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-emerald-600 hover:bg-emerald-700';
+  const accentBadge = mode === 'fishes' ? 'bg-blue-600/90 text-white' : 'bg-emerald-600/90 text-white';
+  const accentHoverBorder = mode === 'fishes' ? 'hover:border-blue-200 hover:shadow-blue-500/10' : 'hover:border-emerald-200 hover:shadow-emerald-500/10';
+
   return (
-    <Link
-      href={`/products/${product.id}`}
+    <div
       style={{ animationDelay: `${index * 50}ms` }}
-      className={`group flex-shrink-0 w-44 sm:w-52 md:w-auto flex flex-col rounded-[20px] overflow-hidden border bg-white transition-all duration-500 ease-out animate-fade-in-up hover:-translate-y-2 hover:shadow-xl ${
-        mode === 'fishes'
-          ? 'border-blue-50 shadow-sm hover:border-blue-200 hover:shadow-blue-100/50'
-          : 'border-green-50 shadow-sm hover:border-green-200 hover:shadow-green-100/50'
-      }`}
+      className={`group relative flex flex-col h-full rounded-2xl bg-white border border-slate-100 shadow-[0_2px_10px_rgba(0,0,0,0.03)] hover:shadow-[0_12px_28px_rgba(0,0,0,0.08)] transition-all duration-300 overflow-hidden animate-fade-in-up hover:-translate-y-1 ${accentHoverBorder}`}
     >
-      <div className={`relative aspect-[4/3] overflow-hidden ${mode === 'fishes' ? 'bg-blue-50/30' : 'bg-green-50/30'}`}>
+      {/* Top Image Container */}
+      <Link href={`/products/${product.id}`} className="relative block aspect-[4/3] w-full overflow-hidden bg-slate-50">
         <Image
           src={product.img}
           alt={product.title}
           fill
-          sizes="(max-width: 640px) 176px, (max-width: 1024px) 208px, 220px"
-          className="object-cover group-hover:scale-108 transition-transform duration-700 ease-out"
+          sizes="(max-width: 640px) 160px, (max-width: 1024px) 200px, 240px"
+          className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/15 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/15 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+        {/* Tag Badge */}
         {product.tag && String(product.tag).toLowerCase() !== 'standard' && (
-          <div className={`absolute left-2.5 top-2.5 rounded-full px-2.5 py-1 text-white text-[10px] font-bold shadow-sm ${
-            mode === 'fishes' ? 'bg-blue-600' : 'bg-emerald-600'
-          }`}>
+          <span className={`absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider backdrop-blur-md shadow-sm ${accentBadge}`}>
             {product.tag}
-          </div>
+          </span>
         )}
-      </div>
-      <div className="p-3 flex flex-col flex-1">
-        <p className={`text-[10px] font-black uppercase tracking-widest mb-1 ${mode === 'fishes' ? 'text-blue-500' : 'text-emerald-600'}`}>
-          {product.category}
-        </p>
-        <h3 className="text-sm font-bold text-slate-900 line-clamp-2 leading-snug mb-2 group-hover:text-blue-700 transition-colors">
-          {product.title}
-        </h3>
-        <div className="flex items-center mb-3">
-          <ReviewStars rating={rating} count={reviewsCount} compact size={11} />
+
+        {/* Wishlist action button */}
+        <div className="absolute top-2.5 right-2.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          <span className="flex items-center justify-center w-7 h-7 rounded-full bg-white/90 backdrop-blur-md text-slate-500 shadow-sm hover:bg-white hover:text-red-500 transition-colors cursor-pointer">
+            <Heart className="w-3.5 h-3.5" />
+          </span>
         </div>
-        <div className="mt-auto pt-3 border-t border-slate-50/80 flex items-center justify-between">
-          <div className="flex items-baseline gap-1 bg-slate-50/50 px-2.5 py-1 rounded-lg">
-            <span className={`text-[17px] font-black tracking-tight ${mode === 'fishes' ? 'text-blue-700' : 'text-emerald-700'}`}>
+      </Link>
+
+      {/* Details Body */}
+      <div className="p-3.5 flex flex-col flex-1 justify-between gap-2.5">
+        <div>
+          <div className="flex items-center justify-between gap-1 mb-1">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider truncate">
+              {product.category}
+            </span>
+            <div className="flex items-center gap-1 text-[11px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-md">
+              <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+              <span>{rating.toFixed(1)}</span>
+              {reviewsCount > 0 && <span className="text-slate-400 font-normal text-[10px]">({reviewsCount})</span>}
+            </div>
+          </div>
+
+          <Link href={`/products/${product.id}`} className="block">
+            <h3 className="text-xs md:text-sm font-bold text-slate-800 line-clamp-1 leading-snug group-hover:text-blue-600 transition-colors">
+              {product.title}
+            </h3>
+          </Link>
+        </div>
+
+        {/* Price & Action Row */}
+        <div className="flex items-center justify-between pt-2.5 border-t border-slate-100/80 mt-auto">
+          <div className="flex items-baseline">
+            <span className={`text-base md:text-lg font-black tracking-tight ${accentColor}`}>
               ₹{unitPrice}
             </span>
-            <span className="text-[9px] text-slate-400 font-extrabold uppercase tracking-widest">/ {unitLabel}</span>
+            <span className="text-[10px] font-bold text-slate-400 ml-1 uppercase">
+              / {unitLabel}
+            </span>
           </div>
-          <div className={`w-7 h-7 rounded-full flex items-center justify-center transition-colors shadow-sm ${mode === 'fishes' ? 'bg-blue-600 text-white group-hover:bg-blue-700' : 'bg-emerald-600 text-white group-hover:bg-emerald-700'}`}>
-             <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" />
-          </div>
+
+          <Link
+            href={`/products/${product.id}`}
+            className={`inline-flex items-center justify-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold text-white shadow-sm transition-all hover:scale-105 active:scale-95 ${accentBg}`}
+          >
+            <span>View</span>
+            <ArrowRight className="w-3 h-3" />
+          </Link>
         </div>
       </div>
-    </Link>
+    </div>
   );
 }
 
