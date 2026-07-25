@@ -211,10 +211,10 @@ function ProductsPageContent() {
     <div className={`min-h-screen pb-safe pb-24 font-sans w-full overflow-x-hidden transition-colors duration-500 bg-[#f5f6f8] text-slate-900 selection:bg-blue-200`}>
       
       {/* Integrated Search & Filter Toolbar */}
-      <div className={`sticky top-[98px] md:top-[102px] z-30 border-b bg-white/95 backdrop-blur-md shadow-xs py-2 px-3 sm:px-6 transition-all ${
-        mode === 'fishes' ? 'border-blue-100/80 shadow-blue-900/5' : 'border-emerald-100/80 shadow-emerald-900/5'
+      <div className={`w-full bg-white border-b py-2.5 px-3 sm:px-6 transition-all ${
+        mode === 'fishes' ? 'border-blue-100 shadow-sm' : 'border-emerald-100 shadow-sm'
       }`}>
-        <div className="mx-auto max-w-7xl flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
+        <div className="mx-auto max-w-7xl flex flex-col sm:flex-row items-center gap-2.5 sm:gap-3">
           {/* Search Input Bar */}
           <div className="relative flex-1 w-full">
             <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -223,7 +223,7 @@ function ProductsPageContent() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder={mode === 'fishes' ? "Search for fishes, species, or tags..." : "Search for plants, moss, or accessories..."}
-              className={`w-full h-9.5 rounded-full border border-slate-200/90 bg-slate-50/80 pl-10 pr-4 text-xs font-medium text-slate-900 shadow-2xs outline-none placeholder:text-slate-400 transition-all focus:bg-white focus:ring-2 ${
+              className={`w-full h-9.5 rounded-full border border-slate-200/90 bg-slate-50/80 pl-10 pr-4 text-xs font-medium text-slate-900 outline-none placeholder:text-slate-400 transition-all focus:bg-white focus:ring-2 ${
                 mode === 'fishes' ? 'focus:ring-blue-500/20 focus:border-blue-500' : 'focus:ring-emerald-500/20 focus:border-emerald-500'
               }`}
             />
@@ -233,7 +233,7 @@ function ProductsPageContent() {
           <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto shrink-0">
             <button 
               onClick={() => setFilterModalOpen(true)}
-              className={`flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold transition-all shadow-2xs active:scale-95 ${
+              className={`flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-bold transition-all active:scale-95 ${
                 mode === 'fishes' ? 'hover:border-blue-400 hover:text-blue-600' : 'hover:border-emerald-400 hover:text-emerald-700'
               }`}
             >
@@ -247,7 +247,7 @@ function ProductsPageContent() {
 
             <button 
               onClick={() => setFilterModalOpen(true)}
-              className={`flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold transition-all shadow-2xs active:scale-95 ${
+              className={`flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-bold transition-all active:scale-95 ${
                 mode === 'fishes' ? 'hover:border-blue-400 hover:text-blue-600' : 'hover:border-emerald-400 hover:text-emerald-700'
               }`}
             >
@@ -258,7 +258,7 @@ function ProductsPageContent() {
         </div>
       </div>
 
-      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-6 pb-12">
+      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-4 pb-12">
 
         {/* Loading / Error States */}
         {isLoading && (
