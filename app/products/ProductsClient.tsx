@@ -227,10 +227,10 @@ function ProductsPageContent() {
         </button>
       </div>
 
-      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-2 pb-28">
-        {/* Sticky Floating Search Bar (Stays on top when scrolling) */}
-        <div className="sticky top-[112px] z-40 mb-5 w-full drop-shadow-sm pointer-events-none">
-          <div className="max-w-2xl mx-auto relative pointer-events-auto">
+      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-0 pb-28">
+        {/* Sticky Floating Search Bar (Touches header seamlessly) */}
+        <div className="z-40 w-full drop-shadow-sm pt-2 mb-4 pointer-events-none">
+          <div className="max-w-2xl   mx-auto relative pointer-events-auto">
             <Search className="absolute left-4 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-slate-500 z-10" />
             <input
               type="search"
