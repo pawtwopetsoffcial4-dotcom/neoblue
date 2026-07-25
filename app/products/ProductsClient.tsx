@@ -210,8 +210,8 @@ function ProductsPageContent() {
   return (
     <div className={`min-h-screen pb-safe pb-24 font-sans w-full overflow-x-hidden transition-colors duration-500 bg-[#f5f6f8] text-slate-900 selection:bg-blue-200`}>
       
-      {/* Floating Glassmorphism Filter & Sort Capsule (Above Mobile Dock) */}
-      <div className="fixed bottom-[98px] md:bottom-8 left-1/2 -translate-x-1/2 z-40 animate-fade-in-up">
+      {/* Floating Glassmorphism Filter & Sort Capsule (Ahead of Mobile Dock z-index) */}
+      <div className="fixed bottom-[98px] md:bottom-8 left-1/2 -translate-x-1/2 z-[1050] animate-fade-in-up">
         <div className="flex items-center gap-1 p-1.5 rounded-full border border-white/80 bg-white/65 backdrop-blur-3xl shadow-[0_16px_40px_rgba(0,0,0,0.18)] text-slate-800 transition-all">
           {/* Filter Button */}
           <button
