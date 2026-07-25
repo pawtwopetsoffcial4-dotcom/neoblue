@@ -211,43 +211,45 @@ function ProductsPageContent() {
     <div className={`min-h-screen pb-safe pb-24 font-sans w-full overflow-x-hidden transition-colors duration-500 bg-[#f5f6f8] text-slate-900 selection:bg-blue-200`}>
       
       {/* Sticky Filter & Sort Bar */}
-      <div className="sticky top-[72px] z-20 flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3 text-[13px] font-semibold text-slate-700 shadow-sm">
-        <button 
-          onClick={() => setFilterModalOpen(true)}
-          className={`flex items-center gap-1.5 rounded-full border border-slate-200 px-3 py-1.5 transition-colors ${
-            mode === 'fishes' ? 'hover:bg-slate-50 hover:text-blue-600' : 'hover:bg-green-50 hover:text-green-700'
-          }`}
-        >
-          <SlidersHorizontal className="h-3.5 w-3.5" />
-          Filters
-        </button>
-        
-        <span className="text-slate-500 font-medium">
-          {filteredProducts.length} {mode === 'fishes' ? 'Fishes' : 'Plants'}
-        </span>
+      <div className="sticky top-[72px] z-20 border-b border-slate-200/60 bg-white/80 backdrop-blur-md shadow-sm">
+        <div className="mx-auto max-w-7xl flex items-center justify-between px-4 sm:px-6 lg:px-8 py-3.5 text-[13px] font-semibold text-slate-700">
+          <button 
+            onClick={() => setFilterModalOpen(true)}
+            className={`flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 transition-all shadow-sm hover:shadow-md active:scale-95 ${
+              mode === 'fishes' ? 'hover:border-blue-300 hover:text-blue-600' : 'hover:border-green-300 hover:text-green-700'
+            }`}
+          >
+            <SlidersHorizontal className="h-4 w-4" />
+            Filters
+          </button>
+          
+          <span className="text-slate-500 font-medium">
+            {filteredProducts.length} {mode === 'fishes' ? 'Fishes' : 'Plants'}
+          </span>
 
-        <button 
-          onClick={() => setFilterModalOpen(true)}
-          className={`flex items-center gap-1.5 rounded-full border border-slate-200 px-3 py-1.5 transition-colors ${
-            mode === 'fishes' ? 'hover:bg-slate-50 hover:text-blue-600' : 'hover:bg-green-50 hover:text-green-700'
-          }`}
-        >
-          <ArrowUpDown className="h-3.5 w-3.5" />
-          Sort
-        </button>
+          <button 
+            onClick={() => setFilterModalOpen(true)}
+            className={`flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 transition-all shadow-sm hover:shadow-md active:scale-95 ${
+              mode === 'fishes' ? 'hover:border-blue-300 hover:text-blue-600' : 'hover:border-green-300 hover:text-green-700'
+            }`}
+          >
+            <ArrowUpDown className="h-4 w-4" />
+            Sort
+          </button>
+        </div>
       </div>
 
-      <main className="p-3 sm:p-4">
+      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 md:py-8 lg:py-10">
         {/* Search Bar */}
-        <div className="mb-4 relative">
-          <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+        <div className="mb-6 md:mb-10 relative max-w-2xl mx-auto">
+          <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
           <input
             type="search"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder={mode === 'fishes' ? "Search fishes..." : "Search plants..."}
-            className={`w-full h-11 rounded-2xl border border-slate-200 bg-white pl-10 pr-4 text-[13px] font-medium text-slate-900 shadow-sm outline-none placeholder:text-slate-400 focus:ring-1 ${
-              mode === 'fishes' ? 'focus:border-[#064ee5] focus:ring-[#064ee5]' : 'focus:border-green-600 focus:ring-green-600'
+            placeholder={mode === 'fishes' ? "Search for fishes, species, or tags..." : "Search for plants, moss, or accessories..."}
+            className={`w-full h-14 rounded-full border border-slate-200 bg-white pl-12 pr-6 text-[15px] font-medium text-slate-900 shadow-sm outline-none placeholder:text-slate-400 transition-all focus:ring-4 focus:border-transparent ${
+              mode === 'fishes' ? 'focus:ring-blue-500/20 focus:border-[#064ee5]' : 'focus:ring-green-500/20 focus:border-green-600'
             }`}
           />
         </div>
@@ -285,8 +287,8 @@ function ProductsPageContent() {
           </div>
         ) : (
           <>
-            {/* 2-column Grid */}
-            <div className="grid grid-cols-2 gap-3 mb-6">
+            {/* Responsive Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6 lg:gap-8 mb-12">
               {filteredProducts.map((product, idx) => {
                 const rating = typeof product.rating === 'number' ? product.rating : 5;
                 const reviewsCount = product.reviewsCount ?? 0;
@@ -300,23 +302,26 @@ function ProductsPageContent() {
                     href={`/products/${product._id}`}
                     key={product._id}
                     style={{ animationDelay: `${idx * 45}ms` }}
-                    className={`group flex w-full flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/70 active:scale-[0.98] animate-fade-in-up hover:-translate-y-1.5 hover:shadow-md hover:shadow-slate-350/20 transition-all duration-500 ease-out ${
-                      mode === 'fishes' ? 'hover:ring-blue-300' : 'hover:ring-green-300'
+                    className={`group flex w-full flex-col overflow-hidden rounded-[24px] bg-white shadow-sm border border-slate-100 active:scale-[0.98] animate-fade-in-up hover:-translate-y-2 hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-500 ease-out ${
+                      mode === 'fishes' ? 'hover:border-blue-200' : 'hover:border-green-200'
                     }`}
                   >
                     {/* Image Container */}
-                    <div className="relative aspect-square w-full overflow-hidden bg-slate-100">
+                    <div className="relative aspect-[4/3] sm:aspect-square w-full overflow-hidden bg-slate-50">
                       <Image
                         src={product.images?.[0] ?? (mode === 'fishes' ? DEFAULT_IMAGE : '/fishes_cat_cover/Plants.png')}
                         alt={product.title}
                         fill
-                        sizes="(max-width: 640px) 50vw, 25vw"
-                        className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                        className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
                       />
+
+                      {/* Overlays */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
                       {/* Out of Stock Badge */}
                       {!product.inStock && (
-                        <div className="absolute left-2 top-2 rounded bg-slate-900/90 px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-widest text-white backdrop-blur-sm">
+                        <div className="absolute left-3 top-3 rounded-full bg-slate-900/95 px-3 py-1 text-[10px] md:text-xs font-extrabold uppercase tracking-widest text-white backdrop-blur-md shadow-lg">
                           Sold out
                         </div>
                       )}
@@ -329,47 +334,50 @@ function ProductsPageContent() {
                           e.stopPropagation();
                           toggleWishlist(product._id);
                         }}
-                        className={`absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-white shadow-sm transition-all duration-300 ${
+                        className={`absolute right-3 top-3 flex h-8 w-8 md:h-9 md:w-9 items-center justify-center rounded-full bg-white/90 backdrop-blur-sm shadow-sm transition-all duration-300 hover:bg-white ${
                           wishlistedIds.includes(product._id)
                             ? 'text-rose-500 scale-110 shadow-md'
-                            : 'text-slate-300 hover:text-rose-500 hover:scale-105'
+                            : 'text-slate-400 hover:text-rose-500 hover:scale-110'
                         }`}
                       >
-                        <Heart className={`h-4 w-4 ${wishlistedIds.includes(product._id) ? 'fill-current' : ''}`} />
+                        <Heart className={`h-4 w-4 md:h-4.5 md:w-4.5 ${wishlistedIds.includes(product._id) ? 'fill-current' : ''}`} />
                       </button>
                     </div>
 
                     {/* Content Section */}
-                    <div className="flex flex-1 flex-col p-3">
-                      <div className="flex items-center justify-between gap-2">
-                        <h4 className={`text-[10px] font-bold uppercase tracking-wider ${
-                          mode === 'fishes' ? 'text-[#064ee5]' : 'text-green-600'
+                    <div className="flex flex-1 flex-col p-4 md:p-5">
+                      <div className="flex items-center justify-between gap-2 mb-2">
+                        <h4 className={`text-[10px] md:text-[11px] font-black uppercase tracking-widest ${
+                          mode === 'fishes' ? 'text-blue-600' : 'text-green-600'
                         }`}>
                           {product.category || (mode === 'fishes' ? 'Freshwater Fish' : 'Plants')}
                         </h4>
 
-                        <div className={`w-max rounded px-1.5 py-0.5 text-[10px] font-bold ${
-                          mode === 'fishes' ? 'bg-[#e7f8ef] text-[#159e4b]' : 'bg-green-50 text-green-700'
+                        <div className={`w-max rounded-full px-2 py-0.5 text-[9px] md:text-[10px] font-bold ${
+                          mode === 'fishes' ? 'bg-blue-50 text-blue-700' : 'bg-green-50 text-green-700'
                         }`}>
-                          {mode === 'fishes' ? (product.price < 500 ? 'Hot Deal' : 'Lowest Price') : '18% GST Applied'}
+                          {mode === 'fishes' ? (product.price < 500 ? 'Hot Deal' : 'Premium') : '18% GST Applied'}
                         </div>
                       </div>
                       
-                      <h3 className="mt-0.5 line-clamp-1 text-sm font-semibold text-slate-900">
+                      <h3 className="line-clamp-2 text-sm md:text-base font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
                         {product.title}
                       </h3>
 
                       {/* Rating Row */}
-                      <div className="mt-1 flex items-center">
-                        <ReviewStars rating={rating} count={reviewsCount} compact size={11} />
+                      <div className="mt-2.5 flex items-center">
+                        <ReviewStars rating={rating} count={reviewsCount} compact size={13} />
                       </div>
 
                       {/* Pricing Row */}
-                      <div className="mt-2 flex flex-col gap-0.5 text-[11px] text-slate-600 font-sans">
+                      <div className="mt-auto pt-4 flex flex-col gap-0.5 text-xs md:text-sm text-slate-500 font-medium">
                         {unitPrice != null ? (
-                          <span><span className="text-2xl font-black text-slate-900">₹{unitPrice}</span> per {unitLabel}</span>
+                          <div className="flex items-baseline gap-1">
+                            <span className="text-xl md:text-2xl font-black text-slate-900 tracking-tight">₹{unitPrice}</span>
+                            <span>/ {unitLabel}</span>
+                          </div>
                         ) : (
-                          <span className="text-slate-400">Pricing not set</span>
+                          <span className="text-slate-400 italic">Pricing not set</span>
                         )}
                       </div>
                     </div>
@@ -381,14 +389,14 @@ function ProductsPageContent() {
         )}
       </main>
 
-      {/* Unified Filter & Sort Bottom Sheet */}
+      {/* Unified Filter & Sort Modal / Bottom Sheet */}
       {filterModalOpen && (
-        <div className="fixed inset-0 z-50 flex flex-col justify-end bg-slate-900/50 backdrop-blur-sm transition-opacity">
-          <div className="flex-1 w-full" onClick={() => setFilterModalOpen(false)} />
+        <div className="fixed inset-0 z-50 flex flex-col justify-end md:justify-center items-center bg-slate-900/60 backdrop-blur-sm transition-opacity p-0 md:p-6">
+          <div className="absolute inset-0 w-full h-full" onClick={() => setFilterModalOpen(false)} />
           
-          <div className="w-full flex flex-col max-h-[85vh] rounded-t-3xl bg-white shadow-2xl animate-in slide-in-from-bottom shrink-0">
-            <div className="flex justify-center pt-3 pb-1">
-              <div className="h-1.5 w-10 rounded-full bg-slate-200" />
+          <div className="relative w-full md:max-w-xl flex flex-col max-h-[85vh] md:max-h-[80vh] rounded-t-3xl md:rounded-3xl bg-white shadow-2xl animate-in slide-in-from-bottom md:zoom-in-95 shrink-0 overflow-hidden">
+            <div className="flex md:hidden justify-center pt-3 pb-1">
+              <div className="h-1.5 w-12 rounded-full bg-slate-200" />
             </div>
 
             <div className="flex items-center justify-between px-5 pb-3 pt-1 border-b border-slate-100">
