@@ -214,7 +214,11 @@ function ProductsPageContent() {
       <div className="fixed bottom-[98px] md:bottom-8 left-1/2 -translate-x-1/2 z-[1050] animate-fade-in-up">
         <button
           onClick={() => setFilterModalOpen(true)}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-full border border-white/60 bg-white/40 backdrop-blur-2xl backdrop-saturate-200 shadow-[0_10px_32px_rgba(0,0,0,0.12),inset_0_1px_1.5px_rgba(255,255,255,0.9)] text-slate-900 font-black text-xs tracking-wide transition-all active:scale-95 hover:bg-white/55 hover:border-white/80 ${
+          style={{
+            WebkitBackdropFilter: 'blur(24px) saturate(200%)',
+            backdropFilter: 'blur(24px) saturate(200%)',
+          }}
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-full border border-white/60 bg-white/30 shadow-[0_10px_32px_rgba(0,0,0,0.12),inset_0_1px_1.5px_rgba(255,255,255,0.9)] text-slate-900 font-black text-xs tracking-wide transition-all active:scale-95 hover:bg-white/50 hover:border-white/80 ${
             mode === 'fishes' ? 'hover:shadow-blue-500/10' : 'hover:shadow-emerald-500/10'
           }`}
         >
