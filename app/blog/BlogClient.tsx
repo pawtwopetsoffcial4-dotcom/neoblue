@@ -7,6 +7,7 @@ import BlogFilters from '@/app/components/BlogFilters';
 import LoadingSpinner from '@/app/components/LoadingSpinner';
 import { useBlogs, useCategories, useTags } from '@/lib/hooks/useBlog';
 import { useMode } from '@/lib/hooks/useMode';
+import ComingSoonPlants from '@/app/components/ComingSoonPlants';
 
 function BlogPageContent() {
   const searchParams = useSearchParams();
@@ -36,10 +37,16 @@ function BlogPageContent() {
   const buttonBorderClass = isPlants ? 'hover:border-emerald-600 hover:text-emerald-600' : 'hover:border-blue-600 hover:text-blue-600';
   const loadingIndicatorClass = isPlants ? 'text-emerald-600' : 'text-blue-600';
 
+  if (isPlants) {
+    return (
+      <main className="relative min-h-screen bg-[#f5f8f6] pt-8 md:pt-16 pb-20 md:pb-28 overflow-hidden">
+        <ComingSoonPlants />
+      </main>
+    );
+  }
+
   return (
-    <div className={`min-h-screen bg-white text-slate-900 pb-24 md:pb-0 font-sans transition-colors duration-500 ${
-      mode === 'plants' ? 'selection:bg-green-500 selection:text-white' : 'selection:bg-blue-500 selection:text-white'
-    }`}>
+    <main className="relative min-h-screen bg-slate-50/50 pt-8 md:pt-16 pb-20 md:pb-28 overflow-hidden">
       {/* Decorative Background Mesh */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[400px] bg-[radial-gradient(100%_50%_at_50%_0%,rgba(120,119,198,0.03)_0,rgba(255,255,255,0)_100%)] pointer-events-none -z-10" />
 
@@ -148,7 +155,7 @@ function BlogPageContent() {
           </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
 
