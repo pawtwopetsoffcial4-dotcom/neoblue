@@ -48,6 +48,11 @@ type EditProductForm = {
   careWaterCurrent: string;
   careTankSetup: string;
   careHidingSpots: string;
+  lightingRequirement: 'Low' | 'Medium' | 'High';
+  co2Requirement: 'None' | 'Recommended' | 'High';
+  growthRate: 'Slow' | 'Moderate' | 'Fast';
+  placement: 'Foreground' | 'Midground' | 'Background' | 'Floating' | 'Epiphyte';
+  careDifficulty: 'Easy' | 'Moderate' | 'Advanced';
 };
 
 export default function VendorProductsPage() {
@@ -198,8 +203,13 @@ export default function VendorProductsPage() {
       carePh: product.carePh ?? '',
       careWaterHardness: product.careWaterHardness ?? '',
       careWaterCurrent: product.careWaterCurrent ?? '',
-      careTankSetup: product.careTankSetup ?? '',
-      careHidingSpots: product.careHidingSpots ?? '',
+      careTankSetup: product.careTankSetup || '',
+      careHidingSpots: product.careHidingSpots || '',
+      lightingRequirement: (product as any).lightingRequirement ?? 'Medium',
+      co2Requirement: (product as any).co2Requirement ?? 'Recommended',
+      growthRate: (product as any).growthRate ?? 'Moderate',
+      placement: (product as any).placement ?? 'Midground',
+      careDifficulty: (product as any).careDifficulty ?? 'Moderate',
     });
   };
 
@@ -274,6 +284,13 @@ export default function VendorProductsPage() {
         careWaterCurrent: editForm.careWaterCurrent,
         careTankSetup: editForm.careTankSetup,
         careHidingSpots: editForm.careHidingSpots,
+        ...(editForm.category === 'Plants' && {
+          lightingRequirement: editForm.lightingRequirement,
+          co2Requirement: editForm.co2Requirement,
+          growthRate: editForm.growthRate,
+          placement: editForm.placement,
+          careDifficulty: editForm.careDifficulty,
+        }),
       });
       await loadProducts();
       closeEdit();
@@ -590,15 +607,49 @@ export default function VendorProductsPage() {
                   value={editForm.tempMax}
                   onChange={(event) => setEditForm((current) => current ? { ...current, tempMax: event.target.value } : current)}
                 />
-                <select
-                  className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                  value={editForm.temperament}
-                  onChange={(event) => setEditForm((current) => current ? { ...current, temperament: event.target.value as any } : current)}
-                >
-                  <option value="Peaceful">Peaceful</option>
-                  <option value="Semi-aggressive">Semi-aggressive</option>
-                  <option value="Aggressive">Aggressive</option>
-                </select>
+                {editForm.category === 'Plants' ? (
+                  <>
+                    <select
+                      className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                      value={editForm.lightingRequirement}
+                      onChange={(event) => setEditForm((current) => current ? { ...current, lightingRequirement: event.target.value as any } : current)}
+                    >
+                      <option value="Low">Low Lighting</option>
+                      <option value="Medium">Medium Lighting</option>
+                      <option value="High">High Lighting</option>
+                    </select>
+                    <select
+                      className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                      value={editForm.co2Requirement}
+                      onChange={(event) => setEditForm((current) => current ? { ...current, co2Requirement: event.target.value as any } : current)}
+                    >
+                      <option value="None">No CO2</option>
+                      <option value="Recommended">CO2 Recommended</option>
+                      <option value="High">High CO2</option>
+                    </select>
+                    <select
+                      className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                      value={editForm.placement}
+                      onChange={(event) => setEditForm((current) => current ? { ...current, placement: event.target.value as any } : current)}
+                    >
+                      <option value="Foreground">Foreground</option>
+                      <option value="Midground">Midground</option>
+                      <option value="Background">Background</option>
+                      <option value="Floating">Floating</option>
+                      <option value="Epiphyte">Epiphyte</option>
+                    </select>
+                  </>
+                ) : (
+                  <select
+                    className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                    value={editForm.temperament}
+                    onChange={(event) => setEditForm((current) => current ? { ...current, temperament: event.target.value as any } : current)}
+                  >
+                    <option value="Peaceful">Peaceful</option>
+                    <option value="Semi-aggressive">Semi-aggressive</option>
+                    <option value="Aggressive">Aggressive</option>
+                  </select>
+                )}
                 <input
                   type="number"
                   className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"

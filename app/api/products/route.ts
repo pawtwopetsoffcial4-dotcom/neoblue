@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
       return createErrorResponse('Only vendors can create products', 403);
     }
 
-    const { title, description, price, images, videos, category, subcategory, waterType, tag, scientific, size, ageCategory, originalPrice, discountPercentage, perPiecePrice, perPairPrice, weightPerPiece, shippingType, shippingCharge, shippingLotSize, shippingPieceRanges, shippingWeightRanges, shippingNorth1Ranges, shippingNorth2Ranges, shippingNorth3Ranges, shippingNorth4Ranges, shippingSouth1Ranges, shippingSouth2Ranges, shippingSouth3Ranges, shippingSouth4Ranges, deliverNorth, deliverSouth, phMin, phMax, tempMin, tempMax, temperament, stockQuantity, faq, quickOverview, aboutSpecies, behavioralTraits, genderIdentification, sustainabilitySourcing, section5Title, section5Content, careTemp, carePh, careWaterHardness, careWaterCurrent, careTankSetup, careHidingSpots } = await request.json();
+    const { title, description, price, images, videos, category, subcategory, waterType, tag, scientific, size, ageCategory, originalPrice, discountPercentage, perPiecePrice, perPairPrice, weightPerPiece, shippingType, shippingCharge, shippingLotSize, shippingPieceRanges, shippingWeightRanges, shippingNorth1Ranges, shippingNorth2Ranges, shippingNorth3Ranges, shippingNorth4Ranges, shippingSouth1Ranges, shippingSouth2Ranges, shippingSouth3Ranges, shippingSouth4Ranges, deliverNorth, deliverSouth, phMin, phMax, tempMin, tempMax, temperament, stockQuantity, faq, quickOverview, aboutSpecies, behavioralTraits, genderIdentification, sustainabilitySourcing, section5Title, section5Content, careTemp, carePh, careWaterHardness, careWaterCurrent, careTankSetup, careHidingSpots, lightingRequirement, co2Requirement, growthRate, placement, careDifficulty } = await request.json();
 
     // Validate required fields
     if (!title || !description || price == null || !images || !category || !waterType) {
@@ -196,6 +196,11 @@ export async function POST(request: NextRequest) {
       careWaterCurrent: careWaterCurrent || '',
       careTankSetup: careTankSetup || '',
       careHidingSpots: careHidingSpots || '',
+      lightingRequirement: lightingRequirement || undefined,
+      co2Requirement: co2Requirement || undefined,
+      growthRate: growthRate || undefined,
+      placement: placement || undefined,
+      careDifficulty: careDifficulty || undefined,
       approvalStatus: 'pending',
     });
 

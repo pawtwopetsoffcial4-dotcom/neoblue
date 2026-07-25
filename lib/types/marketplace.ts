@@ -60,6 +60,11 @@ export type MarketplaceProduct = {
   careWaterCurrent?: string;
   careTankSetup?: string;
   careHidingSpots?: string;
+  lightingRequirement?: 'Low' | 'Medium' | 'High';
+  co2Requirement?: 'None' | 'Recommended' | 'High';
+  growthRate?: 'Slow' | 'Moderate' | 'Fast';
+  placement?: 'Foreground' | 'Midground' | 'Background' | 'Floating' | 'Epiphyte';
+  careDifficulty?: 'Easy' | 'Moderate' | 'Advanced';
   createdAt?: string;
   updatedAt?: string;
 };

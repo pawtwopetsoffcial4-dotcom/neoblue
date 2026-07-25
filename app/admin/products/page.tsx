@@ -32,6 +32,11 @@ type AdminProduct = {
   vendorId?: { _id?: string; name?: string; email?: string };
   isTrending?: boolean;
   isNewArrival?: boolean;
+  lightingRequirement?: 'Low' | 'Medium' | 'High';
+  co2Requirement?: 'None' | 'Recommended' | 'High';
+  growthRate?: 'Slow' | 'Moderate' | 'Fast';
+  placement?: 'Foreground' | 'Midground' | 'Background' | 'Floating' | 'Epiphyte';
+  careDifficulty?: 'Easy' | 'Moderate' | 'Advanced';
 };
 
 type EditFormState = {
@@ -64,6 +69,11 @@ type EditFormState = {
   careWaterCurrent: string;
   careTankSetup: string;
   careHidingSpots: string;
+  lightingRequirement: 'Low' | 'Medium' | 'High';
+  co2Requirement: 'None' | 'Recommended' | 'High';
+  growthRate: 'Slow' | 'Moderate' | 'Fast';
+  placement: 'Foreground' | 'Midground' | 'Background' | 'Floating' | 'Epiphyte';
+  careDifficulty: 'Easy' | 'Moderate' | 'Advanced';
 };
 
 export default function AdminProductsPage() {
@@ -170,6 +180,11 @@ export default function AdminProductsPage() {
       careWaterCurrent: (product as any).careWaterCurrent ?? '',
       careTankSetup: (product as any).careTankSetup ?? '',
       careHidingSpots: (product as any).careHidingSpots ?? '',
+      lightingRequirement: (product as any).lightingRequirement ?? 'Medium',
+      co2Requirement: (product as any).co2Requirement ?? 'Recommended',
+      growthRate: (product as any).growthRate ?? 'Moderate',
+      placement: (product as any).placement ?? 'Midground',
+      careDifficulty: (product as any).careDifficulty ?? 'Moderate',
     });
   };
 
@@ -278,6 +293,13 @@ export default function AdminProductsPage() {
         careWaterCurrent: editForm.careWaterCurrent,
         careTankSetup: editForm.careTankSetup,
         careHidingSpots: editForm.careHidingSpots,
+        ...(editForm.category === 'Plants' && {
+          lightingRequirement: editForm.lightingRequirement,
+          co2Requirement: editForm.co2Requirement,
+          growthRate: editForm.growthRate,
+          placement: editForm.placement,
+          careDifficulty: editForm.careDifficulty,
+        }),
       });
       await loadProducts();
       setMessage('Product updated successfully');
@@ -568,6 +590,39 @@ export default function AdminProductsPage() {
                   <option value="Saltwater">Saltwater</option>
                   <option value="Brackish">Brackish</option>
                 </select>
+                {editForm.category === 'Plants' && (
+                  <>
+                    <select
+                      className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
+                      value={editForm.lightingRequirement}
+                      onChange={(event) => setEditForm((current) => current ? { ...current, lightingRequirement: event.target.value as any } : current)}
+                    >
+                      <option value="Low">Low Lighting</option>
+                      <option value="Medium">Medium Lighting</option>
+                      <option value="High">High Lighting</option>
+                    </select>
+                    <select
+                      className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
+                      value={editForm.co2Requirement}
+                      onChange={(event) => setEditForm((current) => current ? { ...current, co2Requirement: event.target.value as any } : current)}
+                    >
+                      <option value="None">No CO2</option>
+                      <option value="Recommended">CO2 Recommended</option>
+                      <option value="High">High CO2</option>
+                    </select>
+                    <select
+                      className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
+                      value={editForm.placement}
+                      onChange={(event) => setEditForm((current) => current ? { ...current, placement: event.target.value as any } : current)}
+                    >
+                      <option value="Foreground">Foreground</option>
+                      <option value="Midground">Midground</option>
+                      <option value="Background">Background</option>
+                      <option value="Floating">Floating</option>
+                      <option value="Epiphyte">Epiphyte</option>
+                    </select>
+                  </>
+                )}
 
                 <select
                   className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"

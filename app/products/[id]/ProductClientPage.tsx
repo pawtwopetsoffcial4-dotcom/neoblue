@@ -355,10 +355,25 @@ export default function ProductClientPage({
                     🌡️ {product.tempMin}-{product.tempMax}°C
                   </span>
                 )}
-                {product.temperament && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-100 text-xs font-bold text-amber-700">
-                    🎭 {product.temperament}
-                  </span>
+                {product.category === 'Plants' ? (
+                  <>
+                    {product.lightingRequirement && (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-100 text-xs font-bold text-amber-700">
+                        ☀️ {product.lightingRequirement} Light
+                      </span>
+                    )}
+                    {product.co2Requirement && (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-100 text-xs font-bold text-emerald-700">
+                        🫧 {product.co2Requirement} CO2
+                      </span>
+                    )}
+                  </>
+                ) : (
+                  product.temperament && (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-100 text-xs font-bold text-amber-700">
+                      🎭 {product.temperament}
+                    </span>
+                  )
                 )}
               </div>
             </div>
@@ -523,7 +538,15 @@ export default function ProductClientPage({
                     { title: "Water Type", value: product.waterType, icon: Droplets, color: "text-cyan-600 bg-cyan-50" },
                     { title: "pH Range", value: `${product.phMin ?? '6.0'} – ${product.phMax ?? '8.0'}`, icon: Droplets, color: "text-teal-600 bg-teal-50" },
                     { title: "Temperature", value: `${product.tempMin ?? '20'}°C – ${product.tempMax ?? '30'}°C`, icon: Thermometer, color: "text-rose-600 bg-rose-50" },
-                    { title: "Temperament", value: product.temperament || 'Peaceful', icon: ShieldAlert, color: "text-amber-600 bg-amber-50" },
+                    ...(product.category === 'Plants' ? [
+                      { title: "Lighting", value: product.lightingRequirement || 'Medium', icon: Sparkles, color: "text-amber-600 bg-amber-50" },
+                      { title: "CO2", value: product.co2Requirement || 'Recommended', icon: Leaf, color: "text-emerald-600 bg-emerald-50" },
+                      { title: "Growth Rate", value: product.growthRate || 'Moderate', icon: Activity, color: "text-blue-600 bg-blue-50" },
+                      { title: "Placement", value: product.placement || 'Midground', icon: Store, color: "text-indigo-600 bg-indigo-50" },
+                      { title: "Difficulty", value: product.careDifficulty || 'Moderate', icon: ShieldAlert, color: "text-rose-600 bg-rose-50" },
+                    ] : [
+                      { title: "Temperament", value: product.temperament || 'Peaceful', icon: ShieldAlert, color: "text-amber-600 bg-amber-50" },
+                    ]),
                     { title: "Category", value: product.category, icon: Store, color: "text-purple-600 bg-purple-50" },
                     ...(product.subcategory ? [{ title: "Subcategory", value: product.subcategory, icon: Store, color: "text-purple-600 bg-purple-50" }] : []),
                     ...(product.size ? [{ title: "Size", value: product.size, icon: Ruler, color: "text-indigo-600 bg-indigo-50" }] : []),
@@ -578,8 +601,8 @@ export default function ProductClientPage({
                       </div>
                     )}
                     {product.careHidingSpots && (
-                      <div>
-                        <h4 className="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2"><Home className="h-5 w-5 text-emerald-500"/> Hiding Spots & Decor</h4>
+                      <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
+                        <h4 className="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2"><Home className="h-5 w-5 text-emerald-500"/> {product.category === 'Plants' ? 'Substrate & Decor' : 'Hiding Spots & Decor'}</h4>
                         <p className="text-slate-600 leading-loose whitespace-pre-wrap">{product.careHidingSpots}</p>
                       </div>
                     )}

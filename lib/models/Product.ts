@@ -72,6 +72,12 @@ export interface IProduct extends Document {
   careWaterCurrent?: string;
   careTankSetup?: string;
   careHidingSpots?: string;
+  // Plant specific fields
+  lightingRequirement?: 'Low' | 'Medium' | 'High';
+  co2Requirement?: 'None' | 'Recommended' | 'High';
+  growthRate?: 'Slow' | 'Moderate' | 'Fast';
+  placement?: 'Foreground' | 'Midground' | 'Background' | 'Floating' | 'Epiphyte';
+  careDifficulty?: 'Easy' | 'Moderate' | 'Advanced';
   createdAt: Date;
   updatedAt: Date;
 }
@@ -281,6 +287,12 @@ const productSchema = new Schema<IProduct>(
     careWaterCurrent: { type: String, default: '' },
     careTankSetup: { type: String, default: '' },
     careHidingSpots: { type: String, default: '' },
+    // Plant specific fields
+    lightingRequirement: { type: String, enum: ['Low', 'Medium', 'High'] },
+    co2Requirement: { type: String, enum: ['None', 'Recommended', 'High'] },
+    growthRate: { type: String, enum: ['Slow', 'Moderate', 'Fast'] },
+    placement: { type: String, enum: ['Foreground', 'Midground', 'Background', 'Floating', 'Epiphyte'] },
+    careDifficulty: { type: String, enum: ['Easy', 'Moderate', 'Advanced'] },
   },
   { timestamps: true }
 );

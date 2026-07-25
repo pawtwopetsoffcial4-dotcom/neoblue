@@ -48,6 +48,11 @@ export default function VendorAddProductPage() {
     tempMax: '30',
     temperament: 'Peaceful',
     weightPerPiece: 250,
+    lightingRequirement: 'Medium',
+    co2Requirement: 'Recommended',
+    growthRate: 'Moderate',
+    placement: 'Midground',
+    careDifficulty: 'Moderate',
   });
 
   const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'neoblue_products';
@@ -259,6 +264,13 @@ export default function VendorAddProductPage() {
         deliverNorth: form.deliverNorth,
         deliverSouth: form.deliverSouth,
         faq: faq,
+        ...(form.category === 'Plants' && {
+          lightingRequirement: form.lightingRequirement,
+          co2Requirement: form.co2Requirement,
+          growthRate: form.growthRate,
+          placement: form.placement,
+          careDifficulty: form.careDifficulty,
+        }),
       });
       router.push('/vendor/products');
     } catch (error: any) {
@@ -553,18 +565,61 @@ export default function VendorAddProductPage() {
                 />
               </div>
 
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Social Temperament</label>
-                <select
-                  className="h-11 px-4 rounded-xl border border-slate-200 bg-white text-sm font-medium outline-hidden focus:ring-2 focus:ring-blue-500"
-                  value={form.temperament}
-                  onChange={(e) => setForm((prev) => ({ ...prev, temperament: e.target.value }))}
-                >
-                  <option value="Peaceful">Peaceful</option>
-                  <option value="Semi-aggressive">Semi-aggressive</option>
-                  <option value="Aggressive">Aggressive</option>
-                </select>
-              </div>
+              {form.category === 'Plants' ? (
+                <>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Lighting</label>
+                    <select
+                      className="h-11 px-4 rounded-xl border border-slate-200 bg-white text-sm font-medium outline-hidden focus:ring-2 focus:ring-blue-500"
+                      value={form.lightingRequirement}
+                      onChange={(e) => setForm((prev) => ({ ...prev, lightingRequirement: e.target.value as any }))}
+                    >
+                      <option value="Low">Low</option>
+                      <option value="Medium">Medium</option>
+                      <option value="High">High</option>
+                    </select>
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">CO2</label>
+                    <select
+                      className="h-11 px-4 rounded-xl border border-slate-200 bg-white text-sm font-medium outline-hidden focus:ring-2 focus:ring-blue-500"
+                      value={form.co2Requirement}
+                      onChange={(e) => setForm((prev) => ({ ...prev, co2Requirement: e.target.value as any }))}
+                    >
+                      <option value="None">None</option>
+                      <option value="Recommended">Recommended</option>
+                      <option value="High">High</option>
+                    </select>
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Placement</label>
+                    <select
+                      className="h-11 px-4 rounded-xl border border-slate-200 bg-white text-sm font-medium outline-hidden focus:ring-2 focus:ring-blue-500"
+                      value={form.placement}
+                      onChange={(e) => setForm((prev) => ({ ...prev, placement: e.target.value as any }))}
+                    >
+                      <option value="Foreground">Foreground</option>
+                      <option value="Midground">Midground</option>
+                      <option value="Background">Background</option>
+                      <option value="Floating">Floating</option>
+                      <option value="Epiphyte">Epiphyte</option>
+                    </select>
+                  </div>
+                </>
+              ) : (
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Social Temperament</label>
+                  <select
+                    className="h-11 px-4 rounded-xl border border-slate-200 bg-white text-sm font-medium outline-hidden focus:ring-2 focus:ring-blue-500"
+                    value={form.temperament}
+                    onChange={(e) => setForm((prev) => ({ ...prev, temperament: e.target.value }))}
+                  >
+                    <option value="Peaceful">Peaceful</option>
+                    <option value="Semi-aggressive">Semi-aggressive</option>
+                    <option value="Aggressive">Aggressive</option>
+                  </select>
+                </div>
+              )}
             </div>
           </div>
         )}
