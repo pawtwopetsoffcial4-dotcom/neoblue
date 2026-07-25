@@ -211,35 +211,35 @@ function ProductsPageContent() {
     <div className={`min-h-screen pb-safe pb-24 font-sans w-full overflow-x-hidden transition-colors duration-500 bg-[#f5f6f8] text-slate-900 selection:bg-blue-200`}>
       
       {/* Sticky Filter & Sort Bar */}
-      <div className="sticky top-[72px] z-20 border-b border-slate-200/60 bg-white/80 backdrop-blur-md shadow-sm">
-        <div className="mx-auto max-w-7xl flex items-center justify-between px-4 sm:px-6 lg:px-8 py-3.5 text-[13px] font-semibold text-slate-700">
+      <div className="sticky top-[96px] md:top-[104px] z-30 border-b border-slate-200/80 bg-white/95 backdrop-blur-md shadow-2xs transition-all">
+        <div className="mx-auto max-w-7xl flex items-center justify-between px-3.5 sm:px-6 lg:px-8 py-2 text-xs font-semibold text-slate-700">
           <button 
             onClick={() => setFilterModalOpen(true)}
-            className={`flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 transition-all shadow-sm hover:shadow-md active:scale-95 ${
-              mode === 'fishes' ? 'hover:border-blue-300 hover:text-blue-600' : 'hover:border-green-300 hover:text-green-700'
+            className={`flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-bold transition-all shadow-2xs active:scale-95 ${
+              mode === 'fishes' ? 'hover:border-blue-400 hover:text-blue-600' : 'hover:border-green-400 hover:text-green-700'
             }`}
           >
-            <SlidersHorizontal className="h-4 w-4" />
+            <SlidersHorizontal className="h-3.5 w-3.5" />
             Filters
           </button>
           
-          <span className="text-slate-500 font-medium">
+          <span className="text-slate-500 font-extrabold text-xs">
             {filteredProducts.length} {mode === 'fishes' ? 'Fishes' : 'Plants'}
           </span>
 
           <button 
             onClick={() => setFilterModalOpen(true)}
-            className={`flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 transition-all shadow-sm hover:shadow-md active:scale-95 ${
-              mode === 'fishes' ? 'hover:border-blue-300 hover:text-blue-600' : 'hover:border-green-300 hover:text-green-700'
+            className={`flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-bold transition-all shadow-2xs active:scale-95 ${
+              mode === 'fishes' ? 'hover:border-blue-400 hover:text-blue-600' : 'hover:border-green-400 hover:text-green-700'
             }`}
           >
-            <ArrowUpDown className="h-4 w-4" />
+            <ArrowUpDown className="h-3.5 w-3.5" />
             Sort
           </button>
         </div>
       </div>
 
-      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 md:py-8 lg:py-10">
+      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-4 pb-12">
         {/* Search Bar */}
         <div className="mb-6 md:mb-10 relative max-w-2xl mx-auto">
           <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
