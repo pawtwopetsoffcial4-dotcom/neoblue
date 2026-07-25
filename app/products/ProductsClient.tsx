@@ -229,7 +229,7 @@ function ProductsPageContent() {
             />
           </div>
 
-          {/* Controls: Filter Button, Count, Sort Button */}
+          {/* Controls: Filter Button & Sort Button */}
           <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto shrink-0">
             <button 
               onClick={() => setFilterModalOpen(true)}
@@ -240,10 +240,6 @@ function ProductsPageContent() {
               <SlidersHorizontal className="h-3.5 w-3.5" />
               <span>Filters</span>
             </button>
-            
-            <span className="text-slate-500 font-extrabold text-[11px] px-1">
-              {filteredProducts.length} {mode === 'fishes' ? 'Fishes' : 'Plants'}
-            </span>
 
             <button 
               onClick={() => setFilterModalOpen(true)}
