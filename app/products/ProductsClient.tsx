@@ -210,51 +210,50 @@ function ProductsPageContent() {
   return (
     <div className={`min-h-screen pb-safe pb-24 font-sans w-full overflow-x-hidden transition-colors duration-500 bg-[#f5f6f8] text-slate-900 selection:bg-blue-200`}>
       
-      {/* Integrated Search & Filter Toolbar */}
-      <div className={`w-full bg-white border-b py-2.5 px-3 sm:px-6 transition-all ${
-        mode === 'fishes' ? 'border-blue-100 shadow-sm' : 'border-emerald-100 shadow-sm'
-      }`}>
-        <div className="mx-auto max-w-7xl flex flex-col sm:flex-row items-center gap-2.5 sm:gap-3">
-          {/* Search Input Bar */}
-          <div className="relative flex-1 w-full">
-            <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input
-              type="search"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder={mode === 'fishes' ? "Search for fishes, species, or tags..." : "Search for plants, moss, or accessories..."}
-              className={`w-full h-9.5 rounded-full border border-slate-200/90 bg-slate-50/80 pl-10 pr-4 text-xs font-medium text-slate-900 outline-none placeholder:text-slate-400 transition-all focus:bg-white focus:ring-2 ${
-                mode === 'fishes' ? 'focus:ring-blue-500/20 focus:border-blue-500' : 'focus:ring-emerald-500/20 focus:border-emerald-500'
-              }`}
-            />
-          </div>
+      {/* Floating Glassmorphism Filter & Sort Capsule (Above Mobile Dock) */}
+      <div className="fixed bottom-20 md:bottom-8 left-1/2 -translate-x-1/2 z-40 animate-fade-in-up">
+        <div className={`flex items-center gap-1 p-1.5 rounded-full border shadow-[0_14px_40px_rgba(0,0,0,0.25)] backdrop-blur-xl transition-all ${
+          mode === 'fishes' 
+            ? 'bg-slate-900/90 border-white/20 text-white' 
+            : 'bg-slate-900/90 border-white/20 text-white'
+        }`}>
+          {/* Filter Button */}
+          <button
+            onClick={() => setFilterModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-full font-extrabold text-xs hover:bg-white/15 active:scale-95 transition-all"
+          >
+            <SlidersHorizontal className={`h-4 w-4 ${mode === 'fishes' ? 'text-blue-400' : 'text-emerald-400'}`} />
+            <span>Filter</span>
+          </button>
 
-          {/* Controls: Filter Button & Sort Button */}
-          <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto shrink-0">
-            <button 
-              onClick={() => setFilterModalOpen(true)}
-              className={`flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-bold transition-all active:scale-95 ${
-                mode === 'fishes' ? 'hover:border-blue-400 hover:text-blue-600' : 'hover:border-emerald-400 hover:text-emerald-700'
-              }`}
-            >
-              <SlidersHorizontal className="h-3.5 w-3.5" />
-              <span>Filters</span>
-            </button>
+          {/* Vertical Glass Divider */}
+          <span className="h-4 w-[1px] bg-white/20" />
 
-            <button 
-              onClick={() => setFilterModalOpen(true)}
-              className={`flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-bold transition-all active:scale-95 ${
-                mode === 'fishes' ? 'hover:border-blue-400 hover:text-blue-600' : 'hover:border-emerald-400 hover:text-emerald-700'
-              }`}
-            >
-              <ArrowUpDown className="h-3.5 w-3.5" />
-              <span>Sort</span>
-            </button>
-          </div>
+          {/* Sort Button */}
+          <button
+            onClick={() => setFilterModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-full font-extrabold text-xs hover:bg-white/15 active:scale-95 transition-all"
+          >
+            <ArrowUpDown className={`h-4 w-4 ${mode === 'fishes' ? 'text-blue-400' : 'text-emerald-400'}`} />
+            <span>Sort</span>
+          </button>
         </div>
       </div>
 
-      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-4 pb-12">
+      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-6 pb-28">
+        {/* Search Bar */}
+        <div className="mb-6 md:mb-8 relative max-w-2xl mx-auto">
+          <Search className="absolute left-4 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-slate-400" />
+          <input
+            type="search"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder={mode === 'fishes' ? "Search for fishes, species, or tags..." : "Search for plants, moss, or accessories..."}
+            className={`w-full h-12 rounded-full border border-slate-200/90 bg-white pl-11 pr-5 text-xs md:text-sm font-medium text-slate-900 shadow-xs outline-none placeholder:text-slate-400 transition-all focus:ring-4 ${
+              mode === 'fishes' ? 'focus:ring-blue-500/20 focus:border-blue-500' : 'focus:ring-emerald-500/20 focus:border-emerald-500'
+            }`}
+          />
+        </div>
 
         {/* Loading / Error States */}
         {isLoading && (
