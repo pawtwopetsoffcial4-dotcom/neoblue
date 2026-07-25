@@ -215,14 +215,14 @@ function ProductsPageContent() {
         <button
           onClick={() => setFilterModalOpen(true)}
           style={{
-            WebkitBackdropFilter: 'blur(24px) saturate(200%)',
-            backdropFilter: 'blur(24px) saturate(200%)',
+            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+            backdropFilter: 'blur(20px) saturate(180%)',
           }}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-full border border-white/60 bg-white/30 shadow-[0_10px_32px_rgba(0,0,0,0.12),inset_0_1px_1.5px_rgba(255,255,255,0.9)] text-slate-900 font-black text-xs tracking-wide transition-all active:scale-95 hover:bg-white/50 hover:border-white/80 ${
-            mode === 'fishes' ? 'hover:shadow-blue-500/10' : 'hover:shadow-emerald-500/10'
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-full border border-white/80 bg-white/70 shadow-[0_8px_32px_rgba(0,0,0,0.12),inset_0_1px_1.5px_rgba(255,255,255,1)] text-slate-900 font-black text-xs tracking-wide transition-all active:scale-95 hover:bg-white/80 ${
+            mode === 'fishes' ? 'hover:shadow-blue-500/15' : 'hover:shadow-emerald-500/15'
           }`}
         >
-          <SlidersHorizontal className={`h-4 w-4 ${mode === 'fishes' ? 'text-blue-600' : 'text-emerald-700'}`} />
+          <SlidersHorizontal className={`h-4 w-4 ${mode === 'fishes' ? 'text-blue-700' : 'text-emerald-800'}`} />
           <span>Filters</span>
         </button>
       </div>
