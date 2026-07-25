@@ -212,30 +212,30 @@ function ProductsPageContent() {
       
       {/* Floating Glassmorphism Filter & Sort Capsule (Above Mobile Dock) */}
       <div className="fixed bottom-20 md:bottom-8 left-1/2 -translate-x-1/2 z-40 animate-fade-in-up">
-        <div className={`flex items-center gap-1 p-1.5 rounded-full border shadow-[0_14px_40px_rgba(0,0,0,0.25)] backdrop-blur-xl transition-all ${
-          mode === 'fishes' 
-            ? 'bg-slate-900/90 border-white/20 text-white' 
-            : 'bg-slate-900/90 border-white/20 text-white'
-        }`}>
+        <div className="flex items-center gap-1 p-1 rounded-full border border-white/60 bg-white/75 backdrop-blur-2xl shadow-[0_12px_32px_rgba(0,0,0,0.12)] text-slate-800 transition-all">
           {/* Filter Button */}
           <button
             onClick={() => setFilterModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-full font-extrabold text-xs hover:bg-white/15 active:scale-95 transition-all"
+            className={`flex items-center gap-2 px-4 py-2 rounded-full font-extrabold text-xs transition-all active:scale-95 hover:bg-slate-900/5 ${
+              mode === 'fishes' ? 'text-blue-600' : 'text-emerald-700'
+            }`}
           >
-            <SlidersHorizontal className={`h-4 w-4 ${mode === 'fishes' ? 'text-blue-400' : 'text-emerald-400'}`} />
-            <span>Filter</span>
+            <SlidersHorizontal className="h-4 w-4" />
+            <span className="text-slate-900 font-extrabold">Filter</span>
           </button>
 
           {/* Vertical Glass Divider */}
-          <span className="h-4 w-[1px] bg-white/20" />
+          <span className="h-4 w-[1px] bg-slate-300/60" />
 
           {/* Sort Button */}
           <button
             onClick={() => setFilterModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-full font-extrabold text-xs hover:bg-white/15 active:scale-95 transition-all"
+            className={`flex items-center gap-2 px-4 py-2 rounded-full font-extrabold text-xs transition-all active:scale-95 hover:bg-slate-900/5 ${
+              mode === 'fishes' ? 'text-blue-600' : 'text-emerald-700'
+            }`}
           >
-            <ArrowUpDown className={`h-4 w-4 ${mode === 'fishes' ? 'text-blue-400' : 'text-emerald-400'}`} />
-            <span>Sort</span>
+            <ArrowUpDown className="h-4 w-4" />
+            <span className="text-slate-900 font-extrabold">Sort</span>
           </button>
         </div>
       </div>
