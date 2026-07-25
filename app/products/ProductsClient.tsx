@@ -227,21 +227,27 @@ function ProductsPageContent() {
         </button>
       </div>
 
-      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-6 pb-28">
-        {/* Search Bar */}
-        <div className="mb-6 md:mb-8 relative max-w-2xl mx-auto">
-          <Search className="absolute left-4 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-slate-400" />
+      {/* Floating Search Bar (Exactly like the filter button, but at the top) */}
+      <div className="fixed top-[104px] md:top-[104px] left-0 right-0 z-[45] px-4 sm:px-6 lg:px-8 mt-1 pointer-events-none">
+        <div className="relative max-w-2xl mx-auto pointer-events-auto">
+          <Search className="absolute left-4 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-slate-500 z-10" />
           <input
             type="search"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            style={{
+              WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+              backdropFilter: 'blur(20px) saturate(180%)',
+            }}
             placeholder={mode === 'fishes' ? "Search for fishes, species, or tags..." : "Search for plants, moss, or accessories..."}
-            className={`w-full h-12 rounded-full border border-slate-200/90 bg-white pl-11 pr-5 text-xs md:text-sm font-medium text-slate-900 shadow-xs outline-none placeholder:text-slate-400 transition-all focus:ring-4 ${
-              mode === 'fishes' ? 'focus:ring-blue-500/20 focus:border-blue-500' : 'focus:ring-emerald-500/20 focus:border-emerald-500'
+            className={`w-full h-[46px] rounded-full border border-white/80 bg-white/70 pl-11 pr-5 text-xs md:text-sm font-bold text-slate-900 shadow-[0_8px_32px_rgba(0,0,0,0.12),inset_0_1px_1.5px_rgba(255,255,255,1)] outline-none placeholder:text-slate-500 transition-all focus:bg-white/80 ${
+              mode === 'fishes' ? 'focus:border-blue-400 focus:shadow-blue-500/15' : 'focus:border-emerald-400 focus:shadow-emerald-500/15'
             }`}
           />
         </div>
+      </div>
 
+      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-14 pb-28">
         {/* Loading / Error States */}
         {isLoading && (
           <div className="py-24 flex justify-center">
