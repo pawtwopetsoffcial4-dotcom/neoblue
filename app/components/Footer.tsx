@@ -67,6 +67,7 @@ export default function Footer() {
                   width={16} 
                   height={16} 
                   className="object-contain"
+                  style={{ width: 'auto', height: 'auto' }}
                 />
               </div>
               <span className="font-extrabold text-xs tracking-widest text-white uppercase">
