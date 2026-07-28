@@ -97,7 +97,7 @@ function MobileScrollSection({
 /* ULTRA-CLEAN PRODUCT CARD                                           */
 /* ------------------------------------------------------------------ */
 function MobileCard({ product, mode, index = 0 }: { product: any; mode: 'fishes' | 'plants'; index?: number }) {
-  const rating = typeof product.rating === 'number' ? product.rating : 5;
+  const rating = typeof product.rating === 'number' ? product.rating : 0;
   const reviewsCount = product.reviewsCount ?? 0;
   return (
     <Link

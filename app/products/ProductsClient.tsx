@@ -288,7 +288,7 @@ function ProductsPageContent() {
             {/* Responsive Grid */}
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6 lg:gap-8 mb-12">
               {filteredProducts.map((product, idx) => {
-                const rating = typeof product.rating === 'number' ? product.rating : 5;
+                const rating = typeof product.rating === 'number' ? product.rating : 0;
                 const reviewsCount = product.reviewsCount ?? 0;
                 const unitPrice = typeof product.perPairPrice === 'number'
                   ? product.perPairPrice

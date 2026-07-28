@@ -316,7 +316,7 @@ function HeroProductCarousel({ products, mode }: { products: HeroCardProduct[]; 
                   <p className={`text-[9px] font-black uppercase tracking-[0.15em] mb-1 ${accentText}`}>{p.category}</p>
                   <h3 className="font-black text-slate-900 text-base leading-snug line-clamp-1">{p.title}</h3>
                   <div className="mt-1.5">
-                    <ReviewStars rating={p.rating ?? 5} count={p.reviewsCount ?? 0} compact size={11} />
+                    <ReviewStars rating={p.rating ?? 0} count={p.reviewsCount ?? 0} compact size={11} />
                   </div>
                 </div>
                 <div className={`flex items-center gap-1 text-xs font-bold mt-2 ${accentText}`}>

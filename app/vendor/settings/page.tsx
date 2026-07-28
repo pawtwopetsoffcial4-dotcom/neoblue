@@ -41,7 +41,7 @@ export default function VendorShippingSettingsPage() {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const data = await apiClient.request('/vendor/settings');
+        const data = await apiClient.request<any>('/vendor/settings');
         
         if (data.shippingRatesSouth) setRatesSouth(data.shippingRatesSouth);
         if (data.shippingRatesNorth) setRatesNorth(data.shippingRatesNorth);

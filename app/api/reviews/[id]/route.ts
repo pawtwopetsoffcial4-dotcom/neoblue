@@ -61,7 +61,7 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
     // Recalculate average rating for product
     const allReviews = await Review.find({ productId: id });
     const ratingSum = allReviews.reduce((sum: number, r: any) => sum + r.rating, 0);
-    const averageRating = allReviews.length > 0 ? (ratingSum / allReviews.length) : 5;
+    const averageRating = allReviews.length > 0 ? (ratingSum / allReviews.length) : 0;
 
     await Product.findByIdAndUpdate(id, {
       rating: Math.round(averageRating * 10) / 10,
