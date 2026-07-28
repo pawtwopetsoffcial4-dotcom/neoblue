@@ -66,8 +66,8 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
     }
 
     const payload = verifyToken(token);
-    if (!payload || payload.role !== 'vendor') {
-      return createErrorResponse('Only vendors can update order status', 403);
+    if (!payload || (payload.role !== 'vendor' && payload.role !== 'admin')) {
+      return createErrorResponse('Only vendors and admins can update order status', 403);
     }
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -86,8 +86,44 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
       return createErrorResponse('Order not found', 404);
     }
 
-    if (order.vendorId.toString() !== payload.userId) {
+    if (payload.role === 'vendor' && order.vendorId.toString() !== payload.userId) {
       return createErrorResponse('You can only update your own orders', 403);
+    }
+
+    // Cashfree Refund Logic
+    if (status === 'cancelled' && order.cashfreeOrderId && payload.role === 'admin') {
+      const appId = process.env.CASHFREE_APP_ID;
+      const secretKey = process.env.CASHFREE_SECRET_KEY;
+      const cashfreeEnv = process.env.CASHFREE_ENV === 'production' ? 'production' : 'sandbox';
+      const getCashfreeBaseUrl = () => (cashfreeEnv === 'production' ? 'https://api.cashfree.com' : 'https://sandbox.cashfree.com');
+
+      if (appId && secretKey) {
+        try {
+          const refundRes = await fetch(`${getCashfreeBaseUrl()}/pg/orders/${order.cashfreeOrderId}/refunds`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-client-id': appId,
+              'x-client-secret': secretKey,
+              'x-api-version': '2023-08-01',
+            },
+            body: JSON.stringify({
+              refund_amount: order.totalAmount,
+              refund_id: `ref_${order._id.toString()}_${Date.now()}`,
+              refund_note: notes || 'Admin Cancelled Order'
+            })
+          });
+
+          if (!refundRes.ok) {
+            const errData = await refundRes.json();
+            console.error('Cashfree refund failed:', errData);
+            return createErrorResponse(`Failed to initiate refund: ${errData.message || 'Unknown error'}`, 500);
+          }
+        } catch (err: any) {
+          console.error('Cashfree refund request failed:', err);
+          return createErrorResponse('Failed to communicate with Cashfree for refund', 500);
+        }
+      }
     }
 
     if (status === 'completed' && order.status !== 'completed') {

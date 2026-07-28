@@ -245,7 +245,6 @@ const productSchema = new Schema<IProduct>(
     temperament: {
       type: String,
       enum: ['Peaceful', 'Semi-aggressive', 'Aggressive'],
-      default: 'Peaceful',
     },
     isTrending: {
       type: Boolean,

@@ -155,6 +155,27 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
       }
     }
 
+    // Handle category switching cleanup
+    const nextCategory = updateData.category || product.category;
+    if (nextCategory === 'Plants') {
+      updateData.$unset = { ...updateData.$unset, temperament: 1 };
+      delete updateData.temperament;
+    } else {
+      updateData.$unset = { 
+        ...updateData.$unset, 
+        lightingRequirement: 1, 
+        co2Requirement: 1, 
+        growthRate: 1, 
+        placement: 1, 
+        careDifficulty: 1 
+      };
+      delete updateData.lightingRequirement;
+      delete updateData.co2Requirement;
+      delete updateData.growthRate;
+      delete updateData.placement;
+      delete updateData.careDifficulty;
+    }
+
     const updatedProduct = await Product.findByIdAndUpdate(id, updateData, {
       new: true,
       runValidators: true,

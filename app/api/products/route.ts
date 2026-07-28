@@ -16,6 +16,10 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get('category');
     const waterType = searchParams.get('waterType');
     const vendorId = searchParams.get('vendorId');
+    const lightingRequirement = searchParams.get('lightingRequirement');
+    const co2Requirement = searchParams.get('co2Requirement');
+    const placement = searchParams.get('placement');
+    const careDifficulty = searchParams.get('careDifficulty');
     const limit = parseInt(searchParams.get('limit') || '500'); // Increased limit to fetch all typical products
     const page = parseInt(searchParams.get('page') || '1');
 
@@ -24,6 +28,10 @@ export async function GET(request: NextRequest) {
     if (category) query.category = category;
     if (waterType) query.waterType = waterType;
     if (vendorId) query.vendorId = vendorId;
+    if (lightingRequirement) query.lightingRequirement = lightingRequirement;
+    if (co2Requirement) query.co2Requirement = co2Requirement;
+    if (placement) query.placement = placement;
+    if (careDifficulty) query.careDifficulty = careDifficulty;
 
     // Check authorization to handle role-based product filtering
     const token = getTokenFromRequest(request);
@@ -175,7 +183,7 @@ export async function POST(request: NextRequest) {
       phMax: phMax != null ? Number(phMax) : 8.0,
       tempMin: tempMin != null ? Number(tempMin) : 20,
       tempMax: tempMax != null ? Number(tempMax) : 30,
-      temperament: temperament || 'Peaceful',
+      temperament: category === 'Plants' ? undefined : (temperament || 'Peaceful'),
       vendorId: payload.userId,
       stockQuantity: stockQuantity != null ? Number(stockQuantity) : 0,
       soldQuantity: 0,

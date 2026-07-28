@@ -95,7 +95,7 @@ export async function GET(request: NextRequest) {
       query.status = { $ne: 'pending' };
     } else if (payload.role === 'vendor') {
       query.vendorId = payload.userId;
-      query.status = { $ne: 'pending' };
+      query.status = { $nin: ['pending', 'placed'] };
     } else if (payload.role === 'admin') {
       query.status = { $ne: 'pending' };
     }
@@ -307,6 +307,10 @@ export async function POST(request: NextRequest) {
       }
       group.shippingAmount = groupShipping;
       shippingAmount += groupShipping;
+    }
+
+    if (shippingAmount <= 0) {
+      return createErrorResponse('Shipping charges are compulsory for every order. The vendor has not configured shipping rates for your location.', 400);
     }
 
     // Verify cashfree payment if Cashfree is used

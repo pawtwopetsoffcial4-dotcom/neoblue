@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
 import { useAuth } from './useAuth';
+import { apiClient } from '@/lib/api-client';
 
 export type DbNotification = {
   _id: string;
@@ -50,10 +51,8 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      const res = await fetch('/api/notifications', { cache: 'no-store' });
-      if (res.ok) {
-        const data = await res.json();
-        const nextNotifications = data.notifications || [];
+      const data = await apiClient.request<{ notifications: any[] }>('/notifications', { cache: 'no-store' });
+      const nextNotifications = data.notifications || [];
 
         // If polling, trigger browser popups for new incoming unread notifications
         if (isPoll && nextNotifications.length > 0) {
@@ -77,7 +76,6 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         }
 
         setNotifications(nextNotifications);
-      }
     } catch (error) {
       console.warn('Error fetching notifications:', error);
     } finally {
@@ -106,14 +104,11 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   // Mark all as read
   const markAllAsRead = async () => {
     try {
-      const res = await fetch('/api/notifications', {
+      await apiClient.request('/notifications', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ all: true }),
       });
-      if (res.ok) {
-        setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-      }
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
     } catch (error) {
       console.error('Error marking all notifications read:', error);
     }
@@ -125,16 +120,13 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     if (!target || target.read) return;
 
     try {
-      const res = await fetch('/api/notifications', {
+      await apiClient.request('/notifications', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id }),
       });
-      if (res.ok) {
-        setNotifications(prev =>
-          prev.map(item => (item._id === id ? { ...item, read: true } : item))
-        );
-      }
+      setNotifications(prev =>
+        prev.map(item => (item._id === id ? { ...item, read: true } : item))
+      );
     } catch (error) {
       console.error('Error marking notification read:', error);
     }
@@ -143,12 +135,10 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   // Clear all notifications
   const clearAll = async () => {
     try {
-      const res = await fetch('/api/notifications', {
+      await apiClient.request('/notifications', {
         method: 'DELETE',
       });
-      if (res.ok) {
-        setNotifications([]);
-      }
+      setNotifications([]);
     } catch (error) {
       console.error('Error clearing notifications:', error);
     }

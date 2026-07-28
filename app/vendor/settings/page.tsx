@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Info, AlertCircle, Save, ShieldAlert } from 'lucide-react';
+import { apiClient } from '@/lib/api-client';
 
 const SLABS = [
   { key: 'slab500g', label: '500 gm' },
@@ -40,9 +41,7 @@ export default function VendorShippingSettingsPage() {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const res = await fetch('/api/vendor/settings');
-        if (!res.ok) throw new Error('Failed to fetch settings');
-        const data = await res.json();
+        const data = await apiClient.request('/vendor/settings');
         
         if (data.shippingRatesSouth) setRatesSouth(data.shippingRatesSouth);
         if (data.shippingRatesNorth) setRatesNorth(data.shippingRatesNorth);
@@ -88,19 +87,16 @@ export default function VendorShippingSettingsPage() {
       setIsSaving(true);
       setMessage({ type: '', text: '' });
       
-      const res = await fetch('/api/vendor/settings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      await apiClient.request('/vendor/settings', {
+        method: 'PUT',
         body: JSON.stringify({
           shippingRatesSouth: ratesSouth,
           shippingRatesNorth: ratesNorth,
           nonServiceableStates,
           deliverNorth,
-          deliverSouth,
+          deliverSouth
         }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to save settings');
       
       setMessage({ type: 'success', text: 'Shipping configuration saved successfully!' });
       window.scrollTo({ top: 0, behavior: 'smooth' });

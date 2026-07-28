@@ -138,6 +138,13 @@ export class APIClient {
     });
   }
 
+  async updateVendorShipping(id: string, shippingData: any) {
+    return this.request(`/vendors/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(shippingData),
+    });
+  }
+
   // Admin methods
   async getAdminOrders() {
     return this.request('/admin', { params: { type: 'orders' } });

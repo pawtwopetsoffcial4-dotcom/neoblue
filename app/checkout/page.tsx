@@ -244,6 +244,11 @@ function CheckoutPageContent() {
       return;
     }
 
+    if (shippingAmount <= 0) {
+      alert('Shipping charges are compulsory for every order. It seems the vendor has not configured shipping rates for your location.');
+      return;
+    }
+
     if (!address.street || !address.city || !address.state || !address.zipcode || !address.phone) {
       alert('Please fill all delivery details including phone number.');
       return;

@@ -4,9 +4,14 @@ import User from '@/lib/models/User';
 import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/utils/auth';
 
-async function getUserId() {
+import { getTokenFromRequest } from '@/lib/utils/auth';
+
+async function getUserId(request: Request) {
   const cookieStore = await cookies();
-  const token = cookieStore.get('token')?.value;
+  const cookieToken = cookieStore.get('token')?.value;
+  const headerToken = getTokenFromRequest(request as any);
+  
+  const token = headerToken || cookieToken;
 
   if (!token) return null;
 
@@ -18,7 +23,7 @@ async function getUserId() {
 
 export async function GET(request: Request) {
   try {
-    const userId = await getUserId();
+    const userId = await getUserId(request);
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -47,7 +52,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const userId = await getUserId();
+    const userId = await getUserId(request);
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }

@@ -14,7 +14,6 @@ import type { MarketplaceProduct } from '@/lib/types/marketplace';
 import { useCart } from '@/lib/hooks/useCart';
 import { getSubcategoriesForCategory } from '@/lib/catalog';
 import { useMode } from '@/lib/hooks/useMode';
-import ComingSoonPlants from '@/app/components/ComingSoonPlants';
 
 const formatPrice = (price: number) => `₹${price}`;
 
@@ -53,6 +52,10 @@ function ProductsPageContent() {
   const [waterType, setWaterType] = useState('All');
   const [tag, setTag] = useState('All');
   const [inStockOnly, setInStockOnly] = useState(false);
+  const [lightingRequirement, setLightingRequirement] = useState('All');
+  const [co2Requirement, setCo2Requirement] = useState('All');
+  const [placement, setPlacement] = useState('All');
+  const [careDifficulty, setCareDifficulty] = useState('All');
   const [availableCategories, setAvailableCategories] = useState<string[]>([]);
   const [filterModalOpen, setFilterModalOpen] = useState(false);
   const [wishlistedIds, setWishlistedIds] = useState<string[]>([]);
@@ -133,6 +136,10 @@ function ProductsPageContent() {
     setWaterType('All');
     setTag('All');
     setInStockOnly(false);
+    setLightingRequirement('All');
+    setCo2Requirement('All');
+    setPlacement('All');
+    setCareDifficulty('All');
   };
 
   // Dynamically compute filters depending on active mode
@@ -182,8 +189,13 @@ function ProductsPageContent() {
       const matchesWaterType = waterType === 'All' || product.waterType === waterType;
       const matchesTag = tag === 'All' || (product.tag ?? '') === tag;
       const matchesStock = !inStockOnly || product.inStock;
+      
+      const matchesLighting = lightingRequirement === 'All' || (product as any).lightingRequirement === lightingRequirement;
+      const matchesCo2 = co2Requirement === 'All' || (product as any).co2Requirement === co2Requirement;
+      const matchesPlacement = placement === 'All' || (product as any).placement === placement;
+      const matchesDifficulty = careDifficulty === 'All' || (product as any).careDifficulty === careDifficulty;
 
-      return matchesSearch && matchesCategory && matchesSubcategory && matchesWaterType && matchesTag && matchesStock;
+      return matchesSearch && matchesCategory && matchesSubcategory && matchesWaterType && matchesTag && matchesStock && matchesLighting && matchesCo2 && matchesPlacement && matchesDifficulty;
     });
 
     filtered.sort((a, b) => {
@@ -197,18 +209,10 @@ function ProductsPageContent() {
     });
 
     return filtered;
-  }, [products, searchTerm, category, subcategory, waterType, tag, inStockOnly, sortBy, mode]);
-
-  if (mode === 'plants') {
-    return (
-      <div className="min-h-screen pb-safe pb-24 font-sans w-full overflow-x-hidden transition-colors duration-500 bg-[#f5f8f6] text-slate-900 selection:bg-green-200">
-        <ComingSoonPlants />
-      </div>
-    );
-  }
+  }, [products, searchTerm, category, subcategory, waterType, tag, inStockOnly, sortBy, mode, lightingRequirement, co2Requirement, placement, careDifficulty]);
 
   return (
-    <div className={`min-h-screen pb-safe pb-24 font-sans w-full overflow-x-hidden transition-colors duration-500 bg-[#f5f6f8] text-slate-900 selection:bg-blue-200`}>
+    <div className={`min-h-screen pb-safe pb-24 font-sans w-full overflow-x-hidden transition-colors duration-500 ${mode === 'fishes' ? 'bg-[#f5f6f8] selection:bg-blue-200' : 'bg-[#f5f8f6] selection:bg-green-200'} text-slate-900`}>
       
       {/* Floating Glassmorphism Filters Capsule (Single Button - Authentic iOS Glass Feel) */}
       <div className="fixed bottom-[98px] md:bottom-8 left-1/2 -translate-x-1/2 z-[1050] animate-fade-in-up">
@@ -478,6 +482,66 @@ function ProductsPageContent() {
                     </select>
                   </div>
                 </div>
+
+                {/* Plant Filters */}
+                {mode === 'plants' && (
+                  <div className="grid grid-cols-2 gap-3 mt-4">
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Lighting</label>
+                      <select 
+                        className={`w-full h-11 rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm font-medium text-slate-900 outline-none focus:ring-1 focus:border-green-600 focus:ring-green-600`}
+                        value={lightingRequirement} 
+                        onChange={(e) => setLightingRequirement(e.target.value)}
+                      >
+                        <option value="All">All</option>
+                        <option value="Low">Low</option>
+                        <option value="Medium">Medium</option>
+                        <option value="High">High</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">CO2</label>
+                      <select 
+                        className={`w-full h-11 rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm font-medium text-slate-900 outline-none focus:ring-1 focus:border-green-600 focus:ring-green-600`}
+                        value={co2Requirement} 
+                        onChange={(e) => setCo2Requirement(e.target.value)}
+                      >
+                        <option value="All">All</option>
+                        <option value="None">None</option>
+                        <option value="Recommended">Recommended</option>
+                        <option value="High">High</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Placement</label>
+                      <select 
+                        className={`w-full h-11 rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm font-medium text-slate-900 outline-none focus:ring-1 focus:border-green-600 focus:ring-green-600`}
+                        value={placement} 
+                        onChange={(e) => setPlacement(e.target.value)}
+                      >
+                        <option value="All">All</option>
+                        <option value="Foreground">Foreground</option>
+                        <option value="Midground">Midground</option>
+                        <option value="Background">Background</option>
+                        <option value="Floating">Floating</option>
+                        <option value="Epiphyte">Epiphyte</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Difficulty</label>
+                      <select 
+                        className={`w-full h-11 rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm font-medium text-slate-900 outline-none focus:ring-1 focus:border-green-600 focus:ring-green-600`}
+                        value={careDifficulty} 
+                        onChange={(e) => setCareDifficulty(e.target.value)}
+                      >
+                        <option value="All">All</option>
+                        <option value="Easy">Easy</option>
+                        <option value="Moderate">Moderate</option>
+                        <option value="Advanced">Advanced</option>
+                      </select>
+                    </div>
+                  </div>
+                )}
 
                 {/* Switch */}
                 <div className="pt-2">
