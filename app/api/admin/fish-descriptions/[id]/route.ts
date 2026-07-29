@@ -3,7 +3,7 @@ import { connectDB } from '@/lib/db';
 import FishDescription from '@/lib/models/FishDescription';
 import { createErrorResponse, createSuccessResponse, getTokenFromRequest, verifyToken } from '@/lib/utils/auth';
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
     await connectDB();
 
@@ -14,7 +14,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     if (!payload || payload.role !== 'admin') return createErrorResponse('Forbidden', 403);
 
     const { name, description } = await request.json();
-    const { id } = params;
+    const { id } = await context.params;
 
     if (!name || !description) {
       return createErrorResponse('Name and description are required', 400);
@@ -41,7 +41,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
     await connectDB();
 
@@ -51,7 +51,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     const payload = verifyToken(token);
     if (!payload || payload.role !== 'admin') return createErrorResponse('Forbidden', 403);
 
-    const { id } = params;
+    const { id } = await context.params;
 
     const deleted = await FishDescription.findByIdAndDelete(id);
 
