@@ -113,8 +113,8 @@ export async function POST(request: NextRequest) {
     const { title, description, price, images, videos, category, subcategory, waterType, tag, scientific, size, ageCategory, originalPrice, discountPercentage, perPiecePrice, perPairPrice, weightPerPiece, shippingType, shippingCharge, shippingLotSize, shippingPieceRanges, shippingWeightRanges, shippingNorth1Ranges, shippingNorth2Ranges, shippingNorth3Ranges, shippingNorth4Ranges, shippingSouth1Ranges, shippingSouth2Ranges, shippingSouth3Ranges, shippingSouth4Ranges, deliverNorth, deliverSouth, phMin, phMax, tempMin, tempMax, temperament, stockQuantity, faq, quickOverview, aboutSpecies, behavioralTraits, genderIdentification, sustainabilitySourcing, section5Title, section5Content, careTemp, carePh, careWaterHardness, careWaterCurrent, careTankSetup, careHidingSpots, lightingRequirement, co2Requirement, growthRate, placement, careDifficulty } = await request.json();
 
     // Validate required fields
-    if (!title || !description || price == null || !images || !category || !waterType) {
-      return createErrorResponse('Please provide all required fields', 400);
+    if (!title || price == null || !images || !category || !waterType) {
+      return createErrorResponse('Please provide all required fields (title, price, images, category, waterType)', 400);
     }
 
     // Validate optional discount and unit pricing fields
@@ -148,9 +148,39 @@ export async function POST(request: NextRequest) {
       return createErrorResponse('Provide exactly one unit price: perPiecePrice or perPairPrice', 400);
     }
 
+    let finalDescription = description;
+    if (!finalDescription || finalDescription.trim() === '') {
+      try {
+        const apiKey = process.env.GEMINI_API_KEY || 'AQ.Ab8RN6LIYZ9ff4pf1yS5ZVy0rpD2ReikAiX-wtb96iBVyM0CAg';
+        const prompt = `Write a premium, engaging HTML product description for a ${category || 'product'} named "${title}". ${waterType ? `It is a ${waterType} species.` : ''}
+        
+Output only the HTML. Use semantic tags like <h3>, <p>, <ul>, <li>, and <strong>. 
+Do not wrap it in a markdown code block (like \`\`\`html).
+Make it professional, emphasizing quality and care. 
+Keep it concise but detailed (around 3-4 short paragraphs/lists).`;
+
+        const aiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0.7 } }),
+        });
+        
+        if (aiRes.ok) {
+          const data = await aiRes.json();
+          const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          finalDescription = generatedText.replace(/^```html/i, '').replace(/```$/i, '').trim();
+        } else {
+          finalDescription = `Premium ${title} for your aquarium.`;
+        }
+      } catch (err) {
+        console.error('Failed to auto-generate description on server', err);
+        finalDescription = `Premium ${title} for your aquarium.`;
+      }
+    }
+
     const product = await Product.create({
       title,
-      description,
+      description: finalDescription,
       price,
       images,
       videos: Array.isArray(videos) ? videos : [],

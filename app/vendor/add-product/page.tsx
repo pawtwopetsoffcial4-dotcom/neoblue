@@ -254,11 +254,6 @@ export default function VendorAddProductPage() {
       return;
     }
 
-    if (!form.description) {
-      setSubmitError('Please enter a product description.');
-      return;
-    }
-
     try {
       setIsSaving(true);
       const price = Number(form.price);
@@ -925,7 +920,7 @@ export default function VendorAddProductPage() {
                 placeholder="Describe variety characteristics, care instructions, and acclimation suggestions..."
                 value={form.description}
                 onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
-                required
+                // required removed
               />
             </div>
 
