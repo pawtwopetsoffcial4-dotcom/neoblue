@@ -64,6 +64,7 @@ export default function VendorProductsPage() {
   const [editFaq, setEditFaq] = useState<Array<{ q: string; a: string }>>([]);
   const [editNewQuestion, setEditNewQuestion] = useState('');
   const [editNewAnswer, setEditNewAnswer] = useState('');
+  const [isGeneratingDesc, setIsGeneratingDesc] = useState(false);
   const [dropdownCategories, setDropdownCategories] = useState<string[]>(PRODUCT_CATEGORIES as unknown as string[]);
   const [dbSubcategories, setDbSubcategories] = useState<Record<string, string[]>>({});
   const [customCategoryMode, setCustomCategoryMode] = useState(false);
@@ -221,6 +222,31 @@ export default function VendorProductsPage() {
     setEditNewQuestion('');
     setEditNewAnswer('');
     setIsSavingEdit(false);
+    setIsGeneratingDesc(false);
+  };
+
+  const handleGenerateEditDescription = async () => {
+    if (!editForm || !editForm.title) return;
+    setIsGeneratingDesc(true);
+    setEditError('');
+    try {
+      const res = await apiClient.request('/vendor/generate-description', {
+        method: 'POST',
+        body: JSON.stringify({
+          title: editForm.title,
+          category: editForm.category,
+          waterType: editForm.waterType,
+        }),
+      }) as any;
+      if (res.description) {
+        setEditForm(prev => prev ? { ...prev, description: res.description } : prev);
+      }
+    } catch (err: any) {
+      console.error(err);
+      setEditError(err.message || 'Failed to generate description');
+    } finally {
+      setIsGeneratingDesc(false);
+    }
   };
 
   const saveEdit = async () => {
@@ -806,6 +832,22 @@ export default function VendorProductsPage() {
                 </div>
               </div>
 
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-bold text-slate-700">Description</span>
+                <button
+                  type="button"
+                  onClick={handleGenerateEditDescription}
+                  disabled={isGeneratingDesc || !editForm.title}
+                  className="text-xs flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-bold rounded-lg hover:shadow-md transition-all disabled:opacity-50"
+                >
+                  {isGeneratingDesc ? (
+                    <div className="h-3 w-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    <span className="text-[10px]">✨</span>
+                  )}
+                  {isGeneratingDesc ? 'Generating...' : 'Auto-Generate with AI'}
+                </button>
+              </div>
               <textarea
                 className="w-full min-h-32 px-4 py-3 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Description"

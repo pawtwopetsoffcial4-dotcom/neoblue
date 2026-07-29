@@ -25,6 +25,7 @@ export default function VendorAddProductPage() {
   const [faq, setFaq] = useState<Array<{ q: string; a: string }>>([]);
   const [newQuestion, setNewQuestion] = useState('');
   const [newAnswer, setNewAnswer] = useState('');
+  const [isGeneratingDesc, setIsGeneratingDesc] = useState(false);
   
   const [form, setForm] = useState({
     title: '',
@@ -173,6 +174,33 @@ export default function VendorAddProductPage() {
   const removeVideo = (index: number) => {
     setVideos((prev) => prev.filter((_, i) => i !== index));
     setUploadError('');
+  };
+
+  const handleGenerateDescription = async () => {
+    if (!form.title) {
+      setSubmitError('Please enter a variety title before generating a description.');
+      return;
+    }
+    setSubmitError('');
+    setIsGeneratingDesc(true);
+    try {
+      const res = await apiClient.request('/vendor/generate-description', {
+        method: 'POST',
+        body: JSON.stringify({
+          title: form.title,
+          category: form.category,
+          waterType: form.waterType,
+        }),
+      }) as any;
+      if (res.description) {
+        setForm(prev => ({ ...prev, description: res.description }));
+      }
+    } catch (err: any) {
+      console.error(err);
+      setSubmitError(err.message || 'Failed to generate description');
+    } finally {
+      setIsGeneratingDesc(false);
+    }
   };
 
   // Legacy range handlers removed
@@ -876,7 +904,22 @@ export default function VendorAddProductPage() {
             </div>
 
             <div className="flex flex-col gap-1.5 pt-2">
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Description</label>
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Description</label>
+                <button
+                  type="button"
+                  onClick={handleGenerateDescription}
+                  disabled={isGeneratingDesc || !form.title}
+                  className="text-xs flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-bold rounded-lg hover:shadow-md transition-all disabled:opacity-50"
+                >
+                  {isGeneratingDesc ? (
+                    <div className="h-3 w-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    <Sparkles className="h-3 w-3" />
+                  )}
+                  {isGeneratingDesc ? 'Generating...' : 'Auto-Generate with AI'}
+                </button>
+              </div>
               <textarea
                 className="w-full min-h-24 px-4 py-3 rounded-xl border border-slate-200 outline-hidden focus:ring-2 focus:ring-blue-500 text-sm font-medium"
                 placeholder="Describe variety characteristics, care instructions, and acclimation suggestions..."
