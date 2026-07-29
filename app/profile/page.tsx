@@ -150,7 +150,9 @@ function ProfilePageContent() {
   }, [loadProfileData]);
 
   // ─── Computed data ─────────────────────────────────────────────────
-  const totalSpent = orders.reduce((sum, o) => sum + o.totalAmount, 0);
+  const totalSpent = orders
+    .filter(o => o.status !== 'cancelled' && o.status !== 'pending')
+    .reduce((sum, o) => sum + o.totalAmount, 0);
   const completedOrders = orders.filter(o => o.status === 'completed').length;
   const activeOrders = orders.filter(o => !['completed', 'cancelled', 'pending'].includes(o.status)).length;
   const recentOrders = orders.slice(0, 3);

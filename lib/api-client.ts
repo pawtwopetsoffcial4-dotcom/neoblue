@@ -42,6 +42,7 @@ export class APIClient {
     }
 
     const response = await fetch(url, {
+      cache: 'no-store',
       ...requestOptions,
       headers: {
         ...this.getHeaders(),

@@ -95,7 +95,7 @@ export async function GET(request: NextRequest) {
       query.status = { $ne: 'pending' };
     } else if (payload.role === 'vendor') {
       query.vendorId = payload.userId;
-      query.status = { $nin: ['pending', 'placed'] };
+      query.status = { $ne: 'pending' };
     } else if (payload.role === 'admin') {
       query.status = { $ne: 'pending' };
     }
