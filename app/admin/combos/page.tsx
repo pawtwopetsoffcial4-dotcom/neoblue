@@ -483,6 +483,19 @@ export default function AdminCombosPage() {
             </div>
 
             <div className="p-6 space-y-5 overflow-y-auto max-h-[75vh]">
+              {/* Modal Message */}
+              {message && (
+                <div
+                  className={`px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-2 ${
+                    message.type === 'success'
+                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                      : 'bg-red-50 text-red-700 border border-red-200'
+                  }`}
+                >
+                  {message.type === 'success' ? <Check className="h-4 w-4 shrink-0" /> : <X className="h-4 w-4 shrink-0" />}
+                  {message.text}
+                </div>
+              )}
 
               {/* Name */}
               <div>
@@ -677,19 +690,20 @@ export default function AdminCombosPage() {
 
                 {/* Search input */}
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                  <input
-                    value={productSearch}
-                    onChange={(e) => { setProductSearch(e.target.value); setPickerOpen(true); }}
-                    onFocus={() => setPickerOpen(true)}
-                    placeholder="Search products to add..."
-                    className="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <input
+                      value={productSearch}
+                      onChange={(e) => { setProductSearch(e.target.value); setPickerOpen(true); }}
+                      onFocus={() => setPickerOpen(true)}
+                      placeholder="Search products to add..."
+                      className="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
 
-                {/* Dropdown */}
-                {pickerOpen && productSearch && filteredPickerProducts.length > 0 && (
-                  <div className="mt-1 max-h-48 overflow-y-auto border border-slate-200 rounded-xl bg-white shadow-lg z-10 relative">
+                  {/* Dropdown */}
+                  {pickerOpen && productSearch && filteredPickerProducts.length > 0 && (
+                    <div className="absolute top-full left-0 right-0 mt-1 max-h-48 overflow-y-auto border border-slate-200 rounded-xl bg-white shadow-xl z-50">
                     {filteredPickerProducts.slice(0, 20).map((p) => (
                       <button
                         key={p._id}
@@ -709,9 +723,9 @@ export default function AdminCombosPage() {
                     ))}
                   </div>
                 )}
+                </div>
               </div>
             </div>
-
             {/* Modal footer */}
             <div className="flex items-center justify-end gap-3 p-6 border-t border-slate-100">
               <button
