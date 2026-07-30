@@ -10,7 +10,7 @@ import ReviewStars from '@/app/components/ReviewStars';
 import type { MarketplaceProduct } from '@/lib/types/marketplace';
 import { PRODUCT_CATEGORIES, getCategoryImage } from '@/lib/catalog';
 import { useMode } from '@/lib/hooks/useMode';
-import ComingSoonPlants from '@/app/components/ComingSoonPlants';
+
 
 /* ------------------------------------------------------------------ */
 /* LIVE DATA HELPERS                                                   */
@@ -265,7 +265,6 @@ export default function NeoBlueMobileOptimized() {
     <div className={`min-h-screen bg-white pb-20 md:pb-0 font-sans transition-colors duration-500 ${
       mode === 'fishes' ? 'text-blue-950 selection:bg-blue-100' : 'text-green-950 selection:bg-green-100'
     }`}>
-      {mode === 'plants' ? <ComingSoonPlants /> : (
       <>
       {/* 2. AD BANNER (Hero) */}
       <section className="px-4 pt-4 pb-2 bg-white">
@@ -419,7 +418,6 @@ export default function NeoBlueMobileOptimized() {
         </section>
       )}
       </>
-      )}
 
       {/* Basic spacing for desktop footer */}
       <div className={`hidden md:block py-10 text-center text-xs ${mode === 'fishes' ? 'text-blue-300' : 'text-green-700/50'}`}>

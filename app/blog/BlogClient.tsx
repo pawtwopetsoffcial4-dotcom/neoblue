@@ -7,7 +7,7 @@ import BlogFilters from '@/app/components/BlogFilters';
 import LoadingSpinner from '@/app/components/LoadingSpinner';
 import { useBlogs, useCategories, useTags } from '@/lib/hooks/useBlog';
 import { useMode } from '@/lib/hooks/useMode';
-import ComingSoonPlants from '@/app/components/ComingSoonPlants';
+
 
 function BlogPageContent() {
   const searchParams = useSearchParams();
@@ -37,13 +37,6 @@ function BlogPageContent() {
   const buttonBorderClass = isPlants ? 'hover:border-emerald-600 hover:text-emerald-600' : 'hover:border-blue-600 hover:text-blue-600';
   const loadingIndicatorClass = isPlants ? 'text-emerald-600' : 'text-blue-600';
 
-  if (isPlants) {
-    return (
-      <main className="relative min-h-screen bg-[#f5f8f6] pt-8 md:pt-16 pb-20 md:pb-28 overflow-hidden">
-        <ComingSoonPlants />
-      </main>
-    );
-  }
 
   return (
     <main className="relative min-h-screen bg-slate-50/50 pt-8 md:pt-16 pb-20 md:pb-28 overflow-hidden">
