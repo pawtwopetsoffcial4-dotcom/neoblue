@@ -298,23 +298,7 @@ export default function ProductClientPage({
             </button>
           </div>
 
-          {/* Vendor badge */}
-          {vendor && (
-            <Link
-              href={shopHref}
-              className="inline-flex items-center gap-2 w-fit text-sm text-slate-600 hover:text-blue-600 transition-colors group"
-            >
-              <div className="h-7 w-7 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center overflow-hidden border border-blue-200 shrink-0">
-                {vendor.logo ? (
-                  <img src={vendor.logo} alt={vendor.name} className="h-full w-full object-cover" />
-                ) : (
-                  <span className="text-[9px] font-black text-white">{vendor.name.charAt(0)}</span>
-                )}
-              </div>
-              <span className="font-semibold group-hover:text-blue-600">{vendor.name}</span>
-              <CheckCircle2 className="h-3.5 w-3.5 text-blue-500" />
-            </Link>
-          )}
+
 
           {/* ── Price Block ── */}
           <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm space-y-4">
@@ -422,6 +406,24 @@ export default function ProductClientPage({
               </div>
             ))}
           </div>
+
+          {/* Vendor badge */}
+          {vendor && (
+            <Link
+              href={shopHref}
+              className="inline-flex items-center gap-2 w-fit text-sm text-slate-600 hover:text-blue-600 transition-colors group mb-1"
+            >
+              <div className="h-7 w-7 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center overflow-hidden border border-blue-200 shrink-0">
+                {vendor.logo ? (
+                  <img src={vendor.logo} alt={vendor.name} className="h-full w-full object-cover" />
+                ) : (
+                  <span className="text-[9px] font-black text-white">{vendor.name.charAt(0)}</span>
+                )}
+              </div>
+              <span className="font-semibold group-hover:text-blue-600">{vendor.name}</span>
+              <CheckCircle2 className="h-3.5 w-3.5 text-blue-500" />
+            </Link>
+          )}
 
           {/* Quick Overview & Description */}
           <div className="space-y-3 bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm">
