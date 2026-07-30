@@ -44,7 +44,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const clarityId = process.env.NEXT_PUBLIC_CLARITY_ID;
+  const clarityId = process.env.NEXT_PUBLIC_CLARITY_ID || "xugqoiowbx";
 
   return (
     <html
