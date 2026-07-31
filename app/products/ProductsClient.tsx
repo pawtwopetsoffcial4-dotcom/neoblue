@@ -12,6 +12,7 @@ import ReviewStars from '@/app/components/ReviewStars';
 import LoadingSpinner from '@/app/components/LoadingSpinner';
 import type { MarketplaceProduct } from '@/lib/types/marketplace';
 import { useCart } from '@/lib/hooks/useCart';
+import ProductCard from '@/app/components/ProductCard';
 import { getSubcategoriesForCategory } from '@/lib/catalog';
 import { useMode } from '@/lib/hooks/useMode';
 
@@ -288,99 +289,7 @@ function ProductsPageContent() {
             {/* Responsive Grid */}
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6 lg:gap-8 mb-12">
               {filteredProducts.map((product, idx) => {
-                const rating = typeof product.rating === 'number' ? product.rating : 0;
-                const reviewsCount = product.reviewsCount ?? 0;
-                const unitPrice = typeof product.perPairPrice === 'number'
-                  ? product.perPairPrice
-                  : (typeof product.perPiecePrice === 'number' ? product.perPiecePrice : null);
-                const unitLabel = typeof product.perPairPrice === 'number' ? 'pair' : 'piece';
-
-                return (
-                  <Link
-                    href={`/products/${product._id}`}
-                    key={product._id}
-                    style={{ animationDelay: `${idx * 45}ms` }}
-                    className={`group flex w-full flex-col overflow-hidden rounded-[24px] bg-white shadow-sm border border-slate-100 active:scale-[0.98] animate-fade-in-up hover:-translate-y-2 hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-500 ease-out ${
-                      mode === 'fishes' ? 'hover:border-blue-200' : 'hover:border-green-200'
-                    }`}
-                  >
-                    {/* Image Container */}
-                    <div className="relative aspect-[4/3] sm:aspect-square w-full overflow-hidden bg-slate-50">
-                      <Image
-                        src={product.images?.[0] ?? (mode === 'fishes' ? DEFAULT_IMAGE : '/fishes_cat_cover/Plants.png')}
-                        alt={product.title}
-                        fill
-                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
-                        className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
-                      />
-
-                      {/* Overlays */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-                      {/* Out of Stock Badge */}
-                      {!product.inStock && (
-                        <div className="absolute left-3 top-3 rounded-full bg-slate-900/95 px-3 py-1 text-[10px] md:text-xs font-extrabold uppercase tracking-widest text-white backdrop-blur-md shadow-lg">
-                          Sold out
-                        </div>
-                      )}
-
-                      {/* Heart Icon */}
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          toggleWishlist(product._id);
-                        }}
-                        className={`absolute right-3 top-3 flex h-8 w-8 md:h-9 md:w-9 items-center justify-center rounded-full bg-white/90 backdrop-blur-sm shadow-sm transition-all duration-300 hover:bg-white ${
-                          wishlistedIds.includes(product._id)
-                            ? 'text-rose-500 scale-110 shadow-md'
-                            : 'text-slate-400 hover:text-rose-500 hover:scale-110'
-                        }`}
-                      >
-                        <Heart className={`h-4 w-4 md:h-4.5 md:w-4.5 ${wishlistedIds.includes(product._id) ? 'fill-current' : ''}`} />
-                      </button>
-                    </div>
-
-                    {/* Content Section */}
-                    <div className="flex flex-1 flex-col p-4 md:p-5">
-                      <div className="flex items-center justify-between gap-2 mb-2">
-                        <h4 className={`text-[10px] md:text-[11px] font-black uppercase tracking-widest ${
-                          mode === 'fishes' ? 'text-blue-600' : 'text-green-600'
-                        }`}>
-                          {product.category || (mode === 'fishes' ? 'Freshwater Fish' : 'Plants')}
-                        </h4>
-
-                        <div className={`w-max rounded-full px-2 py-0.5 text-[9px] md:text-[10px] font-bold ${
-                          mode === 'fishes' ? 'bg-blue-50 text-blue-700' : 'bg-green-50 text-green-700'
-                        }`}>
-                          {mode === 'fishes' ? (product.price < 500 ? 'Hot Deal' : 'Premium') : '18% GST Applied'}
-                        </div>
-                      </div>
-                      
-                      <h3 className="line-clamp-2 text-sm md:text-base font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
-                        {product.title}
-                      </h3>
-
-                      {/* Rating Row */}
-                      <div className="mt-2.5 flex items-center">
-                        <ReviewStars rating={rating} count={reviewsCount} compact size={13} />
-                      </div>
-
-                      {/* Pricing Row */}
-                      <div className="mt-auto pt-4 flex flex-col gap-0.5 text-xs md:text-sm text-slate-500 font-medium">
-                        {unitPrice != null ? (
-                          <div className="flex items-baseline gap-1">
-                            <span className="text-xl md:text-2xl font-black text-slate-900 tracking-tight">₹{unitPrice}</span>
-                            <span>/ {unitLabel}</span>
-                          </div>
-                        ) : (
-                          <span className="text-slate-400 italic">Pricing not set</span>
-                        )}
-                      </div>
-                    </div>
-                  </Link>
-                );
+                return <ProductCard key={product._id} product={product} idx={idx} />;
               })}
             </div>
           </>

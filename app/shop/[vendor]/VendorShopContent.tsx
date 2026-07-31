@@ -3,7 +3,8 @@
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { Search, SlidersHorizontal, ArrowUpDown, CheckCircle2, MapPin, ShoppingBag, Star, X, ChevronRight, Inbox } from 'lucide-react';
-import { MarketplaceProduct } from '@/lib/types/marketplace';
+import type { MarketplaceProduct } from '@/lib/types/marketplace';
+import ProductCard from '@/app/components/ProductCard';
 
 interface Address {
   street: string;
@@ -279,90 +280,7 @@ export default function VendorShopContent({ vendor, products }: Props) {
             /* Products Grid */
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
               {filteredProducts.map((product) => {
-                const isPairPrice = product.perPairPrice != null && typeof product.perPairPrice === 'number';
-                const hasDiscount = product.discountPercentage != null && product.discountPercentage > 0;
-                
-                return (
-                  <Link
-                    href={`/products/${product._id}`}
-                    key={product._id}
-                    className="group flex flex-col overflow-hidden rounded-2xl bg-white border border-slate-200/60 shadow-2xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-300"
-                  >
-                    {/* Image Block */}
-                    <div className="relative aspect-square w-full overflow-hidden bg-slate-50 border-b border-slate-100">
-                      <img
-                        src={product.images?.[0] ?? '/illustrations/placeholder.png'}
-                        alt={product.title}
-                        className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
-                      
-                      {/* Water type badge */}
-                      <span className={`absolute top-2 left-2 px-1.5 py-0.5 rounded-md text-[8px] font-extrabold tracking-wider uppercase backdrop-blur-md shadow-2xs ${
-                        product.waterType === 'Freshwater'
-                          ? 'bg-blue-500/80 text-white'
-                          : product.waterType === 'Saltwater'
-                          ? 'bg-cyan-500/80 text-white'
-                          : 'bg-emerald-500/80 text-white'
-                      }`}>
-                        {product.waterType}
-                      </span>
-
-                      {/* Discount flag */}
-                      {hasDiscount && (
-                        <span className="absolute top-2 right-2 px-1.5 py-0.5 rounded-md text-[8px] font-black bg-rose-500 text-white shadow-2xs uppercase">
-                          {product.discountPercentage}% Off
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Metadata Details */}
-                    <div className="flex flex-1 flex-col p-3.5 space-y-1.5">
-                      <div className="flex items-center justify-between gap-1">
-                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">
-                          {product.category}
-                        </span>
-                        {product.rating > 0 && (
-                          <span className="flex items-center gap-0.5 text-[10px] font-bold text-amber-500">
-                            ★ {product.rating}
-                          </span>
-                        )}
-                      </div>
-
-                      <div>
-                        <h3 className="text-xs font-bold text-slate-800 line-clamp-1 group-hover:text-blue-600 transition-colors">
-                          {product.title}
-                        </h3>
-                        {product.scientific && (
-                          <p className="text-[10px] font-medium text-slate-400 italic mt-0.5 line-clamp-1">
-                            {product.scientific}
-                          </p>
-                        )}
-                      </div>
-
-                      {/* Pricing block */}
-                      <div className="pt-1.5 flex items-baseline gap-1">
-                        <span className="text-sm font-black text-slate-900">
-                          {formatPrice(product.price)}
-                        </span>
-                        <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">
-                          / {isPairPrice ? 'Pair' : 'Piece'}
-                        </span>
-                        {hasDiscount && product.originalPrice && (
-                          <span className="text-[10px] text-slate-400 line-through font-semibold ml-1.5">
-                            {formatPrice(product.originalPrice)}
-                          </span>
-                        )}
-                      </div>
-
-                      {/* View Button Footer */}
-                      <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between text-[10px] font-bold text-blue-600 mt-auto group-hover:text-blue-700">
-                        <span>View Details</span>
-                        <ChevronRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
-                      </div>
-
-                    </div>
-                  </Link>
-                );
+                return <ProductCard key={product._id} product={product} />;
               })}
             </div>
           )}

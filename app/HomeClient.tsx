@@ -10,6 +10,7 @@ import ReviewStars from '@/app/components/ReviewStars';
 import type { MarketplaceProduct } from '@/lib/types/marketplace';
 import { PRODUCT_CATEGORIES, getCategoryImage } from '@/lib/catalog';
 import { useMode } from '@/lib/hooks/useMode';
+import ProductCard from '@/app/components/ProductCard';
 
 
 /* ------------------------------------------------------------------ */
@@ -93,53 +94,7 @@ function MobileScrollSection({
   );
 }
 
-/* ------------------------------------------------------------------ */
-/* ULTRA-CLEAN PRODUCT CARD                                           */
-/* ------------------------------------------------------------------ */
-function MobileCard({ product, mode, index = 0 }: { product: any; mode: 'fishes' | 'plants'; index?: number }) {
-  const rating = typeof product.rating === 'number' ? product.rating : 0;
-  const reviewsCount = product.reviewsCount ?? 0;
-  return (
-    <Link
-      href={`/products/${product.id}`}
-      style={{ animationDelay: `${index * 60}ms` }}
-      className={`group w-40 md:w-55 shrink-0 snap-start flex flex-col rounded-2xl overflow-hidden border bg-white transition-all duration-500 ease-out animate-fade-in-up hover:-translate-y-1.5 hover:shadow-xl ${
-        mode === 'fishes' 
-          ? 'border-blue-50/50 shadow-[0_4px_20px_-10px_rgba(37,99,235,0.15)] hover:border-blue-100/80' 
-          : 'border-green-50/50 shadow-[0_4px_20px_-10px_rgba(21,158,75,0.15)] hover:border-green-100/80'
-      }`}
-    >
-      <div className={`relative aspect-square overflow-hidden ${mode === 'fishes' ? 'bg-blue-50/30' : 'bg-green-50/30'}`}>
-        <Image
-          src={product.img}
-          alt={product.title}
-          fill
-          sizes="(max-width: 768px) 160px, 220px"
-          className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-        />
-        {product.tag && String(product.tag).toLowerCase() !== 'standard' ? (
-          <div className={`absolute left-2 top-2 rounded-md px-2 py-1 text-white text-xs font-bold ${
-            mode === 'fishes' ? 'bg-gradient-to-r from-blue-600 to-indigo-600' : 'bg-gradient-to-r from-green-600 to-emerald-600'
-          }`}>
-            {product.tag}
-          </div>
-        ) : null}
-      </div>
-      <div className="p-3">
-        <h3 className={`text-sm font-semibold truncate mb-1 ${mode === 'fishes' ? 'text-blue-950' : 'text-green-950'}`}>{product.title}</h3>
-        <div className="flex items-center gap-2 mt-0.5">
-          <ReviewStars rating={rating} count={reviewsCount} compact />
-        </div>
-        <div className="mt-2 flex items-baseline gap-0.5">
-          <span className={`text-sm font-black ${mode === 'fishes' ? 'text-blue-600' : 'text-green-700'}`}>₹{product.price}</span>
-          <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">
-            /{product.perPairPrice != null && typeof product.perPairPrice === 'number' ? 'Pair' : 'Piece'}
-          </span>
-        </div>
-      </div>
-    </Link>
-  );
-}
+
 
 /* ================================================================== */
 /* MAIN PAGE                                                          */
@@ -341,9 +296,9 @@ export default function NeoBlueMobileOptimized() {
       )}
 
       {/* 4. TRENDING */}
-      <MobileScrollSection title={mode === 'fishes' ? 'Trending Stock' : 'Trending Plants'} mode={mode}>
+      <MobileScrollSection title="Trending Now" mode={mode}>
         {trendingProducts.map((product, idx) => (
-          <MobileCard key={`trend-${product.id}`} product={product} mode={mode} index={idx} />
+          <ProductCard key={`trend-${product.id}`} product={product} idx={idx} className="w-40 md:w-55 shrink-0 snap-start" />
         ))}
         {!isLoading && trendingProducts.length === 0 ? (
           <div className={`w-full rounded-2xl border border-dashed p-4 text-xs ${
@@ -355,9 +310,9 @@ export default function NeoBlueMobileOptimized() {
       </MobileScrollSection>
 
       {/* 5. NEW ARRIVALS */}
-      <MobileScrollSection title={mode === 'fishes' ? 'New Arrivals' : 'New Plant Arrivals'} mode={mode}>
+      <MobileScrollSection title="New Arrivals" mode={mode}>
         {newArrivalProducts.map((product, idx) => (
-          <MobileCard key={`new-${product.id}`} product={product} mode={mode} index={idx} />
+          <ProductCard key={`new-${product.id}`} product={product} idx={idx} className="w-40 md:w-55 shrink-0 snap-start" />
         ))}
         {!isLoading && newArrivalProducts.length === 0 ? (
           <div className={`w-full rounded-2xl border border-dashed p-4 text-xs ${
