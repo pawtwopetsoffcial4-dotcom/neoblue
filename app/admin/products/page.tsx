@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { X, Plus, Trash2 } from 'lucide-react';
+import { X, Plus, Trash2, Search } from 'lucide-react';
 import { CldUploadWidget } from 'next-cloudinary';
 import { apiClient } from '@/lib/api-client';
 
@@ -82,6 +82,7 @@ export default function AdminProductsPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [editingProduct, setEditingProduct] = useState<AdminProduct | null>(null);
   const [editForm, setEditForm] = useState<EditFormState | null>(null);
   const [isSavingEdit, setIsSavingEdit] = useState(false);
@@ -126,9 +127,21 @@ export default function AdminProductsPage() {
   }, []);
 
   const filteredProducts = useMemo(() => {
-    if (filter === 'all') return products;
-    return products.filter((p) => (p.approvalStatus ?? 'pending') === filter);
-  }, [products, filter]);
+    let result = products;
+    if (filter !== 'all') {
+      result = result.filter((p) => (p.approvalStatus ?? 'pending') === filter);
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter((p) => 
+        p.title?.toLowerCase().includes(q) || 
+        p.tag?.toLowerCase().includes(q) ||
+        p.category?.toLowerCase().includes(q) ||
+        p.scientific?.toLowerCase().includes(q)
+      );
+    }
+    return result;
+  }, [products, filter, searchQuery]);
 
   const setApproval = async (productId: string, status: 'approved' | 'rejected') => {
     try {
@@ -381,20 +394,35 @@ export default function AdminProductsPage() {
         </div>
       </section>
 
-      <div className="flex flex-wrap gap-2">
-        {(['all', 'pending', 'approved', 'rejected'] as const).map((value) => (
-          <button
-            key={value}
-            onClick={() => setFilter(value)}
-            className={`h-10 px-4 rounded-full border transition-colors font-semibold ${
-              filter === value
-                ? 'bg-blue-600 border-blue-600 text-white'
-                : 'bg-white border-blue-200 text-blue-700 hover:bg-blue-50'
-            }`}
-          >
-            {value.charAt(0).toUpperCase() + value.slice(1)}
-          </button>
-        ))}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex flex-wrap gap-2">
+          {(['all', 'pending', 'approved', 'rejected'] as const).map((value) => (
+            <button
+              key={value}
+              onClick={() => setFilter(value)}
+              className={`h-10 px-4 rounded-full border transition-colors font-semibold ${
+                filter === value
+                  ? 'bg-blue-600 border-blue-600 text-white'
+                  : 'bg-white border-blue-200 text-blue-700 hover:bg-blue-50'
+              }`}
+            >
+              {value.charAt(0).toUpperCase() + value.slice(1)}
+            </button>
+          ))}
+        </div>
+        
+        <div className="relative w-full sm:w-64 md:w-80">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Search className="h-5 w-5 text-slate-400" />
+          </div>
+          <input
+            type="text"
+            className="block w-full pl-10 pr-3 py-2 border border-slate-200 rounded-full leading-5 bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+            placeholder="Search products..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
       </div>
 
       {message && (
