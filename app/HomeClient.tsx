@@ -30,6 +30,7 @@ type HeroCardProduct = {
   category: string;
   perPairPrice?: number;
   perPiecePrice?: number;
+  inStock?: boolean;
 };
 
 const DEFAULT_IMAGE = 'https://images.stockcake.com/public/1/9/4/194f4315-a8d9-422b-b237-18b1e224b7a1_large/colorful-tropical-fish-stockcake.jpg';
@@ -179,6 +180,7 @@ export default function NeoBlueMobileOptimized() {
         category: product.category,
         perPairPrice: product.perPairPrice,
         perPiecePrice: product.perPiecePrice,
+        inStock: product.inStock,
       })),
     [modeFilteredProducts]
   );
