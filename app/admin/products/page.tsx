@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { X, Plus, Trash2, Search } from 'lucide-react';
+import { X, Plus, Trash2, Search, Wand2, Loader2 } from 'lucide-react';
 import { CldUploadWidget } from 'next-cloudinary';
 import { apiClient } from '@/lib/api-client';
 
@@ -92,6 +92,7 @@ export default function AdminProductsPage() {
   const [quickEditingPrice, setQuickEditingPrice] = useState<string | null>(null);
   const [quickPriceValue, setQuickPriceValue] = useState<string>('');
   const [isSavingPrice, setIsSavingPrice] = useState(false);
+  const [isGeneratingDesc, setIsGeneratingDesc] = useState(false);
 
   const loadProducts = async () => {
     try {
@@ -321,6 +322,28 @@ export default function AdminProductsPage() {
       setMessage(error.message || 'Failed to update product');
     } finally {
       setIsSavingEdit(false);
+    }
+  };
+
+  const handleGenerateEditDescription = async () => {
+    if (!editForm || !editForm.title) return;
+    setIsGeneratingDesc(true);
+    try {
+      const res = await apiClient.request('/vendor/generate-description', {
+        method: 'POST',
+        body: JSON.stringify({
+          title: editForm.title,
+          category: editForm.category,
+          waterType: editForm.waterType,
+        }),
+      }) as any;
+      if (res.description) {
+        setEditForm(prev => prev ? { ...prev, description: res.description } : prev);
+      }
+    } catch (err: any) {
+      alert(err.message || 'Failed to generate description');
+    } finally {
+      setIsGeneratingDesc(false);
     }
   };
 
@@ -710,12 +733,23 @@ export default function AdminProductsPage() {
                 </label>
               </div>
 
-              <textarea
-                className="w-full min-h-32 px-4 py-3 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Description"
-                value={editForm.description}
-                onChange={(event) => setEditForm((current) => current ? { ...current, description: event.target.value } : current)}
-              />
+              <div className="relative">
+                <textarea
+                  className="w-full min-h-32 px-4 py-3 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Description"
+                  value={editForm.description}
+                  onChange={(event) => setEditForm((current) => current ? { ...current, description: event.target.value } : current)}
+                />
+                <button
+                  type="button"
+                  onClick={handleGenerateEditDescription}
+                  disabled={isGeneratingDesc}
+                  className="absolute bottom-3 right-3 flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-lg text-xs font-bold hover:bg-indigo-100 disabled:opacity-50 transition-colors"
+                >
+                  {isGeneratingDesc ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Wand2 className="h-3.5 w-3.5" />}
+                  {isGeneratingDesc ? 'Generating...' : 'AI Magic'}
+                </button>
+              </div>
 
               <div className="space-y-4 pt-4 border-t border-slate-200">
                 <h3 className="text-sm font-bold text-slate-900">Species Information</h3>

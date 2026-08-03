@@ -154,33 +154,6 @@ export async function POST(request: NextRequest) {
       const preloaded = await FishDescription.findOne({ name: { $regex: new RegExp(`^${title}$`, 'i') } });
       if (preloaded && preloaded.description) {
         finalDescription = preloaded.description;
-      } else {
-        try {
-          const apiKey = process.env.GEMINI_API_KEY || 'AQ.Ab8RN6LIYZ9ff4pf1yS5ZVy0rpD2ReikAiX-wtb96iBVyM0CAg';
-        const prompt = `Write a premium, engaging HTML product description for a ${category || 'product'} named "${title}". ${waterType ? `It is a ${waterType} species.` : ''}
-        
-Output only the HTML. Use semantic tags like <h3>, <p>, <ul>, <li>, and <strong>. 
-Do not wrap it in a markdown code block (like \`\`\`html).
-Make it professional, emphasizing quality and care. 
-Keep it concise but detailed (around 3-4 short paragraphs/lists).`;
-
-        const aiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0.7 } }),
-        });
-        
-        if (aiRes.ok) {
-          const data = await aiRes.json();
-          const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-          finalDescription = generatedText.replace(/^```html/i, '').replace(/```$/i, '').trim();
-        } else {
-          finalDescription = `Premium ${title} for your aquarium.`;
-        }
-      } catch (err) {
-        console.error('Failed to auto-generate description on server', err);
-          finalDescription = `Premium ${title} for your aquarium.`;
-        }
       }
     }
 
