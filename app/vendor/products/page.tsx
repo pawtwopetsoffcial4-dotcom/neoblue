@@ -286,7 +286,7 @@ export default function VendorProductsPage() {
         weightPerPiece,
         stockQuantity: Number(editForm.stockQuantity) || 0,
         soldQuantity: Number(editForm.soldQuantity) || 0,
-        inStock: (Number(editForm.stockQuantity) || 0) > 0,
+        inStock: editForm.inStock,
         size: editForm.size,
         ageCategory: editForm.ageCategory,
         deliverNorth: editForm.deliverNorth,

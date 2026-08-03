@@ -1,6 +1,7 @@
 import { connectDB, isDatabaseConnectivityError } from '@/lib/db';
 import Product from '@/lib/models/Product';
 import User from '@/lib/models/User';
+import FishDescription from '@/lib/models/FishDescription';
 import { createErrorResponse, createSuccessResponse, getTokenFromRequest, verifyToken } from '@/lib/utils/auth';
 import { normalizeShippingRate } from '@/lib/utils/shipping';
 import { NextRequest } from 'next/server';
@@ -110,7 +111,7 @@ export async function POST(request: NextRequest) {
       return createErrorResponse('Only vendors can create products', 403);
     }
 
-    const { title, description, price, images, videos, category, subcategory, waterType, tag, scientific, size, ageCategory, originalPrice, discountPercentage, perPiecePrice, perPairPrice, weightPerPiece, shippingType, shippingCharge, shippingLotSize, shippingPieceRanges, shippingWeightRanges, shippingNorth1Ranges, shippingNorth2Ranges, shippingNorth3Ranges, shippingNorth4Ranges, shippingSouth1Ranges, shippingSouth2Ranges, shippingSouth3Ranges, shippingSouth4Ranges, deliverNorth, deliverSouth, phMin, phMax, tempMin, tempMax, temperament, stockQuantity, faq, quickOverview, aboutSpecies, behavioralTraits, genderIdentification, sustainabilitySourcing, section5Title, section5Content, careTemp, carePh, careWaterHardness, careWaterCurrent, careTankSetup, careHidingSpots, lightingRequirement, co2Requirement, growthRate, placement, careDifficulty } = await request.json();
+    const { title, description, price, images, videos, category, subcategory, waterType, tag, scientific, size, ageCategory, originalPrice, discountPercentage, perPiecePrice, perPairPrice, weightPerPiece, shippingType, shippingCharge, shippingLotSize, shippingPieceRanges, shippingWeightRanges, shippingNorth1Ranges, shippingNorth2Ranges, shippingNorth3Ranges, shippingNorth4Ranges, shippingSouth1Ranges, shippingSouth2Ranges, shippingSouth3Ranges, shippingSouth4Ranges, deliverNorth, deliverSouth, phMin, phMax, tempMin, tempMax, temperament, stockQuantity, inStock, faq, quickOverview, aboutSpecies, behavioralTraits, genderIdentification, sustainabilitySourcing, section5Title, section5Content, careTemp, carePh, careWaterHardness, careWaterCurrent, careTankSetup, careHidingSpots, lightingRequirement, co2Requirement, growthRate, placement, careDifficulty } = await request.json();
 
     // Validate required fields
     if (!title || price == null || !images || !category || !waterType) {
@@ -150,8 +151,12 @@ export async function POST(request: NextRequest) {
 
     let finalDescription = description;
     if (!finalDescription || finalDescription.trim() === '') {
-      try {
-        const apiKey = process.env.GEMINI_API_KEY || 'AQ.Ab8RN6LIYZ9ff4pf1yS5ZVy0rpD2ReikAiX-wtb96iBVyM0CAg';
+      const preloaded = await FishDescription.findOne({ name: { $regex: new RegExp(`^${title}$`, 'i') } });
+      if (preloaded && preloaded.description) {
+        finalDescription = preloaded.description;
+      } else {
+        try {
+          const apiKey = process.env.GEMINI_API_KEY || 'AQ.Ab8RN6LIYZ9ff4pf1yS5ZVy0rpD2ReikAiX-wtb96iBVyM0CAg';
         const prompt = `Write a premium, engaging HTML product description for a ${category || 'product'} named "${title}". ${waterType ? `It is a ${waterType} species.` : ''}
         
 Output only the HTML. Use semantic tags like <h3>, <p>, <ul>, <li>, and <strong>. 
@@ -174,7 +179,8 @@ Keep it concise but detailed (around 3-4 short paragraphs/lists).`;
         }
       } catch (err) {
         console.error('Failed to auto-generate description on server', err);
-        finalDescription = `Premium ${title} for your aquarium.`;
+          finalDescription = `Premium ${title} for your aquarium.`;
+        }
       }
     }
 
@@ -217,7 +223,7 @@ Keep it concise but detailed (around 3-4 short paragraphs/lists).`;
       vendorId: payload.userId,
       stockQuantity: stockQuantity != null ? Number(stockQuantity) : 0,
       soldQuantity: 0,
-      inStock: stockQuantity != null ? Number(stockQuantity) > 0 : false,
+      inStock: inStock !== undefined ? inStock : (stockQuantity != null ? Number(stockQuantity) > 0 : false),
       size: size || '',
       ageCategory: ageCategory || 'adult',
       faq: Array.isArray(faq) ? faq : [],

@@ -1,5 +1,6 @@
 import { connectDB } from '@/lib/db';
 import Product from '@/lib/models/Product';
+import FishDescription from '@/lib/models/FishDescription';
 import { createErrorResponse, createSuccessResponse, getTokenFromRequest, verifyToken } from '@/lib/utils/auth';
 import { normalizeShippingRate } from '@/lib/utils/shipping';
 import { NextRequest } from 'next/server';
@@ -75,7 +76,9 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
         updateData.soldAfterLastStockUpdate = 0;
       }
       updateData.stockQuantity = stock;
-      updateData.inStock = stock > 0;
+      if (!('inStock' in updateData)) {
+        updateData.inStock = stock > 0;
+      }
     }
 
     if ('soldQuantity' in updateData) {
@@ -177,9 +180,13 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
     }
 
     if ('description' in updateData && (!updateData.description || updateData.description.trim() === '')) {
-      try {
-        const apiKey = process.env.GEMINI_API_KEY || 'AQ.Ab8RN6LIYZ9ff4pf1yS5ZVy0rpD2ReikAiX-wtb96iBVyM0CAg';
-        const title = updateData.title || product.title;
+      const title = updateData.title || product.title;
+      const preloaded = await FishDescription.findOne({ name: { $regex: new RegExp(`^${title}$`, 'i') } });
+      if (preloaded && preloaded.description) {
+        updateData.description = preloaded.description;
+      } else {
+        try {
+          const apiKey = process.env.GEMINI_API_KEY || 'AQ.Ab8RN6LIYZ9ff4pf1yS5ZVy0rpD2ReikAiX-wtb96iBVyM0CAg';
         const category = updateData.category || product.category;
         const waterType = updateData.waterType || product.waterType;
         const prompt = `Write a premium, engaging HTML product description for a ${category || 'product'} named "${title}". ${waterType ? `It is a ${waterType} species.` : ''}
@@ -204,7 +211,8 @@ Keep it concise but detailed (around 3-4 short paragraphs/lists).`;
         }
       } catch (err) {
         console.error('Failed to auto-generate description on server during update', err);
-        updateData.description = `Premium ${updateData.title || product.title} for your aquarium.`;
+          updateData.description = `Premium ${updateData.title || product.title} for your aquarium.`;
+        }
       }
     }
 

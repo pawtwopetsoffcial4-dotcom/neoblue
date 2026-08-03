@@ -273,7 +273,7 @@ export default function AdminProductsPage() {
         scientific: editForm.scientific,
         stockQuantity: Number(editForm.stockQuantity) || 0,
         soldQuantity: Number(editForm.soldQuantity) || 0,
-        inStock: (Number(editForm.stockQuantity) || 0) > 0,
+        inStock: editForm.inStock,
         size: editForm.size,
         ageCategory: editForm.ageCategory,
         approvalStatus: editForm.approvalStatus,

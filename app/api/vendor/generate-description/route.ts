@@ -1,4 +1,7 @@
 import { NextRequest } from 'next/server';
+import mongoose from 'mongoose';
+import { connectDB } from '@/lib/db';
+import FishDescription from '@/lib/models/FishDescription';
 import { createErrorResponse, createSuccessResponse, getTokenFromRequest, verifyToken } from '@/lib/utils/auth';
 
 export async function POST(request: NextRequest) {
@@ -13,6 +16,12 @@ export async function POST(request: NextRequest) {
 
     if (!title) {
       return createErrorResponse('Product title is required', 400);
+    }
+    
+    await connectDB();
+    const preloaded = await FishDescription.findOne({ name: { $regex: new RegExp(`^${title}$`, 'i') } });
+    if (preloaded && preloaded.description) {
+      return createSuccessResponse({ description: preloaded.description });
     }
 
     const apiKey = process.env.GEMINI_API_KEY || 'AQ.Ab8RN6LIYZ9ff4pf1yS5ZVy0rpD2ReikAiX-wtb96iBVyM0CAg';
