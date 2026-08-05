@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { X, Plus, Trash2, Search, Wand2, Loader2 } from 'lucide-react';
+import { X, Plus, Trash2, Search, Wand2, Loader2, HelpCircle } from 'lucide-react';
 import { CldUploadWidget } from 'next-cloudinary';
 import { apiClient } from '@/lib/api-client';
 
@@ -866,7 +866,7 @@ export default function AdminProductsPage() {
               <div className="rounded-2xl border border-slate-200 p-5 bg-white space-y-4">
                 <div>
                   <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                    ❓ Product Q&A / FAQ Section
+                    <HelpCircle className="inline-block w-4 h-4 mr-1" /> Product Q&A / FAQ Section
                   </h3>
                   <p className="text-xs text-slate-500 mt-0.5">Type custom questions and answers to show directly on this product page.</p>
                 </div>

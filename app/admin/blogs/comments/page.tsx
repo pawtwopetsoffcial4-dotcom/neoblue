@@ -1,3 +1,4 @@
+import { Star } from 'lucide-react';
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -179,7 +180,7 @@ export default function AdminCommentsPage() {
                             : 'text-slate-300'
                         }
                       >
-                        ★
+                        <Star className="w-3 h-3 inline fill-amber-400 text-amber-400" />
                       </span>
                     ))}
                   </div>

@@ -4,7 +4,7 @@ import User from '@/lib/models/User';
 import Product from '@/lib/models/Product';
 import VendorShopContent from './VendorShopContent';
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Fish } from 'lucide-react';
 
 type Props = { params: Promise<{ vendor: string }> };
 
@@ -60,7 +60,7 @@ export default async function ShopPage({ params }: Props) {
       <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-6">
         <div className="max-w-md w-full text-center space-y-6 bg-white p-8 rounded-3xl border border-slate-200/60 shadow-sm">
           <div className="h-16 w-16 bg-rose-50 rounded-full flex items-center justify-center text-rose-500 mx-auto border border-rose-100">
-            🐟
+            <Fish className="w-4 h-4" />
           </div>
           <div className="space-y-2">
             <h2 className="text-xl font-black text-slate-900">Storefront Not Found</h2>

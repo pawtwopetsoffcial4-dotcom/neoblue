@@ -1,3 +1,4 @@
+import { Star } from 'lucide-react';
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -186,7 +187,7 @@ export default function BlogComments({ blogId }: BlogCommentsProps) {
                       : 'text-slate-300 hover:text-yellow-300'
                   }`}
                 >
-                  ★
+                  <Star className="w-3 h-3 inline fill-amber-400 text-amber-400" />
                 </button>
               ))}
             </div>
@@ -286,7 +287,7 @@ export default function BlogComments({ blogId }: BlogCommentsProps) {
                               : 'text-slate-200'
                           }`}
                         >
-                          ★
+                          <Star className="w-3 h-3 inline fill-amber-400 text-amber-400" />
                         </span>
                       ))}
                     </div>

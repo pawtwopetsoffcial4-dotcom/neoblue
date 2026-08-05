@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowRight, Fish, Gauge, Sparkles, X, Info, Plus, Trash2, ChevronRight, ChevronLeft, Upload, Check, AlertCircle, Leaf } from 'lucide-react';
+import { ArrowRight, Fish, Gauge, Sparkles, X, Info, Plus, Trash2, ChevronRight, ChevronLeft, Upload, Check, AlertCircle, Leaf, Coins, Users, HelpCircle, ClipboardList } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import { CldUploadWidget } from 'next-cloudinary';
 import { apiClient } from '@/lib/api-client';
@@ -871,7 +871,7 @@ export default function VendorAddProductPage() {
                           : 'text-slate-600 hover:text-slate-900'
                       }`}
                     >
-                      🪙 Per Piece
+                      <Coins className="inline-block w-4 h-4 mr-1" /> Per Piece
                     </button>
                     <button
                       type="button"
@@ -882,7 +882,7 @@ export default function VendorAddProductPage() {
                           : 'text-slate-600 hover:text-slate-900'
                       }`}
                     >
-                      👥 Per Pair
+                      <Users className="inline-block w-4 h-4 mr-1" /> Per Pair
                     </button>
                   </div>
                 </div>
@@ -990,7 +990,7 @@ export default function VendorAddProductPage() {
             <div className="rounded-2xl border border-slate-200 p-5 bg-white space-y-4">
               <div>
                 <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                  ❓ Product Q&A / FAQ Section
+                  <HelpCircle className="inline-block w-4 h-4 mr-1" /> Product Q&A / FAQ Section
                 </h3>
                 <p className="text-xs text-slate-500 mt-0.5">Type custom questions and answers to show directly on this product page.</p>
               </div>
@@ -1049,7 +1049,7 @@ export default function VendorAddProductPage() {
             {/* Final Review Summary Card */}
             <div className="rounded-2xl border border-slate-200 bg-slate-50/50 p-5 space-y-4">
               <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider border-b border-slate-200 pb-2">
-                📋 Variety Summary Review
+                <ClipboardList className="inline-block w-4 h-4 mr-1" /> Variety Summary Review
               </h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs font-medium text-slate-600">
                 <div>

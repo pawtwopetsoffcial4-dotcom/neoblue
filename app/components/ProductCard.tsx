@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ShoppingCart } from 'lucide-react';
+import { ShoppingCart, Star } from 'lucide-react';
 import { useCart } from '@/lib/hooks/useCart';
 
 interface ProductCardProps {
@@ -83,7 +83,7 @@ export default function ProductCard({ product, idx = 0, className = "" }: Produc
           </span>
           {(product.rating > 0) ? (
             <span className="flex items-center gap-0.5 text-[9px] sm:text-[10px] font-black text-amber-500 bg-amber-50 px-1.5 py-0.5 rounded-md">
-              ★ {product.rating}
+              <Star className="w-3 h-3 inline fill-amber-400 text-amber-400 mr-1" /> {product.rating}
             </span>
           ) : null}
         </div>

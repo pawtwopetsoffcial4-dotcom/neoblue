@@ -3,12 +3,7 @@
 import React, { useEffect, useState, useCallback, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import {
-  CreditCard, MapPin, Package, UserRound, LayoutDashboard, Fish,
-  PlusCircle, PackageCheck, LogOut, Shield, ChevronRight, Phone,
-  Mail, ShoppingBag, ArrowUpRight, Clock, Loader2,
-  Truck, CheckCircle2, XCircle, Star, Bell
-} from 'lucide-react';
+import { CreditCard, MapPin, Package, UserRound, LayoutDashboard, Fish, PlusCircle, PackageCheck, LogOut, Shield, ChevronRight, Phone, Mail, ShoppingBag, ArrowUpRight, Clock, Loader2, Truck, CheckCircle2, XCircle, Star, Bell, DollarSign, AlertTriangle } from 'lucide-react';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useNotifications } from '@/lib/hooks/useNotifications';
 import { apiClient } from '@/lib/api-client';
@@ -334,9 +329,9 @@ function ProfilePageContent() {
                             n.type === 'claim' ? 'bg-amber-50 text-amber-600 border border-amber-100' :
                             'bg-slate-50 text-slate-600 border border-slate-100'
                           }`}>
-                            {n.type === 'new_order' ? '💰' :
-                             n.type === 'order_status' ? '📦' :
-                             n.type === 'claim' ? '⚠️' : '🔔'}
+                            {n.type === 'new_order' ? <DollarSign className="w-4 h-4" /> :
+                             n.type === 'order_status' ? <Package className="w-4 h-4" /> :
+                             n.type === 'claim' ? '⚠️' : <Bell className="w-4 h-4" />}
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between gap-2">

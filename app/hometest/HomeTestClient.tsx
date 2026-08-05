@@ -2,10 +2,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import {
-  ArrowRight, Package, Truck, ShieldCheck, Star, Headset,
-  Fish, Sparkles, ChevronLeft, ChevronRight, Tag, Zap, Heart
-} from 'lucide-react';
+import { ArrowRight, Package, Truck, ShieldCheck, Star, Headset, Fish, Sparkles, ChevronLeft, ChevronRight, Tag, Zap, Heart, Dna } from 'lucide-react';
 import ReviewStars from '@/app/components/ReviewStars';
 import type { MarketplaceProduct } from '@/lib/types/marketplace';
 import { PRODUCT_CATEGORIES, getCategoryImage } from '@/lib/catalog';
@@ -552,17 +549,17 @@ export default function HomeTestClient() {
 
   const whyItems = [
     {
-      emoji: storeConfig?.why1Icon || '🚚',
+      emoji: storeConfig?.why1Icon || <Truck className="h-8 w-8 text-blue-600" />,
       title: storeConfig?.why1Title || 'Live Arrival Promise',
       text: storeConfig?.why1Text || 'Every order is backed by our live-arrival guarantee. If your fish don\'t arrive healthy, we make it right — no questions asked.',
     },
     {
-      emoji: storeConfig?.why2Icon || '🧬',
+      emoji: storeConfig?.why2Icon || <Dna className="h-8 w-8 text-blue-600" />,
       title: storeConfig?.why2Title || 'Verified Sellers Only',
       text: storeConfig?.why2Text || 'Our vendor approval process ensures you only buy from experienced breeders who meet our quality and care standards.',
     },
     {
-      emoji: storeConfig?.why3Icon || '📦',
+      emoji: storeConfig?.why3Icon || <Package className="h-8 w-8 text-blue-600" />,
       title: storeConfig?.why3Title || 'Expert Packing',
       text: storeConfig?.why3Text || 'Oxygen-sealed bags, insulated packaging, and transit-tested techniques keep your aquatic life safe on the journey.',
     },

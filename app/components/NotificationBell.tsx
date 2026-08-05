@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Bell, BellOff, Check, Trash2, ShieldAlert, CircleDot } from 'lucide-react';
+import { Bell, BellOff, Check, Trash2, ShieldAlert, CircleDot, DollarSign, Package, AlertTriangle } from 'lucide-react';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useNotifications, DbNotification } from '@/lib/hooks/useNotifications';
 
@@ -163,9 +163,9 @@ export default function NotificationBell() {
                       n.type === 'claim' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' :
                       'bg-white/5 text-slate-300 border border-white/10'
                     }`}>
-                      {n.type === 'new_order' ? '💰' :
-                       n.type === 'order_status' ? '📦' :
-                       n.type === 'claim' ? '⚠️' : '🔔'}
+                      {n.type === 'new_order' ? <DollarSign className="w-4 h-4" /> :
+                       n.type === 'order_status' ? <Package className="w-4 h-4" /> :
+                       n.type === 'claim' ? '⚠️' : <Bell className="w-4 h-4" />}
                     </div>
 
                     <div className="flex-1 min-w-0">
