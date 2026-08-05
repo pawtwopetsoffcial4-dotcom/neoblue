@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
     if (!token) return createErrorResponse('Unauthorized', 401);
 
     const payload = verifyToken(token);
-    if (!payload || payload.role !== 'vendor') return createErrorResponse('Forbidden', 403);
+    if (!payload || (payload.role !== 'vendor' && payload.role !== 'admin')) return createErrorResponse('Forbidden', 403);
 
     const { title, category, waterType } = await request.json();
 
