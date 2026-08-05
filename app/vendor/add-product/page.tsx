@@ -164,7 +164,8 @@ export default function VendorAddProductPage() {
       }
     }
     if (productType === 'plant') {
-      setForm(prev => ({ ...prev, pricingType: 'piece' }));
+      setForm(prev => ({ ...prev, pricingType: 'piece', category: 'Plants' }));
+      setCustomCategoryMode(false);
     }
   }, [productType, filteredCategories, customCategoryMode, categories.length]);
 
@@ -449,19 +450,28 @@ export default function VendorAddProductPage() {
               <div className="flex flex-col gap-1.5">
                 <div className="flex justify-between items-center">
                   <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Category</label>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const next = !customCategoryMode;
-                      setCustomCategoryMode(next);
-                      setForm(prev => ({ ...prev, category: next ? '' : (categories[0] || 'Guppies') }));
-                    }}
-                    className="text-[10px] font-bold text-blue-600 hover:underline cursor-pointer"
-                  >
-                    {customCategoryMode ? "Or select category" : "Or enter custom"}
-                  </button>
+                  {productType !== 'plant' && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const next = !customCategoryMode;
+                        setCustomCategoryMode(next);
+                        setForm(prev => ({ ...prev, category: next ? '' : (categories[0] || 'Guppies') }));
+                      }}
+                      className="text-[10px] font-bold text-blue-600 hover:underline cursor-pointer"
+                    >
+                      {customCategoryMode ? "Or select category" : "Or enter custom"}
+                    </button>
+                  )}
                 </div>
-                {customCategoryMode ? (
+                {productType === 'plant' ? (
+                  <input
+                    type="text"
+                    readOnly
+                    className="h-11 px-4 rounded-xl border border-slate-200 bg-slate-50 text-slate-500 text-sm font-medium outline-none cursor-not-allowed"
+                    value="Plants"
+                  />
+                ) : customCategoryMode ? (
                   <input
                     type="text"
                     className="h-11 px-4 rounded-xl border border-slate-200 outline-hidden focus:ring-2 focus:ring-blue-500 text-sm font-medium bg-white text-slate-900"
