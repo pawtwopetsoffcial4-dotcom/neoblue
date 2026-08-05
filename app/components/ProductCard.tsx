@@ -23,16 +23,16 @@ export default function ProductCard({ product, idx = 0, className = "" }: Produc
     hoverShadow: 'hover:shadow-[0_8px_30px_rgb(16,185,129,0.12)]',
     titleHover: 'group-hover:text-emerald-600',
     badgeBg: 'bg-emerald-500/90',
-    btnGradient: 'bg-gradient-to-r from-emerald-500 to-teal-600',
-    btnHover: 'hover:from-emerald-400 hover:to-teal-500',
+    btnGradient: 'bg-emerald-600',
+    btnHover: 'hover:bg-emerald-700',
     btnShadow: 'shadow-emerald-500/25 hover:shadow-emerald-500/40',
   } : {
     hoverBorder: 'hover:border-blue-300',
     hoverShadow: 'hover:shadow-[0_8px_30px_rgb(37,99,235,0.12)]',
     titleHover: 'group-hover:text-blue-600',
     badgeBg: product.waterType === 'Freshwater' ? 'bg-blue-500/90' : product.waterType === 'Saltwater' ? 'bg-cyan-500/90' : 'bg-indigo-500/90',
-    btnGradient: 'bg-gradient-to-r from-blue-600 to-indigo-600',
-    btnHover: 'hover:from-blue-500 hover:to-indigo-500',
+    btnGradient: 'bg-blue-600',
+    btnHover: 'hover:bg-blue-700',
     btnShadow: 'shadow-blue-500/25 hover:shadow-blue-500/40',
   };
 
