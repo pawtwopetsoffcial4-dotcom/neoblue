@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight, PackageSearch, PlusCircle, X, Trash2, Plus } from 'lucide-react';
+import { ArrowRight, PackageSearch, PlusCircle, X, Trash2, Plus, Info, Tag, Settings, Image as ImageIcon, Save, Loader2, Wand2 } from 'lucide-react';
 import { CldUploadWidget } from 'next-cloudinary';
 import { apiClient } from '@/lib/api-client';
 import { FISH_NAMES, PRODUCT_CATEGORIES, getSubcategoriesForCategory } from '@/lib/catalog';
@@ -69,6 +69,7 @@ export default function VendorProductsPage() {
   const [dbSubcategories, setDbSubcategories] = useState<Record<string, string[]>>({});
   const [customCategoryMode, setCustomCategoryMode] = useState(false);
   const [customVarietyMode, setCustomVarietyMode] = useState(false);
+  const [activeTab, setActiveTab] = useState<'basic' | 'pricing' | 'specs' | 'media'>('basic');
   const { user } = useAuth();
 
   const getVarietiesForCategory = (cat: string) => {
@@ -456,567 +457,657 @@ export default function VendorProductsPage() {
       </div>
 
       {editingProduct && editForm && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/60 px-0 py-0 backdrop-blur-sm md:items-center md:px-4 md:py-6">
-          <div className="w-full max-w-4xl max-h-[92vh] overflow-y-auto rounded-t-4xl bg-white shadow-2xl border border-blue-100 md:rounded-4xl">
-            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-blue-100 bg-white px-5 py-4 md:px-6">
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/40 px-0 py-0 backdrop-blur-xl transition-all md:items-center md:px-4 md:py-6">
+          <div className="w-full max-w-4xl max-h-[95vh] flex flex-col bg-white shadow-[0_0_40px_-10px_rgba(0,0,0,0.1)] border border-blue-100 rounded-t-3xl md:rounded-3xl animate-fade-in-up overflow-hidden">
+            
+            {/* Header */}
+            <div className="flex-none flex items-center justify-between border-b border-blue-50 bg-white/80 backdrop-blur-md px-5 py-4 md:px-8">
               <div>
-                <p className="text-xs font-bold uppercase tracking-[0.25em] text-blue-600 mb-1">Edit Product</p>
-                <h2 className="text-xl md:text-2xl font-black tracking-tight truncate pr-4">{editingProduct.title}</h2>
+                <p className="text-[10px] font-black uppercase tracking-[0.25em] text-blue-600 mb-1">Edit Product</p>
+                <h2 className="text-xl md:text-2xl font-black tracking-tight truncate pr-4 text-slate-900">{editingProduct.title}</h2>
               </div>
               <button
                 type="button"
                 onClick={closeEdit}
-                className="h-10 w-10 shrink-0 rounded-full border border-slate-200 text-slate-600 hover:bg-slate-100 flex items-center justify-center"
+                className="h-10 w-10 shrink-0 rounded-full border border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-rose-600 hover:border-rose-200 flex items-center justify-center transition-all cursor-pointer"
                 aria-label="Close edit product dialog"
               >
-                <X className="h-4 w-4" />
+                <X className="h-5 w-5" />
               </button>
             </div>
 
-            <div className="p-5 md:p-6 space-y-5">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-                <input
-                  list="vendor-fish-name-autofill"
-                  className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Product title"
-                  value={editForm.title}
-                  onChange={(event) => setEditForm((current) => current ? { ...current, title: event.target.value } : current)}
-                />
-                <input
-                  className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Scientific name (optional)"
-                  value={editForm.scientific}
-                  onChange={(event) => setEditForm((current) => current ? { ...current, scientific: event.target.value } : current)}
-                />
-                <select
-                  className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
-                  value={editForm.pricingType}
-                  onChange={(event) => setEditForm((current) => current ? { ...current, pricingType: event.target.value as EditProductForm['pricingType'] } : current)}
-                >
-                  <option value="piece">Price per piece</option>
-                  <option value="pair">Price per pair</option>
-                </select>
-                <input
-                  type="number"
-                  className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder={editForm.pricingType === 'piece' ? 'Per piece price' : 'Per pair price'}
-                  min={0}
-                  value={editForm.unitPrice}
-                  onChange={(event) => setEditForm((current) => current ? { ...current, unitPrice: event.target.value } : current)}
-                />
-                <select
-                  className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                  value={editForm.weightPerPiece}
-                  onChange={(event) => setEditForm((current) => current ? { ...current, weightPerPiece: event.target.value } : current)}
-                >
-                  {[50, 75, 100, 120, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900, 950, 1000].map((w) => (
-                    <option key={w} value={w}>
-                      {w >= 1000 ? `${w / 1000} kg (${w} gm)` : `${w} gm`}
-                    </option>
-                  ))}
-                </select>
-                <input
-                  type="number"
-                  className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Original price (optional)"
-                  min={0}
-                  value={editForm.originalPrice}
-                  onChange={(event) => setEditForm((current) => current ? { ...current, originalPrice: event.target.value } : current)}
-                />
-                <input
-                  type="number"
-                  className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Discount % (optional)"
-                  min={0}
-                  max={100}
-                  value={editForm.discountPercentage}
-                  onChange={(event) => setEditForm((current) => current ? { ...current, discountPercentage: event.target.value } : current)}
-                />
-                <div className="flex flex-col gap-1 md:col-span-1">
-                  <div className="flex justify-between items-center px-1">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Category</span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const next = !customCategoryMode;
-                        setCustomCategoryMode(next);
-                        if (next) {
-                          setEditForm(current => current ? { ...current, category: '' } : null);
-                        } else {
-                          setEditForm(current => current ? { ...current, category: dropdownCategories[0] || 'Guppies' } : null);
-                        }
-                      }}
-                      className="text-[10px] font-bold text-blue-600 hover:underline cursor-pointer"
-                    >
-                      {customCategoryMode ? "Or select category" : "Or enter custom"}
-                    </button>
-                  </div>
-                  {customCategoryMode ? (
-                    <input
-                      type="text"
-                      className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium bg-white text-slate-900"
-                      placeholder="Enter custom category name..."
-                      value={editForm.category}
-                      onChange={(event) => setEditForm((current) => current ? { ...current, category: event.target.value } : current)}
-                      required
-                    />
-                  ) : (
-                    <select
-                      className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500 bg-white text-slate-900"
-                      value={editForm.category}
-                      onChange={(event) => setEditForm((current) => current ? { ...current, category: event.target.value } : current)}
-                    >
-                      {dropdownCategories.map((category) => (
-                        <option key={category} value={category}>{category}</option>
-                      ))}
-                    </select>
-                  )}
-                </div>
-                <select
-                  className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
-                  value={editForm.waterType}
-                  onChange={(event) => setEditForm((current) => current ? { ...current, waterType: event.target.value as EditProductForm['waterType'] } : current)}
-                >
-                  <option value="Freshwater">Freshwater</option>
-                  <option value="Saltwater">Saltwater</option>
-                  <option value="Brackish">Brackish</option>
-                </select>
-                 <input
-                  className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Tag"
-                  value={editForm.tag}
-                  onChange={(event) => setEditForm((current) => current ? { ...current, tag: event.target.value } : current)}
-                />
-                <input
-                  className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Product Size (e.g. 2 inches, Medium)"
-                  value={editForm.size}
-                  onChange={(event) => setEditForm((current) => current ? { ...current, size: event.target.value } : current)}
-                />
-                <select
-                  className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500 bg-white text-sm"
-                  value={editForm.ageCategory}
-                  onChange={(event) => setEditForm((current) => current ? { ...current, ageCategory: event.target.value } : current)}
-                >
-                  <option value="adult">Adult</option>
-                  <option value="semi-adult">Semi adult</option>
-                  <option value="juvenile">Juvenile</option>
-                  <option value="first-season-breeding-pair">First season breeding pair</option>
-                </select>
-                <input
-                  type="number"
-                  step="0.1"
-                  className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Ideal Min pH"
-                  value={editForm.phMin}
-                  onChange={(event) => setEditForm((current) => current ? { ...current, phMin: event.target.value } : current)}
-                />
-                <input
-                  type="number"
-                  step="0.1"
-                  className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Ideal Max pH"
-                  value={editForm.phMax}
-                  onChange={(event) => setEditForm((current) => current ? { ...current, phMax: event.target.value } : current)}
-                />
-                <input
-                  type="number"
-                  className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Ideal Min Temp (°C)"
-                  value={editForm.tempMin}
-                  onChange={(event) => setEditForm((current) => current ? { ...current, tempMin: event.target.value } : current)}
-                />
-                <input
-                  type="number"
-                  className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Ideal Max Temp (°C)"
-                  value={editForm.tempMax}
-                  onChange={(event) => setEditForm((current) => current ? { ...current, tempMax: event.target.value } : current)}
-                />
-                {editForm.category === 'Plants' ? (
-                  <>
-                    <select
-                      className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                      value={editForm.lightingRequirement}
-                      onChange={(event) => setEditForm((current) => current ? { ...current, lightingRequirement: event.target.value as any } : current)}
-                    >
-                      <option value="Low">Low Lighting</option>
-                      <option value="Medium">Medium Lighting</option>
-                      <option value="High">High Lighting</option>
-                    </select>
-                    <select
-                      className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                      value={editForm.co2Requirement}
-                      onChange={(event) => setEditForm((current) => current ? { ...current, co2Requirement: event.target.value as any } : current)}
-                    >
-                      <option value="None">No CO2</option>
-                      <option value="Recommended">CO2 Recommended</option>
-                      <option value="High">High CO2</option>
-                    </select>
-                    <select
-                      className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                      value={editForm.placement}
-                      onChange={(event) => setEditForm((current) => current ? { ...current, placement: event.target.value as any } : current)}
-                    >
-                      <option value="Foreground">Foreground</option>
-                      <option value="Midground">Midground</option>
-                      <option value="Background">Background</option>
-                      <option value="Floating">Floating</option>
-                      <option value="Epiphyte">Epiphyte</option>
-                    </select>
-                  </>
-                ) : (
-                  <select
-                    className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                    value={editForm.temperament}
-                    onChange={(event) => setEditForm((current) => current ? { ...current, temperament: event.target.value as any } : current)}
-                  >
-                    <option value="Peaceful">Peaceful</option>
-                    <option value="Semi-aggressive">Semi-aggressive</option>
-                    <option value="Aggressive">Aggressive</option>
-                  </select>
-                )}
-                <input
-                  type="number"
-                  className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Stock Quantity"
-                  min={0}
-                  value={editForm.stockQuantity}
-                  onChange={(event) => setEditForm((current) => current ? { ...current, stockQuantity: event.target.value } : current)}
-                />
-                <input
-                  type="number"
-                  className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Sold Quantity"
-                  min={0}
-                  value={editForm.soldQuantity}
-                  onChange={(event) => setEditForm((current) => current ? { ...current, soldQuantity: event.target.value } : current)}
-                />
-                <label className="flex items-center gap-3 h-11 px-4 rounded-xl border border-blue-200 bg-white">
-                  <input
-                    type="checkbox"
-                    checked={editForm.inStock}
-                    onChange={(event) => setEditForm((current) => current ? { ...current, inStock: event.target.checked } : current)}
-                    className="h-4 w-4 rounded border-blue-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  <span className="text-sm font-medium text-slate-700">In stock</span>
-                </label>
-                <label className="flex items-center gap-3 h-11 px-4 rounded-xl border border-blue-200 bg-white">
-                  <input
-                    type="checkbox"
-                    checked={editForm.deliverNorth}
-                    onChange={(event) => setEditForm((current) => current ? { ...current, deliverNorth: event.target.checked } : current)}
-                    className="h-4 w-4 rounded border-blue-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  <span className="text-sm font-medium text-slate-700">Deliver to North India</span>
-                </label>
-                <label className="flex items-center gap-3 h-11 px-4 rounded-xl border border-blue-200 bg-white">
-                  <input
-                    type="checkbox"
-                    checked={editForm.deliverSouth}
-                    onChange={(event) => setEditForm((current) => current ? { ...current, deliverSouth: event.target.checked } : current)}
-                    className="h-4 w-4 rounded border-blue-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  <span className="text-sm font-medium text-slate-700">Deliver to South India</span>
-                </label>
-              </div>
-
-              {/* Product Media Edit Section */}
-              <div className="space-y-4 pt-4 border-t border-slate-100">
-                <h3 className="text-sm font-bold text-slate-700">Product Media</h3>
-                
-                {/* Images */}
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Pictures (Min 1, Max 5)</label>
-                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 md:grid-cols-6">
-                    {editForm.images.map((img, index) => (
-                      <div key={index} className="relative aspect-square rounded-xl overflow-hidden border border-slate-200 shadow-xs group bg-slate-50">
-                        <img src={img} alt={`Product ${index + 1}`} className="w-full h-full object-cover" />
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setEditForm((curr) => curr ? { ...curr, images: curr.images.filter((_, i) => i !== index) } : null);
-                          }}
-                          className="absolute top-1.5 right-1.5 h-6 w-6 rounded-full bg-rose-500 text-white flex items-center justify-center hover:bg-rose-600 transition-colors shadow-md border border-white opacity-0 group-hover:opacity-100"
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </button>
-                      </div>
-                    ))}
-                    
-                    {editForm.images.length < 5 && (
-                      <CldUploadWidget
-                        uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'neoblue_products'}
-                        options={{
-                          sources: ['local', 'camera', 'url'],
-                          multiple: true,
-                          resourceType: 'image',
-                          cropping: true,
-                          croppingAspectRatio: 1,
-                          showSkipCropButton: true,
-                        }}
-                        onSuccess={(result: any) => {
-                          const info = result?.info;
-                          if (info && typeof info === 'object' && 'secure_url' in info) {
-                            let url = String(info.secure_url);
-                            if (url.includes('/upload/')) {
-                              url = url.replace('/upload/', '/upload/c_crop,g_custom/');
-                            }
-                            setEditForm((curr) => curr ? { ...curr, images: [...curr.images, url] } : null);
-                          }
-                        }}
-                      >
-                        {({ open }) => (
-                          <button
-                            type="button"
-                            onClick={() => open()}
-                            className="aspect-square border border-dashed border-slate-300 hover:border-blue-400 hover:bg-slate-50/50 rounded-xl flex flex-col items-center justify-center gap-1 transition-colors cursor-pointer"
-                          >
-                            <Plus className="h-5 w-5 text-slate-400" />
-                            <span className="text-[10px] font-bold text-slate-500">Add Picture</span>
-                          </button>
-                        )}
-                      </CldUploadWidget>
-                    )}
-                  </div>
-                </div>
-
-                {/* Videos */}
-                <div className="space-y-2 pt-2">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Videos (Optional, Max 2)</label>
-                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 md:grid-cols-6">
-                    {editForm.videos.map((vid, index) => (
-                      <div key={index} className="relative aspect-square rounded-xl overflow-hidden border border-slate-200 shadow-xs group bg-slate-50">
-                        <video src={vid} className="w-full h-full object-cover" muted playsInline loop />
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setEditForm((curr) => curr ? { ...curr, videos: curr.videos.filter((_, i) => i !== index) } : null);
-                          }}
-                          className="absolute top-1.5 right-1.5 h-6 w-6 rounded-full bg-rose-500 text-white flex items-center justify-center hover:bg-rose-600 transition-colors shadow-md border border-white opacity-0 group-hover:opacity-100"
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </button>
-                      </div>
-                    ))}
-                    
-                    {editForm.videos.length < 2 && (
-                      <CldUploadWidget
-                        uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'neoblue_products'}
-                        options={{
-                          sources: ['local', 'url'],
-                          multiple: false,
-                          resourceType: 'video',
-                        }}
-                        onSuccess={(result: any) => {
-                          const info = result?.info;
-                          if (info && typeof info === 'object' && 'secure_url' in info) {
-                            let url = String(info.secure_url);
-                            setEditForm((curr) => curr ? { ...curr, videos: [...curr.videos, url] } : null);
-                          }
-                        }}
-                      >
-                        {({ open }) => (
-                          <button
-                            type="button"
-                            onClick={() => open()}
-                            className="aspect-square border border-dashed border-slate-300 hover:border-blue-400 hover:bg-slate-50/50 rounded-xl flex flex-col items-center justify-center gap-1 transition-colors cursor-pointer"
-                          >
-                            <Plus className="h-5 w-5 text-slate-400" />
-                            <span className="text-[10px] font-bold text-slate-500">Add Video</span>
-                          </button>
-                        )}
-                      </CldUploadWidget>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-bold text-slate-700">Description</span>
+            {/* Tab Navigation */}
+            <div className="flex-none flex overflow-x-auto gap-6 px-5 md:px-8 border-b border-slate-100 bg-slate-50/50 pt-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {[
+                { id: 'basic', label: 'Basic Info', icon: Info },
+                { id: 'pricing', label: 'Pricing & Stock', icon: Tag },
+                { id: 'specs', label: 'Specs & Logic', icon: Settings },
+                { id: 'media', label: 'Media & Content', icon: ImageIcon },
+              ].map(tab => (
                 <button
+                  key={tab.id}
                   type="button"
-                  onClick={handleGenerateEditDescription}
-                  disabled={isGeneratingDesc || !editForm.title}
-                  className="text-xs flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-bold rounded-lg hover:shadow-md transition-all disabled:opacity-50"
+                  onClick={() => setActiveTab(tab.id as any)}
+                  className={`flex items-center gap-2 py-3 border-b-2 font-bold text-sm whitespace-nowrap transition-colors cursor-pointer ${
+                    activeTab === tab.id 
+                      ? 'border-blue-600 text-blue-700' 
+                      : 'border-transparent text-slate-500 hover:text-slate-700'
+                  }`}
                 >
-                  {isGeneratingDesc ? (
-                    <div className="h-3 w-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  ) : (
-                    <span className="text-[10px]">✨</span>
-                  )}
-                  {isGeneratingDesc ? 'Generating...' : 'Auto-Generate with AI'}
+                  <tab.icon className={`h-4 w-4 ${activeTab === tab.id ? 'text-blue-600' : 'text-slate-400'}`} />
+                  {tab.label}
                 </button>
-              </div>
-              <textarea
-                className="w-full min-h-32 px-4 py-3 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Description"
-                value={editForm.description}
-                onChange={(event) => setEditForm((current) => current ? { ...current, description: event.target.value } : current)}
-              />
+              ))}
+            </div>
 
-              <div className="space-y-4 pt-4 border-t border-slate-200">
-                <h3 className="text-sm font-bold text-slate-900">Species Information</h3>
-                
-                <textarea
-                  className="w-full min-h-[80px] px-4 py-3 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                  placeholder="Quick Overview (2-3 sentences max)"
-                  value={editForm.quickOverview}
-                  onChange={(event) => setEditForm((current) => current ? { ...current, quickOverview: event.target.value } : current)}
-                />
-                <textarea
-                  className="w-full min-h-[120px] px-4 py-3 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                  placeholder="About this species"
-                  value={editForm.aboutSpecies}
-                  onChange={(event) => setEditForm((current) => current ? { ...current, aboutSpecies: event.target.value } : current)}
-                />
-                <textarea
-                  className="w-full min-h-[120px] px-4 py-3 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                  placeholder="Behavioral traits and temperament"
-                  value={editForm.behavioralTraits}
-                  onChange={(event) => setEditForm((current) => current ? { ...current, behavioralTraits: event.target.value } : current)}
-                />
-                <textarea
-                  className="w-full min-h-[120px] px-4 py-3 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                  placeholder="Male and female identification"
-                  value={editForm.genderIdentification}
-                  onChange={(event) => setEditForm((current) => current ? { ...current, genderIdentification: event.target.value } : current)}
-                />
-                <textarea
-                  className="w-full min-h-[120px] px-4 py-3 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                  placeholder="Sustainability and sourcing"
-                  value={editForm.sustainabilitySourcing}
-                  onChange={(event) => setEditForm((current) => current ? { ...current, sustainabilitySourcing: event.target.value } : current)}
-                />
-                
-                <div className="flex flex-col gap-2">
-                  <input
-                    type="text"
-                    className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                    placeholder="Custom Section Title (e.g., Section 5)"
-                    value={editForm.section5Title}
-                    onChange={(event) => setEditForm((current) => current ? { ...current, section5Title: event.target.value } : current)}
-                  />
-                  <textarea
-                    className="w-full min-h-[120px] px-4 py-3 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                    placeholder="Custom Section Content"
-                    value={editForm.section5Content}
-                    onChange={(event) => setEditForm((current) => current ? { ...current, section5Content: event.target.value } : current)}
-                  />
-                </div>
-              </div>
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto p-5 md:p-8 bg-slate-50/30">
+              
+              {/* TAB 1: BASIC INFO */}
+              {activeTab === 'basic' && (
+                <div className="space-y-6 animate-fade-in-up">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 pl-1">Product Title</label>
+                      <input
+                        list="vendor-fish-name-autofill"
+                        className="w-full h-12 px-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm transition-all text-sm font-medium"
+                        placeholder="e.g., Neon Tetra"
+                        value={editForm.title}
+                        onChange={(event) => setEditForm((current) => current ? { ...current, title: event.target.value } : current)}
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 pl-1">Scientific Name (Optional)</label>
+                      <input
+                        className="w-full h-12 px-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm transition-all text-sm italic"
+                        placeholder="e.g., Paracheirodon innesi"
+                        value={editForm.scientific}
+                        onChange={(event) => setEditForm((current) => current ? { ...current, scientific: event.target.value } : current)}
+                      />
+                    </div>
 
-              <div className="space-y-4 pt-4 border-t border-slate-200">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-bold text-slate-900">Care Requirements</h3>
-                  <span className="text-xs text-slate-500">Up to 1400+ words total</span>
-                </div>
-                
-                <textarea
-                  className="w-full min-h-[100px] px-4 py-3 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                  placeholder="Temperature Requirements"
-                  value={editForm.careTemp}
-                  onChange={(event) => setEditForm((current) => current ? { ...current, careTemp: event.target.value } : current)}
-                />
-                <textarea
-                  className="w-full min-h-[100px] px-4 py-3 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                  placeholder="pH Level Requirements"
-                  value={editForm.carePh}
-                  onChange={(event) => setEditForm((current) => current ? { ...current, carePh: event.target.value } : current)}
-                />
-                <textarea
-                  className="w-full min-h-[100px] px-4 py-3 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                  placeholder="Water Hardness"
-                  value={editForm.careWaterHardness}
-                  onChange={(event) => setEditForm((current) => current ? { ...current, careWaterHardness: event.target.value } : current)}
-                />
-                <textarea
-                  className="w-full min-h-[100px] px-4 py-3 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                  placeholder="Water current and aeration"
-                  value={editForm.careWaterCurrent}
-                  onChange={(event) => setEditForm((current) => current ? { ...current, careWaterCurrent: event.target.value } : current)}
-                />
-                <textarea
-                  className="w-full min-h-[120px] px-4 py-3 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                  placeholder="Tank set-up and housing"
-                  value={editForm.careTankSetup}
-                  onChange={(event) => setEditForm((current) => current ? { ...current, careTankSetup: event.target.value } : current)}
-                />
-                <textarea
-                  className="w-full min-h-[120px] px-4 py-3 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                  placeholder="Hiding spot of the fish and decor"
-                  value={editForm.careHidingSpots}
-                  onChange={(event) => setEditForm((current) => current ? { ...current, careHidingSpots: event.target.value } : current)}
-                />
-              </div>
-
-              {/* Q&A / FAQ Section */}
-              <div className="rounded-2xl border border-slate-200 p-5 bg-white space-y-4">
-                <div>
-                  <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                    ❓ Product Q&A / FAQ Section
-                  </h3>
-                  <p className="text-xs text-slate-500 mt-0.5">Type custom questions and answers to show directly on this product page.</p>
-                </div>
-
-                {editFaq.length > 0 && (
-                  <div className="space-y-2.5 max-h-60 overflow-y-auto pr-1">
-                    {editFaq.map((item, idx) => (
-                      <div key={idx} className="flex items-start justify-between gap-3 p-3.5 bg-slate-50 rounded-xl border border-slate-200 text-xs">
-                        <div className="space-y-1 flex-1 min-w-0">
-                          <p className="font-bold text-slate-800">Q: {item.q}</p>
-                          <p className="text-slate-600 mt-0.5">A: {item.a}</p>
-                        </div>
+                    <div className="space-y-1.5 md:col-span-1">
+                      <div className="flex justify-between items-center pl-1">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Category</label>
                         <button
                           type="button"
-                          onClick={() => setEditFaq(prev => prev.filter((_, i) => i !== idx))}
-                          className="text-rose-500 hover:text-rose-700 p-1 cursor-pointer shrink-0 transition-colors"
+                          onClick={() => {
+                            const next = !customCategoryMode;
+                            setCustomCategoryMode(next);
+                            if (next) {
+                              setEditForm(current => current ? { ...current, category: '' } : null);
+                            } else {
+                              setEditForm(current => current ? { ...current, category: dropdownCategories[0] || 'Guppies' } : null);
+                            }
+                          }}
+                          className="text-[10px] font-bold text-blue-600 hover:underline cursor-pointer"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          {customCategoryMode ? "Select from list" : "Enter custom"}
                         </button>
                       </div>
-                    ))}
+                      {customCategoryMode ? (
+                        <input
+                          type="text"
+                          className="w-full h-12 px-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm transition-all text-sm font-medium"
+                          placeholder="Custom category name"
+                          value={editForm.category}
+                          onChange={(event) => setEditForm((current) => current ? { ...current, category: event.target.value } : current)}
+                          required
+                        />
+                      ) : (
+                        <select
+                          className="w-full h-12 px-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm transition-all text-sm font-medium"
+                          value={editForm.category}
+                          onChange={(event) => setEditForm((current) => current ? { ...current, category: event.target.value } : current)}
+                        >
+                          {dropdownCategories.map((category) => (
+                            <option key={category} value={category}>{category}</option>
+                          ))}
+                        </select>
+                      )}
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 pl-1">Water Type</label>
+                      <select
+                        className="w-full h-12 px-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm transition-all text-sm font-medium"
+                        value={editForm.waterType}
+                        onChange={(event) => setEditForm((current) => current ? { ...current, waterType: event.target.value as EditProductForm['waterType'] } : current)}
+                      >
+                        <option value="Freshwater">Freshwater</option>
+                        <option value="Saltwater">Saltwater</option>
+                        <option value="Brackish">Brackish</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 pl-1">Tag</label>
+                      <input
+                        className="w-full h-12 px-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm transition-all text-sm font-medium"
+                        placeholder="e.g., Peaceful, Schooling"
+                        value={editForm.tag}
+                        onChange={(event) => setEditForm((current) => current ? { ...current, tag: event.target.value } : current)}
+                      />
+                    </div>
                   </div>
-                )}
-
-                <div className="flex flex-col gap-2 pt-2">
-                  <input
-                    type="text"
-                    placeholder="Question (e.g. Is this shrimp community-safe?)"
-                    value={editNewQuestion}
-                    onChange={(e) => setEditNewQuestion(e.target.value)}
-                    className="h-10 px-3 rounded-lg border border-slate-200 outline-none text-xs focus:ring-2 focus:ring-blue-500"
-                  />
-                  <textarea
-                    placeholder="Answer (e.g. Yes, they do great with small, peaceful fish...)"
-                    value={editNewAnswer}
-                    onChange={(e) => setEditNewAnswer(e.target.value)}
-                    rows={2}
-                    className="p-3 rounded-lg border border-slate-200 outline-none text-xs focus:ring-2 focus:ring-blue-500"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (editNewQuestion.trim() && editNewAnswer.trim()) {
-                        setEditFaq(prev => [...prev, { q: editNewQuestion.trim(), a: editNewAnswer.trim() }]);
-                        setEditNewQuestion('');
-                        setEditNewAnswer('');
-                      }
-                    }}
-                    className="h-9 px-4 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shrink-0 cursor-pointer flex items-center justify-center gap-1.5 transition-colors self-end"
-                  >
-                    <Plus className="h-3.5 w-3.5" /> Add Q&A Item
-                  </button>
                 </div>
-              </div>
+              )}
 
-              {editError && <p className="text-sm font-medium text-rose-600">{editError}</p>}
+              {/* TAB 2: PRICING & STOCK */}
+              {activeTab === 'pricing' && (
+                <div className="space-y-6 animate-fade-in-up">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 pl-1">Pricing Format</label>
+                      <select
+                        className="w-full h-12 px-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm transition-all text-sm font-medium"
+                        value={editForm.pricingType}
+                        onChange={(event) => setEditForm((current) => current ? { ...current, pricingType: event.target.value as EditProductForm['pricingType'] } : current)}
+                      >
+                        <option value="piece">Price per piece</option>
+                        <option value="pair">Price per pair</option>
+                      </select>
+                    </div>
+                    
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 pl-1">Selling Price (₹)</label>
+                      <input
+                        type="number"
+                        className="w-full h-12 px-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm transition-all text-sm font-bold text-slate-900"
+                        placeholder={editForm.pricingType === 'piece' ? 'Per piece price' : 'Per pair price'}
+                        min={0}
+                        value={editForm.unitPrice}
+                        onChange={(event) => setEditForm((current) => current ? { ...current, unitPrice: event.target.value } : current)}
+                      />
+                    </div>
 
-              <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 pl-1">Original Price (₹)</label>
+                      <input
+                        type="number"
+                        className="w-full h-12 px-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm transition-all text-sm line-through text-slate-500"
+                        placeholder="Before discount"
+                        min={0}
+                        value={editForm.originalPrice}
+                        onChange={(event) => setEditForm((current) => current ? { ...current, originalPrice: event.target.value } : current)}
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 pl-1">Discount %</label>
+                      <input
+                        type="number"
+                        className="w-full h-12 px-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm transition-all text-sm text-rose-600 font-bold"
+                        placeholder="0-100"
+                        min={0}
+                        max={100}
+                        value={editForm.discountPercentage}
+                        onChange={(event) => setEditForm((current) => current ? { ...current, discountPercentage: event.target.value } : current)}
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 pl-1">Stock Quantity</label>
+                      <input
+                        type="number"
+                        className="w-full h-12 px-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm transition-all text-sm font-medium"
+                        placeholder="0"
+                        min={0}
+                        value={editForm.stockQuantity}
+                        onChange={(event) => setEditForm((current) => current ? { ...current, stockQuantity: event.target.value } : current)}
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 pl-1">Sold Quantity</label>
+                      <input
+                        type="number"
+                        className="w-full h-12 px-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm transition-all text-sm font-medium"
+                        placeholder="0"
+                        min={0}
+                        value={editForm.soldQuantity}
+                        onChange={(event) => setEditForm((current) => current ? { ...current, soldQuantity: event.target.value } : current)}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="pt-4 mt-4 border-t border-slate-200">
+                    <label className="flex items-center gap-3 p-4 rounded-2xl border border-slate-200 bg-white shadow-sm cursor-pointer hover:border-blue-300 transition-colors w-full md:w-1/2">
+                      <div className="relative flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={editForm.inStock}
+                          onChange={(event) => setEditForm((current) => current ? { ...current, inStock: event.target.checked } : current)}
+                          className="peer sr-only"
+                        />
+                        <div className="h-6 w-11 rounded-full bg-slate-200 peer-checked:bg-blue-600 transition-colors after:absolute after:top-[2px] after:left-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all peer-checked:after:translate-x-5 shadow-inner"></div>
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-slate-900">Mark as In Stock</p>
+                        <p className="text-[10px] text-slate-500">Overrides stock quantity if needed.</p>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 3: SPECS & LOGISTICS */}
+              {activeTab === 'specs' && (
+                <div className="space-y-8 animate-fade-in-up">
+                  
+                  {/* Sizing & Weight */}
+                  <div>
+                    <h3 className="text-xs font-bold text-slate-800 uppercase tracking-widest mb-4">Sizing & Weight</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 pl-1">Size</label>
+                        <input
+                          className="w-full h-12 px-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm transition-all text-sm font-medium"
+                          placeholder="e.g. 2 inches, Medium"
+                          value={editForm.size}
+                          onChange={(event) => setEditForm((current) => current ? { ...current, size: event.target.value } : current)}
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 pl-1">Age Category</label>
+                        <select
+                          className="w-full h-12 px-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm transition-all text-sm font-medium"
+                          value={editForm.ageCategory}
+                          onChange={(event) => setEditForm((current) => current ? { ...current, ageCategory: event.target.value } : current)}
+                        >
+                          <option value="adult">Adult</option>
+                          <option value="semi-adult">Semi adult</option>
+                          <option value="juvenile">Juvenile</option>
+                          <option value="first-season-breeding-pair">First season breeding pair</option>
+                        </select>
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 pl-1">Weight Per Piece</label>
+                        <select
+                          className="w-full h-12 px-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm transition-all text-sm font-medium"
+                          value={editForm.weightPerPiece}
+                          onChange={(event) => setEditForm((current) => current ? { ...current, weightPerPiece: event.target.value } : current)}
+                        >
+                          {[50, 75, 100, 120, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900, 950, 1000].map((w) => (
+                            <option key={w} value={w}>
+                              {w >= 1000 ? `${w / 1000} kg (${w} gm)` : `${w} gm`}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Environment Parameters */}
+                  <div className="pt-6 border-t border-slate-200">
+                    <h3 className="text-xs font-bold text-slate-800 uppercase tracking-widest mb-4">Environment Parameters</h3>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 pl-1">Min Temp (°C)</label>
+                        <input
+                          type="number"
+                          className="w-full h-12 px-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm transition-all text-sm"
+                          value={editForm.tempMin}
+                          onChange={(event) => setEditForm((current) => current ? { ...current, tempMin: event.target.value } : current)}
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 pl-1">Max Temp (°C)</label>
+                        <input
+                          type="number"
+                          className="w-full h-12 px-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm transition-all text-sm"
+                          value={editForm.tempMax}
+                          onChange={(event) => setEditForm((current) => current ? { ...current, tempMax: event.target.value } : current)}
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 pl-1">Min pH</label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          className="w-full h-12 px-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm transition-all text-sm"
+                          value={editForm.phMin}
+                          onChange={(event) => setEditForm((current) => current ? { ...current, phMin: event.target.value } : current)}
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 pl-1">Max pH</label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          className="w-full h-12 px-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm transition-all text-sm"
+                          value={editForm.phMax}
+                          onChange={(event) => setEditForm((current) => current ? { ...current, phMax: event.target.value } : current)}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Specialized Needs */}
+                  <div className="pt-6 border-t border-slate-200">
+                    <h3 className="text-xs font-bold text-slate-800 uppercase tracking-widest mb-4">Specialized Needs</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {editForm.category === 'Plants' ? (
+                        <>
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 pl-1">Lighting</label>
+                            <select
+                              className="w-full h-12 px-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm transition-all text-sm font-medium"
+                              value={editForm.lightingRequirement}
+                              onChange={(event) => setEditForm((current) => current ? { ...current, lightingRequirement: event.target.value as any } : current)}
+                            >
+                              <option value="Low">Low Lighting</option>
+                              <option value="Medium">Medium Lighting</option>
+                              <option value="High">High Lighting</option>
+                            </select>
+                          </div>
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 pl-1">CO2 Needs</label>
+                            <select
+                              className="w-full h-12 px-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm transition-all text-sm font-medium"
+                              value={editForm.co2Requirement}
+                              onChange={(event) => setEditForm((current) => current ? { ...current, co2Requirement: event.target.value as any } : current)}
+                            >
+                              <option value="None">No CO2</option>
+                              <option value="Recommended">CO2 Recommended</option>
+                              <option value="High">High CO2</option>
+                            </select>
+                          </div>
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 pl-1">Placement</label>
+                            <select
+                              className="w-full h-12 px-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm transition-all text-sm font-medium"
+                              value={editForm.placement}
+                              onChange={(event) => setEditForm((current) => current ? { ...current, placement: event.target.value as any } : current)}
+                            >
+                              <option value="Foreground">Foreground</option>
+                              <option value="Midground">Midground</option>
+                              <option value="Background">Background</option>
+                              <option value="Floating">Floating</option>
+                              <option value="Epiphyte">Epiphyte</option>
+                            </select>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="space-y-1.5 md:col-span-1">
+                          <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 pl-1">Temperament</label>
+                          <select
+                            className="w-full h-12 px-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm transition-all text-sm font-medium"
+                            value={editForm.temperament}
+                            onChange={(event) => setEditForm((current) => current ? { ...current, temperament: event.target.value as any } : current)}
+                          >
+                            <option value="Peaceful">Peaceful</option>
+                            <option value="Semi-aggressive">Semi-aggressive</option>
+                            <option value="Aggressive">Aggressive</option>
+                          </select>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Delivery Zones */}
+                  <div className="pt-6 border-t border-slate-200">
+                    <h3 className="text-xs font-bold text-slate-800 uppercase tracking-widest mb-4">Delivery Zones</h3>
+                    <div className="flex flex-col sm:flex-row gap-4">
+                      <label className="flex flex-1 items-center gap-3 p-4 rounded-2xl border border-slate-200 bg-white shadow-sm cursor-pointer hover:border-blue-300 transition-colors">
+                        <div className="relative flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={editForm.deliverNorth}
+                            onChange={(event) => setEditForm((current) => current ? { ...current, deliverNorth: event.target.checked } : current)}
+                            className="peer sr-only"
+                          />
+                          <div className="h-6 w-11 rounded-full bg-slate-200 peer-checked:bg-blue-600 transition-colors after:absolute after:top-[2px] after:left-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all peer-checked:after:translate-x-5 shadow-inner"></div>
+                        </div>
+                        <span className="text-sm font-bold text-slate-900">North India</span>
+                      </label>
+                      <label className="flex flex-1 items-center gap-3 p-4 rounded-2xl border border-slate-200 bg-white shadow-sm cursor-pointer hover:border-blue-300 transition-colors">
+                        <div className="relative flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={editForm.deliverSouth}
+                            onChange={(event) => setEditForm((current) => current ? { ...current, deliverSouth: event.target.checked } : current)}
+                            className="peer sr-only"
+                          />
+                          <div className="h-6 w-11 rounded-full bg-slate-200 peer-checked:bg-blue-600 transition-colors after:absolute after:top-[2px] after:left-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all peer-checked:after:translate-x-5 shadow-inner"></div>
+                        </div>
+                        <span className="text-sm font-bold text-slate-900">South India</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 4: MEDIA & CONTENT */}
+              {activeTab === 'media' && (
+                <div className="space-y-10 animate-fade-in-up">
+                  {/* Images */}
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-end">
+                      <h3 className="text-sm font-bold text-slate-900">Product Images</h3>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{editForm.images.length} / 5 Max</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 md:grid-cols-5">
+                      {editForm.images.map((img, index) => (
+                        <div key={index} className="relative aspect-square rounded-2xl overflow-hidden border border-slate-200 shadow-sm group bg-white">
+                          <img src={img} alt={`Product ${index + 1}`} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditForm((curr) => curr ? { ...curr, images: curr.images.filter((_, i) => i !== index) } : null);
+                            }}
+                            className="absolute top-2 right-2 h-7 w-7 rounded-full bg-rose-500/90 text-white flex items-center justify-center hover:bg-rose-600 transition-colors shadow-lg opacity-0 group-hover:opacity-100 backdrop-blur-md cursor-pointer"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                      
+                      {editForm.images.length < 5 && (
+                        <CldUploadWidget
+                          uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'neoblue_products'}
+                          options={{
+                            sources: ['local', 'camera', 'url'],
+                            multiple: true,
+                            resourceType: 'image',
+                            cropping: true,
+                            croppingAspectRatio: 1,
+                            showSkipCropButton: true,
+                          }}
+                          onSuccess={(result: any) => {
+                            const info = result?.info;
+                            if (info && typeof info === 'object' && 'secure_url' in info) {
+                              let url = String(info.secure_url);
+                              if (url.includes('/upload/')) {
+                                url = url.replace('/upload/', '/upload/c_crop,g_custom/');
+                              }
+                              setEditForm((curr) => curr ? { ...curr, images: [...curr.images, url] } : null);
+                            }
+                          }}
+                        >
+                          {({ open }) => (
+                            <button
+                              type="button"
+                              onClick={() => open()}
+                              className="aspect-square rounded-2xl border-2 border-dashed border-slate-200 hover:border-blue-400 hover:bg-blue-50/50 flex flex-col items-center justify-center gap-2 transition-colors cursor-pointer bg-white"
+                            >
+                              <div className="h-10 w-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
+                                <Plus className="h-5 w-5" />
+                              </div>
+                              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Add Image</span>
+                            </button>
+                          )}
+                        </CldUploadWidget>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Videos */}
+                  <div className="space-y-3 pt-6 border-t border-slate-200">
+                    <div className="flex justify-between items-end">
+                      <h3 className="text-sm font-bold text-slate-900">Product Videos</h3>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{editForm.videos.length} / 2 Max</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 md:grid-cols-5">
+                      {editForm.videos.map((vid, index) => (
+                        <div key={index} className="relative aspect-square rounded-2xl overflow-hidden border border-slate-200 shadow-sm group bg-slate-900">
+                          <video src={vid} className="w-full h-full object-cover opacity-90 transition-opacity group-hover:opacity-100" muted playsInline loop />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditForm((curr) => curr ? { ...curr, videos: curr.videos.filter((_, i) => i !== index) } : null);
+                            }}
+                            className="absolute top-2 right-2 h-7 w-7 rounded-full bg-rose-500/90 text-white flex items-center justify-center hover:bg-rose-600 transition-colors shadow-lg opacity-0 group-hover:opacity-100 backdrop-blur-md cursor-pointer"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                      
+                      {editForm.videos.length < 2 && (
+                        <CldUploadWidget
+                          uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'neoblue_products'}
+                          options={{
+                            sources: ['local', 'camera', 'url'],
+                            multiple: true,
+                            resourceType: 'video',
+                          }}
+                          onSuccess={(result: any) => {
+                            const info = result?.info;
+                            if (info && typeof info === 'object' && 'secure_url' in info) {
+                              setEditForm((curr) => curr ? { ...curr, videos: [...curr.videos, String(info.secure_url)] } : null);
+                            }
+                          }}
+                        >
+                          {({ open }) => (
+                            <button
+                              type="button"
+                              onClick={() => open()}
+                              className="aspect-square rounded-2xl border-2 border-dashed border-slate-200 hover:border-blue-400 hover:bg-blue-50/50 flex flex-col items-center justify-center gap-2 transition-colors cursor-pointer bg-white"
+                            >
+                              <div className="h-10 w-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
+                                <Plus className="h-5 w-5" />
+                              </div>
+                              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Add Video</span>
+                            </button>
+                          )}
+                        </CldUploadWidget>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Description */}
+                  <div className="space-y-3 pt-6 border-t border-slate-200">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm font-bold text-slate-900">Main Description</h3>
+                      <button
+                        type="button"
+                        onClick={handleGenerateEditDescription}
+                        disabled={isGeneratingDesc || !editForm.title}
+                        className="text-xs flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-lg hover:shadow-lg transition-all disabled:opacity-50 cursor-pointer"
+                      >
+                        {isGeneratingDesc ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Wand2 className="h-3.5 w-3.5" />}
+                        {isGeneratingDesc ? 'Generating...' : 'AI Magic'}
+                      </button>
+                    </div>
+                    <textarea
+                      className="w-full min-h-[160px] px-4 py-3 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm transition-all text-sm leading-relaxed"
+                      placeholder="Write a compelling description for this product..."
+                      value={editForm.description}
+                      onChange={(event) => setEditForm((current) => current ? { ...current, description: event.target.value } : current)}
+                    />
+                  </div>
+
+                  {/* Species Details */}
+                  <div className="space-y-4 pt-6 border-t border-slate-200">
+                    <h3 className="text-sm font-bold text-slate-900">Detailed Specs & Care (Optional)</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <textarea className="w-full min-h-[100px] px-4 py-3 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 bg-white text-sm" placeholder="Quick Overview" value={editForm.quickOverview} onChange={(e) => setEditForm((c) => c ? { ...c, quickOverview: e.target.value } : c)} />
+                      <textarea className="w-full min-h-[100px] px-4 py-3 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 bg-white text-sm" placeholder="About this species" value={editForm.aboutSpecies} onChange={(e) => setEditForm((c) => c ? { ...c, aboutSpecies: e.target.value } : c)} />
+                      <textarea className="w-full min-h-[100px] px-4 py-3 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 bg-white text-sm" placeholder="Behavioral traits" value={editForm.behavioralTraits} onChange={(e) => setEditForm((c) => c ? { ...c, behavioralTraits: e.target.value } : c)} />
+                      <textarea className="w-full min-h-[100px] px-4 py-3 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 bg-white text-sm" placeholder="Tank setup & housing" value={editForm.careTankSetup} onChange={(e) => setEditForm((c) => c ? { ...c, careTankSetup: e.target.value } : c)} />
+                    </div>
+                  </div>
+
+                  {/* Q&A / FAQ Section */}
+                  <div className="rounded-2xl border border-slate-200 p-5 bg-white shadow-sm">
+                    <div className="mb-4">
+                      <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                        Product Q&A
+                      </h3>
+                      <p className="text-[10px] uppercase tracking-widest text-slate-400 mt-1 font-bold">Custom FAQ for this product</p>
+                    </div>
+
+                    {editFaq.length > 0 && (
+                      <div className="space-y-3 mb-4 max-h-60 overflow-y-auto pr-2">
+                        {editFaq.map((item, idx) => (
+                          <div key={idx} className="flex items-start justify-between gap-3 p-4 bg-slate-50/50 rounded-xl border border-slate-100 text-sm">
+                            <div className="space-y-1.5 flex-1 min-w-0">
+                              <p className="font-bold text-slate-800">Q: {item.q}</p>
+                              <p className="text-slate-600 text-xs">A: {item.a}</p>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setEditFaq(prev => prev.filter((_, i) => i !== idx))}
+                              className="text-slate-400 hover:text-rose-500 p-1 cursor-pointer shrink-0 transition-colors"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="flex flex-col gap-3 p-4 bg-slate-50 rounded-xl border border-slate-100">
+                      <input
+                        type="text"
+                        placeholder="Question..."
+                        value={editNewQuestion}
+                        onChange={(e) => setEditNewQuestion(e.target.value)}
+                        className="h-10 px-4 rounded-lg border border-slate-200 outline-none text-xs font-medium focus:ring-2 focus:ring-blue-500 bg-white"
+                      />
+                      <textarea
+                        placeholder="Answer..."
+                        value={editNewAnswer}
+                        onChange={(e) => setEditNewAnswer(e.target.value)}
+                        rows={2}
+                        className="p-3 rounded-lg border border-slate-200 outline-none text-xs font-medium focus:ring-2 focus:ring-blue-500 bg-white"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (editNewQuestion.trim() && editNewAnswer.trim()) {
+                            setEditFaq(prev => [...prev, { q: editNewQuestion.trim(), a: editNewAnswer.trim() }]);
+                            setEditNewQuestion('');
+                            setEditNewAnswer('');
+                          }
+                        }}
+                        className="h-10 px-4 rounded-lg bg-blue-100 text-blue-700 hover:bg-blue-600 hover:text-white font-bold text-xs shrink-0 cursor-pointer flex items-center justify-center gap-1.5 transition-colors self-end"
+                      >
+                        <Plus className="h-4 w-4" /> Add Question
+                      </button>
+                    </div>
+                  </div>
+
+                </div>
+              )}
+
+            </div>
+
+            {/* Footer / Actions */}
+            <div className="flex-none flex items-center justify-between border-t border-slate-100 bg-white px-5 py-4 md:px-8">
+              {editError ? (
+                <p className="text-sm font-bold text-rose-600 animate-pulse">{editError}</p>
+              ) : (
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest hidden md:block">Unsaved Changes</p>
+              )}
+              
+              <div className="flex gap-3 w-full md:w-auto">
                 <button
                   type="button"
                   onClick={closeEdit}
-                  className="h-11 rounded-full border border-slate-200 px-6 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                  className="flex-1 md:flex-none h-12 rounded-xl border-2 border-slate-200 px-6 text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -1024,12 +1115,14 @@ export default function VendorProductsPage() {
                   type="button"
                   onClick={saveEdit}
                   disabled={isSavingEdit}
-                  className="h-11 rounded-full bg-blue-600 px-6 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+                  className="flex-1 md:flex-none h-12 rounded-xl bg-blue-600 px-8 text-sm font-bold text-white hover:bg-blue-700 disabled:opacity-60 transition-all hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  {isSavingEdit ? 'Saving...' : 'Save Changes'}
+                  {isSavingEdit ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                  {isSavingEdit ? 'Saving...' : 'Save Product'}
                 </button>
               </div>
             </div>
+
           </div>
         </div>
       )}

@@ -593,7 +593,7 @@ export default function AdminDashboardPage() {
               className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white text-slate-950"
             >
               <option value="All">All Categories</option>
-              {categories.map((cat) => (
+              {Array.from(new Set(categories)).map((cat) => (
                 <option key={cat} value={cat}>{cat}</option>
               ))}
             </select>

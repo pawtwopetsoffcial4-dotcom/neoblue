@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowRight, Fish, Gauge, Sparkles, X, Info, Plus, Trash2, ChevronRight, ChevronLeft, Upload, Check, AlertCircle } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
@@ -26,6 +26,7 @@ export default function VendorAddProductPage() {
   const [newQuestion, setNewQuestion] = useState('');
   const [newAnswer, setNewAnswer] = useState('');
   const [isGeneratingDesc, setIsGeneratingDesc] = useState(false);
+  const [productType, setProductType] = useState<'fish' | 'plant'>('fish');
   
   const [form, setForm] = useState({
     title: '',
@@ -146,6 +147,26 @@ export default function VendorAddProductPage() {
 
     loadCategories();
   }, []);
+
+  const filteredCategories = useMemo(() => {
+    if (productType === 'plant') {
+      const plantCats = categories.filter(c => c === 'Plants' || c.toLowerCase().includes('plant'));
+      return plantCats.length > 0 ? plantCats : ['Plants'];
+    }
+    return categories.filter(c => c !== 'Plants' && !c.toLowerCase().includes('plant'));
+  }, [categories, productType]);
+
+  useEffect(() => {
+    if (categories.length > 0) {
+      const defaultCat = filteredCategories.length > 0 ? filteredCategories[0] : 'Guppies';
+      if (!filteredCategories.includes(form.category) && !customCategoryMode) {
+        setForm(prev => ({ ...prev, category: defaultCat, title: getVarietiesForCategory(defaultCat)[0] || '' }));
+      }
+    }
+    if (productType === 'plant') {
+      setForm(prev => ({ ...prev, pricingType: 'piece' }));
+    }
+  }, [productType, filteredCategories, customCategoryMode, categories.length]);
 
   useEffect(() => {
     if (form.title && FISH_NAMES.includes(form.title as any)) {
@@ -382,6 +403,29 @@ export default function VendorAddProductPage() {
       {/* Form Card */}
       <form onSubmit={handleSubmit} className="rounded-3xl border border-slate-200/60 bg-white p-5 sm:p-6 shadow-xs space-y-6">
         
+        {currentStep === 1 && (
+          <div className="flex bg-slate-100 p-1 rounded-xl w-full sm:w-80 mb-2 mx-auto sm:mx-0">
+            <button
+              type="button"
+              onClick={() => setProductType('fish')}
+              className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${
+                productType === 'fish' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              🐟 Fish
+            </button>
+            <button
+              type="button"
+              onClick={() => setProductType('plant')}
+              className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${
+                productType === 'plant' ? 'bg-white text-green-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              🌿 Plant
+            </button>
+          </div>
+        )}
+
         {/* Error Banners */}
         {submitError && (
           <div className="p-4 rounded-2xl bg-rose-50 border border-rose-100 flex items-start gap-3 text-rose-600">
@@ -432,7 +476,7 @@ export default function VendorAddProductPage() {
                     value={form.category}
                     onChange={(e) => handleCategoryChange(e.target.value)}
                   >
-                    {categories.map((category) => (
+                    {filteredCategories.map((category) => (
                       <option key={category} value={category}>
                         {category}
                       </option>
@@ -505,19 +549,21 @@ export default function VendorAddProductPage() {
                 </select>
               </div>
 
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Age Category</label>
-                <select
-                  className="h-11 px-4 rounded-xl border border-slate-200 bg-white text-sm font-medium outline-hidden focus:ring-2 focus:ring-blue-500"
-                  value={form.ageCategory}
-                  onChange={(e) => setForm((prev) => ({ ...prev, ageCategory: e.target.value }))}
-                >
-                  <option value="adult">Adult</option>
-                  <option value="semi-adult">Semi adult</option>
-                  <option value="juvenile">Juvenile</option>
-                  <option value="first-season-breeding-pair">First season breeding pair</option>
-                </select>
-              </div>
+              {productType === 'fish' && (
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Age Category</label>
+                  <select
+                    className="h-11 px-4 rounded-xl border border-slate-200 bg-white text-sm font-medium outline-hidden focus:ring-2 focus:ring-blue-500"
+                    value={form.ageCategory}
+                    onChange={(e) => setForm((prev) => ({ ...prev, ageCategory: e.target.value }))}
+                  >
+                    <option value="adult">Adult</option>
+                    <option value="semi-adult">Semi adult</option>
+                    <option value="juvenile">Juvenile</option>
+                    <option value="first-season-breeding-pair">First season breeding pair</option>
+                  </select>
+                </div>
+              )}
 
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Product Size (e.g. 2 inches, Medium, 5 cm)</label>
@@ -542,53 +588,57 @@ export default function VendorAddProductPage() {
                 />
               </div>
 
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Ideal Min pH</label>
-                <input
-                  type="number"
-                  step="0.1"
-                  className="h-11 px-4 rounded-xl border border-slate-200 outline-hidden focus:ring-2 focus:ring-blue-500 text-sm font-medium"
-                  placeholder="6.0"
-                  value={form.phMin}
-                  onChange={(e) => setForm((prev) => ({ ...prev, phMin: e.target.value }))}
-                />
-              </div>
+              {productType === 'fish' && (
+                <>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Ideal Min pH</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      className="h-11 px-4 rounded-xl border border-slate-200 outline-hidden focus:ring-2 focus:ring-blue-500 text-sm font-medium"
+                      placeholder="6.0"
+                      value={form.phMin}
+                      onChange={(e) => setForm((prev) => ({ ...prev, phMin: e.target.value }))}
+                    />
+                  </div>
 
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Ideal Max pH</label>
-                <input
-                  type="number"
-                  step="0.1"
-                  className="h-11 px-4 rounded-xl border border-slate-200 outline-hidden focus:ring-2 focus:ring-blue-500 text-sm font-medium"
-                  placeholder="8.0"
-                  value={form.phMax}
-                  onChange={(e) => setForm((prev) => ({ ...prev, phMax: e.target.value }))}
-                />
-              </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Ideal Max pH</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      className="h-11 px-4 rounded-xl border border-slate-200 outline-hidden focus:ring-2 focus:ring-blue-500 text-sm font-medium"
+                      placeholder="8.0"
+                      value={form.phMax}
+                      onChange={(e) => setForm((prev) => ({ ...prev, phMax: e.target.value }))}
+                    />
+                  </div>
 
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Ideal Min Temp (°C)</label>
-                <input
-                  type="number"
-                  className="h-11 px-4 rounded-xl border border-slate-200 outline-hidden focus:ring-2 focus:ring-blue-500 text-sm font-medium"
-                  placeholder="20"
-                  value={form.tempMin}
-                  onChange={(e) => setForm((prev) => ({ ...prev, tempMin: e.target.value }))}
-                />
-              </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Ideal Min Temp (°C)</label>
+                    <input
+                      type="number"
+                      className="h-11 px-4 rounded-xl border border-slate-200 outline-hidden focus:ring-2 focus:ring-blue-500 text-sm font-medium"
+                      placeholder="20"
+                      value={form.tempMin}
+                      onChange={(e) => setForm((prev) => ({ ...prev, tempMin: e.target.value }))}
+                    />
+                  </div>
 
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Ideal Max Temp (°C)</label>
-                <input
-                  type="number"
-                  className="h-11 px-4 rounded-xl border border-slate-200 outline-hidden focus:ring-2 focus:ring-blue-500 text-sm font-medium"
-                  placeholder="30"
-                  value={form.tempMax}
-                  onChange={(e) => setForm((prev) => ({ ...prev, tempMax: e.target.value }))}
-                />
-              </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Ideal Max Temp (°C)</label>
+                    <input
+                      type="number"
+                      className="h-11 px-4 rounded-xl border border-slate-200 outline-hidden focus:ring-2 focus:ring-blue-500 text-sm font-medium"
+                      placeholder="30"
+                      value={form.tempMax}
+                      onChange={(e) => setForm((prev) => ({ ...prev, tempMax: e.target.value }))}
+                    />
+                  </div>
+                </>
+              )}
 
-              {form.category === 'Plants' ? (
+              {productType === 'plant' ? (
                 <>
                   <div className="flex flex-col gap-1.5">
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Lighting</label>
@@ -798,33 +848,35 @@ export default function VendorAddProductPage() {
             </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 pt-2">
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Pricing Unit</label>
-                <div className="inline-flex rounded-xl bg-slate-100 p-0.5 shadow-2xs border border-slate-200/50 h-11">
-                  <button
-                    type="button"
-                    onClick={() => setForm((prev) => ({ ...prev, pricingType: 'piece' }))}
-                    className={`flex-1 flex items-center justify-center gap-1.5 rounded-lg text-xs font-bold transition-all ${
-                      form.pricingType === 'piece'
-                        ? 'bg-blue-600 text-white shadow-2xs'
-                        : 'text-slate-600 hover:text-slate-900'
-                    }`}
-                  >
-                    🪙 Per Piece
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setForm((prev) => ({ ...prev, pricingType: 'pair' }))}
-                    className={`flex-1 flex items-center justify-center gap-1.5 rounded-lg text-xs font-bold transition-all ${
-                      form.pricingType === 'pair'
-                        ? 'bg-blue-600 text-white shadow-2xs'
-                        : 'text-slate-600 hover:text-slate-900'
-                    }`}
-                  >
-                    👥 Per Pair
-                  </button>
+              {productType === 'fish' && (
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Pricing Unit</label>
+                  <div className="inline-flex rounded-xl bg-slate-100 p-0.5 shadow-2xs border border-slate-200/50 h-11">
+                    <button
+                      type="button"
+                      onClick={() => setForm((prev) => ({ ...prev, pricingType: 'piece' }))}
+                      className={`flex-1 flex items-center justify-center gap-1.5 rounded-lg text-xs font-bold transition-all ${
+                        form.pricingType === 'piece'
+                          ? 'bg-blue-600 text-white shadow-2xs'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      🪙 Per Piece
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setForm((prev) => ({ ...prev, pricingType: 'pair' }))}
+                      className={`flex-1 flex items-center justify-center gap-1.5 rounded-lg text-xs font-bold transition-all ${
+                        form.pricingType === 'pair'
+                          ? 'bg-blue-600 text-white shadow-2xs'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      👥 Per Pair
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">

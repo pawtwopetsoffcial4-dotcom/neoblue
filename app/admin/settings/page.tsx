@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { CldUploadWidget } from 'next-cloudinary';
-import { Save, Loader2, Sparkles } from 'lucide-react';
+import { Save, Loader2, Sparkles, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function AdminSettingsPage() {
@@ -22,6 +22,7 @@ export default function AdminSettingsPage() {
     stat2Label: '',
     stat3Value: '',
     stat3Label: '',
+    subcategories: {} as Record<string, string[]>,
   });
   const [allCategories, setAllCategories] = useState<string[]>([]);
 
@@ -219,27 +220,81 @@ export default function AdminSettingsPage() {
 
           <div className="space-y-4">
             {Array.from(new Set([...(config.categories || []), ...allCategories])).sort().map((cat) => (
-              <div key={cat} className="flex items-center gap-4 bg-gray-50 p-3 rounded-lg border border-gray-200">
-                <div className="w-20 h-12 bg-white rounded-md overflow-hidden border">
-                  {config.categoryImages && config.categoryImages[cat] ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={config.categoryImages[cat]} alt={cat} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-sm text-gray-400">No image</div>
-                  )}
+              <div key={cat} className="flex flex-col gap-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <div className="flex items-center gap-4">
+                  <div className="w-20 h-12 bg-white rounded-md overflow-hidden border">
+                    {config.categoryImages && config.categoryImages[cat] ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={config.categoryImages[cat]} alt={cat} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-sm text-gray-400">No image</div>
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-semibold text-gray-800">{cat}</div>
+                  </div>
+                  <div>
+                    <CldUploadWidget uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'neoblue_products'} options={{ sources: ['local', 'camera', 'url'], multiple: false, resourceType: 'image' }} onSuccess={(result: any) => {
+                      const secureUrl = result?.info?.secure_url;
+                      if (secureUrl) {
+                        setConfig((prev) => ({ ...(prev as any), categoryImages: { ...(prev as any).categoryImages, [cat]: String(secureUrl) } }));
+                      }
+                    }}>
+                      {({ open }) => <button type="button" onClick={() => open()} className="h-9 px-3 rounded-md border border-blue-200 text-blue-700 font-semibold hover:bg-blue-50">Upload</button>}
+                    </CldUploadWidget>
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <div className="font-semibold text-gray-800">{cat}</div>
-                </div>
-                <div>
-                  <CldUploadWidget uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'neoblue_products'} options={{ sources: ['local', 'camera', 'url'], multiple: false, resourceType: 'image' }} onSuccess={(result: any) => {
-                    const secureUrl = result?.info?.secure_url;
-                    if (secureUrl) {
-                      setConfig((prev) => ({ ...(prev as any), categoryImages: { ...(prev as any).categoryImages, [cat]: String(secureUrl) } }));
-                    }
-                  }}>
-                    {({ open }) => <button type="button" onClick={() => open()} className="h-9 px-3 rounded-md border border-blue-200 text-blue-700 font-semibold hover:bg-blue-50">Upload</button>}
-                  </CldUploadWidget>
+
+                <div className="border-t border-gray-200 pt-3 mt-1">
+                  <div className="text-sm font-bold text-gray-700 mb-2">Varieties / Names</div>
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {(config.subcategories?.[cat] || []).map(sub => (
+                      <span key={sub} className="px-2.5 py-1 bg-white border border-gray-200 rounded-md text-xs font-semibold text-gray-700 flex items-center gap-1.5 shadow-sm">
+                        {sub}
+                        <button 
+                          type="button"
+                          onClick={() => {
+                            setConfig(prev => {
+                              const newSubs = { ...(prev as any).subcategories };
+                              newSubs[cat] = (newSubs[cat] || []).filter((s: string) => s !== sub);
+                              return { ...prev, subcategories: newSubs };
+                            });
+                          }} 
+                          className="text-red-500 hover:text-red-700 transition-colors"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </span>
+                    ))}
+                    {(!config.subcategories?.[cat] || config.subcategories[cat].length === 0) && (
+                      <span className="text-xs text-gray-400 italic">No varieties added yet.</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input 
+                      type="text" 
+                      placeholder={`New ${cat} name...`} 
+                      className="px-3 py-1.5 border border-gray-200 rounded-md text-sm w-64 focus:ring-2 focus:ring-blue-500 outline-none"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          const val = e.currentTarget.value.trim();
+                          if (val) {
+                            setConfig(prev => {
+                              const newSubs = { ...(prev as any).subcategories };
+                              const catSubs = newSubs[cat] || [];
+                              if (!catSubs.includes(val)) {
+                                newSubs[cat] = [...catSubs, val];
+                              }
+                              return { ...prev, subcategories: newSubs };
+                            });
+                            e.currentTarget.value = '';
+                          }
+                        }
+                      }}
+                    />
+                    <span className="text-xs text-gray-400 font-medium">Press Enter to add</span>
+                  </div>
                 </div>
               </div>
             ))}

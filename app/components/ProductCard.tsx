@@ -1,7 +1,8 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, ShoppingCart } from 'lucide-react';
+import { useCart } from '@/lib/hooks/useCart';
 
 interface ProductCardProps {
   product: any;
@@ -10,6 +11,7 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product, idx = 0, className = "" }: ProductCardProps) {
+  const { addToCart } = useCart();
   const isPairPrice = product.perPairPrice != null && typeof product.perPairPrice === 'number';
   const hasDiscount = product.discountPercentage != null && product.discountPercentage > 0;
   
@@ -88,7 +90,7 @@ export default function ProductCard({ product, idx = 0, className = "" }: Produc
         </div>
 
         {/* Pricing block */}
-        <div className="pt-2 flex items-baseline gap-1 mt-auto">
+        <div className="pt-2 flex items-baseline gap-1">
           <span className="text-sm md:text-base font-black text-slate-900">
             {formatPrice(product.price)}
           </span>
@@ -102,10 +104,27 @@ export default function ProductCard({ product, idx = 0, className = "" }: Produc
           )}
         </div>
 
-        {/* View Button Footer */}
-        <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold text-blue-600 mt-2 group-hover:text-blue-700">
-          <span>View Details</span>
-          <ChevronRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+        {/* Add to Cart Footer */}
+        <div 
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            addToCart({
+              id: product._id || product.id,
+              title: product.title,
+              price: product.price,
+              image: product.images?.[0] ?? product.img ?? '/illustrations/placeholder.png',
+              quantity: 1,
+            });
+          }}
+          className="pt-2 mt-auto border-t border-slate-100"
+        >
+          <div className={`flex items-center justify-center gap-1.5 py-1.5 w-full rounded-md font-bold text-[11px] transition-all shadow-sm active:scale-95 ${
+            product.category === 'Plants' ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-blue-600 text-white hover:bg-blue-700'
+          }`}>
+            <ShoppingCart className="h-3 w-3" />
+            <span>Add to Cart</span>
+          </div>
         </div>
       </div>
     </Link>
