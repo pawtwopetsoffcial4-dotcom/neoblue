@@ -162,7 +162,7 @@ export default function CategoryDetailClient({
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
                   />
                 </Link>
-                <div className="flex flex-col flex-1 p-3 sm:p-5">
+                <div className="flex flex-col p-3 sm:p-5">
                   <p className={`text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-1.5 sm:mb-2 ${activeColor === 'green' ? 'text-green-600' : 'text-blue-600'}`}>
                     {product.category} {product.waterType ? `• ${product.waterType}` : ''}
                   </p>
@@ -175,7 +175,7 @@ export default function CategoryDetailClient({
                   <div className="mt-1.5 sm:mt-2">
                     <ReviewStars rating={product.rating} count={product.reviewsCount} compact size={12} />
                   </div>
-                  <div className="mt-3 sm:mt-4 flex items-center justify-between mt-auto pt-2">
+                  <div className="mt-3 sm:mt-4 flex items-center justify-between pt-2 border-t border-slate-100">
                     <div className="flex items-baseline gap-0.5">
                       <span className="text-base sm:text-xl font-black text-slate-900">₹{product.price.toFixed(2)}</span>
                       <span className="text-[9px] sm:text-[10px] text-slate-400 font-bold uppercase tracking-wider">
