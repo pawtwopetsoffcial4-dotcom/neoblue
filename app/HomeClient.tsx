@@ -113,7 +113,7 @@ export default function NeoBlueMobileOptimized() {
         setIsLoading(true);
 
         const [productsResponse, categoriesResponse, combosResponse] = await Promise.all([
-          fetch('/api/products?limit=100', { cache: 'no-store' }),
+          fetch('/api/products?limit=500', { cache: 'no-store' }),
           fetch('/api/categories', { cache: 'no-store' }),
           fetch('/api/combos?featured=true', { cache: 'no-store' }),
         ]);
