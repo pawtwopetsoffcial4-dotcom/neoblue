@@ -82,6 +82,7 @@ export default function AdminProductsPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
+  const [categoryFilter, setCategoryFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [editingProduct, setEditingProduct] = useState<AdminProduct | null>(null);
   const [editForm, setEditForm] = useState<EditFormState | null>(null);
@@ -132,6 +133,9 @@ export default function AdminProductsPage() {
     if (filter !== 'all') {
       result = result.filter((p) => (p.approvalStatus ?? 'pending') === filter);
     }
+    if (categoryFilter !== 'all') {
+      result = result.filter((p) => p.category === categoryFilter);
+    }
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       result = result.filter((p) => 
@@ -142,7 +146,7 @@ export default function AdminProductsPage() {
       );
     }
     return result;
-  }, [products, filter, searchQuery]);
+  }, [products, filter, categoryFilter, searchQuery]);
 
   const setApproval = async (productId: string, status: 'approved' | 'rejected') => {
     try {
@@ -432,6 +436,18 @@ export default function AdminProductsPage() {
               {value.charAt(0).toUpperCase() + value.slice(1)}
             </button>
           ))}
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="h-10 px-4 rounded-full border border-blue-200 bg-white text-blue-700 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="all">All Categories</option>
+            {categories.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
         </div>
         
         <div className="relative w-full sm:w-64 md:w-80">
