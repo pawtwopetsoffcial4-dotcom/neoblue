@@ -378,7 +378,6 @@ export default function NeoBlueMobileOptimized() {
 
       {/* Basic spacing for desktop footer */}
       <div className={`hidden md:block py-10 text-center text-xs ${mode === 'fishes' ? 'text-blue-300' : 'text-green-700/50'}`}>
-        Desktop Footer Hidden for Mobile Wireframe Demo
       </div>
     </div>
   );
