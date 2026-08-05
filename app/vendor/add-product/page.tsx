@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowRight, Fish, Gauge, Sparkles, X, Info, Plus, Trash2, ChevronRight, ChevronLeft, Upload, Check, AlertCircle } from 'lucide-react';
+import { ArrowRight, Fish, Gauge, Sparkles, X, Info, Plus, Trash2, ChevronRight, ChevronLeft, Upload, Check, AlertCircle, Leaf } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import { CldUploadWidget } from 'next-cloudinary';
 import { apiClient } from '@/lib/api-client';
@@ -409,20 +409,20 @@ export default function VendorAddProductPage() {
             <button
               type="button"
               onClick={() => setProductType('fish')}
-              className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${
+              className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm font-bold rounded-lg transition-all ${
                 productType === 'fish' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
               }`}
             >
-              🐟 Fish
+              <Fish className="h-4 w-4" /> Fish
             </button>
             <button
               type="button"
               onClick={() => setProductType('plant')}
-              className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${
+              className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm font-bold rounded-lg transition-all ${
                 productType === 'plant' ? 'bg-white text-green-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
               }`}
             >
-              🌿 Plant
+              <Leaf className="h-4 w-4" /> Plant
             </button>
           </div>
         )}
