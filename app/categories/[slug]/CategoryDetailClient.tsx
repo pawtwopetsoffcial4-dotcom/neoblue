@@ -186,13 +186,7 @@ export default function CategoryDetailClient({
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        addToCart({
-                          id: product._id,
-                          title: product.title,
-                          price: product.price,
-                          image: product.images?.[0] ?? '/api/placeholder/400/300',
-                          quantity: 1,
-                        });
+                        addToCart(product as unknown as any);
                       }}
                       className={`inline-flex items-center justify-center gap-1.5 h-8 w-8 sm:h-9 sm:w-auto sm:px-4 rounded-full font-bold text-[0px] sm:text-xs transition-all shadow-sm active:scale-95 ${
                         activeColor === 'green' ? 'bg-green-600 hover:bg-green-700 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'

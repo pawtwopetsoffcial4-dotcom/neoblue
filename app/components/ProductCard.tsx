@@ -110,12 +110,11 @@ export default function ProductCard({ product, idx = 0, className = "" }: Produc
             e.preventDefault();
             e.stopPropagation();
             addToCart({
-              id: product._id || product.id,
+              _id: product._id || product.id,
               title: product.title,
               price: product.price,
-              image: product.images?.[0] ?? product.img ?? '/illustrations/placeholder.png',
-              quantity: 1,
-            });
+              images: product.images || [product.img || '/illustrations/placeholder.png'],
+            } as any);
           }}
           className="pt-2 mt-auto border-t border-slate-100"
         >
