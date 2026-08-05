@@ -66,8 +66,8 @@ export default function ProductCard({ product, idx = 0, className = "" }: Produc
       </div>
 
       {/* Metadata Details */}
-      <div className="flex flex-1 flex-col p-3.5 space-y-1.5">
-        <div className="flex items-center justify-between gap-1">
+      <div className="flex flex-1 flex-col p-3">
+        <div className="flex items-center justify-between gap-1 mb-1">
           <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider line-clamp-1">
             {product.category || 'Product'}
           </span>
@@ -78,7 +78,7 @@ export default function ProductCard({ product, idx = 0, className = "" }: Produc
           ) : null}
         </div>
 
-        <div>
+        <div className="mb-1.5">
           <h3 className="text-[13px] md:text-sm font-bold text-slate-800 line-clamp-2 group-hover:text-blue-600 transition-colors leading-snug">
             {product.title}
           </h3>
@@ -89,40 +89,42 @@ export default function ProductCard({ product, idx = 0, className = "" }: Produc
           )}
         </div>
 
-        {/* Pricing block */}
-        <div className="pt-2 flex items-baseline gap-1">
-          <span className="text-sm md:text-base font-black text-slate-900">
-            {formatPrice(product.price)}
-          </span>
-          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
-            / {isPairPrice ? 'PAIR' : 'PIECE'}
-          </span>
-          {hasDiscount && product.originalPrice && (
-            <span className="text-[10px] text-slate-400 line-through font-semibold ml-1.5">
-              {formatPrice(product.originalPrice)}
+        {/* Pricing & Cart Group (Sticks to bottom) */}
+        <div className="mt-auto pt-2.5 border-t border-slate-100 flex flex-col gap-2">
+          {/* Pricing block */}
+          <div className="flex items-baseline gap-1">
+            <span className="text-sm md:text-base font-black text-slate-900">
+              {formatPrice(product.price)}
             </span>
-          )}
-        </div>
+            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+              / {isPairPrice ? 'PAIR' : 'PIECE'}
+            </span>
+            {hasDiscount && product.originalPrice && (
+              <span className="text-[10px] text-slate-400 line-through font-semibold ml-1.5">
+                {formatPrice(product.originalPrice)}
+              </span>
+            )}
+          </div>
 
-        {/* Add to Cart Footer */}
-        <div 
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            addToCart({
-              _id: product._id || product.id,
-              title: product.title,
-              price: product.price,
-              images: product.images || [product.img || '/illustrations/placeholder.png'],
-            } as any);
-          }}
-          className="pt-2 mt-auto border-t border-slate-100"
-        >
-          <div className={`flex items-center justify-center gap-1.5 py-1.5 w-full rounded-md font-bold text-[11px] transition-all shadow-sm active:scale-95 ${
-            product.category === 'Plants' ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-blue-600 text-white hover:bg-blue-700'
-          }`}>
-            <ShoppingCart className="h-3 w-3" />
-            <span>Add to Cart</span>
+          {/* Add to Cart Footer */}
+          <div 
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              addToCart({
+                _id: product._id || product.id,
+                title: product.title,
+                price: product.price,
+                images: product.images || [product.img || '/illustrations/placeholder.png'],
+              } as any);
+            }}
+          >
+            <div className={`flex items-center justify-center gap-1.5 py-1.5 w-full rounded-md font-bold text-[11px] transition-all shadow-sm active:scale-95 cursor-pointer ${
+              product.category === 'Plants' ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-blue-600 text-white hover:bg-blue-700'
+            }`}>
+              <ShoppingCart className="h-3 w-3" />
+              <span>Add to Cart</span>
+            </div>
           </div>
         </div>
       </div>
