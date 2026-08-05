@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import Link from 'next/link';
-import { ShoppingBag, Star, Truck, Shield, Droplets, Thermometer, Info, MessageSquare, ChevronRight, ChevronDown, Store, CheckCircle2, Search, X, ShieldAlert, Sparkles, Scale, Heart, Package, Leaf, Ruler, User, Activity, Box, Home } from 'lucide-react';
+import { ShoppingBag, Star, Truck, Shield, Droplets, Thermometer, Info, MessageSquare, ChevronRight, ChevronDown, Store, CheckCircle2, Search, X, ShieldAlert, Sparkles, Scale, Heart, Package, Leaf, Ruler, User, Activity, Box, Home, Fish, Beaker, Sun, Wind, Smile } from 'lucide-react';
 import ReviewList from '@/app/components/ReviewList';
 import ReviewForm from '@/app/components/ReviewForm';
 import ReviewStars from '@/app/components/ReviewStars';
@@ -316,46 +316,46 @@ export default function ProductClientPage({
               <div className="flex flex-wrap gap-2.5">
                 {product.size && (
                   <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 border border-indigo-100 text-xs font-bold text-indigo-700">
-                    📐 Size: {product.size}
+                    <Ruler className="h-3.5 w-3.5" /> Size: {product.size}
                   </span>
                 )}
                 {product.ageCategory && (
                   <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-pink-50 border border-pink-100 text-xs font-bold text-pink-700 capitalize">
-                    🐟 Age: {product.ageCategory}
+                    <Fish className="h-3.5 w-3.5" /> Age: {product.ageCategory}
                   </span>
                 )}
                 {product.waterType && (
                   <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-50 border border-cyan-100 text-xs font-bold text-cyan-700">
-                    💧 {product.waterType}
+                    <Droplets className="h-3.5 w-3.5" /> {product.waterType}
                   </span>
                 )}
                 {product.phMin && product.phMax && (
                   <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-50 border border-teal-100 text-xs font-bold text-teal-700">
-                    ⚗️ pH {product.phMin}-{product.phMax}
+                    <Beaker className="h-3.5 w-3.5" /> pH {product.phMin}-{product.phMax}
                   </span>
                 )}
                 {product.tempMin && product.tempMax && (
                   <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-50 border border-rose-100 text-xs font-bold text-rose-700">
-                    🌡️ {product.tempMin}-{product.tempMax}°C
+                    <Thermometer className="h-3.5 w-3.5" /> {product.tempMin}-{product.tempMax}°C
                   </span>
                 )}
                 {product.category === 'Plants' ? (
                   <>
                     {product.lightingRequirement && (
                       <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-100 text-xs font-bold text-amber-700">
-                        ☀️ {product.lightingRequirement} Light
+                        <Sun className="h-3.5 w-3.5" /> {product.lightingRequirement} Light
                       </span>
                     )}
                     {product.co2Requirement && (
                       <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-100 text-xs font-bold text-emerald-700">
-                        🫧 {product.co2Requirement} CO2
+                        <Wind className="h-3.5 w-3.5" /> {product.co2Requirement} CO2
                       </span>
                     )}
                   </>
                 ) : (
                   product.temperament && (
                     <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-100 text-xs font-bold text-amber-700">
-                      🎭 {product.temperament}
+                      <Smile className="h-3.5 w-3.5" /> {product.temperament}
                     </span>
                   )
                 )}
