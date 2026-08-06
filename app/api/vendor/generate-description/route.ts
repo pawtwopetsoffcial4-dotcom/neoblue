@@ -36,7 +36,7 @@ Do not wrap it in a markdown code block (like \`\`\`html).
 Make it professional, emphasizing quality and care. 
 Keep it concise but detailed (around 3-4 short paragraphs/lists).`;
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
