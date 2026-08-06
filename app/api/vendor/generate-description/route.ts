@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import { connectDB } from '@/lib/db';
 import FishDescription from '@/lib/models/FishDescription';
 import { createErrorResponse, createSuccessResponse, getTokenFromRequest, verifyToken } from '@/lib/utils/auth';
+import { GoogleGenAI } from '@google/genai';
 
 export async function POST(request: NextRequest) {
   try {
@@ -36,27 +37,19 @@ Do not wrap it in a markdown code block (like \`\`\`html).
 Make it professional, emphasizing quality and care. 
 Keep it concise but detailed (around 3-4 short paragraphs/lists).`;
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: {
-            temperature: 0.7,
-        }
-      }),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Gemini API Error:', errorText);
+    const client = new GoogleGenAI({ apiKey });
+    
+    let generatedText = '';
+    try {
+      const interaction = await client.interactions.create({
+        model: "gemini-3.6-flash",
+        input: prompt,
+      });
+      generatedText = interaction.output_text || '';
+    } catch (err: any) {
+      console.error('Gemini API Error:', err.message || err);
       return createErrorResponse('Failed to generate description from AI', 500);
     }
-
-    const data = await response.json();
-    const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
     
     // Clean up markdown formatting if Gemini included it despite instructions
     const cleanHtml = generatedText.replace(/^```html/i, '').replace(/```$/i, '').trim();
