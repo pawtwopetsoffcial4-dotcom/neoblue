@@ -30,12 +30,11 @@ export async function POST(request: NextRequest) {
       return createErrorResponse('Gemini API key not configured', 500);
     }
 
-    const prompt = `Write a premium, engaging HTML product description for a ${category || 'product'} named "${title}". ${waterType ? `It is a ${waterType} species.` : ''}
+    const prompt = `Write a premium, engaging product description for a ${category || 'product'} named "${title}". ${waterType ? `It is a ${waterType} species.` : ''}
     
-Output only the HTML. Use semantic tags like <h3>, <p>, <ul>, <li>, and <strong>. 
-Do not wrap it in a markdown code block (like \`\`\`html).
+Output only plain text. Do NOT use any HTML tags like <p>, <li>, or <strong>. Do NOT use markdown formatting.
 Make it professional, emphasizing quality and care. 
-Keep it concise but detailed (around 3-4 short paragraphs/lists).`;
+Keep it concise but detailed (around 3-4 short paragraphs).`;
 
     const client = new GoogleGenAI({ apiKey });
     

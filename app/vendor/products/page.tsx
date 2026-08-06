@@ -457,7 +457,7 @@ export default function VendorProductsPage() {
       </div>
 
       {editingProduct && editForm && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/40 px-0 py-0 backdrop-blur-xl transition-all md:items-center md:px-4 md:py-6">
+        <div className="fixed inset-0 z-[2000] flex items-end justify-center bg-slate-900/40 px-0 py-0 backdrop-blur-xl transition-all md:items-center md:px-4 md:py-6">
           <div className="w-full max-w-4xl max-h-[95vh] flex flex-col bg-white shadow-[0_0_40px_-10px_rgba(0,0,0,0.1)] border border-blue-100 rounded-t-3xl md:rounded-3xl animate-fade-in-up overflow-hidden">
             
             {/* Header */}
