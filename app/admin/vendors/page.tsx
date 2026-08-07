@@ -264,7 +264,7 @@ export default function AdminVendorsPage() {
   const approvedCount = vendors.filter((vendor) => vendor.isApproved).length;
 
   return (
-    <div className="space-y-6 pb-12 text-slate-900 max-w-7xl mx-auto">
+    <div className="space-y-6 text-slate-900">
       {/* Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200/80 pb-5">
         <div>
