@@ -39,8 +39,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
     await connectDB();
 
-    // Fetch approved & in-stock products
-    const products = await Product.find({ approvalStatus: 'approved', inStock: true })
+    // Fetch all approved products (include out-of-stock so Google keeps them indexed)
+    const products = await Product.find({ approvalStatus: 'approved' })
       .select('_id category updatedAt')
       .lean();
 

@@ -23,8 +23,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "NEOBLUE",
-  description: "Fish Selling Ecommerce",
+  metadataBase: new URL('https://neoblue.in'),
+  title: {
+    default: "NeoBlue — India's Premium Aquarium Fish & Live Plants Store",
+    template: "%s | NeoBlue",
+  },
+  description: "Shop premium quality live aquarium fish, shrimp, snails, and aquatic plants online at NeoBlue. Browse species care specs, detailed parameters, and get live-arrival guaranteed delivery across India.",
   icons: {
     icon: "/logo.png",
     shortcut: "/logo.png",
@@ -36,6 +40,21 @@ export const metadata: Metadata = {
   },
   verification: {
     google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'en_IN',
+    siteName: 'NeoBlue',
+    title: "NeoBlue — India's Premium Aquarium Fish & Live Plants Store",
+    description: "Shop premium quality live aquarium fish, shrimp, snails, and aquatic plants online. Live-arrival guaranteed delivery across India.",
+    url: 'https://neoblue.in',
+    images: [{ url: '/logo.png', width: 512, height: 512, alt: 'NeoBlue Logo' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: "NeoBlue — India's Premium Aquarium Fish & Live Plants Store",
+    description: "Shop premium quality live aquarium fish, shrimp, snails, and aquatic plants online. Live-arrival guaranteed delivery across India.",
+    images: ['/logo.png'],
   },
 };
 

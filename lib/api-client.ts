@@ -146,6 +146,24 @@ export class APIClient {
     });
   }
 
+  async bulkUpdateVendorShipping(bulkData: any) {
+    return this.request('/admin/vendors/shipping/bulk', {
+      method: 'POST',
+      body: JSON.stringify(bulkData),
+    });
+  }
+
+  async getStoreConfig() {
+    return this.request('/config');
+  }
+
+  async updateStoreConfig(configData: any) {
+    return this.request('/config', {
+      method: 'PUT',
+      body: JSON.stringify(configData),
+    });
+  }
+
   // Admin methods
   async getAdminOrders() {
     return this.request('/admin', { params: { type: 'orders' } });

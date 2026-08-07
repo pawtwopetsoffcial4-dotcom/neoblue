@@ -46,10 +46,12 @@ export default withSentryConfig(nextConfig, {
   // Routes Browser SDK requests through Tunnel to avoid ad-blockers (e.g. /sentry-tunnel)
   tunnelRoute: "/monitoring",
 
-  // Automatically tree-shake Sentry logger statements to reduce bundle size
-  disableLogger: true,
-
-  // Enables automatic Instrumentation of Vercel Cron Jobs
-  automaticVercelMonitors: true,
+  // Webpack plugin options for Sentry
+  webpack: {
+    treeshake: {
+      removeDebugLogging: true,
+    },
+    automaticVercelMonitors: true,
+  },
 });
 // Force configuration reload to clear middleware cache - v2

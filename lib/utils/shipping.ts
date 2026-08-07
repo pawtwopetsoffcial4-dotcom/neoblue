@@ -182,4 +182,64 @@ export function calculateCartShipping(
   }
 
   return { totalShipping, vendorShipping, isServiceable, nonServiceableMessage };
+}
+
+export function isSingleVendorCart(
+  items: Array<{ productId: string; quantity: number }>,
+  productDetails: Record<string, any>
+): { isSingleVendor: boolean; vendorId: string | null; vendorName: string | null } {
+  if (!items || items.length === 0) {
+    return { isSingleVendor: false, vendorId: null, vendorName: null };
+  }
+
+  let uniqueVendorId: string | null = null;
+  let vendorName: string | null = null;
+
+  for (const item of items) {
+    const product = productDetails[item.productId];
+    if (!product) continue;
+
+    const vendor = typeof product.vendorId === 'object' && product.vendorId !== null ? product.vendorId : null;
+    const vId = String(vendor?._id || product.vendorId || '');
+    if (!vId) continue;
+
+    if (uniqueVendorId === null) {
+      uniqueVendorId = vId;
+      vendorName = vendor?.name || 'Seller';
+    } else if (uniqueVendorId !== vId) {
+      return { isSingleVendor: false, vendorId: null, vendorName: null };
+    }
+  }
+
+  return { isSingleVendor: uniqueVendorId !== null, vendorId: uniqueVendorId, vendorName };
+}
+
+export function checkFreeShippingEligibility(
+  subtotal: number,
+  items: Array<{ productId: string; quantity: number }>,
+  productDetails: Record<string, any>,
+  storeConfig: any
+): {
+  isEligible: boolean;
+  isSingleVendor: boolean;
+  vendorName: string | null;
+  minAmount: number;
+  remainingAmount: number;
+  enabled: boolean;
+} {
+  const enabled = Boolean(storeConfig?.freeShippingEnabled);
+  const minAmount = Number(storeConfig?.freeShippingMinAmount) || 1499;
+
+  const { isSingleVendor, vendorName } = isSingleVendorCart(items, productDetails);
+  const remainingAmount = Math.max(0, minAmount - subtotal);
+  const isEligible = enabled && isSingleVendor && subtotal >= minAmount;
+
+  return {
+    isEligible,
+    isSingleVendor,
+    vendorName,
+    minAmount,
+    remainingAmount,
+    enabled,
+  };
 }

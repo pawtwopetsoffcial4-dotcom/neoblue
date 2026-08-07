@@ -76,8 +76,8 @@ export default function ProductCard({ product, idx = 0, className = "" }: Produc
       </div>
 
       {/* Metadata Details */}
-      <div className="flex flex-col p-3.5 sm:p-4">
-        <div className="flex items-center justify-between gap-1 mb-2">
+      <div className="flex flex-col p-2.5 sm:p-3">
+        <div className="flex items-center justify-between gap-1 mb-1">
           <span className="text-[9px] sm:text-[10px] font-extrabold text-slate-400 uppercase tracking-widest line-clamp-1">
             {product.category || 'Product'}
           </span>
@@ -88,19 +88,19 @@ export default function ProductCard({ product, idx = 0, className = "" }: Produc
           ) : null}
         </div>
 
-        <div className="mb-3">
+        <div className="mb-2">
           <h3 className={`text-[13px] sm:text-[15px] font-black text-slate-800 line-clamp-2 transition-colors duration-300 leading-[1.3] ${theme.titleHover}`}>
             {product.title}
           </h3>
           {product.scientific && (
-            <p className="text-[10px] sm:text-[11px] font-medium text-slate-400 italic mt-1 line-clamp-1">
+            <p className="text-[10px] sm:text-[11px] font-medium text-slate-400 italic mt-0.5 line-clamp-1">
               {product.scientific}
             </p>
           )}
         </div>
 
         {/* Pricing & Cart Group */}
-        <div className="pt-3 border-t border-slate-100 border-dashed flex flex-col gap-3">
+        <div className="pt-2 border-t border-slate-100 border-dashed flex flex-col gap-2">
           <div className="flex items-baseline gap-1.5">
             <span className="text-[17px] sm:text-xl font-black text-slate-900 tracking-tight">
               {formatPrice(product.price)}

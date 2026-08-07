@@ -40,6 +40,29 @@ export default function ProductClientPage({
   const [showMatesDropdown, setShowMatesDropdown] = useState(false);
   const [liked, setLiked] = useState(false);
 
+  const isPlants = product.category === 'Plants';
+  const theme = isPlants ? {
+    text: 'text-emerald-600',
+    hoverText: 'hover:text-emerald-600',
+    groupHoverText: 'group-hover:text-emerald-600',
+    bg: 'bg-emerald-600',
+    bgLight: 'bg-emerald-50',
+    border: 'border-emerald-600',
+    icon: 'text-emerald-500',
+    btn: 'bg-emerald-600 text-white hover:bg-emerald-700 active:scale-[0.98] shadow-md shadow-emerald-600/20 cursor-pointer',
+    thumbActive: 'border-emerald-600 shadow-md shadow-emerald-600/20',
+  } : {
+    text: 'text-blue-600',
+    hoverText: 'hover:text-blue-600',
+    groupHoverText: 'group-hover:text-blue-600',
+    bg: 'bg-blue-600',
+    bgLight: 'bg-blue-50',
+    border: 'border-blue-600',
+    icon: 'text-blue-500',
+    btn: 'bg-blue-600 text-white hover:bg-blue-700 active:scale-[0.98] shadow-md shadow-blue-600/20 cursor-pointer',
+    thumbActive: 'border-blue-600 shadow-md shadow-blue-600/20',
+  };
+
   useEffect(() => {
     const saved = localStorage.getItem('neoblue_wishlist');
     if (saved) {
@@ -196,7 +219,7 @@ export default function ProductClientPage({
             <div className="absolute top-4 left-4 flex flex-col gap-2 z-10">
               {product.tag && (
                 <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wide bg-white/90 backdrop-blur-sm text-slate-900 shadow-lg border border-white/20">
-                  <Sparkles className="h-3.5 w-3.5 text-blue-600" /> {product.tag}
+                  <Sparkles className={`h-3.5 w-3.5 ${theme.text}`} /> {product.tag}
                 </span>
               )}
               {!product.inStock && (
@@ -245,7 +268,7 @@ export default function ProductClientPage({
                   key={`thumb-${i}`}
                   className={`relative shrink-0 w-16 h-16 md:w-[72px] md:h-[72px] rounded-xl border-2 cursor-pointer overflow-hidden transition-all duration-200 ${
                     i === activeImageIndex
-                      ? 'border-blue-600 shadow-md shadow-blue-600/20'
+                      ? theme.thumbActive
                       : 'border-transparent opacity-60 hover:opacity-100'
                   }`}
                 >
@@ -272,7 +295,7 @@ export default function ProductClientPage({
 
           {/* Category crumb */}
           <div className="flex items-center gap-2 text-xs text-slate-400 font-medium">
-            <Link href={`/products?category=${product.category}`} className="hover:text-blue-600 transition-colors">{product.category}</Link>
+            <Link href={`/products?category=${product.category}`} className={`${theme.hoverText} transition-colors`}>{product.category}</Link>
             <ChevronRight className="h-3 w-3" />
             <span className="text-slate-600">{product.waterType}</span>
           </div>
@@ -293,7 +316,7 @@ export default function ProductClientPage({
               ))}
             </div>
             <span className="text-sm font-semibold text-slate-500">{product.rating.toFixed(1)}</span>
-            <button onClick={() => setActiveTab('reviews')} className="text-sm text-blue-600 font-semibold hover:underline cursor-pointer">
+            <button onClick={() => setActiveTab('reviews')} className={`text-sm ${theme.text} font-semibold hover:underline cursor-pointer`}>
               {reviews.length} review{reviews.length !== 1 && 's'}
             </button>
           </div>
@@ -381,7 +404,7 @@ export default function ProductClientPage({
                 disabled={!product.inStock}
                 className={`flex-1 h-12 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all
                   ${product.inStock
-                    ? 'bg-blue-600 text-white hover:bg-blue-700 active:scale-[0.98] shadow-md shadow-blue-600/20 cursor-pointer'
+                    ? theme.btn
                     : 'bg-slate-100 text-slate-400 cursor-not-allowed'}`}
               >
                 <ShoppingBag className="h-4 w-4" />
@@ -393,7 +416,7 @@ export default function ProductClientPage({
           {/* Trust strip */}
           <div className="grid grid-cols-3 gap-3">
             {[
-              { icon: Truck, label: 'Express Shipping', sub: 'Temperature-controlled', color: 'text-blue-600 bg-blue-50' },
+              { icon: Truck, label: 'Express Shipping', sub: 'Temperature-controlled', color: `${theme.text} ${theme.bgLight}` },
               { icon: Shield, label: 'Live Guarantee', sub: '100% DOA covered', color: 'text-emerald-600 bg-emerald-50' },
               { icon: Package, label: 'Quarantined', sub: 'Health-certified', color: 'text-violet-600 bg-violet-50' },
             ].map((badge, i) => (
@@ -411,17 +434,17 @@ export default function ProductClientPage({
           {vendor && (
             <Link
               href={shopHref}
-              className="inline-flex items-center gap-2 w-fit text-sm text-slate-600 hover:text-blue-600 transition-colors group mb-1"
+              className={`inline-flex items-center gap-2 w-fit text-sm text-slate-600 ${theme.hoverText} transition-colors group mb-1`}
             >
-              <div className="h-7 w-7 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center overflow-hidden border border-blue-200 shrink-0">
+              <div className={`h-7 w-7 rounded-full bg-gradient-to-br ${isPlants ? 'from-emerald-500 to-emerald-700 border-emerald-200' : 'from-blue-500 to-blue-700 border-blue-200'} flex items-center justify-center overflow-hidden border shrink-0`}>
                 {vendor.logo ? (
                   <img src={vendor.logo} alt={vendor.name} className="h-full w-full object-cover" />
                 ) : (
                   <span className="text-[9px] font-black text-white">{vendor.name.charAt(0)}</span>
                 )}
               </div>
-              <span className="font-semibold group-hover:text-blue-600">{vendor.name}</span>
-              <CheckCircle2 className="h-3.5 w-3.5 text-blue-500" />
+              <span className={`font-semibold ${theme.groupHoverText}`}>{vendor.name}</span>
+              <CheckCircle2 className={`h-3.5 w-3.5 ${isPlants ? 'text-emerald-500' : 'text-blue-500'}`} />
             </Link>
           )}
 
@@ -459,10 +482,10 @@ export default function ProductClientPage({
                 onClick={() => setActiveTab(tab.id as any)}
                 className={`flex items-center gap-2 px-5 py-3.5 text-sm font-semibold transition-all border-b-2 whitespace-nowrap
                   ${activeTab === tab.id
-                    ? 'border-blue-600 text-blue-600'
+                    ? `${theme.border} ${theme.text}`
                     : 'border-transparent text-slate-400 hover:text-slate-600 hover:border-slate-200'}`}
               >
-                <tab.icon className={`h-4 w-4 ${activeTab === tab.id ? 'text-blue-600' : 'text-slate-400'}`} />
+                <tab.icon className={`h-4 w-4 ${activeTab === tab.id ? theme.text : 'text-slate-400'}`} />
                 {tab.label}
               </button>
             ))}
@@ -477,7 +500,7 @@ export default function ProductClientPage({
                 <div className="prose prose-slate prose-base max-w-none space-y-10">
                   {product.aboutSpecies && (
                     <div>
-                      <h4 className="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2"><Info className="h-5 w-5 text-blue-500"/> Species Profile</h4>
+                      <h4 className="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2"><Info className={`h-5 w-5 ${theme.icon}`}/> Species Profile</h4>
                       <p className="text-slate-600 leading-loose whitespace-pre-wrap">{product.aboutSpecies}</p>
                     </div>
                   )}
@@ -535,7 +558,7 @@ export default function ProductClientPage({
                 <h3 className="text-xl font-bold text-slate-900">Care Requirements & Specifications</h3>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                   {[
-                    { title: "Common Name", value: product.title, icon: Sparkles, color: "text-blue-600 bg-blue-50" },
+                    { title: "Common Name", value: product.title, icon: Sparkles, color: `${theme.text} ${theme.bgLight}` },
                     { title: "Scientific Name", value: product.scientific || 'N/A', icon: Leaf, color: "text-emerald-600 bg-emerald-50" },
                     { title: "Water Type", value: product.waterType, icon: Droplets, color: "text-cyan-600 bg-cyan-50" },
                     { title: "pH Range", value: `${product.phMin ?? '6.0'} – ${product.phMax ?? '8.0'}`, icon: Droplets, color: "text-teal-600 bg-teal-50" },
@@ -543,7 +566,7 @@ export default function ProductClientPage({
                     ...(product.category === 'Plants' ? [
                       { title: "Lighting", value: product.lightingRequirement || 'Medium', icon: Sparkles, color: "text-amber-600 bg-amber-50" },
                       { title: "CO2", value: product.co2Requirement || 'Recommended', icon: Leaf, color: "text-emerald-600 bg-emerald-50" },
-                      { title: "Growth Rate", value: product.growthRate || 'Moderate', icon: Activity, color: "text-blue-600 bg-blue-50" },
+                      { title: "Growth Rate", value: product.growthRate || 'Moderate', icon: Activity, color: "text-emerald-600 bg-emerald-50" },
                       { title: "Placement", value: product.placement || 'Midground', icon: Store, color: "text-indigo-600 bg-indigo-50" },
                       { title: "Difficulty", value: product.careDifficulty || 'Moderate', icon: ShieldAlert, color: "text-rose-600 bg-rose-50" },
                     ] : [
@@ -623,7 +646,7 @@ export default function ProductClientPage({
                 <div className="space-y-5">
                   {[
                     { icon: Shield, color: 'text-emerald-600 bg-emerald-50', title: '100% Live Arrival Guarantee', desc: 'All live specimens arrive healthy. DOA claims require a photo and video of the unopened bag within 2 hours of delivery for a full credit or replacement.' },
-                    { icon: Info, color: 'text-blue-600 bg-blue-50', title: 'Return & Replacement Policy', desc: 'Due to biosecurity standards, physical returns of live fish, plants, or invertebrates cannot be accepted. Contact support for post-acclimation advice.' },
+                    { icon: Info, color: `${theme.text} ${theme.bgLight}`, title: 'Return & Replacement Policy', desc: 'Due to biosecurity standards, physical returns of live fish, plants, or invertebrates cannot be accepted. Contact support for post-acclimation advice.' },
                     { icon: Truck, color: 'text-indigo-600 bg-indigo-50', title: 'Thermo-Insulated Packaging', desc: 'Specimens are packed in double-layered oxygenated bags inside styrofoam boxes with seasonal heat/cold packs. Shipped via express next-day air couriers.' },
                   ].map((policy, i) => (
                     <div key={i} className="flex gap-4">
@@ -864,14 +887,18 @@ export default function ProductClientPage({
         <div className="mt-12 pt-10 border-t border-slate-200/80 space-y-5">
           <div className="flex items-center justify-between">
             <h3 className="text-xl font-bold tracking-tight text-slate-900">You may also like</h3>
-            <span className="text-xs font-semibold text-blue-600 uppercase tracking-widest">Recommended Products</span>
+            <span className={`text-xs font-semibold ${theme.text} uppercase tracking-widest`}>Recommended Products</span>
           </div>
           <div className="flex flex-col gap-3.5 max-w-3xl">
             {initialRecommendations.map(rec => (
               <Link 
                 key={rec._id} 
                 href={`/products/${rec._id}`} 
-                className="group flex gap-4 p-4 rounded-3xl bg-white border border-slate-200/80 hover:border-blue-400 hover:shadow-lg hover:shadow-blue-500/5 transition-all duration-350"
+                className={`group flex gap-4 p-4 rounded-3xl bg-white border border-slate-200/80 transition-all duration-350 ${
+                  rec.category === 'Plants' 
+                    ? 'hover:border-emerald-400 hover:shadow-lg hover:shadow-emerald-500/5' 
+                    : 'hover:border-blue-400 hover:shadow-lg hover:shadow-blue-500/5'
+                }`}
               >
                 <div className="h-20 w-20 rounded-2xl overflow-hidden shrink-0 bg-slate-100 border border-slate-100">
                   <img
@@ -882,14 +909,20 @@ export default function ProductClientPage({
                 </div>
                 <div className="flex-1 min-w-0 flex flex-col justify-center">
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
+                    <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${
+                      rec.category === 'Plants' 
+                        ? 'text-emerald-600 bg-emerald-50' 
+                        : 'text-blue-600 bg-blue-50'
+                    }`}>
                       {rec.category}
                     </span>
                     <span className="text-[10px] font-semibold text-slate-400">
                       {rec.waterType}
                     </span>
                   </div>
-                  <h4 className="text-sm font-bold text-slate-900 mt-1 truncate group-hover:text-blue-600 transition-colors">{rec.title}</h4>
+                  <h4 className={`text-sm font-bold text-slate-900 mt-1 truncate transition-colors ${
+                    rec.category === 'Plants' ? 'group-hover:text-emerald-600' : 'group-hover:text-blue-600'
+                  }`}>{rec.title}</h4>
                   {rec.scientific && <p className="text-xs text-slate-400 italic font-serif truncate mt-0.5">{rec.scientific}</p>}
                   <div className="flex items-baseline gap-1 mt-2">
                     <span className="text-sm font-black text-slate-900">{formatPrice(rec.price)}</span>

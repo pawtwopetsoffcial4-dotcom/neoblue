@@ -16,6 +16,8 @@ export interface IStoreConfig {
   stat2Label: string;
   stat3Value: string;
   stat3Label: string;
+  freeShippingEnabled?: boolean;
+  freeShippingMinAmount?: number;
 }
 
 const StoreConfigSchema = new mongoose.Schema<IStoreConfig>(
@@ -34,6 +36,8 @@ const StoreConfigSchema = new mongoose.Schema<IStoreConfig>(
     stat2Label: { type: String, default: 'Priority Dispatch' },
     stat3Value: { type: String, default: '100%' },
     stat3Label: { type: String, default: 'Live Arrival Cover' },
+    freeShippingEnabled: { type: Boolean, default: false },
+    freeShippingMinAmount: { type: Number, default: 1499 },
   },
   { timestamps: true }
 );

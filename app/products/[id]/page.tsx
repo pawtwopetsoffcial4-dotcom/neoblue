@@ -1,12 +1,17 @@
 import React from 'react';
 import Link from 'next/link';
-import { Heart, Share2, Info } from 'lucide-react';
+import { notFound } from 'next/navigation';
+import { Heart, Info } from 'lucide-react';
+import ShareButton from '@/app/components/ShareButton';
 import mongoose from 'mongoose';
 import { connectDB } from '@/lib/db';
 import Product from '@/lib/models/Product';
 import Review from '@/lib/models/Review';
 import type { Metadata } from 'next';
 import ProductClientPage from './ProductClientPage';
+
+const toSlug = (value: string) =>
+  value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 
 type ProductDetailProps = {
   params: Promise<{ id: string }>;
@@ -63,7 +68,7 @@ export async function generateMetadata({ params }: ProductDetailProps): Promise<
         description: truncatedDesc,
         url: productUrl,
         images: product.images?.[0] ? [{ url: product.images[0] }] : [],
-        type: 'website',
+        type: 'article',
         siteName: 'NeoBlue',
       },
       twitter: {
@@ -82,20 +87,7 @@ export default async function ProductDetailPage({ params }: ProductDetailProps) 
   const { id } = await params;
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
-    return (
-      <div className="min-h-screen bg-[#F5F7FA] flex items-center justify-center p-4">
-         <div className="bg-white rounded-3xl p-8 max-w-md w-full text-center shadow-sm border border-slate-100">
-            <div className="w-16 h-16 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-4">
-               <Info className="h-8 w-8 text-rose-500" />
-            </div>
-            <h2 className="text-xl font-bold text-slate-900 mb-2">Oops! Product not found</h2>
-             <p className="text-slate-500 mb-6">Invalid product identifier format.</p>
-             <Link href="/products" className="inline-flex items-center justify-center h-12 px-6 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors w-full">
-               Return to Shop
-             </Link>
-         </div>
-      </div>
-    );
+    notFound();
   }
 
   let product: any = null;
@@ -109,7 +101,7 @@ export default async function ProductDetailPage({ params }: ProductDetailProps) 
     // 1. Fetch Product
     const dbProduct = await Product.findById(id).populate('vendorId', 'name email logo slug').lean();
     if (!dbProduct) {
-      throw new Error('Product not found');
+      notFound();
     }
     
     // Normalize ObjectID fields to string to avoid serialization warnings
@@ -139,21 +131,8 @@ export default async function ProductDetailPage({ params }: ProductDetailProps) 
     const dbAllProducts = await Product.find({ approvalStatus: 'approved', inStock: true }).select('title scientific category temperament').lean();
     allProducts = JSON.parse(JSON.stringify(dbAllProducts));
 
-  } catch (err: any) {
-    return (
-      <div className="min-h-screen bg-[#F5F7FA] flex items-center justify-center p-4">
-         <div className="bg-white rounded-3xl p-8 max-w-md w-full text-center shadow-sm border border-slate-100">
-            <div className="w-16 h-16 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-4">
-               <Info className="h-8 w-8 text-rose-500" />
-            </div>
-            <h2 className="text-xl font-bold text-slate-900 mb-2">Oops! Product not found</h2>
-             <p className="text-slate-500 mb-6">{err.message || "We couldn't find the product you're looking for."}</p>
-             <Link href="/products" className="inline-flex items-center justify-center h-12 px-6 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors w-full">
-               Return to Shop
-             </Link>
-         </div>
-      </div>
-    );
+  } catch {
+    notFound();
   }
 
   // Format reviews for schema
@@ -265,7 +244,7 @@ export default async function ProductDetailPage({ params }: ProductDetailProps) 
         "@type": "ListItem",
         "position": 3,
         "name": product.category,
-        "item": `https://neoblue.in/products?category=${product.category}`
+        "item": `https://neoblue.in/categories/${toSlug(product.category)}`
       },
       {
         "@type": "ListItem",
@@ -351,9 +330,7 @@ export default async function ProductDetailPage({ params }: ProductDetailProps) 
              <button className="h-10 w-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-rose-500 hover:border-rose-200 transition-all shadow-sm">
                 <Heart className="h-4 w-4" />
              </button>
-             <button className="h-10 w-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-blue-600 hover:border-blue-200 transition-all shadow-sm">
-                <Share2 className="h-4 w-4" />
-             </button>
+             <ShareButton title={product.title} text={product.description || undefined} />
           </div>
         </div>
       </nav>

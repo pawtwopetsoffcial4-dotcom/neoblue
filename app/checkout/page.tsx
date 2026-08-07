@@ -9,7 +9,7 @@ import { useAuth } from '@/lib/hooks/useAuth';
 import { apiClient } from '@/lib/api-client';
 import { Trash2, Plus, Minus, MapPin, ShoppingBag, ArrowRight, ShieldCheck, ArrowLeft, CheckSquare, AlertCircle } from 'lucide-react';
 import type { MarketplaceProduct } from '@/lib/types/marketplace';
-import { getRegionFromState, getProductShippingCharge } from '@/lib/utils/shipping';
+import { getRegionFromState, getProductShippingCharge, checkFreeShippingEligibility } from '@/lib/utils/shipping';
 import { useMode } from '@/lib/hooks/useMode';
 
 const PENDING_CASHFREE_CHECKOUT_KEY = 'pendingCashfreeCheckout';
@@ -44,6 +44,19 @@ function CheckoutPageContent() {
   const [saveAddress, setSaveAddress] = useState(true);
   const [address, setAddress] = useState({ street: '', city: '', state: '', zipcode: '', phone: '' });
   const [agreeToPolicy, setAgreeToPolicy] = useState(false);
+  const [storeConfig, setStoreConfig] = useState<any>(null);
+
+  useEffect(() => {
+    const loadConfig = async () => {
+      try {
+        const res = (await apiClient.getStoreConfig()) as any;
+        if (res) setStoreConfig(res);
+      } catch (e) {
+        console.error('Failed to load store config in checkout:', e);
+      }
+    };
+    loadConfig();
+  }, []);
 
 
   useEffect(() => {
@@ -205,7 +218,13 @@ function CheckoutPageContent() {
   const region = getRegionFromState(address.state);
   let isLocationServiceable = true;
   let nonServiceableMessage = '';
-  let shippingAmount = 0;
+  // Free Shipping Calculation Check
+  const freeShippingInfo = checkFreeShippingEligibility(
+    totalAmount,
+    items,
+    productDetails,
+    storeConfig
+  );
 
   items.forEach((item) => {
     const product = productDetails[item.productId];
@@ -231,6 +250,10 @@ function CheckoutPageContent() {
     shippingAmount += itemShipping;
   });
 
+  if (freeShippingInfo.isEligible) {
+    shippingAmount = 0;
+  }
+
   const orderTotal = totalAmount + shippingAmount;
 
   const handlePayNow = async () => {
@@ -244,7 +267,7 @@ function CheckoutPageContent() {
       return;
     }
 
-    if (shippingAmount <= 0) {
+    if (shippingAmount <= 0 && !freeShippingInfo.isEligible) {
       alert('Shipping charges are compulsory for every order. It seems the vendor has not configured shipping rates for your location.');
       return;
     }
@@ -571,8 +594,22 @@ function CheckoutPageContent() {
                     </div>
                     <div className="flex justify-between items-center text-gray-700">
                       <span>Shipping from products</span>
-                      <span>₹{shippingAmount.toFixed(2)}</span>
+                      <span>{freeShippingInfo.isEligible ? <strong className="text-emerald-600 font-extrabold uppercase">FREE</strong> : `₹${shippingAmount.toFixed(2)}`}</span>
                     </div>
+
+                    {freeShippingInfo.isEligible && (
+                      <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-2xl text-emerald-800 text-xs font-semibold flex items-center gap-2">
+                        <span className="text-base">🎉</span>
+                        <span>Free Shipping Applied! (Single-seller order over ₹{freeShippingInfo.minAmount})</span>
+                      </div>
+                    )}
+
+                    {freeShippingInfo.enabled && freeShippingInfo.isSingleVendor && !freeShippingInfo.isEligible && freeShippingInfo.remainingAmount > 0 && (
+                      <div className="p-3 bg-amber-50 border border-amber-200 rounded-2xl text-amber-900 text-xs font-semibold flex items-center gap-2">
+                        <span className="text-base">🚚</span>
+                        <span>Add <strong>₹{freeShippingInfo.remainingAmount.toFixed(0)}</strong> more of <strong>{freeShippingInfo.vendorName}</strong>&apos;s items for FREE Shipping!</span>
+                      </div>
+                    )}
 
                   </div>
 

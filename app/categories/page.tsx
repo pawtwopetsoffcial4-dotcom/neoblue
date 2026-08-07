@@ -45,20 +45,26 @@ export default async function CategoriesPage() {
     inStock: true,
   }).select('category subcategory images').lean() as any[];
 
-  const categories = categoryNames.map((category) => {
-    const cleaned = String(category);
-    const categoryProducts = products.filter((p) => p.category === cleaned);
-    const subcategories = Array.from(new Set(categoryProducts.map((p) => p.subcategory).filter(Boolean))) as string[];
-    const image = config?.categoryImages?.[cleaned] || getCategoryImage(cleaned) || categoryProducts.find((p) => Array.isArray(p.images) && p.images.length > 0)?.images?.[0] || 'https://img.freepik.com/free-photo/beautiful-fish-undersea_23-2150737797.jpg?w=800';
+  const seenSlugs = new Set<string>();
+  const categories = categoryNames
+    .map((category) => {
+      const cleaned = String(category);
+      const slug = toSlug(cleaned);
+      if (seenSlugs.has(slug)) return null;
+      seenSlugs.add(slug);
+      const categoryProducts = products.filter((p) => p.category === cleaned);
+      const subcategories = Array.from(new Set(categoryProducts.map((p) => p.subcategory).filter(Boolean))) as string[];
+      const image = config?.categoryImages?.[cleaned] || getCategoryImage(cleaned) || categoryProducts.find((p) => Array.isArray(p.images) && p.images.length > 0)?.images?.[0] || 'https://img.freepik.com/free-photo/beautiful-fish-undersea_23-2150737797.jpg?w=800';
 
-    return {
-      slug: toSlug(cleaned),
-      name: cleaned,
-      description: `Browse premium ${cleaned.toLowerCase()} products.`,
-      image,
-      subcategories,
-    };
-  });
+      return {
+        slug,
+        name: cleaned,
+        description: `Browse premium ${cleaned.toLowerCase()} products.`,
+        image,
+        subcategories,
+      };
+    })
+    .filter(Boolean);
 
   return <CategoriesClient categories={categories} />;
 }
