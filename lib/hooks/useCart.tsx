@@ -2,9 +2,10 @@
 
 import React, { createContext, useContext, useEffect, useMemo, useState, useRef } from 'react';
 import Link from 'next/link';
-import { X, CheckCircle2 } from 'lucide-react';
+import { X, CheckCircle2, ArrowRight, ShoppingBag } from 'lucide-react';
 import type { MarketplaceProduct } from '@/lib/types/marketplace';
 import { useAuth } from './useAuth';
+import { useMode } from './useMode';
 
 export type CartItem = {
   productId: string;
@@ -32,6 +33,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [toast, setToast] = useState<{ id: number; title: string; image?: string; price?: number } | null>(null);
   const toastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { user } = useAuth();
+  const { mode } = useMode();
+  const isPlants = mode === 'plants';
   const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Cleanup timeouts on unmount
@@ -195,7 +198,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     });
     toastTimeoutRef.current = setTimeout(() => {
       setToast(null);
-    }, 3500);
+    }, 3800);
   };
 
   const removeFromCart = (productId: string) => {
@@ -245,48 +248,61 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     >
       {children}
 
-      {/* Add To Cart Toast Notification */}
+      {/* Modern Storefront-Matching Toast Notification */}
       {toast && (
         <div
           key={toast.id}
-          className="fixed bottom-20 md:bottom-6 right-4 md:right-6 z-50 max-w-sm w-[calc(100vw-2rem)] sm:w-auto bg-slate-900 text-white rounded-2xl p-3 shadow-2xl border border-slate-800 flex items-center justify-between gap-3 animate-in fade-in slide-in-from-bottom-4 duration-300"
+          className="fixed bottom-20 md:bottom-6 right-4 md:right-6 z-50 max-w-md w-[calc(100vw-2rem)] sm:w-auto bg-white/95 backdrop-blur-md text-slate-900 rounded-2xl p-3.5 shadow-2xl shadow-slate-900/15 border border-slate-200/90 flex items-center justify-between gap-3 sm:gap-4 animate-in fade-in slide-in-from-bottom-4 duration-300"
         >
           <div className="flex items-center gap-3 min-w-0">
             {toast.image ? (
               <img
                 src={toast.image}
                 alt={toast.title}
-                className="w-10 h-10 rounded-xl object-cover border border-slate-700/60 shrink-0 bg-slate-800"
+                className="w-12 h-12 rounded-xl object-cover border border-slate-100 shrink-0 bg-slate-50 shadow-2xs"
               />
             ) : (
-              <div className="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700/60 flex items-center justify-center shrink-0 text-emerald-400 font-bold text-sm">
-                ✓
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 font-bold border ${
+                isPlants ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-blue-50 text-blue-600 border-blue-100'
+              }`}>
+                <ShoppingBag className="w-5 h-5" />
               </div>
             )}
+
             <div className="min-w-0">
               <div className="flex items-center gap-1.5">
-                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
-                <p className="text-xs font-bold text-white truncate max-w-[180px] sm:max-w-[220px]">
-                  {toast.title} added
-                </p>
+                <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md border flex items-center gap-1 ${
+                  isPlants ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-blue-50 text-blue-700 border-blue-200'
+                }`}>
+                  <CheckCircle2 className="w-3 h-3" />
+                  Added
+                </span>
               </div>
-              <p className="text-[11px] text-slate-400 mt-0.5 truncate">
-                Added to your cart • {toast.price ? `₹${toast.price}` : ''}
+              <p className="text-xs font-black text-slate-900 truncate mt-1 max-w-[160px] sm:max-w-[210px]">
+                {toast.title}
+              </p>
+              <p className="text-[11px] font-semibold text-slate-500 mt-0.5">
+                Added to cart • <strong className="text-slate-900">₹{toast.price ?? 0}</strong>
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5 shrink-0">
+          <div className="flex items-center gap-2 shrink-0">
             <Link
               href="/checkout"
               onClick={() => setToast(null)}
-              className="h-8 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs transition-colors flex items-center justify-center cursor-pointer shadow-xs"
+              className={`h-9 px-3.5 rounded-xl text-white font-extrabold text-xs transition-all active:scale-95 flex items-center gap-1 cursor-pointer shadow-md ${
+                isPlants
+                  ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/20'
+                  : 'bg-blue-600 hover:bg-blue-700 shadow-blue-600/20'
+              }`}
             >
               View Cart
+              <ArrowRight className="w-3.5 h-3.5" />
             </Link>
             <button
               onClick={() => setToast(null)}
-              className="p-1 text-slate-400 hover:text-white rounded-lg transition-colors cursor-pointer"
+              className="h-7 w-7 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center transition-colors cursor-pointer"
               aria-label="Close notification"
             >
               <X className="h-4 w-4" />
