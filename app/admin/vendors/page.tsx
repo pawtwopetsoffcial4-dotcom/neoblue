@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { apiClient } from '@/lib/api-client';
-import { X, Save, ShieldAlert, Zap, Truck, CheckSquare, Square, Settings, Percent, Copy, Sliders, CheckCircle2 } from 'lucide-react';
+import { X, Save, ShieldAlert, Truck, CheckSquare, Square, Settings, Percent, Copy, Sliders, CheckCircle2, Layers, Gift } from 'lucide-react';
 
 type Vendor = {
   _id: string;
@@ -183,7 +183,7 @@ export default function AdminVendorsPage() {
         current.map(v => v._id === selectedVendor._id ? { ...v, ...dataToSave } : v)
       );
       
-      setMessage(`Shipping configured successfully for ${selectedVendor.name}`);
+      setMessage(`Shipping rates updated for ${selectedVendor.name}`);
       setSelectedVendor(null);
     } catch {
       setMessage('Failed to save shipping configuration');
@@ -264,82 +264,87 @@ export default function AdminVendorsPage() {
   const approvedCount = vendors.filter((vendor) => vendor.isApproved).length;
 
   return (
-    <div className="space-y-6 pb-12">
-      {/* Header & Bulk Buttons */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div className="space-y-6 pb-12 text-slate-900 max-w-7xl mx-auto">
+      {/* Header Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200/80 pb-5">
         <div>
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue-600 mb-1">Shipping & Approvals</p>
-          <h1 className="text-3xl md:text-4xl font-black tracking-tight text-slate-900">Vendor Management</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Vendors & Shipping Control</h1>
+          <p className="text-xs text-slate-500 mt-1">Manage vendor accounts, regional weight rates, and global free shipping thresholds.</p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           <button
             onClick={() => setShowBulkModal(true)}
-            className="h-11 px-5 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold text-sm shadow-md shadow-blue-600/20 hover:from-blue-700 hover:to-indigo-700 transition-all flex items-center gap-2 cursor-pointer active:scale-95"
+            className="h-9 px-4 rounded-lg bg-slate-900 text-white font-medium text-xs hover:bg-slate-800 transition-colors shadow-xs flex items-center gap-2 cursor-pointer"
           >
-            <Zap className="h-4 w-4 text-amber-300 fill-amber-300" />
+            <Layers className="h-3.5 w-3.5" />
             Bulk Shipping Manager
           </button>
         </div>
       </div>
 
-      {/* Overview Stats */}
-      <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="rounded-2xl bg-white border border-slate-200/80 p-5 shadow-2xs">
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Vendors</p>
-          <p className="text-3xl font-black text-slate-900 mt-1">{vendors.length}</p>
+      {/* Metrics Row */}
+      <section className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div className="bg-white rounded-xl border border-slate-200/80 p-4 shadow-xs">
+          <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Total Vendors</p>
+          <p className="text-2xl font-bold text-slate-900 mt-1">{vendors.length}</p>
         </div>
-        <div className="rounded-2xl bg-white border border-blue-100 p-5 shadow-2xs">
-          <p className="text-xs font-bold text-amber-600 uppercase tracking-wider">Pending Approval</p>
-          <p className="text-3xl font-black text-slate-900 mt-1">{pendingCount}</p>
+        <div className="bg-white rounded-xl border border-slate-200/80 p-4 shadow-xs">
+          <p className="text-[11px] font-semibold text-amber-600 uppercase tracking-wider">Pending</p>
+          <p className="text-2xl font-bold text-slate-900 mt-1">{pendingCount}</p>
         </div>
-        <div className="rounded-2xl bg-white border border-emerald-100 p-5 shadow-2xs">
-          <p className="text-xs font-bold text-emerald-600 uppercase tracking-wider">Approved Vendors</p>
-          <p className="text-3xl font-black text-emerald-600 mt-1">{approvedCount}</p>
+        <div className="bg-white rounded-xl border border-slate-200/80 p-4 shadow-xs">
+          <p className="text-[11px] font-semibold text-emerald-600 uppercase tracking-wider">Approved</p>
+          <p className="text-2xl font-bold text-slate-900 mt-1">{approvedCount}</p>
+        </div>
+        <div className="bg-white rounded-xl border border-slate-200/80 p-4 shadow-xs">
+          <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Free Shipping Rule</p>
+          <p className="text-xs font-semibold text-slate-900 mt-2 flex items-center gap-1.5">
+            <span className={`h-2 w-2 rounded-full ${freeShippingEnabled ? 'bg-emerald-500' : 'bg-slate-300'}`} />
+            {freeShippingEnabled ? `≥ ₹${freeShippingMinAmount}` : 'Disabled'}
+          </p>
         </div>
       </section>
 
-      {/* Notification Message */}
+      {/* Notification Toast */}
       {message && (
-        <div className="rounded-2xl border border-blue-200 bg-blue-50 px-5 py-4 text-sm font-semibold text-blue-800 flex items-center justify-between shadow-2xs">
+        <div className="rounded-lg border border-slate-200 bg-slate-900 text-white px-4 py-3 text-xs font-medium flex items-center justify-between shadow-xs">
           <span>{message}</span>
-          <button onClick={() => setMessage(null)} className="text-blue-500 hover:text-blue-700 font-bold">Dismiss</button>
+          <button onClick={() => setMessage(null)} className="text-slate-400 hover:text-white font-bold ml-4">Dismiss</button>
         </div>
       )}
 
-      {/* Vendor Table Actions Bar */}
-      <div className="flex items-center justify-between bg-white rounded-2xl border border-slate-200/80 px-5 py-3 shadow-2xs">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={toggleSelectAll}
-            className="flex items-center gap-2 text-xs font-bold text-slate-700 hover:text-blue-600 cursor-pointer"
-          >
-            {selectedVendorIds.length === vendors.length && vendors.length > 0 ? (
-              <CheckSquare className="h-4 w-4 text-blue-600" />
-            ) : (
-              <Square className="h-4 w-4 text-slate-400" />
-            )}
-            Select All ({selectedVendorIds.length}/{vendors.length})
-          </button>
-        </div>
+      {/* Action Toolbar */}
+      <div className="flex items-center justify-between bg-white rounded-xl border border-slate-200/80 px-4 py-2.5 shadow-xs">
+        <button
+          onClick={toggleSelectAll}
+          className="flex items-center gap-2 text-xs font-medium text-slate-600 hover:text-slate-900 cursor-pointer"
+        >
+          {selectedVendorIds.length === vendors.length && vendors.length > 0 ? (
+            <CheckSquare className="h-4 w-4 text-slate-900" />
+          ) : (
+            <Square className="h-4 w-4 text-slate-300" />
+          )}
+          <span>Select All ({selectedVendorIds.length}/{vendors.length})</span>
+        </button>
 
         {selectedVendorIds.length > 0 && (
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-blue-600">{selectedVendorIds.length} selected</span>
+          <div className="flex items-center gap-3">
+            <span className="text-xs font-medium text-slate-600">{selectedVendorIds.length} vendor(s) selected</span>
             <button
               onClick={() => {
                 setBulkTargetScope('selected');
                 setShowBulkModal(true);
               }}
-              className="h-8 px-3 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 font-bold text-xs hover:bg-blue-100 transition-colors"
+              className="h-8 px-3 rounded-lg bg-slate-100 border border-slate-200 text-slate-900 font-semibold text-xs hover:bg-slate-200 transition-colors cursor-pointer"
             >
-              Bulk Action on Selected
+              Apply Action to Selected
             </button>
           </div>
         )}
       </div>
 
-      {/* Vendors List */}
+      {/* Vendors Table / List */}
       <div className="space-y-3">
         {vendors.map((vendor) => {
           const isSelected = selectedVendorIds.includes(vendor._id);
@@ -349,27 +354,27 @@ export default function AdminVendorsPage() {
           return (
             <article
               key={vendor._id}
-              className={`rounded-2xl bg-white border transition-all duration-200 p-5 ${
-                isSelected ? 'border-blue-400 bg-blue-50/20 ring-1 ring-blue-400' : 'border-slate-200/80 hover:border-slate-300'
+              className={`rounded-xl bg-white border p-4 sm:p-5 transition-all shadow-xs ${
+                isSelected ? 'border-slate-400 bg-slate-50/50' : 'border-slate-200/80 hover:border-slate-300'
               }`}
             >
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div className="flex items-start gap-3">
                   <button
                     onClick={() => toggleSelectVendor(vendor._id)}
-                    className="mt-1 text-slate-400 hover:text-blue-600 cursor-pointer"
+                    className="mt-0.5 text-slate-400 hover:text-slate-900 cursor-pointer"
                   >
                     {isSelected ? (
-                      <CheckSquare className="h-5 w-5 text-blue-600" />
+                      <CheckSquare className="h-4 w-4 text-slate-900" />
                     ) : (
-                      <Square className="h-5 w-5 text-slate-300" />
+                      <Square className="h-4 w-4 text-slate-300" />
                     )}
                   </button>
 
                   <div>
-                    <div className="flex items-center gap-2">
-                      <p className="font-bold text-slate-900 text-base">{vendor.name}</p>
-                      <span className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-md ${
+                    <div className="flex items-center gap-2.5">
+                      <h3 className="font-semibold text-slate-900 text-sm">{vendor.name}</h3>
+                      <span className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-md ${
                         vendor.isApproved ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'
                       }`}>
                         {vendor.isApproved ? 'Approved' : 'Pending'}
@@ -378,18 +383,16 @@ export default function AdminVendorsPage() {
 
                     <p className="text-xs text-slate-500 mt-0.5">{vendor.email} {vendor.phone ? `• ${vendor.phone}` : ''}</p>
 
-                    {/* Shipping Summary Badges */}
-                    <div className="flex flex-wrap items-center gap-2 mt-2.5">
-                      <span className="text-[11px] font-bold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg flex items-center gap-1">
-                        <Truck className="h-3 w-3 text-blue-600" />
-                        North 500g: <strong className="text-slate-900">₹{baseNorth}</strong>
+                    {/* Inline Rate Badges */}
+                    <div className="flex flex-wrap items-center gap-2 mt-2">
+                      <span className="text-[11px] font-medium text-slate-600 bg-slate-100 border border-slate-200/60 px-2.5 py-0.5 rounded-md">
+                        North: <strong className="text-slate-900 font-semibold">₹{baseNorth}</strong> (500g)
                       </span>
-                      <span className="text-[11px] font-bold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg flex items-center gap-1">
-                        <Truck className="h-3 w-3 text-orange-600" />
-                        South 500g: <strong className="text-slate-900">₹{baseSouth}</strong>
+                      <span className="text-[11px] font-medium text-slate-600 bg-slate-100 border border-slate-200/60 px-2.5 py-0.5 rounded-md">
+                        South: <strong className="text-slate-900 font-semibold">₹{baseSouth}</strong> (500g)
                       </span>
                       {vendor.nonServiceableStates && vendor.nonServiceableStates.length > 0 && (
-                        <span className="text-[11px] font-bold text-rose-700 bg-rose-50 px-2.5 py-1 rounded-lg border border-rose-100">
+                        <span className="text-[11px] font-medium text-rose-700 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-md">
                           {vendor.nonServiceableStates.length} Excluded States
                         </span>
                       )}
@@ -397,27 +400,27 @@ export default function AdminVendorsPage() {
                   </div>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-2 shrink-0 ml-8 md:ml-0">
+                <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
                   <button
                     onClick={() => openShippingModal(vendor)}
-                    className="h-10 px-4 rounded-xl border border-blue-200 text-blue-700 font-bold text-xs hover:bg-blue-50 transition-colors flex items-center gap-1.5 cursor-pointer"
+                    className="h-8 px-3 rounded-lg border border-slate-200 bg-white text-slate-700 font-medium text-xs hover:bg-slate-50 transition-colors flex items-center gap-1.5 cursor-pointer"
                   >
-                    <Settings className="h-3.5 w-3.5" />
+                    <Settings className="h-3.5 w-3.5 text-slate-500" />
                     Configure Shipping
                   </button>
 
                   <button
                     onClick={() => updateVendor(vendor._id, 'approve')}
                     disabled={isUpdating || vendor.isApproved}
-                    className="h-10 px-4 rounded-xl bg-blue-600 text-white font-bold text-xs hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                    className="h-8 px-3 rounded-lg bg-emerald-600 text-white font-medium text-xs hover:bg-emerald-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
                   >
-                    {vendor.isApproved ? 'Approved' : isUpdating ? 'Updating...' : 'Approve'}
+                    {vendor.isApproved ? 'Approved' : 'Approve'}
                   </button>
 
                   <button
                     onClick={() => updateVendor(vendor._id, 'reject')}
                     disabled={isUpdating}
-                    className="h-10 px-4 rounded-xl border border-rose-200 text-rose-600 font-bold text-xs hover:bg-rose-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                    className="h-8 px-3 rounded-lg border border-rose-200 text-rose-600 font-medium text-xs hover:bg-rose-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
                   >
                     Reject
                   </button>
@@ -428,53 +431,48 @@ export default function AdminVendorsPage() {
         })}
 
         {vendors.length === 0 && (
-          <div className="rounded-2xl bg-white border border-slate-200/80 p-8 text-center text-slate-500 font-medium">
+          <div className="rounded-xl bg-white border border-slate-200/80 p-8 text-center text-xs text-slate-500 font-medium">
             No vendors found.
           </div>
         )}
       </div>
 
-      {/* ⚡ BULK SHIPPING MANAGER MODAL */}
+      {/* 🛠️ BULK SHIPPING MANAGER MODAL */}
       {showBulkModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white rounded-3xl w-full max-w-4xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden border border-slate-100">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl w-full max-w-3xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden border border-slate-200">
             {/* Modal Header */}
-            <div className="bg-slate-900 text-white p-6 flex items-center justify-between shrink-0">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-blue-600/30 border border-blue-400/30 flex items-center justify-center text-amber-400">
-                  <Zap className="h-5 w-5 fill-amber-400" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-black tracking-tight text-white">Bulk Shipping Manager</h2>
-                  <p className="text-xs text-slate-400 mt-0.5">Manipulate vendor shipping rates all at once across regions and slabs</p>
-                </div>
+            <div className="border-b border-slate-200 px-6 py-4 flex items-center justify-between shrink-0 bg-white">
+              <div>
+                <h2 className="text-lg font-bold text-slate-900">Bulk Shipping Manager</h2>
+                <p className="text-xs text-slate-500 mt-0.5">Batch update shipping rates across vendors</p>
               </div>
-              <button onClick={() => setShowBulkModal(false)} className="p-2 text-slate-400 hover:text-white rounded-full hover:bg-white/10 transition-colors">
-                <X className="w-6 h-6" />
+              <button onClick={() => setShowBulkModal(false)} className="h-8 w-8 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg flex items-center justify-center transition-colors">
+                <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Scope Selection Bar */}
-            <div className="bg-slate-100/80 border-b border-slate-200 px-6 py-3 flex flex-wrap items-center justify-between gap-3 text-xs font-bold text-slate-700">
+            {/* Scope Selection */}
+            <div className="bg-slate-50 border-b border-slate-200 px-6 py-3 flex flex-wrap items-center justify-between gap-3 text-xs font-medium text-slate-700">
               <div className="flex items-center gap-2">
-                <span>Target Vendors:</span>
+                <span className="text-slate-500">Target Vendors:</span>
                 <select
                   value={bulkTargetScope}
                   onChange={(e) => setBulkTargetScope(e.target.value as any)}
-                  className="bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500"
+                  className="bg-white border border-slate-200 rounded-lg px-2.5 py-1 text-xs font-semibold text-slate-900 outline-none"
                 >
                   <option value="all">All Vendors ({vendors.length})</option>
                   <option value="approvedOnly">Approved Vendors Only ({approvedCount})</option>
-                  <option value="selected">Checkbox Selected ({selectedVendorIds.length})</option>
+                  <option value="selected">Selected ({selectedVendorIds.length})</option>
                 </select>
               </div>
 
               <div className="flex items-center gap-2">
-                <span>Region:</span>
+                <span className="text-slate-500">Region:</span>
                 <select
                   value={bulkRegion}
                   onChange={(e) => setBulkRegion(e.target.value as any)}
-                  className="bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500"
+                  className="bg-white border border-slate-200 rounded-lg px-2.5 py-1 text-xs font-semibold text-slate-900 outline-none"
                 >
                   <option value="both">Both North & South</option>
                   <option value="North">North India Only</option>
@@ -483,55 +481,53 @@ export default function AdminVendorsPage() {
               </div>
             </div>
 
-            {/* Bulk Action Tabs */}
+            {/* Navigation Tabs */}
             <div className="flex border-b border-slate-200 bg-white px-6 overflow-x-auto hide-scrollbar shrink-0">
               {[
                 { id: 'fixed', label: 'Fixed Rates', icon: Sliders },
-                { id: 'adjust', label: 'Flat / % Adjust', icon: Percent },
-                { id: 'copy', label: 'Sync Regions', icon: Copy },
+                { id: 'adjust', label: 'Price Adjustment', icon: Percent },
+                { id: 'copy', label: 'Region Sync', icon: Copy },
                 { id: 'serviceability', label: 'Serviceability', icon: ShieldAlert },
-                { id: 'freeShipping', label: '🎁 Free Shipping Rule', icon: Truck },
+                { id: 'freeShipping', label: 'Free Shipping Rule', icon: Gift },
               ].map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setBulkTab(tab.id as any)}
-                  className={`flex items-center gap-2 px-4 py-3.5 text-xs font-extrabold border-b-2 whitespace-nowrap cursor-pointer transition-all ${
+                  className={`flex items-center gap-2 px-4 py-3 text-xs font-medium border-b-2 whitespace-nowrap cursor-pointer transition-all ${
                     bulkTab === tab.id
-                      ? 'border-blue-600 text-blue-600 bg-blue-50/50'
-                      : 'border-transparent text-slate-500 hover:text-slate-900'
+                      ? 'border-slate-900 text-slate-900 font-semibold'
+                      : 'border-transparent text-slate-500 hover:text-slate-800'
                   }`}
                 >
-                  <tab.icon className="h-4 w-4" />
+                  <tab.icon className="h-3.5 w-3.5" />
                   {tab.label}
                 </button>
               ))}
             </div>
 
-            {/* Modal Body Content */}
+            {/* Content Body */}
             <div className="p-6 overflow-y-auto flex-1 space-y-6">
 
-              {/* TAB 1: FIXED RATES */}
+              {/* FIXED RATES */}
               {bulkTab === 'fixed' && (
-                <div className="space-y-6">
-                  <p className="text-xs text-slate-600 bg-blue-50 border border-blue-200 rounded-xl p-3 font-semibold">
-                    Set uniform rate slabs across all targeted vendors. Empty or zero values will set free rate for that slab.
-                  </p>
+                <div className="space-y-5">
+                  <p className="text-xs text-slate-500 font-medium">Set uniform rate slabs for targeted vendors.</p>
 
                   {(bulkRegion === 'North' || bulkRegion === 'both') && (
-                    <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-5">
-                      <h4 className="font-bold text-slate-900 text-sm mb-3">North India Rates</h4>
+                    <div className="space-y-3">
+                      <h4 className="font-semibold text-slate-900 text-xs uppercase tracking-wider text-slate-500">North India Rates</h4>
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                         {SLABS.map(s => (
-                          <div key={s.key} className="bg-white p-3 rounded-xl border border-slate-200">
-                            <label className="text-[10px] font-bold text-slate-500 uppercase">{s.label}</label>
+                          <div key={s.key} className="bg-white p-2.5 rounded-lg border border-slate-200">
+                            <label className="text-[10px] font-semibold text-slate-500 uppercase">{s.label}</label>
                             <div className="flex items-center gap-1 mt-1">
-                              <span className="text-slate-400 font-bold text-xs">₹</span>
+                              <span className="text-slate-400 text-xs">₹</span>
                               <input
                                 type="number"
                                 min="0"
                                 value={bulkRatesNorth[s.key] ?? ''}
                                 onChange={(e) => setBulkRatesNorth({ ...bulkRatesNorth, [s.key]: parseFloat(e.target.value) || 0 })}
-                                className="w-full text-sm font-bold outline-none"
+                                className="w-full text-xs font-semibold outline-none"
                               />
                             </div>
                           </div>
@@ -541,20 +537,20 @@ export default function AdminVendorsPage() {
                   )}
 
                   {(bulkRegion === 'South' || bulkRegion === 'both') && (
-                    <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-5">
-                      <h4 className="font-bold text-slate-900 text-sm mb-3">South India Rates</h4>
+                    <div className="space-y-3 pt-2">
+                      <h4 className="font-semibold text-xs uppercase tracking-wider text-slate-500">South India Rates</h4>
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                         {SLABS.map(s => (
-                          <div key={s.key} className="bg-white p-3 rounded-xl border border-slate-200">
-                            <label className="text-[10px] font-bold text-slate-500 uppercase">{s.label}</label>
+                          <div key={s.key} className="bg-white p-2.5 rounded-lg border border-slate-200">
+                            <label className="text-[10px] font-semibold text-slate-500 uppercase">{s.label}</label>
                             <div className="flex items-center gap-1 mt-1">
-                              <span className="text-slate-400 font-bold text-xs">₹</span>
+                              <span className="text-slate-400 text-xs">₹</span>
                               <input
                                 type="number"
                                 min="0"
                                 value={bulkRatesSouth[s.key] ?? ''}
                                 onChange={(e) => setBulkRatesSouth({ ...bulkRatesSouth, [s.key]: parseFloat(e.target.value) || 0 })}
-                                className="w-full text-sm font-bold outline-none"
+                                className="w-full text-xs font-semibold outline-none"
                               />
                             </div>
                           </div>
@@ -565,97 +561,87 @@ export default function AdminVendorsPage() {
                 </div>
               )}
 
-              {/* TAB 2: FLAT / PERCENT ADJUST */}
+              {/* ADJUSTMENT */}
               {bulkTab === 'adjust' && (
-                <div className="space-y-6 max-w-xl">
-                  <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-xs font-semibold text-amber-800">
-                    Increase or decrease existing shipping rates across slabs for targeted vendors by a flat amount (e.g. +₹20) or percentage (e.g. +10%).
-                  </div>
-
-                  <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-4">
-                    <div>
-                      <label className="text-xs font-bold text-slate-700">Flat Amount Adjustment (₹)</label>
-                      <div className="flex items-center gap-2 mt-1">
-                        <input
-                          type="number"
-                          value={bulkAdjustAmount}
-                          onChange={(e) => setBulkAdjustAmount(e.target.value)}
-                          placeholder="e.g. 20 or -15"
-                          className="h-10 px-4 rounded-xl border border-slate-300 text-sm font-bold outline-none focus:border-blue-500 w-full"
-                        />
-                      </div>
-                      <p className="text-[11px] text-slate-500 mt-1">Use positive value to increase rates (+₹20) or negative value to discount (-₹15).</p>
-                    </div>
+                <div className="space-y-4 max-w-lg">
+                  <p className="text-xs text-slate-500 font-medium">Add or subtract a flat ₹ amount from existing vendor shipping rates across slabs.</p>
+                  <div>
+                    <label className="text-xs font-semibold text-slate-700">Flat Amount Offset (₹)</label>
+                    <input
+                      type="number"
+                      value={bulkAdjustAmount}
+                      onChange={(e) => setBulkAdjustAmount(e.target.value)}
+                      placeholder="e.g. 20 or -10"
+                      className="h-9 px-3 rounded-lg border border-slate-200 text-xs font-semibold outline-none focus:border-slate-400 w-full mt-1.5"
+                    />
+                    <p className="text-[11px] text-slate-400 mt-1">Positive values increase rates (+₹20); negative values discount (-₹10).</p>
                   </div>
                 </div>
               )}
 
-              {/* TAB 3: REGION COPY */}
+              {/* REGION SYNC */}
               {bulkTab === 'copy' && (
-                <div className="space-y-6 max-w-xl">
-                  <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-3">
-                    <h4 className="font-bold text-slate-900 text-sm">Copy Rates Between Regions</h4>
-                    <label className="flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-xl cursor-pointer">
-                      <input
-                        type="radio"
-                        name="copyDir"
-                        checked={bulkCopyDirection === 'northToSouth'}
-                        onChange={() => setBulkCopyDirection('northToSouth')}
-                        className="w-4 h-4 text-blue-600"
-                      />
-                      <span className="text-xs font-bold text-slate-800">Copy North Rates → South Region for all target vendors</span>
-                    </label>
+                <div className="space-y-3 max-w-lg">
+                  <p className="text-xs text-slate-500 font-medium">Copy rates between regions for all targeted vendors.</p>
+                  <label className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-200 rounded-lg cursor-pointer text-xs font-medium text-slate-800">
+                    <input
+                      type="radio"
+                      name="copyDir"
+                      checked={bulkCopyDirection === 'northToSouth'}
+                      onChange={() => setBulkCopyDirection('northToSouth')}
+                      className="w-4 h-4 text-slate-900"
+                    />
+                    <span>Copy North Rates → South Region</span>
+                  </label>
 
-                    <label className="flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-xl cursor-pointer">
-                      <input
-                        type="radio"
-                        name="copyDir"
-                        checked={bulkCopyDirection === 'southToNorth'}
-                        onChange={() => setBulkCopyDirection('southToNorth')}
-                        className="w-4 h-4 text-blue-600"
-                      />
-                      <span className="text-xs font-bold text-slate-800">Copy South Rates → North Region for all target vendors</span>
-                    </label>
-                  </div>
+                  <label className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-200 rounded-lg cursor-pointer text-xs font-medium text-slate-800">
+                    <input
+                      type="radio"
+                      name="copyDir"
+                      checked={bulkCopyDirection === 'southToNorth'}
+                      onChange={() => setBulkCopyDirection('southToNorth')}
+                      className="w-4 h-4 text-slate-900"
+                    />
+                    <span>Copy South Rates → North Region</span>
+                  </label>
                 </div>
               )}
 
-              {/* TAB 4: GLOBAL SERVICEABILITY */}
+              {/* SERVICEABILITY */}
               {bulkTab === 'serviceability' && (
-                <div className="space-y-6">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <label className="flex items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-2xl cursor-pointer">
-                      <span className="text-sm font-bold text-slate-800">Deliver to North India</span>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <label className="flex items-center justify-between p-3.5 bg-slate-50 border border-slate-200 rounded-lg cursor-pointer text-xs font-medium text-slate-800">
+                      <span>Deliver to North India</span>
                       <input
                         type="checkbox"
                         checked={bulkDeliverNorth}
                         onChange={(e) => setBulkDeliverNorth(e.target.checked)}
-                        className="w-5 h-5 rounded text-blue-600"
+                        className="w-4 h-4 rounded text-slate-900"
                       />
                     </label>
 
-                    <label className="flex items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-2xl cursor-pointer">
-                      <span className="text-sm font-bold text-slate-800">Deliver to South India</span>
+                    <label className="flex items-center justify-between p-3.5 bg-slate-50 border border-slate-200 rounded-lg cursor-pointer text-xs font-medium text-slate-800">
+                      <span>Deliver to South India</span>
                       <input
                         type="checkbox"
                         checked={bulkDeliverSouth}
                         onChange={(e) => setBulkDeliverSouth(e.target.checked)}
-                        className="w-5 h-5 rounded text-blue-600"
+                        className="w-4 h-4 rounded text-slate-900"
                       />
                     </label>
                   </div>
 
-                  <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3">
-                    <h4 className="font-bold text-slate-900 text-sm">Global Non-Serviceable States</h4>
-                    <p className="text-xs text-slate-500">Select state restrictions to apply across targeted vendors</p>
-                    <div className="max-h-[220px] overflow-y-auto pr-2 grid grid-cols-2 sm:grid-cols-3 gap-2 pt-2 custom-scrollbar">
+                  <div className="border border-slate-200 rounded-lg p-4 space-y-2">
+                    <h4 className="font-semibold text-slate-900 text-xs">Excluded States</h4>
+                    <div className="max-h-[200px] overflow-y-auto pr-2 grid grid-cols-2 sm:grid-cols-3 gap-1.5 custom-scrollbar pt-1">
                       {INDIAN_STATES.map((state) => (
-                        <label key={`bulk-${state}`} className="flex items-center gap-2 p-2 hover:bg-slate-50 rounded-xl cursor-pointer text-xs font-semibold text-slate-700">
+                        <label key={`bulk-${state}`} className="flex items-center gap-2 p-1.5 hover:bg-slate-50 rounded cursor-pointer text-xs text-slate-700">
                           <input
                             type="checkbox"
                             checked={bulkNonServiceableStates.includes(state)}
                             onChange={() => setBulkNonServiceableStates(prev => prev.includes(state) ? prev.filter(s => s !== state) : [...prev, state])}
-                            className="w-4 h-4 rounded text-blue-600"
+                            className="w-3.5 h-3.5 rounded text-slate-900"
                           />
                           <span>{state}</span>
                         </label>
@@ -665,52 +651,45 @@ export default function AdminVendorsPage() {
                 </div>
               )}
 
-              {/* TAB 5: FREE SHIPPING THRESHOLD RULE */}
+              {/* FREE SHIPPING RULE */}
               {bulkTab === 'freeShipping' && (
-                <div className="space-y-6 max-w-xl">
-                  <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-5 space-y-4">
-                    <div className="flex items-center justify-between">
+                <div className="space-y-4 max-w-lg">
+                  <div className="border border-slate-200 rounded-xl p-5 space-y-4 bg-slate-50/50">
+                    <div className="flex items-center justify-between border-b border-slate-200 pb-3">
                       <div className="flex items-center gap-2">
-                        <Truck className="h-5 w-5 text-emerald-600" />
-                        <h4 className="font-black text-emerald-950 text-base">Single-Vendor Free Shipping Rule</h4>
+                        <Gift className="h-4 w-4 text-slate-900" />
+                        <h4 className="font-semibold text-slate-900 text-sm">Single-Seller Free Shipping Threshold</h4>
                       </div>
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={freeShippingEnabled}
-                          onChange={(e) => setFreeShippingEnabled(e.target.checked)}
-                          className="sr-only peer"
-                        />
-                        <div className="w-11 h-6 bg-slate-300 rounded-full peer peer-checked:after:translate-x-full after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
-                      </label>
+                      <input
+                        type="checkbox"
+                        checked={freeShippingEnabled}
+                        onChange={(e) => setFreeShippingEnabled(e.target.checked)}
+                        className="h-4 w-4 rounded text-slate-900 cursor-pointer"
+                      />
                     </div>
 
-                    <p className="text-xs text-emerald-900 leading-relaxed font-semibold">
-                      When enabled, shipping charges are <strong>FREE (₹0)</strong> for any customer order if <strong>all products in the cart are from the same vendor</strong> and the cart subtotal meets or exceeds the minimum required order amount below.
+                    <p className="text-xs text-slate-600 leading-relaxed">
+                      Automatically grant <strong>FREE (₹0) Shipping</strong> when all items in the cart are from the <strong>same vendor</strong> and cart subtotal meets or exceeds the threshold.
                     </p>
 
                     <div>
-                      <label className="text-xs font-bold text-emerald-950 uppercase tracking-wider">Minimum Order Amount (₹)</label>
-                      <div className="relative flex items-center mt-1.5">
-                        <span className="absolute left-3.5 text-slate-500 font-extrabold text-sm">₹</span>
-                        <input
-                          type="number"
-                          min="0"
-                          value={freeShippingMinAmount}
-                          onChange={(e) => setFreeShippingMinAmount(e.target.value)}
-                          className="w-full h-11 pl-8 pr-4 rounded-xl border border-emerald-300 bg-white font-black text-base text-slate-900 outline-none focus:ring-2 focus:ring-emerald-500"
-                        />
-                      </div>
-                      <p className="text-[11px] text-emerald-700 mt-1 font-medium">Standard default: ₹1,499. Orders below this amount or containing multi-seller items will pay normal rates.</p>
+                      <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Minimum Order Subtotal (₹)</label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={freeShippingMinAmount}
+                        onChange={(e) => setFreeShippingMinAmount(e.target.value)}
+                        className="h-9 px-3 rounded-lg border border-slate-200 bg-white font-bold text-sm text-slate-900 outline-none w-full mt-1"
+                      />
                     </div>
 
                     <button
                       onClick={saveFreeShippingConfig}
                       disabled={isSavingFreeShipping}
-                      className="h-11 px-6 rounded-xl bg-emerald-600 text-white font-bold text-xs hover:bg-emerald-700 transition-colors flex items-center gap-2 cursor-pointer disabled:opacity-60"
+                      className="h-9 px-4 rounded-lg bg-slate-900 text-white font-semibold text-xs hover:bg-slate-800 transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
                     >
-                      <Save className="h-4 w-4" />
-                      {isSavingFreeShipping ? 'Saving...' : 'Save Free Shipping Rule'}
+                      <Save className="h-3.5 w-3.5" />
+                      {isSavingFreeShipping ? 'Saving...' : 'Save Free Shipping Setting'}
                     </button>
                   </div>
                 </div>
@@ -719,17 +698,15 @@ export default function AdminVendorsPage() {
 
             {/* Modal Footer */}
             {bulkTab !== 'freeShipping' && (
-              <div className="p-6 border-t border-slate-200 bg-slate-50 rounded-b-3xl flex items-center justify-between shrink-0">
-                <p className="text-xs font-semibold text-slate-500">
-                  Targeting: <strong className="text-slate-900">{bulkTargetScope === 'all' ? `All ${vendors.length} vendors` : bulkTargetScope === 'approvedOnly' ? `Approved ${approvedCount} vendors` : `${selectedVendorIds.length} selected vendors`}</strong>
-                </p>
-
-                <div className="flex gap-3">
-                  <button onClick={() => setShowBulkModal(false)} className="h-11 px-6 rounded-xl font-bold text-slate-600 hover:bg-slate-200 transition-colors text-xs">
+              <div className="p-4 border-t border-slate-200 bg-slate-50 shrink-0 flex items-center justify-between">
+                <span className="text-xs text-slate-500">
+                  Targeting {bulkTargetScope === 'all' ? `All ${vendors.length} vendors` : bulkTargetScope === 'approvedOnly' ? `Approved ${approvedCount} vendors` : `${selectedVendorIds.length} selected vendors`}
+                </span>
+                <div className="flex gap-2">
+                  <button onClick={() => setShowBulkModal(false)} className="h-9 px-4 rounded-lg border border-slate-200 bg-white text-slate-700 font-medium text-xs hover:bg-slate-50">
                     Cancel
                   </button>
-                  <button onClick={saveBulkShipping} disabled={isSavingBulk} className="h-11 px-8 rounded-xl font-bold text-white bg-blue-600 hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:opacity-60 text-xs shadow-md shadow-blue-600/20 cursor-pointer">
-                    <Zap className="w-4 h-4 fill-current" />
+                  <button onClick={saveBulkShipping} disabled={isSavingBulk} className="h-9 px-5 rounded-lg bg-slate-900 text-white font-semibold text-xs hover:bg-slate-800 transition-colors disabled:opacity-50 cursor-pointer">
                     {isSavingBulk ? 'Applying...' : 'Apply Bulk Update'}
                   </button>
                 </div>
@@ -741,53 +718,48 @@ export default function AdminVendorsPage() {
 
       {/* ⚙️ INDIVIDUAL SHIPPING MODAL */}
       {selectedVendor && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-xl border border-slate-100">
-            <div className="sticky top-0 bg-white border-b border-slate-100 p-6 flex items-center justify-between z-10 rounded-t-3xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-200">
+            <div className="sticky top-0 bg-white border-b border-slate-200 p-5 flex items-center justify-between z-10">
               <div>
-                <h2 className="text-2xl font-black text-slate-900">Configure Shipping</h2>
-                <p className="text-sm text-slate-500 mt-1">Editing settings for {selectedVendor.name}</p>
+                <h2 className="text-base font-bold text-slate-900">Configure Shipping Rates</h2>
+                <p className="text-xs text-slate-500 mt-0.5">Editing {selectedVendor.name}</p>
               </div>
-              <button onClick={() => setSelectedVendor(null)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
-                <X className="w-6 h-6 text-slate-400" />
+              <button onClick={() => setSelectedVendor(null)} className="h-8 w-8 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg flex items-center justify-center transition-colors">
+                <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Quick Presets Bar */}
-            <div className="bg-slate-50 border-b border-slate-200/80 px-6 py-3 flex flex-wrap items-center gap-2 text-xs font-bold">
-              <span className="text-slate-500">Presets:</span>
-              <button onClick={() => applyPresetIndividual('default')} className="px-3 py-1 bg-white border border-slate-300 rounded-lg hover:border-blue-500 hover:text-blue-600 transition-colors">
+            {/* Presets */}
+            <div className="bg-slate-50 border-b border-slate-200 px-6 py-2.5 flex items-center gap-2 text-xs font-medium text-slate-600">
+              <span>Presets:</span>
+              <button onClick={() => applyPresetIndividual('default')} className="px-2.5 py-1 bg-white border border-slate-200 rounded-md hover:bg-slate-100 text-xs">
                 Standard Rates (₹120 / ₹80)
               </button>
-              <button onClick={() => applyPresetIndividual('copyNorthToSouth')} className="px-3 py-1 bg-white border border-slate-300 rounded-lg hover:border-blue-500 hover:text-blue-600 transition-colors">
-                Copy North → South
+              <button onClick={() => applyPresetIndividual('copyNorthToSouth')} className="px-2.5 py-1 bg-white border border-slate-200 rounded-md hover:bg-slate-100 text-xs">
+                North → South
               </button>
-              <button onClick={() => applyPresetIndividual('copySouthToNorth')} className="px-3 py-1 bg-white border border-slate-300 rounded-lg hover:border-blue-500 hover:text-blue-600 transition-colors">
-                Copy South → North
+              <button onClick={() => applyPresetIndividual('copySouthToNorth')} className="px-2.5 py-1 bg-white border border-slate-200 rounded-md hover:bg-slate-100 text-xs">
+                South → North
               </button>
             </div>
 
-            <div className="p-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <div className="space-y-6">
-                {/* North India */}
-                <div className="rounded-3xl border border-slate-100 bg-[#F8FAFC] p-6 shadow-2xs">
-                  <div className="flex items-center justify-between gap-3 mb-5 border-b border-slate-200/50 pb-3">
-                    <div>
-                      <h3 className="font-black text-slate-900">North India</h3>
-                    </div>
-                    <label className="relative inline-flex items-center cursor-pointer select-none">
-                      <input type="checkbox" checked={deliverNorth} onChange={(e) => setDeliverNorth(e.target.checked)} className="sr-only peer" />
-                      <div className="w-11 h-6 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                    </label>
+            <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-5">
+                {/* North */}
+                <div className="border border-slate-200 rounded-xl p-4 bg-white">
+                  <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
+                    <h3 className="font-semibold text-xs uppercase tracking-wider text-slate-700">North India</h3>
+                    <input type="checkbox" checked={deliverNorth} onChange={(e) => setDeliverNorth(e.target.checked)} className="h-4 w-4 text-slate-900 rounded" />
                   </div>
                   {deliverNorth && (
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-2.5">
                       {SLABS.map((slab) => (
-                        <div key={slab.key} className="bg-white p-3 rounded-2xl border border-slate-200/60 shadow-2xs">
-                          <label className="text-[10px] font-bold text-slate-500 uppercase">{slab.label}</label>
-                          <div className="relative flex items-center mt-1">
-                            <span className="absolute left-3 text-slate-400 font-extrabold text-sm">₹</span>
-                            <input type="number" min="0" value={ratesNorth[slab.key] ?? ''} onChange={(e) => handleRateChange('North', slab.key, e.target.value)} className="w-full h-9 pl-7 pr-3 rounded-xl border border-slate-200 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-slate-50/30" />
+                        <div key={slab.key} className="bg-slate-50 p-2 rounded-lg border border-slate-200/80">
+                          <label className="text-[10px] font-semibold text-slate-500 uppercase">{slab.label}</label>
+                          <div className="flex items-center gap-1 mt-0.5">
+                            <span className="text-slate-400 text-xs">₹</span>
+                            <input type="number" min="0" value={ratesNorth[slab.key] ?? ''} onChange={(e) => handleRateChange('North', slab.key, e.target.value)} className="w-full text-xs font-semibold bg-transparent outline-none" />
                           </div>
                         </div>
                       ))}
@@ -795,25 +767,20 @@ export default function AdminVendorsPage() {
                   )}
                 </div>
 
-                {/* South India */}
-                <div className="rounded-3xl border border-slate-100 bg-[#F8FAFC] p-6 shadow-2xs">
-                  <div className="flex items-center justify-between gap-3 mb-5 border-b border-slate-200/50 pb-3">
-                    <div>
-                      <h3 className="font-black text-slate-900">South India</h3>
-                    </div>
-                    <label className="relative inline-flex items-center cursor-pointer select-none">
-                      <input type="checkbox" checked={deliverSouth} onChange={(e) => setDeliverSouth(e.target.checked)} className="sr-only peer" />
-                      <div className="w-11 h-6 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-600"></div>
-                    </label>
+                {/* South */}
+                <div className="border border-slate-200 rounded-xl p-4 bg-white">
+                  <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
+                    <h3 className="font-semibold text-xs uppercase tracking-wider text-slate-700">South India</h3>
+                    <input type="checkbox" checked={deliverSouth} onChange={(e) => setDeliverSouth(e.target.checked)} className="h-4 w-4 text-slate-900 rounded" />
                   </div>
                   {deliverSouth && (
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-2.5">
                       {SLABS.map((slab) => (
-                        <div key={slab.key} className="bg-white p-3 rounded-2xl border border-slate-200/60 shadow-2xs">
-                          <label className="text-[10px] font-bold text-slate-500 uppercase">{slab.label}</label>
-                          <div className="relative flex items-center mt-1">
-                            <span className="absolute left-3 text-slate-400 font-extrabold text-sm">₹</span>
-                            <input type="number" min="0" value={ratesSouth[slab.key] ?? ''} onChange={(e) => handleRateChange('South', slab.key, e.target.value)} className="w-full h-9 pl-7 pr-3 rounded-xl border border-slate-200 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-slate-50/30" />
+                        <div key={slab.key} className="bg-slate-50 p-2 rounded-lg border border-slate-200/80">
+                          <label className="text-[10px] font-semibold text-slate-500 uppercase">{slab.label}</label>
+                          <div className="flex items-center gap-1 mt-0.5">
+                            <span className="text-slate-400 text-xs">₹</span>
+                            <input type="number" min="0" value={ratesSouth[slab.key] ?? ''} onChange={(e) => handleRateChange('South', slab.key, e.target.value)} className="w-full text-xs font-semibold bg-transparent outline-none" />
                           </div>
                         </div>
                       ))}
@@ -822,34 +789,25 @@ export default function AdminVendorsPage() {
                 </div>
               </div>
 
-              {/* Non Serviceable */}
-              <div>
-                <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-2xs h-full">
-                  <div className="flex items-center gap-3 mb-3 pb-3 border-b border-slate-100">
-                    <ShieldAlert className="h-5 w-5 text-rose-500" />
-                    <div>
-                      <h3 className="font-black text-slate-900">Non-Serviceable</h3>
-                      <p className="text-xs text-slate-500">Select restricted states</p>
-                    </div>
-                  </div>
-                  <div className="max-h-[300px] overflow-y-auto pr-2 space-y-2 mt-4 custom-scrollbar">
-                    {INDIAN_STATES.map((state) => (
-                      <label key={state} className="flex items-center gap-3 p-2 hover:bg-slate-50 rounded-xl cursor-pointer transition-colors group">
-                        <input type="checkbox" checked={nonServiceableStates.includes(state)} onChange={() => toggleState(state)} className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
-                        <span className="text-sm font-semibold text-slate-700 group-hover:text-slate-900">{state}</span>
-                      </label>
-                    ))}
-                  </div>
+              {/* Excluded States */}
+              <div className="border border-slate-200 rounded-xl p-4 bg-white">
+                <h3 className="font-semibold text-xs uppercase tracking-wider text-slate-700 mb-3 border-b border-slate-100 pb-2">Non-Serviceable States</h3>
+                <div className="max-h-[320px] overflow-y-auto pr-1 space-y-1.5 custom-scrollbar">
+                  {INDIAN_STATES.map((state) => (
+                    <label key={state} className="flex items-center gap-2 p-1.5 hover:bg-slate-50 rounded cursor-pointer text-xs text-slate-700">
+                      <input type="checkbox" checked={nonServiceableStates.includes(state)} onChange={() => toggleState(state)} className="h-3.5 w-3.5 rounded text-slate-900" />
+                      <span>{state}</span>
+                    </label>
+                  ))}
                 </div>
               </div>
             </div>
 
-            <div className="p-6 border-t border-slate-100 bg-slate-50 rounded-b-3xl flex justify-end gap-3">
-              <button onClick={() => setSelectedVendor(null)} className="h-11 px-6 rounded-xl font-bold text-slate-600 hover:bg-slate-200 transition-colors text-xs">
+            <div className="p-4 border-t border-slate-200 bg-slate-50 flex justify-end gap-2">
+              <button onClick={() => setSelectedVendor(null)} className="h-9 px-4 rounded-lg border border-slate-200 bg-white text-slate-700 font-medium text-xs hover:bg-slate-50">
                 Cancel
               </button>
-              <button onClick={saveShipping} disabled={isSavingShipping} className="h-11 px-8 rounded-xl font-bold text-white bg-blue-600 hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:opacity-60 text-xs shadow-md shadow-blue-600/20 cursor-pointer">
-                <Save className="w-4 h-4" />
+              <button onClick={saveShipping} disabled={isSavingShipping} className="h-9 px-5 rounded-lg bg-slate-900 text-white font-semibold text-xs hover:bg-slate-800 transition-colors disabled:opacity-50 cursor-pointer">
                 {isSavingShipping ? 'Saving...' : 'Save Settings'}
               </button>
             </div>
