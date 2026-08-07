@@ -64,7 +64,7 @@ export default async function CategoriesPage() {
         subcategories,
       };
     })
-    .filter(Boolean);
+    .filter((cat): cat is NonNullable<typeof cat> => cat !== null);
 
   return <CategoriesClient categories={categories} />;
 }

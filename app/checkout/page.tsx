@@ -218,6 +218,7 @@ function CheckoutPageContent() {
   const region = getRegionFromState(address.state);
   let isLocationServiceable = true;
   let nonServiceableMessage = '';
+  let shippingAmount = 0;
   // Free Shipping Calculation Check
   const freeShippingInfo = checkFreeShippingEligibility(
     totalAmount,
