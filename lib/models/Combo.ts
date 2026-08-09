@@ -3,6 +3,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 export interface IComboProduct {
   productId: mongoose.Types.ObjectId;
   quantity: number;
+  customImage?: string;
 }
 
 export interface ICombo extends Document {
@@ -47,6 +48,10 @@ const comboSchema = new Schema<ICombo>(
             required: true,
             min: 1,
             default: 1,
+          },
+          customImage: {
+            type: String,
+            default: '',
           },
         },
       ],

@@ -35,14 +35,52 @@ function CheckoutPageContent() {
   const [sharedCartDismissed, setSharedCartDismissed] = useState(false);
 
   useEffect(() => {
-    const rawShared = searchParams.get('shared_cart');
-    if (rawShared) {
-      const decoded = decodeSharedCart(rawShared);
-      if (decoded && decoded.length > 0) {
-        setSharedCartItems(decoded);
+    const rawShared = searchParams.get('c') || searchParams.get('shared_cart');
+    if (!rawShared) return;
+
+    const decoded = decodeSharedCart(rawShared);
+    if (!decoded || decoded.length === 0) return;
+
+    let isMounted = true;
+
+    const resolveSharedCart = async () => {
+      try {
+        const resolved: SharedCartItem[] = await Promise.all(
+          decoded.map(async (item) => {
+            let details = productDetails[item.productId];
+            if (!details) {
+              try {
+                const res = (await apiClient.getProduct(item.productId)) as any;
+                details = res?.product || res;
+              } catch (e) {
+                console.error('Failed to fetch shared product details:', e);
+              }
+            }
+
+            return {
+              productId: item.productId,
+              quantity: item.quantity,
+              title: details?.title || 'Aquatic Product',
+              price: details?.price || 0,
+              image: details?.images?.[0] || '/illustrations/placeholder.png',
+            };
+          })
+        );
+
+        if (isMounted) {
+          setSharedCartItems(resolved);
+        }
+      } catch (err) {
+        console.error('Failed to resolve shared cart:', err);
       }
-    }
-  }, [searchParams]);
+    };
+
+    resolveSharedCart();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [searchParams, productDetails]);
 
   const shareableUrl = getShareableCartUrl(items);
 
@@ -104,11 +142,7 @@ function CheckoutPageContent() {
   }, []);
 
 
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      router.replace('/auth/login');
-    }
-  }, [isAuthenticated, isLoading, router]);
+
 
   useEffect(() => {
     const loadSavedAddress = async () => {
@@ -410,6 +444,106 @@ function CheckoutPageContent() {
   };
 
   const isDeliveryBlocked = !isLocationServiceable;
+
+  const isSharedCartMode = Boolean(searchParams.get('c') || searchParams.get('shared_cart'));
+
+  if (isSharedCartMode && sharedCartItems) {
+    const sharedSubtotal = sharedCartItems.reduce((s, i) => s + i.price * i.quantity, 0);
+
+    return (
+      <div className="min-h-screen bg-gray-50 text-gray-900 pb-24 font-sans">
+        {/* Header section */}
+        <div className="bg-white border-b border-gray-200 pt-8 pb-8 md:pt-12 md:pb-12 shadow-sm">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center gap-2 text-sm text-gray-500 mb-4 font-medium">
+              <Link href="/" className={`hover:${textTheme} transition-colors`}>Home</Link>
+              <span>/</span>
+              <span className="text-gray-900">Shared Cart Preview</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className={`w-12 h-12 rounded-2xl ${bgThemeLight} ${textTheme} flex items-center justify-center shrink-0 text-2xl`}>
+                🛒
+              </div>
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-md bg-amber-400 text-slate-950">
+                  Shared Cart Overview
+                </span>
+                <h1 className="text-2xl md:text-4xl font-black tracking-tight text-gray-900 mt-1">
+                  Shared Products Selection
+                </h1>
+              </div>
+            </div>
+            <p className="text-gray-500 mt-2 font-medium text-xs sm:text-sm">
+              Below is the read-only overview of the products, quantities, and total amount in this shared cart. No login required.
+            </p>
+          </div>
+        </div>
+
+        {/* Content Section */}
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 space-y-6">
+          <div className="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="p-6 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+              <h2 className="text-base sm:text-lg font-bold text-gray-900">
+                Shared Items ({sharedCartItems.length})
+              </h2>
+              <span className="text-xs font-semibold text-slate-500">Read-Only View</span>
+            </div>
+
+            <div className="p-6 md:p-8 space-y-6">
+              {sharedCartItems.map((item) => (
+                <article key={item.productId} className="flex flex-col sm:flex-row sm:items-center gap-5 pb-6 border-b border-gray-100 last:border-b-0 last:pb-0">
+                  <div className="relative h-20 w-20 sm:h-24 sm:w-24 rounded-2xl overflow-hidden shrink-0 bg-gray-100 border border-gray-200">
+                    <img src={item.image || '/illustrations/placeholder.png'} alt={item.title} className="h-full w-full object-cover" />
+                  </div>
+
+                  <div className="flex-1 flex flex-col justify-between h-full min-w-0">
+                    <div className="flex justify-between items-start gap-4">
+                      <div>
+                        <h3 className="font-extrabold text-base sm:text-lg text-gray-900 leading-tight">{item.title}</h3>
+                        <p className="text-xs text-gray-500 mt-1 font-medium">₹{item.price.toFixed(2)} / each</p>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="font-black text-base sm:text-lg text-gray-900">₹{(item.price * item.quantity).toFixed(2)}</p>
+                        <span className="inline-block mt-1 text-[11px] font-extrabold text-slate-600 bg-slate-100 px-2.5 py-0.5 rounded-md">
+                          Qty: {item.quantity}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+
+            {/* Shared Cart Summary Footer */}
+            <div className="p-6 border-t border-gray-100 bg-gray-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Total Shared Amount</span>
+                <p className="text-2xl sm:text-3xl font-black text-slate-900 mt-0.5">₹{sharedSubtotal.toFixed(2)}</p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  onClick={() => {
+                    loadSharedCart(sharedCartItems as any, 'replace');
+                    router.replace('/checkout');
+                  }}
+                  className="h-11 px-6 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs transition-all shadow-md flex items-center gap-2 cursor-pointer active:scale-95"
+                >
+                  📋 Paste Cart to My Bag
+                </button>
+                <Link
+                  href="/products"
+                  className={`h-11 px-5 rounded-2xl ${bgTheme} text-white font-extrabold text-xs transition-all shadow-md flex items-center justify-center gap-2`}
+                >
+                  Browse Products <ArrowRight className="h-4 w-4" />
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 pb-24 md:pb-32 font-sans">

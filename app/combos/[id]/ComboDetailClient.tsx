@@ -24,6 +24,7 @@ type ProductDetail = {
 type ComboProduct = {
   productId: ProductDetail;
   quantity: number;
+  customImage?: string;
 };
 
 type Combo = {
@@ -224,8 +225,8 @@ export default function ComboDetailClient({ combo }: { combo: Combo }) {
                       className="flex items-center gap-3 bg-white rounded-xl border border-slate-100 p-3 hover:border-blue-200 hover:shadow-sm transition-all group"
                     >
                       <div className="h-12 w-12 rounded-lg overflow-hidden bg-slate-50 shrink-0">
-                        {p.images?.[0] && (
-                          <img src={p.images[0]} alt={p.title} className="h-full w-full object-cover group-hover:scale-105 transition-transform" />
+                        {(cp.customImage || p.images?.[0]) && (
+                          <img src={cp.customImage || p.images[0]} alt={p.title} className="h-full w-full object-cover group-hover:scale-105 transition-transform" />
                         )}
                       </div>
                       <div className="flex-1 min-w-0">

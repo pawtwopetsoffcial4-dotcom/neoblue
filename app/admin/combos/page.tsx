@@ -25,6 +25,7 @@ type Product = {
 type ComboProduct = {
   productId: Product;
   quantity: number;
+  customImage?: string;
 };
 
 type Combo = {
@@ -55,7 +56,7 @@ type ComboFormState = {
   isFeatured: boolean;
   tag: string;
   shippingCharge: string;
-  selectedProducts: Array<{ product: Product; quantity: number }>;
+  selectedProducts: Array<{ product: Product; quantity: number; customImage?: string }>;
 };
 
 const EMPTY_FORM: ComboFormState = {
@@ -155,9 +156,10 @@ export default function AdminCombosPage() {
       isFeatured: combo.isFeatured,
       tag: combo.tag ?? '',
       shippingCharge: String(combo.shippingCharge ?? 0),
-      selectedProducts: combo.products.map((cp) => ({
+      selectedProducts: combo.products.map((cp: any) => ({
         product: cp.productId,
         quantity: cp.quantity,
+        customImage: cp.customImage || '',
       })),
     });
     setProductSearch('');
@@ -210,6 +212,15 @@ export default function AdminCombosPage() {
     }));
   };
 
+  const updateProductCustomImage = (productId: string, customImage: string) => {
+    setForm((prev) => ({
+      ...prev,
+      selectedProducts: prev.selectedProducts.map((sp) =>
+        sp.product._id === productId ? { ...sp, customImage } : sp
+      ),
+    }));
+  };
+
   // ── Save ─────────────────────────────────────────────────────────────────
 
   const handleSave = async () => {
@@ -225,6 +236,7 @@ export default function AdminCombosPage() {
       products: form.selectedProducts.map((sp) => ({
         productId: sp.product._id,
         quantity: sp.quantity,
+        customImage: sp.customImage || '',
       })),
       price: Number(form.price),
       originalPrice: form.originalPrice ? Number(form.originalPrice) : undefined,
@@ -650,38 +662,94 @@ export default function AdminCombosPage() {
 
                 {/* Selected products */}
                 {form.selectedProducts.length > 0 && (
-                  <div className="space-y-2 mb-3">
-                    {form.selectedProducts.map(({ product, quantity }) => (
+                  <div className="space-y-3 mb-4">
+                    {form.selectedProducts.map(({ product, quantity, customImage }) => (
                       <div
                         key={product._id}
-                        className="flex items-center gap-3 bg-slate-50 rounded-xl p-3"
+                        className="bg-slate-50 rounded-xl p-3 border border-slate-200/80 space-y-2.5"
                       >
-                        <div className="h-10 w-10 rounded-lg overflow-hidden shrink-0 bg-white border border-slate-100">
-                          {product.images?.[0] ? (
-                            <img src={product.images[0]} alt={product.title} className="h-full w-full object-cover" />
-                          ) : (
-                            <Package className="h-5 w-5 text-slate-300 m-auto mt-2.5" />
+                        <div className="flex items-center gap-3">
+                          <div className="h-10 w-10 rounded-lg overflow-hidden shrink-0 bg-white border border-slate-200">
+                            {customImage || product.images?.[0] ? (
+                              <img src={customImage || product.images[0]} alt={product.title} className="h-full w-full object-cover" />
+                            ) : (
+                              <Package className="h-5 w-5 text-slate-300 m-auto mt-2.5" />
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-slate-800 truncate">{product.title}</p>
+                            <p className="text-xs text-slate-500">₹{product.price}</p>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <label className="text-xs text-slate-500">Qty:</label>
+                            <input
+                              type="number"
+                              min={1}
+                              value={quantity}
+                              onChange={(e) => updateProductQty(product._id, Number(e.target.value))}
+                              className="w-14 border border-slate-200 rounded-lg px-2 py-1 text-sm text-center focus:outline-none focus:ring-1 focus:ring-blue-400"
+                            />
+                            <button
+                              onClick={() => removeProduct(product._id)}
+                              className="p-1 rounded-lg text-red-400 hover:bg-red-50 transition-colors"
+                            >
+                              <X className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Custom Image Picker Bar for this product in combo */}
+                        <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-200/60 text-xs">
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Combo Photo:</span>
+
+                          {/* Gallery Photos Picker */}
+                          {product.images && product.images.length > 1 && (
+                            <div className="flex items-center gap-1.5">
+                              {product.images.map((imgUrl, imgIdx) => (
+                                <button
+                                  key={imgIdx}
+                                  type="button"
+                                  onClick={() => updateProductCustomImage(product._id, imgUrl)}
+                                  className={`h-7 w-7 rounded-lg overflow-hidden border transition-all ${
+                                    (customImage || product.images[0]) === imgUrl ? 'border-blue-600 ring-2 ring-blue-200 scale-105' : 'border-slate-200 opacity-70 hover:opacity-100'
+                                  }`}
+                                  title={`Use Gallery Photo ${imgIdx + 1}`}
+                                >
+                                  <img src={imgUrl} alt={`Photo ${imgIdx + 1}`} className="h-full w-full object-cover" />
+                                </button>
+                              ))}
+                            </div>
                           )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold text-slate-800 truncate">{product.title}</p>
-                          <p className="text-xs text-slate-500">₹{product.price}</p>
-                        </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <label className="text-xs text-slate-500">Qty:</label>
-                          <input
-                            type="number"
-                            min={1}
-                            value={quantity}
-                            onChange={(e) => updateProductQty(product._id, Number(e.target.value))}
-                            className="w-14 border border-slate-200 rounded-lg px-2 py-1 text-sm text-center focus:outline-none focus:ring-1 focus:ring-blue-400"
-                          />
-                          <button
-                            onClick={() => removeProduct(product._id)}
-                            className="p-1 rounded-lg text-red-400 hover:bg-red-50 transition-colors"
+
+                          {/* Upload Custom Image */}
+                          <CldUploadWidget
+                            uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'neoblue'}
+                            onSuccess={(result: any) => {
+                              const url = result?.info?.secure_url;
+                              if (url) updateProductCustomImage(product._id, url);
+                            }}
                           >
-                            <X className="h-3.5 w-3.5" />
-                          </button>
+                            {({ open }) => (
+                              <button
+                                type="button"
+                                onClick={() => open()}
+                                className="px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-slate-700 font-semibold text-[11px] hover:bg-slate-100 transition-colors flex items-center gap-1 cursor-pointer"
+                              >
+                                <ImagePlus className="h-3 w-3 text-blue-600" /> Custom Upload
+                              </button>
+                            )}
+                          </CldUploadWidget>
+
+                          {/* Reset to Default */}
+                          {customImage && (
+                            <button
+                              type="button"
+                              onClick={() => updateProductCustomImage(product._id, '')}
+                              className="px-2 py-1 text-slate-400 hover:text-slate-700 text-[11px] font-semibold cursor-pointer"
+                            >
+                              Reset
+                            </button>
+                          )}
                         </div>
                       </div>
                     ))}
