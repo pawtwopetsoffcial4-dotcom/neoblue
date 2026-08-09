@@ -7,10 +7,11 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useCart } from '@/lib/hooks/useCart';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { apiClient } from '@/lib/api-client';
-import { Trash2, Plus, Minus, MapPin, ShoppingBag, ArrowRight, ShieldCheck, ArrowLeft, CheckSquare, AlertCircle } from 'lucide-react';
+import { Trash2, Plus, Minus, MapPin, ShoppingBag, ArrowRight, ShieldCheck, ArrowLeft, CheckSquare, AlertCircle, Share2, Copy, Check, MessageCircle, X } from 'lucide-react';
 import type { MarketplaceProduct } from '@/lib/types/marketplace';
 import { getRegionFromState, getProductShippingCharge, checkFreeShippingEligibility } from '@/lib/utils/shipping';
 import { useMode } from '@/lib/hooks/useMode';
+import { decodeSharedCart, getShareableCartUrl, type SharedCartItem } from '@/lib/utils/cartShare';
 
 const PENDING_CASHFREE_CHECKOUT_KEY = 'pendingCashfreeCheckout';
 
@@ -20,12 +21,56 @@ function CheckoutPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, isAuthenticated, isLoading } = useAuth();
-  const { items, totalAmount, updateQuantity, removeFromCart, clearCart } = useCart();
+  const { items, totalAmount, updateQuantity, removeFromCart, clearCart, loadSharedCart } = useCart();
   const [isPaying, setIsPaying] = useState(false);
   const [isFinalizing, setIsFinalizing] = useState(false);
   const [productDetails, setProductDetails] = useState<Record<string, MarketplaceProduct>>({});
   const { mode } = useMode();
   const isPlants = mode === 'plants';
+
+  // Cart Sharing State
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
+  const [sharedCartItems, setSharedCartItems] = useState<SharedCartItem[] | null>(null);
+  const [sharedCartDismissed, setSharedCartDismissed] = useState(false);
+
+  useEffect(() => {
+    const rawShared = searchParams.get('shared_cart');
+    if (rawShared) {
+      const decoded = decodeSharedCart(rawShared);
+      if (decoded && decoded.length > 0) {
+        setSharedCartItems(decoded);
+      }
+    }
+  }, [searchParams]);
+
+  const shareableUrl = getShareableCartUrl(items);
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(shareableUrl);
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2500);
+    } catch (e) {
+      console.error('Failed to copy share link:', e);
+    }
+  };
+
+  const handleNativeShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'My NeoBlue Cart',
+          text: `Check out these ${items.length} item(s) in my NeoBlue cart!`,
+          url: shareableUrl,
+        });
+      } catch (err) {
+        // User cancelled share
+      }
+    } else {
+      handleCopyLink();
+    }
+  };
 
   const textTheme = isPlants ? 'text-green-700' : 'text-blue-600';
   const textThemeHover = isPlants ? 'hover:text-green-800' : 'hover:text-blue-700';
@@ -387,7 +432,56 @@ function CheckoutPageContent() {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 md:mt-10">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 md:mt-10">
+          {/* Shared Cart Banner (when receiving a shared link) */}
+          {sharedCartItems && !sharedCartDismissed && (
+            <div className="bg-slate-900 text-white rounded-3xl p-5 md:p-6 shadow-xl mb-8 border border-slate-800 animate-in fade-in duration-300">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-start gap-3.5">
+                  <div className="w-11 h-11 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center shrink-0 text-amber-400 font-bold text-xl">
+                    🛒
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded bg-amber-400 text-slate-950">
+                      Shared Cart Link
+                    </span>
+                    <h2 className="text-base md:text-lg font-black text-white mt-1">Someone shared a cart with you! ({sharedCartItems.length} items)</h2>
+                    <p className="text-xs text-slate-300 mt-0.5 font-medium">
+                      Subtotal: <strong>₹{sharedCartItems.reduce((s, i) => s + i.price * i.quantity, 0).toFixed(2)}</strong> • Load these products directly into your bag to checkout.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2 shrink-0">
+                  <button
+                    onClick={() => {
+                      loadSharedCart(sharedCartItems as any, 'merge');
+                      setSharedCartDismissed(true);
+                    }}
+                    className="h-9 px-4 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs transition-colors shadow-sm cursor-pointer"
+                  >
+                    Add to My Cart
+                  </button>
+                  <button
+                    onClick={() => {
+                      loadSharedCart(sharedCartItems as any, 'replace');
+                      setSharedCartDismissed(true);
+                    }}
+                    className="h-9 px-4 rounded-xl bg-white/10 hover:bg-white/20 text-white font-extrabold text-xs transition-colors border border-white/20 cursor-pointer"
+                  >
+                    Replace Cart
+                  </button>
+                  <button
+                    onClick={() => setSharedCartDismissed(true)}
+                    className="h-9 px-3 rounded-xl text-slate-400 hover:text-white text-xs font-bold cursor-pointer"
+                  >
+                    Dismiss
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
         {items.length === 0 ? (
           <div className="bg-white rounded-3xl border border-gray-200 p-12 text-center shadow-sm max-w-2xl mx-auto mt-12">
             <div className={`w-24 h-24 ${bgThemeLight} ${isPlants ? 'text-green-600' : 'text-blue-500'} rounded-full flex items-center justify-center mx-auto mb-6`}>
@@ -407,11 +501,19 @@ function CheckoutPageContent() {
             {/* Left Column: Cart Items */}
             <div className="lg:col-span-7 xl:col-span-8 flex flex-col gap-4">
               <div className="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden">
-                <div className="p-6 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+                <div className="p-6 border-b border-gray-100 bg-gray-50/50 flex flex-wrap items-center justify-between gap-3">
                   <h2 className="text-lg font-bold text-gray-900">Cart Items ({items.length})</h2>
-                  <button onClick={clearCart} className="text-sm font-semibold text-rose-600 hover:text-rose-700 transition-colors flex items-center gap-1.5">
-                    <Trash2 className="h-4 w-4" /> Clear All
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => setShowShareModal(true)}
+                      className={`text-xs font-extrabold ${textTheme} hover:opacity-80 transition-opacity flex items-center gap-1.5 bg-white border ${borderThemeLight} px-3 py-1.5 rounded-xl shadow-xs cursor-pointer`}
+                    >
+                      <Share2 className="h-3.5 w-3.5" /> Share Cart
+                    </button>
+                    <button onClick={clearCart} className="text-xs font-semibold text-rose-600 hover:text-rose-700 transition-colors flex items-center gap-1.5 cursor-pointer">
+                      <Trash2 className="h-3.5 w-3.5" /> Clear All
+                    </button>
+                  </div>
                 </div>
                 
                 <div className="p-6 md:p-8 space-y-6">
@@ -693,6 +795,70 @@ function CheckoutPageContent() {
           </div>
         )}
       </div>
+
+      {/* 🚀 Share Cart Modal */}
+      {showShareModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl w-full max-w-md p-6 shadow-2xl border border-slate-100 relative">
+            <button
+              onClick={() => setShowShareModal(false)}
+              className="absolute top-5 right-5 p-1.5 text-slate-400 hover:text-slate-700 rounded-full hover:bg-slate-100 transition-colors cursor-pointer"
+            >
+              <X className="h-5 w-5" />
+            </button>
+
+            <div className="flex items-center gap-3.5 mb-2">
+              <div className={`w-11 h-11 rounded-2xl ${bgThemeLight} ${textTheme} flex items-center justify-center shrink-0`}>
+                <Share2 className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="font-extrabold text-slate-900 text-lg">Share Your Cart</h3>
+                <p className="text-xs text-slate-500 font-medium">Allow anyone to view or buy the {items.length} item(s) in your bag</p>
+              </div>
+            </div>
+
+            <div className="space-y-3 mt-5">
+              {/* WhatsApp Share Button */}
+              <a
+                href={`https://api.whatsapp.com/send?text=${encodeURIComponent(`Check out my NeoBlue cart (${items.length} items): ${shareableUrl}`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full h-11 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs transition-all shadow-md shadow-emerald-600/20 flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <MessageCircle className="h-4 w-4 fill-current" /> Share on WhatsApp
+              </a>
+
+              {/* Native Share / Copy Button */}
+              <button
+                onClick={handleNativeShare}
+                className="w-full h-11 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
+              >
+                {copiedLink ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
+                {copiedLink ? 'Link Copied to Clipboard!' : 'Copy Shareable Link'}
+              </button>
+
+              {/* URL Input Display */}
+              <div className="mt-4 pt-4 border-t border-slate-100">
+                <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Share Link</label>
+                <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl p-2">
+                  <input
+                    type="text"
+                    readOnly
+                    value={shareableUrl}
+                    className="bg-transparent text-xs font-semibold text-slate-700 w-full outline-none select-all truncate px-1"
+                  />
+                  <button
+                    onClick={handleCopyLink}
+                    className="px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-900 font-bold text-xs hover:bg-slate-100 transition-colors shrink-0 cursor-pointer"
+                  >
+                    {copiedLink ? 'Copied' : 'Copy'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

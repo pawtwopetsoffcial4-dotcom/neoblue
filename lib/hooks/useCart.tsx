@@ -21,6 +21,7 @@ type CartContextType = {
   removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
+  loadSharedCart: (sharedItems: CartItem[], action: 'merge' | 'replace') => void;
   cartCount: number;
   totalAmount: number;
 };
@@ -224,6 +225,26 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     syncCartToDB([]);
   };
 
+  const loadSharedCart = (sharedItems: CartItem[], action: 'merge' | 'replace') => {
+    let newItems: CartItem[] = [];
+    if (action === 'replace') {
+      newItems = sharedItems;
+    } else {
+      const merged = [...items];
+      sharedItems.forEach((sItem) => {
+        const existing = merged.find((m) => m.productId === sItem.productId);
+        if (existing) {
+          existing.quantity += sItem.quantity;
+        } else {
+          merged.push(sItem);
+        }
+      });
+      newItems = merged;
+    }
+    setItems(newItems);
+    syncCartToDB(newItems);
+  };
+
   const cartCount = useMemo(
     () => items.reduce((sum, item) => sum + item.quantity, 0),
     [items]
@@ -242,6 +263,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         removeFromCart,
         updateQuantity,
         clearCart,
+        loadSharedCart,
         cartCount,
         totalAmount,
       }}

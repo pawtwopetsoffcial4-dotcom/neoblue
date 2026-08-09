@@ -6,6 +6,7 @@ import { ArrowLeft, ArrowUpRight, Fish, Leaf, ShoppingCart } from 'lucide-react'
 import { useMode } from '@/lib/hooks/useMode';
 import { useCart } from '@/lib/hooks/useCart';
 import ReviewStars from '@/app/components/ReviewStars';
+import ProductCard from '@/app/components/ProductCard';
 
 
 interface ProductItem {
@@ -148,57 +149,8 @@ export default function CategoryDetailClient({
 
         {filteredProducts.length > 0 ? (
           <section className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
-            {filteredProducts.map((product) => (
-              <article 
-                key={product._id} 
-                className={`group flex flex-col rounded-2xl sm:rounded-3xl overflow-hidden border bg-white shadow-sm hover:shadow-md transition-all duration-300 ${
-                  activeColor === 'green' ? 'border-green-100 hover:border-green-300' : 'border-blue-100 hover:border-blue-300'
-                }`}
-              >
-                <Link href={`/products/${product._id}`} className="block relative aspect-[4/3] w-full overflow-hidden">
-                  <img 
-                    src={product.images?.[0] ?? '/api/placeholder/400/300'} 
-                    alt={product.title} 
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
-                  />
-                </Link>
-                <div className="flex flex-col p-3 sm:p-5">
-                  <p className={`text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-1.5 sm:mb-2 ${activeColor === 'green' ? 'text-green-600' : 'text-blue-600'}`}>
-                    {product.category} {product.waterType ? `• ${product.waterType}` : ''}
-                  </p>
-                  <Link href={`/products/${product._id}`}>
-                    <h2 className="text-sm sm:text-xl font-bold text-slate-900 line-clamp-2 leading-tight group-hover:text-blue-600 transition-colors">{product.title}</h2>
-                  </Link>
-                  <p className="text-slate-500 text-[10px] sm:text-sm italic mt-1 line-clamp-1">{product.scientific ?? 'Aquatic premium stock'}</p>
-                  
-                  {/* Rating stars */}
-                  <div className="mt-1.5 sm:mt-2">
-                    <ReviewStars rating={product.rating} count={product.reviewsCount} compact size={12} />
-                  </div>
-                  <div className="mt-3 sm:mt-4 flex items-center justify-between pt-2 border-t border-slate-100">
-                    <div className="flex items-baseline gap-0.5">
-                      <span className="text-base sm:text-xl font-black text-slate-900">₹{product.price.toFixed(2)}</span>
-                      <span className="text-[9px] sm:text-[10px] text-slate-400 font-bold uppercase tracking-wider">
-                        /{product.perPairPrice != null && typeof product.perPairPrice === 'number' ? 'Pair' : 'Piece'}
-                      </span>
-                    </div>
-                    <button 
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        addToCart(product as unknown as any);
-                      }}
-                      className={`inline-flex items-center justify-center gap-1.5 h-8 w-8 sm:h-9 sm:w-auto sm:px-4 rounded-full font-bold text-[0px] sm:text-xs transition-all shadow-sm active:scale-95 ${
-                        activeColor === 'green' ? 'bg-green-600 hover:bg-green-700 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'
-                      }`}
-                      title="Add to Cart"
-                    >
-                      <ShoppingCart className="h-4 w-4" />
-                      <span className="hidden sm:inline">Add to Cart</span>
-                    </button>
-                  </div>
-                </div>
-              </article>
+            {filteredProducts.map((product, idx) => (
+              <ProductCard key={product._id} product={product} idx={idx} />
             ))}
           </section>
         ) : (
