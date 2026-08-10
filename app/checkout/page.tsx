@@ -11,7 +11,7 @@ import { Trash2, Plus, Minus, MapPin, ShoppingBag, ArrowRight, ShieldCheck, Arro
 import type { MarketplaceProduct } from '@/lib/types/marketplace';
 import { getRegionFromState, getProductShippingCharge, checkFreeShippingEligibility } from '@/lib/utils/shipping';
 import { useMode } from '@/lib/hooks/useMode';
-import { decodeSharedCart, getShareableCartUrl, type SharedCartItem } from '@/lib/utils/cartShare';
+import { decodeSharedCart, getShareableCartUrl, createShortShareCode, resolveSharedCartCode, buildShareableUrl, type SharedCartItem } from '@/lib/utils/cartShare';
 
 const PENDING_CASHFREE_CHECKOUT_KEY = 'pendingCashfreeCheckout';
 
@@ -33,18 +33,20 @@ function CheckoutPageContent() {
   const [copiedLink, setCopiedLink] = useState(false);
   const [sharedCartItems, setSharedCartItems] = useState<SharedCartItem[] | null>(null);
   const [sharedCartDismissed, setSharedCartDismissed] = useState(false);
+  const [shortShareUrl, setShortShareUrl] = useState<string>('');
+  const [isGeneratingShare, setIsGeneratingShare] = useState(false);
 
   useEffect(() => {
     const rawShared = searchParams.get('c') || searchParams.get('shared_cart');
     if (!rawShared) return;
 
-    const decoded = decodeSharedCart(rawShared);
-    if (!decoded || decoded.length === 0) return;
-
     let isMounted = true;
 
     const resolveSharedCart = async () => {
       try {
+        const decoded = await resolveSharedCartCode(rawShared);
+        if (!decoded || decoded.length === 0) return;
+
         const resolved: SharedCartItem[] = await Promise.all(
           decoded.map(async (item) => {
             let details = productDetails[item.productId];
@@ -82,11 +84,34 @@ function CheckoutPageContent() {
     };
   }, [searchParams, productDetails]);
 
-  const shareableUrl = getShareableCartUrl(items);
+  const generateShareLink = async () => {
+    if (shortShareUrl) return shortShareUrl;
+    setIsGeneratingShare(true);
+    try {
+      const code = await createShortShareCode(items);
+      const url = buildShareableUrl(code);
+      setShortShareUrl(url);
+      setIsGeneratingShare(false);
+      return url;
+    } catch (e) {
+      const fallback = getShareableCartUrl(items);
+      setShortShareUrl(fallback);
+      setIsGeneratingShare(false);
+      return fallback;
+    }
+  };
+
+  const handleOpenShareModal = async () => {
+    setShowShareModal(true);
+    await generateShareLink();
+  };
+
+  const shareableUrl = shortShareUrl || getShareableCartUrl(items);
 
   const handleCopyLink = async () => {
     try {
-      await navigator.clipboard.writeText(shareableUrl);
+      const url = await generateShareLink();
+      await navigator.clipboard.writeText(url);
       setCopiedLink(true);
       setTimeout(() => setCopiedLink(false), 2500);
     } catch (e) {
@@ -95,12 +120,13 @@ function CheckoutPageContent() {
   };
 
   const handleNativeShare = async () => {
+    const url = await generateShareLink();
     if (navigator.share) {
       try {
         await navigator.share({
           title: 'My NeoBlue Cart',
           text: `Check out these ${items.length} item(s) in my NeoBlue cart!`,
-          url: shareableUrl,
+          url,
         });
       } catch (err) {
         // User cancelled share
@@ -125,6 +151,8 @@ function CheckoutPageContent() {
   const shadowTheme = isPlants ? 'shadow-green-500/20' : 'shadow-blue-500/20';
   const [isSavingAddress, setIsSavingAddress] = useState(false);
   const [saveAddress, setSaveAddress] = useState(true);
+  const [savedAddress, setSavedAddress] = useState<{ street: string; city: string; state: string; zipcode: string; phone: string } | null>(null);
+  const [useSavedAddress, setUseSavedAddress] = useState<boolean>(true);
   const [address, setAddress] = useState({ street: '', city: '', state: '', zipcode: '', phone: '' });
   const [agreeToPolicy, setAgreeToPolicy] = useState(false);
   const [storeConfig, setStoreConfig] = useState<any>(null);
@@ -159,13 +187,16 @@ function CheckoutPageContent() {
 
         const saved = response?.defaultAddress;
         if (saved?.street && saved?.city && saved?.state && saved?.zipcode) {
-          setAddress({
+          const fullSaved = {
             street: saved.street,
             city: saved.city,
             state: saved.state,
             zipcode: saved.zipcode,
             phone: response?.phone || '',
-          });
+          };
+          setSavedAddress(fullSaved);
+          setUseSavedAddress(true);
+          setAddress(fullSaved);
         } else if (response?.phone) {
           setAddress((prev) => ({ ...prev, phone: response.phone || '' }));
         }
@@ -525,7 +556,10 @@ function CheckoutPageContent() {
                 <button
                   onClick={() => {
                     loadSharedCart(sharedCartItems as any, 'replace');
-                    router.replace('/checkout');
+                    setSharedCartItems(null);
+                    if (typeof window !== 'undefined') {
+                      window.history.replaceState({}, '', '/checkout');
+                    }
                   }}
                   className="h-11 px-6 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs transition-all shadow-md flex items-center gap-2 cursor-pointer active:scale-95"
                 >
@@ -639,7 +673,7 @@ function CheckoutPageContent() {
                   <h2 className="text-lg font-bold text-gray-900">Cart Items ({items.length})</h2>
                   <div className="flex items-center gap-3">
                     <button
-                      onClick={() => setShowShareModal(true)}
+                      onClick={handleOpenShareModal}
                       className={`text-xs font-extrabold ${textTheme} hover:opacity-80 transition-opacity flex items-center gap-1.5 bg-white border ${borderThemeLight} px-3 py-1.5 rounded-xl shadow-xs cursor-pointer`}
                     >
                       <Share2 className="h-3.5 w-3.5" /> Share Cart
@@ -753,56 +787,162 @@ function CheckoutPageContent() {
                   <h2 className="text-lg font-bold text-gray-900">Delivery Details</h2>
                 </div>
                 <div className="p-6 space-y-4">
-                  <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Street Address</label>
-                    <input 
-                      className={`w-full h-12 px-4 rounded-xl bg-gray-50 border border-gray-200 focus:ring-2 ${focusRingTheme} outline-none transition-all font-medium placeholder:text-gray-400 text-gray-900`} 
-                      placeholder="123 Ocean Avenue, Apt 4B" 
-                      value={address.street} 
-                      onChange={(e) => setAddress((prev) => ({ ...prev, street: e.target.value }))} 
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">City</label>
-                      <input 
-                        className={`w-full h-12 px-4 rounded-xl bg-gray-50 border border-gray-200 focus:ring-2 ${focusRingTheme} outline-none transition-all font-medium placeholder:text-gray-400 text-gray-900`} 
-                        placeholder="Mumbai" 
-                        value={address.city} 
-                        onChange={(e) => setAddress((prev) => ({ ...prev, city: e.target.value }))} 
-                      />
+                  {/* Saved Address Choice Selector if user has saved address */}
+                  {savedAddress ? (
+                    <div className="space-y-4">
+                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Select Delivery Address</label>
+                      <div className="grid grid-cols-1 gap-3">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setUseSavedAddress(true);
+                            setAddress(savedAddress);
+                          }}
+                          className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${
+                            useSavedAddress
+                              ? 'border-blue-600 bg-blue-50/60 ring-2 ring-blue-200 shadow-xs'
+                              : 'border-slate-200 bg-white hover:bg-slate-50'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-xs font-black text-slate-900 flex items-center gap-1.5">
+                              <CheckSquare className="h-4 w-4 text-blue-600" /> Use Saved Address
+                            </span>
+                            <span className="text-[10px] font-extrabold px-2 py-0.5 rounded bg-blue-100 text-blue-800 uppercase">Default</span>
+                          </div>
+                          <p className="text-xs font-bold text-slate-800 mt-1.5 leading-snug">
+                            {savedAddress.street}, {savedAddress.city}, {savedAddress.state} - {savedAddress.zipcode}
+                          </p>
+                          <p className="text-[11px] font-medium text-slate-500 mt-1">Phone: {savedAddress.phone}</p>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setUseSavedAddress(false);
+                            setAddress({ street: '', city: '', state: '', zipcode: '', phone: savedAddress.phone || '' });
+                          }}
+                          className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer ${
+                            !useSavedAddress
+                              ? 'border-blue-600 bg-blue-50/60 ring-2 ring-blue-200 shadow-xs'
+                              : 'border-slate-200 bg-white hover:bg-slate-50'
+                          }`}
+                        >
+                          <span className="text-xs font-black text-slate-900 flex items-center gap-1.5">
+                            <MapPin className="h-4 w-4 text-slate-500" /> Deliver to a Different Address
+                          </span>
+                        </button>
+                      </div>
+
+                      {!useSavedAddress && (
+                        <div className="space-y-4 pt-3 border-t border-slate-100 animate-in fade-in duration-200">
+                          <div>
+                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Street Address</label>
+                            <input 
+                              className={`w-full h-12 px-4 rounded-xl bg-gray-50 border border-gray-200 focus:ring-2 ${focusRingTheme} outline-none transition-all font-medium placeholder:text-gray-400 text-gray-900`} 
+                              placeholder="123 Ocean Avenue, Apt 4B" 
+                              value={address.street} 
+                              onChange={(e) => setAddress((prev) => ({ ...prev, street: e.target.value }))} 
+                            />
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">City</label>
+                              <input 
+                                className={`w-full h-12 px-4 rounded-xl bg-gray-50 border border-gray-200 focus:ring-2 ${focusRingTheme} outline-none transition-all font-medium placeholder:text-gray-400 text-gray-900`} 
+                                placeholder="Mumbai" 
+                                value={address.city} 
+                                onChange={(e) => setAddress((prev) => ({ ...prev, city: e.target.value }))} 
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">State</label>
+                              <input 
+                                className={`w-full h-12 px-4 rounded-xl bg-gray-50 border border-gray-200 focus:ring-2 ${focusRingTheme} outline-none transition-all font-medium placeholder:text-gray-400 text-gray-900`} 
+                                placeholder="Maharashtra" 
+                                value={address.state} 
+                                onChange={(e) => setAddress((prev) => ({ ...prev, state: e.target.value }))} 
+                              />
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Zipcode</label>
+                              <input 
+                                className={`w-full h-12 px-4 rounded-xl bg-gray-50 border border-gray-200 focus:ring-2 ${focusRingTheme} outline-none transition-all font-medium placeholder:text-gray-400 text-gray-900`} 
+                                placeholder="400001" 
+                                value={address.zipcode} 
+                                onChange={(e) => setAddress((prev) => ({ ...prev, zipcode: e.target.value }))} 
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Phone Number</label>
+                              <input 
+                                type="tel"
+                                className={`w-full h-12 px-4 rounded-xl bg-gray-50 border border-gray-200 focus:ring-2 ${focusRingTheme} outline-none transition-all font-medium placeholder:text-gray-400 text-gray-900`} 
+                                placeholder="9999999999" 
+                                value={address.phone} 
+                                onChange={(e) => setAddress((prev) => ({ ...prev, phone: e.target.value }))} 
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                    <div>
-                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">State</label>
-                      <input 
-                        className={`w-full h-12 px-4 rounded-xl bg-gray-50 border border-gray-200 focus:ring-2 ${focusRingTheme} outline-none transition-all font-medium placeholder:text-gray-400 text-gray-900`} 
-                        placeholder="Maharashtra" 
-                        value={address.state} 
-                        onChange={(e) => setAddress((prev) => ({ ...prev, state: e.target.value }))} 
-                      />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Zipcode</label>
-                      <input 
-                        className={`w-full h-12 px-4 rounded-xl bg-gray-50 border border-gray-200 focus:ring-2 ${focusRingTheme} outline-none transition-all font-medium placeholder:text-gray-400 text-gray-900`} 
-                        placeholder="400001" 
-                        value={address.zipcode} 
-                        onChange={(e) => setAddress((prev) => ({ ...prev, zipcode: e.target.value }))} 
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Phone Number</label>
-                      <input 
-                        type="tel"
-                        className={`w-full h-12 px-4 rounded-xl bg-gray-50 border border-gray-200 focus:ring-2 ${focusRingTheme} outline-none transition-all font-medium placeholder:text-gray-400 text-gray-900`} 
-                        placeholder="9999999999" 
-                        value={address.phone} 
-                        onChange={(e) => setAddress((prev) => ({ ...prev, phone: e.target.value }))} 
-                      />
-                    </div>
-                  </div>
+                  ) : (
+                    <>
+                      <div>
+                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Street Address</label>
+                        <input 
+                          className={`w-full h-12 px-4 rounded-xl bg-gray-50 border border-gray-200 focus:ring-2 ${focusRingTheme} outline-none transition-all font-medium placeholder:text-gray-400 text-gray-900`} 
+                          placeholder="123 Ocean Avenue, Apt 4B" 
+                          value={address.street} 
+                          onChange={(e) => setAddress((prev) => ({ ...prev, street: e.target.value }))} 
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">City</label>
+                          <input 
+                            className={`w-full h-12 px-4 rounded-xl bg-gray-50 border border-gray-200 focus:ring-2 ${focusRingTheme} outline-none transition-all font-medium placeholder:text-gray-400 text-gray-900`} 
+                            placeholder="Mumbai" 
+                            value={address.city} 
+                            onChange={(e) => setAddress((prev) => ({ ...prev, city: e.target.value }))} 
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">State</label>
+                          <input 
+                            className={`w-full h-12 px-4 rounded-xl bg-gray-50 border border-gray-200 focus:ring-2 ${focusRingTheme} outline-none transition-all font-medium placeholder:text-gray-400 text-gray-900`} 
+                            placeholder="Maharashtra" 
+                            value={address.state} 
+                            onChange={(e) => setAddress((prev) => ({ ...prev, state: e.target.value }))} 
+                          />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Zipcode</label>
+                          <input 
+                            className={`w-full h-12 px-4 rounded-xl bg-gray-50 border border-gray-200 focus:ring-2 ${focusRingTheme} outline-none transition-all font-medium placeholder:text-gray-400 text-gray-900`} 
+                            placeholder="400001" 
+                            value={address.zipcode} 
+                            onChange={(e) => setAddress((prev) => ({ ...prev, zipcode: e.target.value }))} 
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Phone Number</label>
+                          <input 
+                            type="tel"
+                            className={`w-full h-12 px-4 rounded-xl bg-gray-50 border border-gray-200 focus:ring-2 ${focusRingTheme} outline-none transition-all font-medium placeholder:text-gray-400 text-gray-900`} 
+                            placeholder="9999999999" 
+                            value={address.phone} 
+                            onChange={(e) => setAddress((prev) => ({ ...prev, phone: e.target.value }))} 
+                          />
+                        </div>
+                      </div>
+                    </>
+                  )}
 
                   <label className={`flex items-start gap-3 rounded-2xl border ${borderThemeLight} ${bgThemeLight70} p-4`}>
                     <input
