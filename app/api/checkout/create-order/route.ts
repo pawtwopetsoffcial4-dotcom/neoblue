@@ -23,11 +23,22 @@ const getAppUrl = (request: NextRequest) => {
     return configuredUrl.replace(/\/$/, '');
   }
 
+  // Prioritize actual domain host from incoming request (e.g. neoblue.in)
+  const host = request.headers.get('x-forwarded-host') || request.headers.get('host');
+  const proto = request.headers.get('x-forwarded-proto') || 'https';
+  if (host && !host.includes('localhost')) {
+    return `${proto}://${host}`;
+  }
+
+  if (request.nextUrl?.origin) {
+    return request.nextUrl.origin;
+  }
+
   if (process.env.VERCEL_URL) {
     return `https://${process.env.VERCEL_URL}`;
   }
 
-  return request.nextUrl.origin;
+  return 'https://neoblue.in';
 };
 
 export async function POST(request: NextRequest) {
