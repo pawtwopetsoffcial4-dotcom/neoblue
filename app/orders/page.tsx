@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { Suspense, useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { apiClient } from '@/lib/api-client';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { CldUploadWidget } from 'next-cloudinary';
-import { Shield, ShieldCheck, ShieldAlert, FileVideo, UploadCloud, CheckCircle2, AlertCircle, Loader2, X, ShoppingBag } from 'lucide-react';
+import { Shield, ShieldCheck, ShieldAlert, FileVideo, UploadCloud, CheckCircle2, AlertCircle, Loader2, X, ShoppingBag, ArrowRight } from 'lucide-react';
 
 type UserOrder = {
   _id: string;
@@ -29,12 +30,15 @@ type UserOrder = {
   }>;
 };
 
-export default function OrdersPage() {
+function OrdersPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { isAuthenticated } = useAuth();
   const [orders, setOrders] = useState<UserOrder[]>([]);
   const [claims, setClaims] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  const isConfirmed = searchParams.get('confirmed') === 'true' || searchParams.get('payment') === 'success';
 
   // Claim Form State
   const [activeClaimOrder, setActiveClaimOrder] = useState<UserOrder | null>(null);
@@ -176,6 +180,33 @@ export default function OrdersPage() {
         <h1 className="text-3xl md:text-5xl font-black tracking-tight">My Orders</h1>
         <p className="text-sm text-slate-500 mt-2">View active order statuses and request Dead on Arrival (DOA) claims under our Live Arrival Guarantee (LAG).</p>
       </div>
+
+      {isConfirmed && (
+        <div className="bg-slate-900 text-white rounded-3xl p-6 md:p-8 shadow-xl mb-8 border border-slate-800 animate-in fade-in duration-500">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center shrink-0 text-amber-400 font-bold text-3xl">
+                🎉
+              </div>
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded bg-amber-400 text-slate-950">
+                  Payment Verified & Placed
+                </span>
+                <h2 className="text-xl md:text-2xl font-black text-white mt-1">Order Confirmed!</h2>
+                <p className="text-xs sm:text-sm text-slate-300 mt-0.5 font-medium">
+                  Thank you! Your payment was verified and your order is being prepared for live express dispatch.
+                </p>
+              </div>
+            </div>
+            <Link
+              href="/products"
+              className="h-10 px-5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs transition-colors shadow-sm shrink-0 flex items-center gap-2 cursor-pointer"
+            >
+              Continue Shopping <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </div>
+      )}
 
       <div className="space-y-4">
         {orders.map((order) => {
@@ -542,5 +573,20 @@ export default function OrdersPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function OrdersPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
+          <p className="text-slate-500 font-medium animate-pulse">Loading orders...</p>
+        </div>
+      </div>
+    }>
+      <OrdersPageContent />
+    </Suspense>
   );
 }

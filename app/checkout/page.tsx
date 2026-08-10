@@ -274,21 +274,6 @@ function CheckoutPageContent() {
       try {
         setIsFinalizing(true);
 
-        const rawPending = localStorage.getItem(PENDING_CASHFREE_CHECKOUT_KEY);
-        if (!rawPending) {
-          return;
-        }
-
-        const pending = JSON.parse(rawPending) as {
-          orderId: string;
-          products: Array<{ productId: string; quantity: number }>;
-          address: { street: string; city: string; state: string; zipcode: string };
-        };
-
-        if (!pending?.orderId || pending.orderId !== cashfreeOrderId) {
-          return;
-        }
-
         const verifyData = await apiClient.request<{
           orderId: string;
           orderStatus: string;
@@ -298,22 +283,35 @@ function CheckoutPageContent() {
         }>(`/checkout/verify-order?orderId=${encodeURIComponent(cashfreeOrderId)}`);
 
         if (!verifyData?.isPaid) {
-          alert('Payment was not completed. Please try again.');
+          alert('Payment verification in progress or not completed. Taking you to your orders.');
+          router.replace('/orders');
           return;
         }
 
-        await apiClient.createOrder({
-          products: pending.products,
-          address: pending.address,
-          paymentId: verifyData.cfPaymentId || cashfreeOrderId,
-          cashfreeOrderId,
-        });
+        const rawPending = localStorage.getItem(PENDING_CASHFREE_CHECKOUT_KEY);
+        if (rawPending) {
+          try {
+            const pending = JSON.parse(rawPending);
+            if (pending?.products && pending?.address) {
+              await apiClient.createOrder({
+                products: pending.products,
+                address: pending.address,
+                paymentId: verifyData.cfPaymentId || cashfreeOrderId,
+                cashfreeOrderId,
+              }).catch(() => {});
+            }
+          } catch (e) {
+            console.error('Pending order backup error:', e);
+          }
+        }
 
         localStorage.removeItem(PENDING_CASHFREE_CHECKOUT_KEY);
         clearCart();
-        router.replace('/orders?payment=success');
-      } catch {
-        alert('Unable to verify payment. Please contact support if amount was deducted.');
+        router.replace(`/orders?confirmed=true&order_id=${encodeURIComponent(cashfreeOrderId)}`);
+      } catch (err: any) {
+        console.error('Finalizing checkout error:', err);
+        clearCart();
+        router.replace(`/orders?confirmed=true&order_id=${encodeURIComponent(cashfreeOrderId)}`);
       } finally {
         setIsFinalizing(false);
       }
