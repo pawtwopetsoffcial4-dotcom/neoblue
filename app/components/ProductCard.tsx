@@ -43,7 +43,7 @@ export default function ProductCard({ product, idx = 0, className = "" }: Produc
       className={`group flex flex-col overflow-hidden rounded-[20px] sm:rounded-[24px] bg-white border border-slate-100 hover:-translate-y-1.5 transition-all duration-500 animate-fade-in-up ${theme.hoverBorder} ${theme.hoverShadow} ${className}`}
     >
       {/* Image Block */}
-      <div className="relative aspect-[4/3] sm:aspect-square w-full overflow-hidden bg-slate-50">
+      <div className="relative aspect-square w-full overflow-hidden bg-slate-50">
         <Image
           src={product.images?.[0] ?? product.img ?? '/illustrations/placeholder.png'}
           alt={product.title}
