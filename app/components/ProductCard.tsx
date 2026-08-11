@@ -76,27 +76,29 @@ export default function ProductCard({ product, idx = 0, className = "" }: Produc
       </div>
 
       {/* Metadata Details */}
-      <div className="flex flex-col p-2.5 sm:p-3">
-        <div className="flex items-center justify-between gap-1 mb-1">
-          <span className="text-[9px] sm:text-[10px] font-extrabold text-slate-400 uppercase tracking-widest line-clamp-1">
-            {product.category || 'Product'}
-          </span>
-          {(product.rating > 0) ? (
-            <span className="flex items-center gap-0.5 text-[9px] sm:text-[10px] font-black text-amber-500 bg-amber-50 px-1.5 py-0.5 rounded-md">
-              <Star className="w-3 h-3 inline fill-amber-400 text-amber-400 mr-1" /> {product.rating}
+      <div className="flex flex-col flex-1 justify-between p-2.5 sm:p-3">
+        <div>
+          <div className="flex items-center justify-between gap-1 mb-1">
+            <span className="text-[9px] sm:text-[10px] font-extrabold text-slate-400 uppercase tracking-widest truncate">
+              {product.category || 'Product'}
             </span>
-          ) : null}
-        </div>
+            {(product.rating > 0) ? (
+              <span className="flex items-center gap-0.5 text-[9px] sm:text-[10px] font-black text-amber-500 bg-amber-50 px-1.5 py-0.5 rounded-md shrink-0">
+                <Star className="w-3 h-3 inline fill-amber-400 text-amber-400 mr-1" /> {product.rating}
+              </span>
+            ) : null}
+          </div>
 
-        <div className="mb-2">
-          <h3 className={`text-[13px] sm:text-[15px] font-black text-slate-800 line-clamp-2 transition-colors duration-300 leading-[1.3] ${theme.titleHover}`}>
-            {product.title}
-          </h3>
-          {product.scientific && (
-            <p className="text-[10px] sm:text-[11px] font-medium text-slate-400 italic mt-0.5 line-clamp-1">
-              {product.scientific}
-            </p>
-          )}
+          <div className="mb-2">
+            <h3 className={`text-[13px] sm:text-[15px] font-black text-slate-800 truncate transition-colors duration-300 leading-[1.3] ${theme.titleHover}`} title={product.title}>
+              {product.title}
+            </h3>
+            {product.scientific && (
+              <p className="text-[10px] sm:text-[11px] font-medium text-slate-400 italic mt-0.5 truncate">
+                {product.scientific}
+              </p>
+            )}
+          </div>
         </div>
 
         {/* Pricing & Cart Group */}

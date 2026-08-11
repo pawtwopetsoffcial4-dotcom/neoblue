@@ -95,7 +95,7 @@ function ProductCard({ product, mode, index = 0 }: { product: HeroCardProduct; m
           </span>
 
           <Link href={`/products/${product.id}`} className="block">
-            <h3 className="text-xs md:text-sm font-extrabold text-slate-900 line-clamp-2 leading-tight group-hover:text-blue-600 transition-colors">
+            <h3 className="text-xs md:text-sm font-extrabold text-slate-900 truncate leading-tight group-hover:text-blue-600 transition-colors" title={product.title}>
               {product.title}
             </h3>
           </Link>
