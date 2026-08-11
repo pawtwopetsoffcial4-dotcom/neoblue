@@ -10,6 +10,7 @@ type AdminProduct = {
   title: string;
   description: string;
   price: number;
+  sellerPrice?: number;
   images: string[];
   category:
     | 'Guppies'
@@ -499,19 +500,29 @@ export default function AdminProductsPage() {
                   <p className="text-sm text-slate-500 mt-2">
                     Vendor: {product.vendorId?.name ?? product.vendorId?.email ?? 'Unknown'}
                   </p>
-                  <div className="flex items-center gap-2 mt-2">
-                    <p className="text-sm text-slate-500">
-                      ₹{product.price.toFixed(2)} • {product.category} • {product.waterType}
+                  <div className="flex flex-wrap items-center gap-2 mt-2">
+                    <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-1 rounded-xl">
+                      <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Marketplace Price:</span>
+                      <span className="text-sm font-black text-slate-900">₹{product.price.toFixed(2)}</span>
+                      <button
+                        onClick={() => openQuickEditPrice(product)}
+                        className="text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-700 font-semibold hover:bg-blue-200 transition-colors"
+                      >
+                        Edit Price
+                      </button>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 px-3 py-1 rounded-xl">
+                      <span className="text-xs font-bold text-amber-800 uppercase tracking-wider">Seller Set Price:</span>
+                      <span className="text-sm font-black text-amber-950">₹{(product.sellerPrice ?? product.price).toFixed(2)}</span>
+                    </div>
+
+                    <span className="text-xs text-slate-500 font-medium ml-1">
+                      • {product.category} • {product.waterType}
                       {product.stockQuantity !== undefined && (
-                        <span> • Stock: {product.stockQuantity} ({product.soldQuantity || 0} total sold, {(product as any).soldAfterLastStockUpdate || 0} sold since reload)</span>
+                        <span> • Stock: {product.stockQuantity} ({product.soldQuantity || 0} sold)</span>
                       )}
-                    </p>
-                    <button
-                      onClick={() => openQuickEditPrice(product)}
-                      className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-700 font-semibold hover:bg-blue-200 transition-colors"
-                    >
-                      Edit Price
-                    </button>
+                    </span>
                   </div>
                   <p className="text-xs mt-2 font-semibold text-blue-700 uppercase tracking-wider">{status}</p>
 
@@ -607,13 +618,22 @@ export default function AdminProductsPage() {
                   value={editForm.scientific}
                   onChange={(event) => setEditForm((current) => current ? { ...current, scientific: event.target.value } : current)}
                 />
-                <input
-                  type="number"
-                  className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Price"
-                  value={editForm.price}
-                  onChange={(event) => setEditForm((current) => current ? { ...current, price: event.target.value } : current)}
-                />
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">Marketplace Selling Price (₹)</label>
+                  <input
+                    type="number"
+                    className="w-full h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500 font-semibold text-slate-900"
+                    placeholder="Price"
+                    value={editForm.price}
+                    onChange={(event) => setEditForm((current) => current ? { ...current, price: event.target.value } : current)}
+                  />
+                  {editingProduct && (
+                    <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-950 text-xs font-bold flex items-center justify-between">
+                      <span className="uppercase tracking-wider text-[10px] text-amber-800">Seller Set Baseline Price:</span>
+                      <span className="text-sm font-black text-amber-950">₹{(editingProduct.sellerPrice ?? editingProduct.price).toFixed(2)}</span>
+                    </div>
+                  )}
+                </div>
                 <input
                   className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Tag"

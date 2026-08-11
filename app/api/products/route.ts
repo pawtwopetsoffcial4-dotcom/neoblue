@@ -161,6 +161,7 @@ export async function POST(request: NextRequest) {
       title,
       description: finalDescription,
       price,
+      sellerPrice: price,
       images,
       videos: Array.isArray(videos) ? videos : [],
       category,

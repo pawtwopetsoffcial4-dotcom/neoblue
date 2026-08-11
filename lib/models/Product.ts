@@ -22,6 +22,7 @@ export interface IProduct extends Document {
   size?: string;
   ageCategory?: string;
   originalPrice?: number;
+  sellerPrice?: number;
   discountPercentage?: number;
   perPiecePrice?: number;
   perPairPrice?: number;
@@ -95,6 +96,10 @@ const productSchema = new Schema<IProduct>(
     price: {
       type: Number,
       required: [true, 'Please provide product price'],
+      min: 0,
+    },
+    sellerPrice: {
+      type: Number,
       min: 0,
     },
     images: {
