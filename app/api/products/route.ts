@@ -4,6 +4,7 @@ import User from '@/lib/models/User';
 import FishDescription from '@/lib/models/FishDescription';
 import { createErrorResponse, createSuccessResponse, getTokenFromRequest, verifyToken } from '@/lib/utils/auth';
 import { normalizeShippingRate } from '@/lib/utils/shipping';
+import { normalizeCategoryName } from '@/lib/catalog';
 import { NextRequest } from 'next/server';
 
 export const dynamic = 'force-dynamic';
@@ -157,6 +158,8 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    const safeCategory = normalizeCategoryName(category);
+
     const product = await Product.create({
       title,
       description: finalDescription,
@@ -164,7 +167,7 @@ export async function POST(request: NextRequest) {
       sellerPrice: price,
       images,
       videos: Array.isArray(videos) ? videos : [],
-      category,
+      category: safeCategory,
       subcategory: subcategory || '',
       waterType,
       tag: tag || 'Standard',

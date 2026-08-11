@@ -3,7 +3,7 @@ import { connectDB, isDatabaseConnectivityError } from '@/lib/db';
 import Product from '@/lib/models/Product';
 import StoreConfig from '@/lib/models/StoreConfig';
 import { createErrorResponse, createSuccessResponse } from '@/lib/utils/auth';
-import { getCategoryImage, PRODUCT_CATEGORIES } from '@/lib/catalog';
+import { getCategoryImage, PRODUCT_CATEGORIES, normalizeCategoryName } from '@/lib/catalog';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,13 +19,24 @@ export async function GET(_request: NextRequest) {
       inStock: true,
     });
 
-    const categories = Array.from(
-      new Set([
-        ...PRODUCT_CATEGORIES,
-        ...configuredCategories,
-        ...productCategories,
-      ].filter((category): category is string => typeof category === 'string' && category.trim().length > 0))
-    ).sort();
+    const rawCategories = [
+      ...PRODUCT_CATEGORIES,
+      ...configuredCategories,
+      ...productCategories,
+    ];
+
+    const categoryMap = new Map<string, string>();
+    for (const cat of rawCategories) {
+      if (typeof cat === 'string' && cat.trim().length > 0) {
+        const canonical = normalizeCategoryName(cat);
+        const key = canonical.toLowerCase();
+        if (!categoryMap.has(key)) {
+          categoryMap.set(key, canonical);
+        }
+      }
+    }
+
+    const categories = Array.from(categoryMap.values()).sort();
 
     const categoriesWithImages = categories.map((name) => ({
       name,

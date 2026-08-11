@@ -32,6 +32,7 @@ export default function ProductClientPage({
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [showForm, setShowForm] = useState(false);
+  const [isDescExpanded, setIsDescExpanded] = useState(false);
   const { addToCart } = useCart();
   const [tankPh, setTankPh] = useState(7.0);
   const [tankTemp, setTankTemp] = useState(24);
@@ -447,18 +448,6 @@ export default function ProductClientPage({
               <CheckCircle2 className={`h-3.5 w-3.5 ${isPlants ? 'text-emerald-500' : 'text-blue-500'}`} />
             </Link>
           )}
-
-          {/* Quick Overview & Description */}
-          <div className="space-y-3 bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm">
-            {product.quickOverview && (
-              <p className="text-[15px] font-bold text-slate-800 leading-snug">
-                {product.quickOverview}
-              </p>
-            )}
-            <p className="text-sm text-slate-500 leading-relaxed">
-              {product.description || 'Premium aquatic specimen, quarantine-tested and ready for your tank setup.'}
-            </p>
-          </div>
         </div>
       </div>
 
@@ -495,42 +484,66 @@ export default function ProductClientPage({
           <div className="bg-white rounded-b-2xl rounded-t-none border border-t-0 border-slate-200/80 p-6 md:p-8 min-h-[280px]">
 
             {activeTab === 'description' && (
-              <div className="max-w-4xl space-y-8">
+              <div className="max-w-4xl space-y-6">
                 <h3 className="text-2xl font-black text-slate-900 tracking-tight">About {product.title}</h3>
-                <div className="prose prose-slate prose-base max-w-none space-y-10">
-                  {product.aboutSpecies && (
-                    <div>
-                      <h4 className="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2"><Info className={`h-5 w-5 ${theme.icon}`}/> Species Profile</h4>
-                      <p className="text-slate-600 leading-loose whitespace-pre-wrap">{product.aboutSpecies}</p>
-                    </div>
+                
+                <div className="relative">
+                  <div className={`prose prose-slate prose-base max-w-none space-y-6 transition-all duration-300 ${!isDescExpanded ? 'max-h-48 overflow-hidden relative' : ''}`}>
+                    {product.quickOverview && (
+                      <p className="text-base font-bold text-slate-800 leading-relaxed">
+                        {product.quickOverview}
+                      </p>
+                    )}
+                    <p className="text-slate-600 leading-relaxed whitespace-pre-wrap">
+                      {product.description || 'Premium aquatic specimen, quarantine-tested and ready for your tank setup.'}
+                    </p>
+
+                    {product.aboutSpecies && (
+                      <div className="pt-2">
+                        <h4 className="text-lg font-bold text-slate-800 mb-2 flex items-center gap-2"><Info className={`h-5 w-5 ${theme.icon}`}/> Species Profile</h4>
+                        <p className="text-slate-600 leading-relaxed whitespace-pre-wrap">{product.aboutSpecies}</p>
+                      </div>
+                    )}
+                    {product.behavioralTraits && (
+                      <div className="pt-2">
+                        <h4 className="text-lg font-bold text-slate-800 mb-2 flex items-center gap-2"><Sparkles className="h-5 w-5 text-amber-500"/> Behavior & Temperament</h4>
+                        <p className="text-slate-600 leading-relaxed whitespace-pre-wrap">{product.behavioralTraits}</p>
+                      </div>
+                    )}
+                    {product.genderIdentification && (
+                      <div className="pt-2">
+                        <h4 className="text-lg font-bold text-slate-800 mb-2 flex items-center gap-2"><User className="h-5 w-5 text-pink-500"/> Male vs Female Identification</h4>
+                        <p className="text-slate-600 leading-relaxed whitespace-pre-wrap">{product.genderIdentification}</p>
+                      </div>
+                    )}
+                    {product.sustainabilitySourcing && (
+                      <div className="pt-2">
+                        <h4 className="text-lg font-bold text-slate-800 mb-2 flex items-center gap-2"><Leaf className="h-5 w-5 text-emerald-500"/> Sustainability & Sourcing</h4>
+                        <p className="text-slate-600 leading-relaxed whitespace-pre-wrap">{product.sustainabilitySourcing}</p>
+                      </div>
+                    )}
+                    {product.section5Title && product.section5Content && (
+                      <div className="pt-2">
+                        <h4 className="text-lg font-bold text-slate-800 mb-2 flex items-center gap-2"><Store className="h-5 w-5 text-purple-500"/> {product.section5Title}</h4>
+                        <p className="text-slate-600 leading-relaxed whitespace-pre-wrap">{product.section5Content}</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {!isDescExpanded && (
+                    <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-white via-white/80 to-transparent pointer-events-none" />
                   )}
-                  {product.behavioralTraits && (
-                    <div>
-                      <h4 className="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2"><Sparkles className="h-5 w-5 text-amber-500"/> Behavior & Temperament</h4>
-                      <p className="text-slate-600 leading-loose whitespace-pre-wrap">{product.behavioralTraits}</p>
-                    </div>
-                  )}
-                  {product.genderIdentification && (
-                    <div>
-                      <h4 className="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2"><User className="h-5 w-5 text-pink-500"/> Male vs Female Identification</h4>
-                      <p className="text-slate-600 leading-loose whitespace-pre-wrap">{product.genderIdentification}</p>
-                    </div>
-                  )}
-                  {product.sustainabilitySourcing && (
-                    <div>
-                      <h4 className="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2"><Leaf className="h-5 w-5 text-emerald-500"/> Sustainability & Sourcing</h4>
-                      <p className="text-slate-600 leading-loose whitespace-pre-wrap">{product.sustainabilitySourcing}</p>
-                    </div>
-                  )}
-                  {product.section5Title && product.section5Content && (
-                    <div>
-                      <h4 className="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2"><Store className="h-5 w-5 text-purple-500"/> {product.section5Title}</h4>
-                      <p className="text-slate-600 leading-loose whitespace-pre-wrap">{product.section5Content}</p>
-                    </div>
-                  )}
-                  {!product.aboutSpecies && !product.behavioralTraits && (
-                    <p className="text-slate-600 leading-relaxed whitespace-pre-wrap">{product.description}</p>
-                  )}
+
+                  <div className="mt-4 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setIsDescExpanded(!isDescExpanded)}
+                      className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all border ${theme.border} ${theme.text} hover:bg-slate-50 cursor-pointer shadow-sm`}
+                    >
+                      {isDescExpanded ? 'See Less' : 'See More'}
+                      <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isDescExpanded ? 'rotate-180' : ''}`} />
+                    </button>
+                  </div>
                 </div>
 
                 <div className="pt-6 border-t border-slate-100">
@@ -725,124 +738,6 @@ export default function ProductClientPage({
 
         {/* ── Sidebar ── */}
         <div className="space-y-6">
-
-          {/* Compatibility Checker */}
-          <div className="bg-slate-900 rounded-2xl p-5 text-white relative overflow-hidden">
-            <div className="absolute inset-0 opacity-30 pointer-events-none">
-              <div className="absolute -top-16 -right-16 w-48 h-48 rounded-full bg-blue-500/20 blur-3xl" />
-              <div className="absolute -bottom-16 -left-16 w-48 h-48 rounded-full bg-cyan-500/20 blur-3xl" />
-            </div>
-
-            <div className="relative z-10 space-y-4">
-              <div>
-                <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                  <Thermometer className="h-4 w-4 text-blue-400" />
-                  Compatibility Checker
-                </h3>
-                <p className="text-xs text-slate-400 mt-1">Match your tank parameters to check safety.</p>
-              </div>
-
-              {/* pH */}
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-xs font-medium text-slate-300">Tank pH</span>
-                  <span className="text-xs font-bold text-blue-400 bg-blue-500/15 px-2 py-0.5 rounded-md">
-                    {tankPh.toFixed(1)}
-                  </span>
-                </div>
-                <input type="range" min="5.0" max="9.0" step="0.1" value={tankPh}
-                  onChange={(e) => setTankPh(parseFloat(e.target.value))}
-                  className="w-full h-1.5 bg-slate-700 rounded-full appearance-none cursor-pointer accent-blue-500"
-                />
-                <p className="text-[11px] text-slate-500">Ideal: {(product.phMin ?? 6.0).toFixed(1)} – {(product.phMax ?? 8.0).toFixed(1)}</p>
-              </div>
-
-              {/* Temp */}
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-xs font-medium text-slate-300">Temperature</span>
-                  <span className="text-xs font-bold text-blue-400 bg-blue-500/15 px-2 py-0.5 rounded-md">
-                    {tankTemp}°C
-                  </span>
-                </div>
-                <input type="range" min="15" max="35" step="1" value={tankTemp}
-                  onChange={(e) => setTankTemp(parseInt(e.target.value))}
-                  className="w-full h-1.5 bg-slate-700 rounded-full appearance-none cursor-pointer accent-blue-500"
-                />
-                <p className="text-[11px] text-slate-500">Ideal: {product.tempMin ?? 20}°C – {product.tempMax ?? 30}°C</p>
-              </div>
-
-              {/* Tankmates */}
-              <div className="space-y-2 relative">
-                <span className="text-xs font-medium text-slate-300">Tank Inhabitants</span>
-                {compatibilityData.activeMates.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5">
-                    {compatibilityData.activeMates.map(mate => (
-                      <span key={mate._id} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 text-[11px] font-medium border border-slate-700">
-                        {mate.title}
-                        <button type="button" onClick={() => setSelectedMates(prev => prev.filter(id => id !== mate._id))} className="text-slate-500 hover:text-white cursor-pointer">
-                          <X className="w-2.5 h-2.5" />
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                )}
-                <div className="flex items-center gap-2 border border-slate-700 rounded-lg px-3 h-9 bg-slate-800/50 focus-within:ring-1 focus-within:ring-blue-500 focus-within:border-blue-500">
-                  <Search className="w-3.5 h-3.5 text-slate-500 shrink-0" />
-                  <input
-                    type="text" placeholder="Add species..."
-                    value={mateSearchQuery}
-                    onChange={(e) => { setMateSearchQuery(e.target.value); setShowMatesDropdown(true); }}
-                    onFocus={() => setShowMatesDropdown(true)}
-                    className="w-full h-full border-none outline-none bg-transparent text-xs text-white placeholder:text-slate-500"
-                  />
-                </div>
-                {showMatesDropdown && searchResults.length > 0 && (
-                  <div className="absolute left-0 right-0 z-20 mt-1 max-h-44 overflow-y-auto rounded-xl border border-slate-700 bg-slate-900 p-1.5 shadow-2xl">
-                    {searchResults.slice(0, 8).map((p) => (
-                      <button key={p._id} type="button" onClick={() => { setSelectedMates(prev => [...prev, p._id]); setMateSearchQuery(''); setShowMatesDropdown(false); }}
-                        className="w-full text-left px-3 py-2 rounded-lg text-xs hover:bg-slate-800 transition-colors flex items-center justify-between cursor-pointer text-slate-300"
-                      >
-                        <div>
-                          <span className="font-medium">{p.title}</span>
-                          <span className="text-[10px] text-slate-500 block">{p.scientific || p.category}</span>
-                        </div>
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-medium">
-                          {p.temperament || 'Peaceful'}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-                {showMatesDropdown && (<div className="fixed inset-0 z-10" onClick={() => setShowMatesDropdown(false)} />)}
-              </div>
-
-              {/* Verdict */}
-              <div className={`p-3.5 rounded-xl border ${
-                compatibilityData.rating === 'Green' ? 'bg-emerald-500/10 border-emerald-500/25 text-emerald-300' :
-                compatibilityData.rating === 'Orange' ? 'bg-amber-500/10 border-amber-500/25 text-amber-300' :
-                'bg-rose-500/10 border-rose-500/25 text-rose-300'
-              }`}>
-                <div className="flex items-center gap-2 mb-2">
-                  {compatibilityData.rating === 'Green' ? <CheckCircle2 className="w-4 h-4 text-emerald-400" /> :
-                   compatibilityData.rating === 'Orange' ? <Info className="w-4 h-4 text-amber-400" /> :
-                   <ShieldAlert className="w-4 h-4 text-rose-400" />}
-                  <span className="text-xs font-bold">
-                    {compatibilityData.rating === 'Green' ? 'Compatible Setup' :
-                     compatibilityData.rating === 'Orange' ? 'Proceed with Caution' : 'Incompatible'}
-                  </span>
-                </div>
-                <ul className="space-y-1 text-[11px] font-medium leading-relaxed">
-                  {compatibilityData.alerts.map((alert, i) => (
-                    <li key={i} className="flex items-start gap-1.5">
-                      <span className="mt-1.5 w-1 h-1 rounded-full bg-current shrink-0 opacity-60" />
-                      <span>{alert}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
 
           {/* Breeder card */}
           {vendor && (() => {

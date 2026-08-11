@@ -3,6 +3,7 @@ import Product from '@/lib/models/Product';
 import FishDescription from '@/lib/models/FishDescription';
 import { createErrorResponse, createSuccessResponse, getTokenFromRequest, verifyToken } from '@/lib/utils/auth';
 import { normalizeShippingRate } from '@/lib/utils/shipping';
+import { normalizeCategoryName } from '@/lib/catalog';
 import { NextRequest } from 'next/server';
 import mongoose from 'mongoose';
 
@@ -63,6 +64,11 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
     }
 
     const updateData = await request.json();
+
+    if ('category' in updateData && typeof updateData.category === 'string') {
+      updateData.category = normalizeCategoryName(updateData.category);
+    }
+
     const hasPerPieceKey = 'perPiecePrice' in updateData;
     const hasPerPairKey = 'perPairPrice' in updateData;
     const hasShippingChargeKey = 'shippingCharge' in updateData;

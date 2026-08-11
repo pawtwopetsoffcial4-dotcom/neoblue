@@ -80,6 +80,25 @@ export const CATEGORY_IMAGES: Record<string, string> = {
   Plants: '/fishes_cat_cover/Plants.png',
 };
 
+export const normalizeCategoryName = (category: string): string => {
+  if (!category || typeof category !== 'string') return '';
+  const trimmed = category.trim();
+  const lower = trimmed.toLowerCase();
+
+  if (lower === 'betta' || lower === 'bettas') return 'Bettas';
+  if (lower === 'guppy' || lower === 'guppies') return 'Guppies';
+  if (lower === 'crayfish' || lower === 'crayfishes') return 'Crayfish';
+  if (lower === 'molly' || lower === 'mollies') return 'Molly';
+  if (lower === 'plant' || lower === 'plants') return 'Plants';
+  if (lower === 'kribensis') return 'Kribensis';
+  if (lower === 'apistogramma') return 'Apistogramma';
+  if (lower === 'jewel cichlid' || lower === 'jewel cichlids') return 'Jewel Cichlid';
+  if (lower === 'ram cichlid' || lower === 'ram cichlids') return 'Ram Cichlid';
+
+  return trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
+};
+
 export const getCategoryImage = (category: string): string => {
-  return CATEGORY_IMAGES[category] || '/fishes_cat_cover/Guppies.jpeg';
+  const norm = normalizeCategoryName(category);
+  return CATEGORY_IMAGES[norm] || CATEGORY_IMAGES[category] || '/fishes_cat_cover/Guppies.jpeg';
 };
