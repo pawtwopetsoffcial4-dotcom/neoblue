@@ -156,6 +156,7 @@ function CheckoutPageContent() {
   const [address, setAddress] = useState({ street: '', city: '', state: '', zipcode: '', phone: '' });
   const [agreeToPolicy, setAgreeToPolicy] = useState(false);
   const [storeConfig, setStoreConfig] = useState<any>(null);
+  const [paymentErrorMessage, setPaymentErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const loadConfig = async () => {
@@ -274,6 +275,11 @@ function CheckoutPageContent() {
       try {
         setIsFinalizing(true);
 
+        // Sanitize URL query parameters immediately so returning to /checkout never re-triggers verification or alerts!
+        if (typeof window !== 'undefined') {
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+
         const verifyData = await apiClient.request<{
           orderId: string;
           orderStatus: string;
@@ -283,8 +289,7 @@ function CheckoutPageContent() {
         }>(`/checkout/verify-order?orderId=${encodeURIComponent(cashfreeOrderId)}`);
 
         if (!verifyData?.isPaid) {
-          alert('Payment verification in progress or not completed. Taking you to your orders.');
-          router.replace('/orders');
+          setPaymentErrorMessage('Payment was not completed or was cancelled. Your items are still saved in your bag so you can try again.');
           return;
         }
 
@@ -310,8 +315,7 @@ function CheckoutPageContent() {
         router.replace(`/orders?confirmed=true&order_id=${encodeURIComponent(cashfreeOrderId)}`);
       } catch (err: any) {
         console.error('Finalizing checkout error:', err);
-        clearCart();
-        router.replace(`/orders?confirmed=true&order_id=${encodeURIComponent(cashfreeOrderId)}`);
+        setPaymentErrorMessage('Unable to verify payment status. If payment was deducted, please check your My Orders page.');
       } finally {
         setIsFinalizing(false);
       }
@@ -599,6 +603,26 @@ function CheckoutPageContent() {
       </div>
 
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 md:mt-10">
+          {/* Payment Cancellation / Failure Banner */}
+          {paymentErrorMessage && (
+            <div className="mb-6 p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 flex items-start justify-between gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 mt-0.5 font-bold">
+                  ⚠️
+                </div>
+                <div>
+                  <h4 className="text-xs font-black uppercase tracking-wider text-amber-900">Checkout Notification</h4>
+                  <p className="text-xs font-semibold text-amber-800 mt-0.5">{paymentErrorMessage}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setPaymentErrorMessage(null)}
+                className="text-amber-500 hover:text-amber-800 p-1 rounded-lg hover:bg-amber-100 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          )}
           {/* Shared Cart Banner (when receiving a shared link) */}
           {sharedCartItems && !sharedCartDismissed && (
             <div className="bg-slate-900 text-white rounded-3xl p-5 md:p-6 shadow-xl mb-8 border border-slate-800 animate-in fade-in duration-300">
