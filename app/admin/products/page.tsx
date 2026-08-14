@@ -44,6 +44,7 @@ type EditFormState = {
   title: string;
   description: string;
   price: string;
+  sellerPrice: string;
   category: AdminProduct['category'];
   waterType: AdminProduct['waterType'];
   tag: string;
@@ -93,6 +94,7 @@ export default function AdminProductsPage() {
   const [editNewAnswer, setEditNewAnswer] = useState('');
   const [quickEditingPrice, setQuickEditingPrice] = useState<string | null>(null);
   const [quickPriceValue, setQuickPriceValue] = useState<string>('');
+  const [quickSellerPriceValue, setQuickSellerPriceValue] = useState<string>('');
   const [isSavingPrice, setIsSavingPrice] = useState(false);
   const [isGeneratingDesc, setIsGeneratingDesc] = useState(false);
 
@@ -173,6 +175,7 @@ export default function AdminProductsPage() {
       title: product.title,
       description: product.description,
       price: String(product.price),
+      sellerPrice: String(product.sellerPrice ?? product.price),
       category: product.category,
       waterType: product.waterType,
       tag: product.tag || 'Standard',
@@ -219,11 +222,13 @@ export default function AdminProductsPage() {
   const openQuickEditPrice = (product: AdminProduct) => {
     setQuickEditingPrice(product._id);
     setQuickPriceValue(String(product.price));
+    setQuickSellerPriceValue(String(product.sellerPrice ?? product.price));
   };
 
   const closeQuickEditPrice = () => {
     setQuickEditingPrice(null);
     setQuickPriceValue('');
+    setQuickSellerPriceValue('');
     setIsSavingPrice(false);
   };
 
@@ -231,17 +236,22 @@ export default function AdminProductsPage() {
     if (!quickEditingPrice) return;
 
     const price = Number(quickPriceValue);
+    const sellerPrice = Number(quickSellerPriceValue);
+
     if (Number.isNaN(price) || price < 0) {
-      setMessage('Price must be a valid positive number');
+      setMessage('Marketplace price must be a valid positive number');
       return;
     }
 
     try {
       setMessage(null);
       setIsSavingPrice(true);
-      await apiClient.updateProduct(quickEditingPrice, { price });
+      await apiClient.updateProduct(quickEditingPrice, {
+        price,
+        sellerPrice: !Number.isNaN(sellerPrice) && sellerPrice >= 0 ? sellerPrice : price,
+      });
       await loadProducts();
-      setMessage('Price updated successfully');
+      setMessage('Prices updated successfully');
       closeQuickEditPrice();
     } catch (error: any) {
       setMessage(error.message || 'Failed to update price');
@@ -268,8 +278,9 @@ export default function AdminProductsPage() {
     if (!editingProduct || !editForm) return;
 
     const price = Number(editForm.price);
+    const sellerPrice = Number(editForm.sellerPrice);
     if (Number.isNaN(price)) {
-      setMessage('Price must be a valid number');
+      setMessage('Marketplace Price must be a valid number');
       return;
     }
 
@@ -285,6 +296,7 @@ export default function AdminProductsPage() {
         title: editForm.title,
         description: editForm.description,
         price,
+        sellerPrice: !Number.isNaN(sellerPrice) && sellerPrice >= 0 ? sellerPrice : price,
         images: editForm.images,
         category: editForm.category,
         waterType: editForm.waterType,
@@ -623,16 +635,20 @@ export default function AdminProductsPage() {
                   <input
                     type="number"
                     className="w-full h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500 font-semibold text-slate-900"
-                    placeholder="Price"
+                    placeholder="Marketplace Price"
                     value={editForm.price}
                     onChange={(event) => setEditForm((current) => current ? { ...current, price: event.target.value } : current)}
                   />
-                  {editingProduct && (
-                    <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-950 text-xs font-bold flex items-center justify-between">
-                      <span className="uppercase tracking-wider text-[10px] text-amber-800">Seller Set Baseline Price:</span>
-                      <span className="text-sm font-black text-amber-950">₹{(editingProduct.sellerPrice ?? editingProduct.price).toFixed(2)}</span>
-                    </div>
-                  )}
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-amber-800 uppercase tracking-wider block">Seller Set Price / Vendor Baseline (₹)</label>
+                  <input
+                    type="number"
+                    className="w-full h-11 px-4 rounded-xl border border-amber-300 bg-amber-50/50 outline-none focus:ring-2 focus:ring-amber-500 font-black text-amber-950"
+                    placeholder="Seller Price"
+                    value={editForm.sellerPrice}
+                    onChange={(event) => setEditForm((current) => current ? { ...current, sellerPrice: event.target.value } : current)}
+                  />
                 </div>
                 <input
                   className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
@@ -1027,16 +1043,28 @@ export default function AdminProductsPage() {
 
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">Price (₹)</label>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Marketplace Price (₹)</label>
                 <input
                   type="number"
                   min="0"
                   step="0.01"
                   value={quickPriceValue}
                   onChange={(e) => setQuickPriceValue(e.target.value)}
-                  className="w-full h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500 font-semibold"
                   placeholder="0.00"
                   autoFocus
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-amber-800 uppercase tracking-wider mb-1">Seller Set Price (₹)</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={quickSellerPriceValue}
+                  onChange={(e) => setQuickSellerPriceValue(e.target.value)}
+                  className="w-full h-11 px-4 rounded-xl border border-amber-300 bg-amber-50/50 outline-none focus:ring-2 focus:ring-amber-500 font-bold text-amber-950"
+                  placeholder="0.00"
                 />
               </div>
 
