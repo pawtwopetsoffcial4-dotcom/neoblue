@@ -3,6 +3,7 @@ import { createErrorResponse, getTokenFromRequest, verifyToken } from '@/lib/uti
 import { connectDB } from '@/lib/db';
 import Order from '@/lib/models/Order';
 import { decrementStockForOrder } from '@/lib/utils/stock';
+import { createNotification } from '@/lib/utils/notifications';
 
 const appId = process.env.CASHFREE_APP_ID;
 const secretKey = process.env.CASHFREE_SECRET_KEY;
@@ -76,7 +77,26 @@ export async function GET(request: NextRequest) {
         if (order.status !== 'placed') {
           order.status = 'placed';
           order.paymentId = cfPaymentId || orderId;
+          await order.save();
           await decrementStockForOrder(order);
+
+          // Trigger notification for the buyer
+          await createNotification(
+            order.userId,
+            'Order Confirmed! 🎉',
+            `Your order #${order._id.toString().toUpperCase().slice(-6)} of ₹${order.totalAmount.toFixed(2)} has been placed successfully.`,
+            'order_status',
+            '/orders'
+          ).catch((e) => console.error('Notification buyer error:', e));
+
+          // Trigger notification for the vendor
+          await createNotification(
+            order.vendorId,
+            'New Order Received! 📦',
+            `You have received a new order #${order._id.toString().toUpperCase().slice(-6)} for ₹${order.totalAmount.toFixed(2)}.`,
+            'new_order',
+            '/vendor/orders'
+          ).catch((e) => console.error('Notification vendor error:', e));
         }
       }
     }
