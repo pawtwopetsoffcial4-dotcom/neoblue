@@ -533,7 +533,9 @@ function CheckoutPageContent() {
                     <div className="flex justify-between items-start gap-4">
                       <div>
                         <h3 className="font-extrabold text-base sm:text-lg text-gray-900 leading-tight">{item.title}</h3>
-                        <p className="text-xs text-gray-500 mt-1 font-medium">₹{item.price.toFixed(2)} / each</p>
+                        <p className="text-xs text-gray-500 mt-1 font-medium">
+                          ₹{item.price.toFixed(2)} / {(item as any).perPairPrice != null || (item as any).unitLabel === 'pair' ? 'pair' : 'piece'}
+                        </p>
                       </div>
                       <div className="text-right shrink-0">
                         <p className="font-black text-base sm:text-lg text-gray-900">₹{(item.price * item.quantity).toFixed(2)}</p>
@@ -719,7 +721,15 @@ function CheckoutPageContent() {
                             <h3 className="font-bold text-lg text-gray-900 leading-tight truncate">{item.title}</h3>
                             <p className="font-bold text-lg text-gray-900 shrink-0">₹{(item.price * item.quantity).toFixed(2)}</p>
                           </div>
-                          <p className="text-sm text-gray-500 mt-1 font-medium">₹{item.price.toFixed(2)} / each</p>
+                          {(() => {
+                            const product = productDetails[item.productId];
+                            const isPair = product?.perPairPrice != null || (item as any).perPairPrice != null || (item as any).unitLabel === 'pair';
+                            return (
+                              <p className="text-sm text-gray-500 mt-1 font-medium">
+                                ₹{item.price.toFixed(2)} / {isPair ? 'pair' : 'piece'}
+                              </p>
+                            );
+                          })()}
                           {productDetails[item.productId] ? (
                             (() => {
                               const product = productDetails[item.productId];

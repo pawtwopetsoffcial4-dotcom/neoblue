@@ -13,6 +13,8 @@ export type CartItem = {
   price: number;
   image: string;
   quantity: number;
+  perPairPrice?: number | null;
+  unitLabel?: string;
 };
 
 type CartContextType = {
@@ -31,7 +33,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [toast, setToast] = useState<{ id: number; title: string; image?: string; price?: number } | null>(null);
+  const [toast, setToast] = useState<{ id: number; title: string; image?: string; price: number; unitLabel?: string } | null>(null);
   const toastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { user } = useAuth();
   const { mode } = useMode();
@@ -168,12 +170,17 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   };
 
   const addToCart = (product: MarketplaceProduct) => {
-    const existing = items.find((item) => item.productId === product._id);
+    const existingIndex = items.findIndex((item) => item.productId === product._id);
     let newItems: CartItem[] = [];
-    if (existing) {
-      newItems = items.map((item) =>
-        item.productId === product._id ? { ...item, quantity: item.quantity + 1 } : item
-      );
+    const isPair = (product as any).perPairPrice != null;
+    const unitLabel = isPair ? 'pair' : 'piece';
+
+    if (existingIndex > -1) {
+      newItems = [...items];
+      newItems[existingIndex].quantity += 1;
+      if (!newItems[existingIndex].unitLabel) {
+        newItems[existingIndex].unitLabel = unitLabel;
+      }
     } else {
       newItems = [
         ...items,
@@ -183,6 +190,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           price: product.price,
           image: product.images?.[0] ?? '/api/placeholder/400/300',
           quantity: 1,
+          perPairPrice: (product as any).perPairPrice ?? null,
+          unitLabel,
         },
       ];
     }
@@ -196,6 +205,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       title: product.title,
       image: product.images?.[0],
       price: product.price,
+      unitLabel,
     });
     toastTimeoutRef.current = setTimeout(() => {
       setToast(null);
@@ -304,7 +314,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
                 {toast.title}
               </p>
               <p className="text-[11px] font-semibold text-slate-500 mt-0.5">
-                Added to cart • <strong className="text-slate-900">₹{toast.price ?? 0}</strong>
+                Added to cart • <strong className="text-slate-900">₹{toast.price ?? 0} / {toast.unitLabel || 'piece'}</strong>
               </p>
             </div>
           </div>
