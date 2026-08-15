@@ -89,6 +89,37 @@ export default function VendorAddProductPage() {
     }));
   };
 
+  const handleCustomCategoryInputChange = (val: string) => {
+    setForm(prev => ({ ...prev, category: val }));
+
+    if (!val.trim()) return;
+
+    const valClean = val.trim();
+    const valLower = valClean.toLowerCase();
+    const valNormalized = normalizeCategoryName(valClean);
+
+    const matchedCategory = categories.find(c => {
+      const cClean = c.trim();
+      const cLower = cClean.toLowerCase();
+      const cNorm = normalizeCategoryName(cClean);
+
+      return (
+        cClean === valClean ||
+        cLower === valLower ||
+        cNorm.toLowerCase() === valLower ||
+        cLower === valNormalized.toLowerCase() ||
+        cNorm.toLowerCase() === valNormalized.toLowerCase() ||
+        cLower === valLower + 's' ||
+        cLower + 's' === valLower
+      );
+    });
+
+    if (matchedCategory) {
+      handleCategoryChange(matchedCategory);
+      setCustomCategoryMode(false);
+    }
+  };
+
   const registerCustomCategoryAndVariety = async (category: string, variety: string) => {
     try {
       const config = await apiClient.request<{ categories?: string[]; subcategories?: Record<string, string[]> }>('/config');
@@ -601,7 +632,8 @@ export default function VendorAddProductPage() {
                     className="h-11 px-4 rounded-xl border border-slate-200 outline-hidden focus:ring-2 focus:ring-blue-500 text-sm font-medium bg-white text-slate-900"
                     placeholder="Enter custom category name..."
                     value={form.category}
-                    onChange={(e) => setForm((prev) => ({ ...prev, category: e.target.value }))}
+                    onChange={(e) => handleCustomCategoryInputChange(e.target.value)}
+                    onBlur={(e) => handleCustomCategoryInputChange(e.target.value)}
                     required
                   />
                 ) : (

@@ -251,6 +251,37 @@ export default function VendorProductsPage() {
     }
   };
 
+  const handleEditCustomCategoryChange = (val: string) => {
+    setEditForm((current) => current ? { ...current, category: val } : current);
+
+    if (!val.trim()) return;
+
+    const valClean = val.trim();
+    const valLower = valClean.toLowerCase();
+    const valNormalized = normalizeCategoryName(valClean);
+
+    const matchedCategory = dropdownCategories.find(c => {
+      const cClean = c.trim();
+      const cLower = cClean.toLowerCase();
+      const cNorm = normalizeCategoryName(cClean);
+
+      return (
+        cClean === valClean ||
+        cLower === valLower ||
+        cNorm.toLowerCase() === valLower ||
+        cLower === valNormalized.toLowerCase() ||
+        cNorm.toLowerCase() === valNormalized.toLowerCase() ||
+        cLower === valLower + 's' ||
+        cLower + 's' === valLower
+      );
+    });
+
+    if (matchedCategory) {
+      setEditForm((current) => current ? { ...current, category: matchedCategory } : current);
+      setCustomCategoryMode(false);
+    }
+  };
+
   const generateAiFaqsInEdit = async () => {
     if (!editForm?.title) return;
     try {
@@ -576,7 +607,8 @@ export default function VendorProductsPage() {
                           className="w-full h-12 px-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm transition-all text-sm font-medium"
                           placeholder="Custom category name"
                           value={editForm.category}
-                          onChange={(event) => setEditForm((current) => current ? { ...current, category: event.target.value } : current)}
+                          onChange={(event) => handleEditCustomCategoryChange(event.target.value)}
+                          onBlur={(event) => handleEditCustomCategoryChange(event.target.value)}
                           required
                         />
                       ) : (
