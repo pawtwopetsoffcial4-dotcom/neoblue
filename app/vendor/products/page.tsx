@@ -246,6 +246,11 @@ export default function VendorProductsPage() {
     } catch (err: any) {
       console.error(err);
       setEditError(err.message || 'Failed to generate description');
+    } finally {
+      setIsGeneratingDesc(false);
+    }
+  };
+
   const generateAiFaqsInEdit = async () => {
     if (!editForm?.title) return;
     try {
