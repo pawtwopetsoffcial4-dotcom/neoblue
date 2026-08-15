@@ -66,12 +66,14 @@ function OrdersPageContent() {
   };
 
   useEffect(() => {
+    if (isAuthLoading) return;
+
     if (!isAuthenticated) {
       router.replace('/auth/login');
       return;
     }
     loadData();
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, isAuthLoading, router]);
 
   const openClaimModal = (order: UserOrder) => {
     setActiveClaimOrder(order);

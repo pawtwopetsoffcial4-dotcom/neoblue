@@ -16,12 +16,14 @@ const navItems = [
 ];
 
 export default function VendorLayout({ children }: { children: React.ReactNode }) {
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, isLoading, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
+    if (isLoading) return;
+
     if (!isAuthenticated) {
       router.replace('/auth/login');
       return;
@@ -30,9 +32,9 @@ export default function VendorLayout({ children }: { children: React.ReactNode }
     if (user && user.role !== 'vendor') {
       router.replace('/');
     }
-  }, [isAuthenticated, user, router]);
+  }, [isAuthenticated, user, isLoading, router]);
 
-  if (!isAuthenticated || (user && user.role !== 'vendor')) {
+  if (isLoading || !isAuthenticated || (user && user.role !== 'vendor')) {
     return null;
   }
 

@@ -54,12 +54,9 @@ export class APIClient {
       const error = await response.json().catch(() => ({}));
       const message = error.error || `API error: ${response.status}`;
 
-      // If token is stale (for example after JWT secret rotation), clear auth and force re-login.
-      if (response.status === 401 && /invalid token|unauthorized|jwt/i.test(String(message))) {
+      // Only clear auth state if token is explicitly expired or malformed
+      if (response.status === 401 && /jwt expired|token expired|invalid token format|token revoked/i.test(String(message))) {
         this.clearAuthState();
-        if (typeof window !== 'undefined') {
-          window.location.href = '/auth/login';
-        }
       }
 
       throw new Error(message);
