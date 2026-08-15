@@ -26,6 +26,10 @@ export default function VendorAddProductPage() {
   const [newQuestion, setNewQuestion] = useState('');
   const [newAnswer, setNewAnswer] = useState('');
   const [isGeneratingDesc, setIsGeneratingDesc] = useState(false);
+  const [isGeneratingFaq, setIsGeneratingFaq] = useState(false);
+  const [isGeneratingSpecies, setIsGeneratingSpecies] = useState(false);
+  const [isGeneratingCare, setIsGeneratingCare] = useState(false);
+  const [isGeneratingAll, setIsGeneratingAll] = useState(false);
   const [productType, setProductType] = useState<'fish' | 'plant'>('fish');
   
   const [form, setForm] = useState({
@@ -198,13 +202,19 @@ export default function VendorAddProductPage() {
     setUploadError('');
   };
 
-  const handleGenerateDescription = async () => {
+  const handleGenerateAiContent = async (mode: 'description' | 'faq' | 'species_details' | 'care_guide' | 'all') => {
     if (!form.title) {
-      setSubmitError('Please enter a variety title before generating a description.');
+      setSubmitError('Please enter or select a variety title before generating AI content.');
       return;
     }
     setSubmitError('');
-    setIsGeneratingDesc(true);
+
+    if (mode === 'all') setIsGeneratingAll(true);
+    if (mode === 'description') setIsGeneratingDesc(true);
+    if (mode === 'faq') setIsGeneratingFaq(true);
+    if (mode === 'species_details') setIsGeneratingSpecies(true);
+    if (mode === 'care_guide') setIsGeneratingCare(true);
+
     try {
       const res = await apiClient.request('/vendor/generate-description', {
         method: 'POST',
@@ -212,17 +222,75 @@ export default function VendorAddProductPage() {
           title: form.title,
           category: form.category,
           waterType: form.waterType,
+          mode,
         }),
       }) as any;
-      if (res.description) {
+
+      if (res.allContent) {
+        const {
+          description,
+          quickOverview,
+          aboutSpecies,
+          behavioralTraits,
+          genderIdentification,
+          sustainabilitySourcing,
+          careTemp,
+          carePh,
+          careWaterHardness,
+          careWaterCurrent,
+          careTankSetup,
+          careHidingSpots,
+          faq: generatedFaqs,
+        } = res.allContent;
+
+        setForm(prev => ({
+          ...prev,
+          description: description || prev.description,
+          quickOverview: quickOverview || prev.quickOverview,
+          aboutSpecies: aboutSpecies || prev.aboutSpecies,
+          behavioralTraits: behavioralTraits || prev.behavioralTraits,
+          genderIdentification: genderIdentification || prev.genderIdentification,
+          sustainabilitySourcing: sustainabilitySourcing || prev.sustainabilitySourcing,
+          careTemp: careTemp || prev.careTemp,
+          carePh: carePh || prev.carePh,
+          careWaterHardness: careWaterHardness || prev.careWaterHardness,
+          careWaterCurrent: careWaterCurrent || prev.careWaterCurrent,
+          careTankSetup: careTankSetup || prev.careTankSetup,
+          careHidingSpots: careHidingSpots || prev.careHidingSpots,
+        }));
+
+        if (Array.isArray(generatedFaqs) && generatedFaqs.length > 0) {
+          setFaq(generatedFaqs);
+        }
+      } else if (res.faq && Array.isArray(res.faq)) {
+        setFaq(res.faq);
+      } else if (res.speciesDetails) {
+        setForm(prev => ({
+          ...prev,
+          ...res.speciesDetails,
+        }));
+      } else if (res.careGuide) {
+        setForm(prev => ({
+          ...prev,
+          ...res.careGuide,
+        }));
+      } else if (res.description) {
         setForm(prev => ({ ...prev, description: res.description }));
       }
     } catch (err: any) {
       console.error(err);
-      setSubmitError(err.message || 'Failed to generate description');
+      setSubmitError(err.message || 'Failed to generate AI content');
     } finally {
+      setIsGeneratingAll(false);
       setIsGeneratingDesc(false);
+      setIsGeneratingFaq(false);
+      setIsGeneratingSpecies(false);
+      setIsGeneratingCare(false);
     }
+  };
+
+  const handleGenerateDescription = async () => {
+    await handleGenerateAiContent('description');
   };
 
   // Legacy range handlers removed
@@ -360,6 +428,41 @@ export default function VendorAddProductPage() {
           </div>
         </div>
       </section>
+
+      {/* AI Content Assistant Hero Banner */}
+      <div className="bg-gradient-to-r from-blue-900 via-indigo-900 to-purple-950 rounded-3xl p-5 md:p-6 text-white shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border border-indigo-700/50">
+        <div className="flex items-center gap-3.5">
+          <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center shrink-0">
+            <Sparkles className="w-6 h-6 text-amber-400 animate-pulse" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded bg-amber-400 text-slate-950">
+                Gemini AI Powered
+              </span>
+              <span className="text-xs text-indigo-200 font-bold">1-Click Content Generator</span>
+            </div>
+            <h3 className="text-base font-black text-white mt-1">Instant AI Product Content & FAQs</h3>
+            <p className="text-xs text-slate-300 font-medium mt-0.5">
+              Auto-fill description, species details, care guide, and 4 expert FAQs for {form.title ? <strong>"{form.title}"</strong> : 'your product'}.
+            </p>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => handleGenerateAiContent('all')}
+          disabled={isGeneratingAll || !form.title}
+          className="h-10 px-5 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs transition-all shadow-lg hover:scale-105 active:scale-95 disabled:opacity-50 flex items-center gap-2 cursor-pointer shrink-0"
+        >
+          {isGeneratingAll ? (
+            <div className="h-4 w-4 border-2 border-slate-950/30 border-t-slate-950 rounded-full animate-spin" />
+          ) : (
+            <Sparkles className="w-4 h-4 text-slate-950" />
+          )}
+          {isGeneratingAll ? 'Generating All Content...' : '✨ Generate All Content with AI'}
+        </button>
+      </div>
 
       {/* Stepper Wizard Indicator */}
       <div className="rounded-3xl border border-slate-200/60 bg-white p-5 shadow-xs">
@@ -987,12 +1090,27 @@ export default function VendorAddProductPage() {
             </div>
 
             {/* Q&A / FAQ Section */}
-            <div className="rounded-2xl border border-slate-200 p-5 bg-white space-y-4">
-              <div>
-                <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                  <HelpCircle className="inline-block w-4 h-4 mr-1" /> Product Q&A / FAQ Section
-                </h3>
-                <p className="text-xs text-slate-500 mt-0.5">Type custom questions and answers to show directly on this product page.</p>
+            <div className="rounded-2xl border border-slate-200 p-5 bg-white space-y-4 shadow-sm">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                    <HelpCircle className="inline-block w-4.5 h-4.5 text-blue-600" /> Product Q&A / FAQ Section
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-0.5 font-medium">Type custom questions and answers or let AI generate expert FAQs for you.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleGenerateAiContent('faq')}
+                  disabled={isGeneratingFaq || !form.title}
+                  className="text-xs flex items-center gap-1.5 px-3.5 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold rounded-xl hover:shadow-md transition-all disabled:opacity-50 cursor-pointer shrink-0"
+                >
+                  {isGeneratingFaq ? (
+                    <div className="h-3 w-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    <Sparkles className="h-3.5 w-3.5 text-amber-300" />
+                  )}
+                  {isGeneratingFaq ? 'Generating FAQs...' : '✨ Generate FAQs with AI'}
+                </button>
               </div>
 
               {faq.length > 0 && (

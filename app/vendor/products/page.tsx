@@ -65,6 +65,7 @@ export default function VendorProductsPage() {
   const [editNewQuestion, setEditNewQuestion] = useState('');
   const [editNewAnswer, setEditNewAnswer] = useState('');
   const [isGeneratingDesc, setIsGeneratingDesc] = useState(false);
+  const [isGeneratingFaqInEdit, setIsGeneratingFaqInEdit] = useState(false);
   const [dropdownCategories, setDropdownCategories] = useState<string[]>(PRODUCT_CATEGORIES as unknown as string[]);
   const [dbSubcategories, setDbSubcategories] = useState<Record<string, string[]>>({});
   const [customCategoryMode, setCustomCategoryMode] = useState(false);
@@ -245,8 +246,26 @@ export default function VendorProductsPage() {
     } catch (err: any) {
       console.error(err);
       setEditError(err.message || 'Failed to generate description');
+  const generateAiFaqsInEdit = async () => {
+    if (!editForm?.title) return;
+    try {
+      setIsGeneratingFaqInEdit(true);
+      const res = await apiClient.request('/vendor/generate-description', {
+        method: 'POST',
+        body: JSON.stringify({
+          title: editForm.title,
+          category: editForm.category,
+          waterType: editForm.waterType,
+          mode: 'faq',
+        }),
+      }) as any;
+      if (res.faq && Array.isArray(res.faq)) {
+        setEditFaq(res.faq);
+      }
+    } catch (e) {
+      console.error('Failed to generate FAQs in edit modal:', e);
     } finally {
-      setIsGeneratingDesc(false);
+      setIsGeneratingFaqInEdit(false);
     }
   };
 
@@ -1032,11 +1051,27 @@ export default function VendorProductsPage() {
 
                   {/* Q&A / FAQ Section */}
                   <div className="rounded-2xl border border-slate-200 p-5 bg-white shadow-sm">
-                    <div className="mb-4">
-                      <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                        Product Q&A
-                      </h3>
-                      <p className="text-[10px] uppercase tracking-widest text-slate-400 mt-1 font-bold">Custom FAQ for this product</p>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 border-b border-slate-100 pb-3">
+                      <div>
+                        <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                          Product Q&A / FAQ Section
+                        </h3>
+                        <p className="text-[10px] uppercase tracking-widest text-slate-400 mt-1 font-bold">Custom FAQ for this product</p>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={generateAiFaqsInEdit}
+                        disabled={isGeneratingFaqInEdit || !editForm?.title}
+                        className="text-xs flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold rounded-xl hover:shadow-md transition-all disabled:opacity-50 cursor-pointer shrink-0"
+                      >
+                        {isGeneratingFaqInEdit ? (
+                          <div className="h-3 w-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        ) : (
+                          <Sparkles className="h-3.5 w-3.5 text-amber-300" />
+                        )}
+                        {isGeneratingFaqInEdit ? 'Generating FAQs...' : '✨ Generate FAQs with AI'}
+                      </button>
                     </div>
 
                     {editFaq.length > 0 && (
