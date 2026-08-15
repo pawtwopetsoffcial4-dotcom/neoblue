@@ -347,14 +347,8 @@ export default function VendorAddProductPage() {
     setCurrentStep(prev => Math.max(1, prev - 1));
   };
 
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
+  const handleFinalPublish = async () => {
     setSubmitError('');
-
-    if (currentStep < 5) {
-      nextStep();
-      return;
-    }
 
     if (!validateStep(1) || !validateStep(2) || !validateStep(3) || !validateStep(4)) {
       return;
@@ -393,6 +387,17 @@ export default function VendorAddProductPage() {
         deliverNorth: form.deliverNorth,
         deliverSouth: form.deliverSouth,
         faq: faq,
+        quickOverview: form.quickOverview,
+        aboutSpecies: form.aboutSpecies,
+        behavioralTraits: form.behavioralTraits,
+        genderIdentification: form.genderIdentification,
+        sustainabilitySourcing: form.sustainabilitySourcing,
+        careTemp: form.careTemp,
+        carePh: form.carePh,
+        careWaterHardness: form.careWaterHardness,
+        careWaterCurrent: form.careWaterCurrent,
+        careTankSetup: form.careTankSetup,
+        careHidingSpots: form.careHidingSpots,
         ...(form.category === 'Plants' && {
           lightingRequirement: form.lightingRequirement,
           co2Requirement: form.co2Requirement,
@@ -521,7 +526,7 @@ export default function VendorAddProductPage() {
       </div>
 
       {/* Form Card */}
-      <form onSubmit={handleSubmit} className="rounded-3xl border border-slate-200/60 bg-white p-5 sm:p-6 shadow-xs space-y-6">
+      <form onSubmit={(e) => { e.preventDefault(); if (currentStep < 5) nextStep(); }} className="rounded-3xl border border-slate-200/60 bg-white p-5 sm:p-6 shadow-xs space-y-6">
         
         {currentStep === 1 && (
           <div className="flex bg-slate-100 p-1 rounded-xl w-full sm:w-80 mb-2 mx-auto sm:mx-0">
@@ -1249,7 +1254,8 @@ export default function VendorAddProductPage() {
             </button>
           ) : (
             <button
-              type="submit"
+              type="button"
+              onClick={handleFinalPublish}
               disabled={isSaving || isUploading}
               className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-blue-600 px-7 font-bold text-white hover:bg-blue-700 transition-colors disabled:opacity-60 cursor-pointer shadow-2xs"
             >
