@@ -6,7 +6,7 @@ import { ArrowRight, Fish, Gauge, Sparkles, X, Info, Plus, Trash2, ChevronRight,
 import { v4 as uuidv4 } from 'uuid';
 import { CldUploadWidget } from 'next-cloudinary';
 import { apiClient } from '@/lib/api-client';
-import { FISH_NAMES, getSubcategoriesForCategory, PRODUCT_CATEGORIES } from '@/lib/catalog';
+import { FISH_NAMES, getSubcategoriesForCategory, PRODUCT_CATEGORIES, normalizeCategoryName } from '@/lib/catalog';
 
 export default function VendorAddProductPage() {
   const router = useRouter();
@@ -480,41 +480,6 @@ export default function VendorAddProductPage() {
           </div>
         </div>
       </section>
-
-      {/* AI Content Assistant Hero Banner */}
-      <div className="bg-gradient-to-r from-blue-900 via-indigo-900 to-purple-950 rounded-3xl p-5 md:p-6 text-white shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border border-indigo-700/50">
-        <div className="flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center shrink-0">
-            <Sparkles className="w-6 h-6 text-amber-400 animate-pulse" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded bg-amber-400 text-slate-950">
-                Gemini AI Powered
-              </span>
-              <span className="text-xs text-indigo-200 font-bold">1-Click Content Generator</span>
-            </div>
-            <h3 className="text-base font-black text-white mt-1">Instant AI Product Content & FAQs</h3>
-            <p className="text-xs text-slate-300 font-medium mt-0.5">
-              Auto-fill description, species details, care guide, and 4 expert FAQs for {form.title ? <strong>"{form.title}"</strong> : 'your product'}.
-            </p>
-          </div>
-        </div>
-
-        <button
-          type="button"
-          onClick={() => handleGenerateAiContent('all')}
-          disabled={isGeneratingAll || !form.title}
-          className="h-10 px-5 rounded-xl bg-white hover:bg-blue-50 text-blue-950 font-bold text-xs transition-all shadow-sm hover:shadow-md disabled:opacity-50 flex items-center gap-2 cursor-pointer shrink-0 border border-blue-100/50"
-        >
-          {isGeneratingAll ? (
-            <div className="h-4 w-4 border-2 border-blue-950/30 border-t-blue-950 rounded-full animate-spin" />
-          ) : (
-            <Sparkles className="w-4 h-4 text-blue-600" />
-          )}
-          {isGeneratingAll ? 'Generating All Content...' : 'Generate All Content with AI'}
-        </button>
-      </div>
 
       {/* Stepper Wizard Indicator */}
       <div className="rounded-3xl border border-slate-200/60 bg-white p-5 shadow-xs">
@@ -1114,6 +1079,40 @@ export default function VendorAddProductPage() {
             <div>
               <h2 className="text-lg font-bold text-slate-900">5. Description & Review</h2>
               <p className="text-xs text-slate-500 mt-0.5">Write a descriptive copy and verify product details before publishing.</p>
+            </div>
+
+            {/* AI Assistant Callout Card directly inside Step 5 */}
+            <div className="rounded-2xl border border-blue-200 bg-gradient-to-r from-blue-50/90 via-indigo-50/60 to-blue-50/90 p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-start sm:items-center gap-3.5">
+                <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+                  <Sparkles className="w-5 h-5 text-blue-100" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700 bg-blue-100/80 px-2 py-0.5 rounded-md">
+                      AI Powered Assistant
+                    </span>
+                  </div>
+                  <h3 className="text-sm font-bold text-slate-900 mt-1">1-Click Full Content & FAQ Generator</h3>
+                  <p className="text-xs text-slate-600 font-medium mt-0.5">
+                    Auto-generate description, care specs, and 4 expert FAQs for {form.title ? <strong className="text-blue-900">"{form.title}"</strong> : 'this variety'}.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => handleGenerateAiContent('all')}
+                disabled={isGeneratingAll || !form.title}
+                className="text-xs inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-xs hover:shadow-md transition-all disabled:opacity-50 cursor-pointer shrink-0 self-stretch sm:self-auto justify-center"
+              >
+                {isGeneratingAll ? (
+                  <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <Sparkles className="w-4 h-4 text-blue-200" />
+                )}
+                {isGeneratingAll ? 'Generating All Content...' : 'Auto-Generate All Content'}
+              </button>
             </div>
 
             <div className="flex flex-col gap-1.5 pt-2">

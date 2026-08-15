@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { ArrowRight, PackageSearch, PlusCircle, X, Trash2, Plus, Info, Tag, Settings, Image as ImageIcon, Save, Loader2, Wand2, Sparkles } from 'lucide-react';
 import { CldUploadWidget } from 'next-cloudinary';
 import { apiClient } from '@/lib/api-client';
-import { FISH_NAMES, PRODUCT_CATEGORIES, getSubcategoriesForCategory } from '@/lib/catalog';
+import { FISH_NAMES, PRODUCT_CATEGORIES, getSubcategoriesForCategory, normalizeCategoryName } from '@/lib/catalog';
 import type { MarketplaceProduct } from '@/lib/types/marketplace';
 import { useAuth } from '@/lib/hooks/useAuth';
 
