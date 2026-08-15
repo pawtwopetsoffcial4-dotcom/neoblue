@@ -1029,10 +1029,14 @@ export default function VendorProductsPage() {
                         type="button"
                         onClick={handleGenerateEditDescription}
                         disabled={isGeneratingDesc || !editForm.title}
-                        className="text-xs flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-lg hover:shadow-lg transition-all disabled:opacity-50 cursor-pointer"
+                        className="text-xs inline-flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-xs hover:shadow-md transition-all disabled:opacity-50 cursor-pointer"
                       >
-                        {isGeneratingDesc ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Wand2 className="h-3.5 w-3.5" />}
-                        {isGeneratingDesc ? 'Generating...' : 'AI Magic'}
+                        {isGeneratingDesc ? (
+                          <div className="h-3.5 w-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        ) : (
+                          <Sparkles className="h-3.5 w-3.5 text-blue-200" />
+                        )}
+                        {isGeneratingDesc ? 'Generating...' : 'Auto-Generate with AI'}
                       </button>
                     </div>
                     <textarea
@@ -1068,14 +1072,14 @@ export default function VendorProductsPage() {
                         type="button"
                         onClick={generateAiFaqsInEdit}
                         disabled={isGeneratingFaqInEdit || !editForm?.title}
-                        className="text-xs flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold rounded-xl hover:shadow-md transition-all disabled:opacity-50 cursor-pointer shrink-0"
+                        className="text-xs inline-flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-xs hover:shadow-md transition-all disabled:opacity-50 cursor-pointer shrink-0"
                       >
                         {isGeneratingFaqInEdit ? (
-                          <div className="h-3 w-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          <div className="h-3.5 w-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                         ) : (
-                          <Sparkles className="h-3.5 w-3.5 text-amber-300" />
+                          <Sparkles className="h-3.5 w-3.5 text-blue-200" />
                         )}
-                        {isGeneratingFaqInEdit ? 'Generating FAQs...' : '✨ Generate FAQs with AI'}
+                        {isGeneratingFaqInEdit ? 'Generating FAQs...' : 'Generate FAQs with AI'}
                       </button>
                     </div>
 

@@ -474,14 +474,14 @@ export default function VendorAddProductPage() {
           type="button"
           onClick={() => handleGenerateAiContent('all')}
           disabled={isGeneratingAll || !form.title}
-          className="h-10 px-5 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs transition-all shadow-lg hover:scale-105 active:scale-95 disabled:opacity-50 flex items-center gap-2 cursor-pointer shrink-0"
+          className="h-10 px-5 rounded-xl bg-white hover:bg-blue-50 text-blue-950 font-bold text-xs transition-all shadow-sm hover:shadow-md disabled:opacity-50 flex items-center gap-2 cursor-pointer shrink-0 border border-blue-100/50"
         >
           {isGeneratingAll ? (
-            <div className="h-4 w-4 border-2 border-slate-950/30 border-t-slate-950 rounded-full animate-spin" />
+            <div className="h-4 w-4 border-2 border-blue-950/30 border-t-blue-950 rounded-full animate-spin" />
           ) : (
-            <Sparkles className="w-4 h-4 text-slate-950" />
+            <Sparkles className="w-4 h-4 text-blue-600" />
           )}
-          {isGeneratingAll ? 'Generating All Content...' : '✨ Generate All Content with AI'}
+          {isGeneratingAll ? 'Generating All Content...' : 'Generate All Content with AI'}
         </button>
       </div>
 
@@ -1091,12 +1091,12 @@ export default function VendorAddProductPage() {
                   type="button"
                   onClick={handleGenerateDescription}
                   disabled={isGeneratingDesc || !form.title}
-                  className="text-xs flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-bold rounded-lg hover:shadow-md transition-all disabled:opacity-50"
+                  className="text-xs inline-flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-xs hover:shadow-md transition-all disabled:opacity-50 cursor-pointer"
                 >
                   {isGeneratingDesc ? (
-                    <div className="h-3 w-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <div className="h-3.5 w-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   ) : (
-                    <Sparkles className="h-3 w-3" />
+                    <Sparkles className="h-3.5 w-3.5 text-blue-200" />
                   )}
                   {isGeneratingDesc ? 'Generating...' : 'Auto-Generate with AI'}
                 </button>
@@ -1123,14 +1123,14 @@ export default function VendorAddProductPage() {
                   type="button"
                   onClick={() => handleGenerateAiContent('faq')}
                   disabled={isGeneratingFaq || !form.title}
-                  className="text-xs flex items-center gap-1.5 px-3.5 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold rounded-xl hover:shadow-md transition-all disabled:opacity-50 cursor-pointer shrink-0"
+                  className="text-xs inline-flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-xs hover:shadow-md transition-all disabled:opacity-50 cursor-pointer shrink-0"
                 >
                   {isGeneratingFaq ? (
-                    <div className="h-3 w-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <div className="h-3.5 w-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   ) : (
-                    <Sparkles className="h-3.5 w-3.5 text-amber-300" />
+                    <Sparkles className="h-3.5 w-3.5 text-blue-200" />
                   )}
-                  {isGeneratingFaq ? 'Generating FAQs...' : '✨ Generate FAQs with AI'}
+                  {isGeneratingFaq ? 'Generating FAQs...' : 'Generate FAQs with AI'}
                 </button>
               </div>
 
