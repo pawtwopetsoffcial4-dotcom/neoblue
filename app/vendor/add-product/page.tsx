@@ -59,6 +59,17 @@ export default function VendorAddProductPage() {
     growthRate: 'Moderate',
     placement: 'Midground',
     careDifficulty: 'Moderate',
+    quickOverview: '',
+    aboutSpecies: '',
+    behavioralTraits: '',
+    genderIdentification: '',
+    sustainabilitySourcing: '',
+    careTemp: '',
+    carePh: '',
+    careWaterHardness: '',
+    careWaterCurrent: '',
+    careTankSetup: '',
+    careHidingSpots: '',
   });
 
   const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'neoblue_products';
