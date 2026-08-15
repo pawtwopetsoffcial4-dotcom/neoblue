@@ -351,6 +351,11 @@ export default function VendorAddProductPage() {
     event.preventDefault();
     setSubmitError('');
 
+    if (currentStep < 5) {
+      nextStep();
+      return;
+    }
+
     if (!validateStep(1) || !validateStep(2) || !validateStep(3) || !validateStep(4)) {
       return;
     }
