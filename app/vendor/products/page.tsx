@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight, PackageSearch, PlusCircle, X, Trash2, Plus, Info, Tag, Settings, Image as ImageIcon, Save, Loader2, Wand2 } from 'lucide-react';
+import { ArrowRight, PackageSearch, PlusCircle, X, Trash2, Plus, Info, Tag, Settings, Image as ImageIcon, Save, Loader2, Wand2, Sparkles } from 'lucide-react';
 import { CldUploadWidget } from 'next-cloudinary';
 import { apiClient } from '@/lib/api-client';
 import { FISH_NAMES, PRODUCT_CATEGORIES, getSubcategoriesForCategory } from '@/lib/catalog';
