@@ -159,12 +159,14 @@ export async function POST(request: NextRequest) {
     }
 
     const safeCategory = normalizeCategoryName(category);
+    const initialPriceNum = Number(price);
 
     const product = await Product.create({
       title,
       description: finalDescription,
-      price,
-      sellerPrice: price,
+      price: initialPriceNum,
+      sellerPrice: initialPriceNum,
+      initialVendorPrice: initialPriceNum,
       images,
       videos: Array.isArray(videos) ? videos : [],
       category: safeCategory,

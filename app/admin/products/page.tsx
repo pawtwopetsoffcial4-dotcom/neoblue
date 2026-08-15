@@ -11,6 +11,7 @@ type AdminProduct = {
   description: string;
   price: number;
   sellerPrice?: number;
+  initialVendorPrice?: number;
   images: string[];
   category:
     | 'Guppies'
@@ -45,6 +46,7 @@ type EditFormState = {
   description: string;
   price: string;
   sellerPrice: string;
+  initialVendorPrice: string;
   category: AdminProduct['category'];
   waterType: AdminProduct['waterType'];
   tag: string;
@@ -95,6 +97,7 @@ export default function AdminProductsPage() {
   const [quickEditingPrice, setQuickEditingPrice] = useState<string | null>(null);
   const [quickPriceValue, setQuickPriceValue] = useState<string>('');
   const [quickSellerPriceValue, setQuickSellerPriceValue] = useState<string>('');
+  const [quickInitialVendorPriceValue, setQuickInitialVendorPriceValue] = useState<string>('');
   const [isSavingPrice, setIsSavingPrice] = useState(false);
   const [isGeneratingDesc, setIsGeneratingDesc] = useState(false);
 
@@ -176,6 +179,7 @@ export default function AdminProductsPage() {
       description: product.description,
       price: String(product.price),
       sellerPrice: String(product.sellerPrice ?? product.price),
+      initialVendorPrice: String(product.initialVendorPrice ?? product.sellerPrice ?? product.price),
       category: product.category,
       waterType: product.waterType,
       tag: product.tag || 'Standard',
@@ -222,13 +226,16 @@ export default function AdminProductsPage() {
   const openQuickEditPrice = (product: AdminProduct) => {
     setQuickEditingPrice(product._id);
     setQuickPriceValue(String(product.price));
-    setQuickSellerPriceValue(String(product.sellerPrice ?? product.price));
+    const baseVendor = product.initialVendorPrice ?? product.sellerPrice ?? product.price;
+    setQuickSellerPriceValue(String(product.sellerPrice ?? baseVendor));
+    setQuickInitialVendorPriceValue(String(baseVendor));
   };
 
   const closeQuickEditPrice = () => {
     setQuickEditingPrice(null);
     setQuickPriceValue('');
     setQuickSellerPriceValue('');
+    setQuickInitialVendorPriceValue('');
     setIsSavingPrice(false);
   };
 
@@ -237,6 +244,7 @@ export default function AdminProductsPage() {
 
     const price = Number(quickPriceValue);
     const sellerPrice = Number(quickSellerPriceValue);
+    const initialVendorPrice = Number(quickInitialVendorPriceValue);
 
     if (Number.isNaN(price) || price < 0) {
       setMessage('Marketplace price must be a valid positive number');
@@ -249,6 +257,7 @@ export default function AdminProductsPage() {
       await apiClient.updateProduct(quickEditingPrice, {
         price,
         sellerPrice: !Number.isNaN(sellerPrice) && sellerPrice >= 0 ? sellerPrice : price,
+        initialVendorPrice: !Number.isNaN(initialVendorPrice) && initialVendorPrice >= 0 ? initialVendorPrice : price,
       });
       await loadProducts();
       setMessage('Prices updated successfully');
@@ -279,6 +288,7 @@ export default function AdminProductsPage() {
 
     const price = Number(editForm.price);
     const sellerPrice = Number(editForm.sellerPrice);
+    const initialVendorPrice = Number(editForm.initialVendorPrice);
     if (Number.isNaN(price)) {
       setMessage('Marketplace Price must be a valid number');
       return;
@@ -297,6 +307,7 @@ export default function AdminProductsPage() {
         description: editForm.description,
         price,
         sellerPrice: !Number.isNaN(sellerPrice) && sellerPrice >= 0 ? sellerPrice : price,
+        initialVendorPrice: !Number.isNaN(initialVendorPrice) && initialVendorPrice >= 0 ? initialVendorPrice : price,
         images: editForm.images,
         category: editForm.category,
         waterType: editForm.waterType,
@@ -513,21 +524,38 @@ export default function AdminProductsPage() {
                     Vendor: {product.vendorId?.name ?? product.vendorId?.email ?? 'Unknown'}
                   </p>
                   <div className="flex flex-wrap items-center gap-2 mt-2">
-                    <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-1 rounded-xl">
-                      <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Marketplace Price:</span>
-                      <span className="text-sm font-black text-slate-900">₹{product.price.toFixed(2)}</span>
-                      <button
-                        onClick={() => openQuickEditPrice(product)}
-                        className="text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-700 font-semibold hover:bg-blue-200 transition-colors"
-                      >
-                        Edit Price
-                      </button>
-                    </div>
+                    {(() => {
+                      const vendorPayoutRate = product.initialVendorPrice ?? product.sellerPrice ?? product.price;
+                      const margin = product.price - vendorPayoutRate;
+                      return (
+                        <>
+                          <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl">
+                            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Marketplace Price:</span>
+                            <span className="text-sm font-black text-slate-900">₹{product.price.toFixed(2)}</span>
+                            <button
+                              onClick={() => openQuickEditPrice(product)}
+                              className="text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-700 font-semibold hover:bg-blue-200 transition-colors"
+                            >
+                              Edit Price
+                            </button>
+                          </div>
 
-                    <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 px-3 py-1 rounded-xl">
-                      <span className="text-xs font-bold text-amber-800 uppercase tracking-wider">Seller Set Price:</span>
-                      <span className="text-sm font-black text-amber-950">₹{(product.sellerPrice ?? product.price).toFixed(2)}</span>
-                    </div>
+                          <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-xl">
+                            <span className="text-xs font-bold text-amber-800 uppercase tracking-wider">Initial Vendor Price:</span>
+                            <span className="text-sm font-black text-amber-950">₹{vendorPayoutRate.toFixed(2)}</span>
+                          </div>
+
+                          {margin !== 0 && (
+                            <div className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-black border ${
+                              margin > 0 ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-rose-50 border-rose-200 text-rose-800'
+                            }`}>
+                              <span>Admin Margin:</span>
+                              <span>{margin > 0 ? `+₹${margin.toFixed(2)}` : `-₹${Math.abs(margin).toFixed(2)}`}</span>
+                            </div>
+                          )}
+                        </>
+                      );
+                    })()}
 
                     <span className="text-xs text-slate-500 font-medium ml-1">
                       • {product.category} • {product.waterType}
@@ -635,20 +663,21 @@ export default function AdminProductsPage() {
                   <input
                     type="number"
                     className="w-full h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500 font-semibold text-slate-900"
-                    placeholder="Marketplace Price"
+                    placeholder="Marketplace Price (With Margin)"
                     value={editForm.price}
                     onChange={(event) => setEditForm((current) => current ? { ...current, price: event.target.value } : current)}
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-amber-800 uppercase tracking-wider block">Seller Set Price / Vendor Baseline (₹)</label>
+                  <label className="text-xs font-bold text-amber-800 uppercase tracking-wider block">Initial Vendor Price / Payout Rate (₹)</label>
                   <input
                     type="number"
                     className="w-full h-11 px-4 rounded-xl border border-amber-300 bg-amber-50/50 outline-none focus:ring-2 focus:ring-amber-500 font-black text-amber-950"
-                    placeholder="Seller Price"
-                    value={editForm.sellerPrice}
-                    onChange={(event) => setEditForm((current) => current ? { ...current, sellerPrice: event.target.value } : current)}
+                    placeholder="Initial Vendor Price"
+                    value={editForm.initialVendorPrice}
+                    onChange={(event) => setEditForm((current) => current ? { ...current, initialVendorPrice: event.target.value } : current)}
                   />
+                  <p className="text-[11px] text-slate-400 font-medium">This is the original price set by the vendor when adding the product.</p>
                 </div>
                 <input
                   className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
@@ -1043,7 +1072,7 @@ export default function AdminProductsPage() {
 
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Marketplace Price (₹)</label>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Marketplace Selling Price (₹)</label>
                 <input
                   type="number"
                   min="0"
@@ -1056,16 +1085,17 @@ export default function AdminProductsPage() {
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold text-amber-800 uppercase tracking-wider mb-1">Seller Set Price (₹)</label>
+                <label className="block text-xs font-bold text-amber-800 uppercase tracking-wider mb-1">Initial Vendor Price / Payout (₹)</label>
                 <input
                   type="number"
                   min="0"
                   step="0.01"
-                  value={quickSellerPriceValue}
-                  onChange={(e) => setQuickSellerPriceValue(e.target.value)}
+                  value={quickInitialVendorPriceValue}
+                  onChange={(e) => setQuickInitialVendorPriceValue(e.target.value)}
                   className="w-full h-11 px-4 rounded-xl border border-amber-300 bg-amber-50/50 outline-none focus:ring-2 focus:ring-amber-500 font-bold text-amber-950"
                   placeholder="0.00"
                 />
+                <p className="text-[10px] text-slate-400 font-medium mt-1">This is the original price set by the vendor.</p>
               </div>
 
               <div className="flex gap-3 justify-end pt-2">

@@ -154,6 +154,15 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
     } else if ('price' in updateData) {
       const nextPrice = Number(updateData.price);
       if (!isNaN(nextPrice) && nextPrice >= 0) {
+        if ('initialVendorPrice' in updateData) {
+          const ivPrice = Number(updateData.initialVendorPrice);
+          if (!isNaN(ivPrice) && ivPrice >= 0) {
+            updateData.initialVendorPrice = ivPrice;
+          }
+        } else if (!product.initialVendorPrice) {
+          updateData.initialVendorPrice = product.sellerPrice ?? product.price;
+        }
+
         if ('sellerPrice' in updateData) {
           const sPrice = Number(updateData.sellerPrice);
           if (!isNaN(sPrice) && sPrice >= 0) {
