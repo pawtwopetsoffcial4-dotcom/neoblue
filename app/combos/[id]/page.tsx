@@ -5,8 +5,19 @@ import mongoose from 'mongoose';
 import { connectDB } from '@/lib/db';
 import Combo from '@/lib/models/Combo';
 import ComboDetailClient from './ComboDetailClient';
+import { resolveOgImageUrl } from '@/lib/utils/seo';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 3600;
+
+export async function generateStaticParams() {
+  try {
+    await connectDB();
+    const combos = await Combo.find({ isActive: true }).select('_id').lean();
+    return combos.map((c: any) => ({ id: c._id.toString() }));
+  } catch {
+    return [];
+  }
+}
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -29,14 +40,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         title,
         description: desc.slice(0, 155),
         url,
-        images: combo.coverImage ? [{ url: combo.coverImage }] : [],
+        images: combo.coverImage ? [{ url: resolveOgImageUrl(combo.coverImage)! }] : [],
         type: 'website',
       },
       twitter: {
         card: 'summary_large_image',
         title,
         description: desc.slice(0, 155),
-        images: combo.coverImage ? [combo.coverImage] : [],
+        images: combo.coverImage ? [resolveOgImageUrl(combo.coverImage)!] : [],
       },
     };
   } catch {

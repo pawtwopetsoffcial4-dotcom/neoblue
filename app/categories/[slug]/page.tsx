@@ -2,7 +2,8 @@ import React from 'react';
 import { connectDB } from '@/lib/db';
 import Product from '@/lib/models/Product';
 import StoreConfig from '@/lib/models/StoreConfig';
-import { PRODUCT_CATEGORIES } from '@/lib/catalog';
+import { PRODUCT_CATEGORIES, getCategoryImage } from '@/lib/catalog';
+import { resolveOgImageUrl, buildCollectionPageJsonLd, buildBreadcrumbJsonLd } from '@/lib/utils/seo';
 import type { Metadata } from 'next';
 import CategoryDetailClient from './CategoryDetailClient';
 
@@ -10,9 +11,19 @@ type CategoryPageProps = {
   params: Promise<{ slug: string }>;
 };
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 3600;
 
 const toSlug = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+
+export async function generateStaticParams() {
+  try {
+    await connectDB();
+    const categories = await Product.distinct('category', { approvalStatus: 'approved' });
+    return categories.map((cat: string) => ({ slug: toSlug(cat) }));
+  } catch {
+    return [];
+  }
+}
 
 // Helper to resolve category title and filtered products
 async function getCategoryData(slug: string) {
@@ -70,12 +81,27 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
     const { categoryTitle, filteredProducts } = await getCategoryData(slug);
     const titleText = `Buy ${categoryTitle} Online - Live Arrival Guaranteed | NeoBlue`;
     const descText = `Shop premium ${categoryTitle.toLowerCase()} specimens. Explore ${filteredProducts.length} high-quality options available with secure shipping and live-arrival guarantee from NeoBlue.`;
+    const categoryImageUrl = getCategoryImage(categoryTitle);
+    const ogImageUrl = resolveOgImageUrl(categoryImageUrl);
     return {
       title: titleText,
       description: descText,
       keywords: [categoryTitle, `buy ${categoryTitle.toLowerCase()} online`, `${categoryTitle.toLowerCase()} price`, 'live fish shop'],
       alternates: {
         canonical: `https://neoblue.in/categories/${slug}`,
+      },
+      openGraph: {
+        title: titleText,
+        description: descText,
+        url: `https://neoblue.in/categories/${slug}`,
+        type: 'website',
+        images: ogImageUrl ? [{ url: ogImageUrl, width: 1200, height: 630, alt: categoryTitle }] : [],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: titleText,
+        description: descText,
+        images: ogImageUrl ? [ogImageUrl] : [],
       },
     };
   } catch {
@@ -89,12 +115,36 @@ export default async function CategoryDetailPage({ params }: CategoryPageProps) 
   const { slug } = await params;
   const { categoryTitle, filteredProducts, subcategories } = await getCategoryData(slug);
 
+  const categoryUrl = `https://neoblue.in/categories/${slug}`;
+  const collectionJsonLd = buildCollectionPageJsonLd({
+    name: categoryTitle,
+    description: `Shop premium ${categoryTitle.toLowerCase()} specimens from NeoBlue`,
+    url: categoryUrl,
+    products: filteredProducts,
+  });
+  
+  const breadcrumbJsonLd = buildBreadcrumbJsonLd([
+    { name: 'Home', url: 'https://neoblue.in' },
+    { name: 'Categories', url: 'https://neoblue.in/categories' },
+    { name: categoryTitle, url: categoryUrl },
+  ]);
+
   return (
-    <CategoryDetailClient
-      slug={slug}
-      categoryTitle={categoryTitle}
-      filteredProducts={filteredProducts}
-      subcategories={subcategories}
-    />
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+      <CategoryDetailClient
+        slug={slug}
+        categoryTitle={categoryTitle}
+        filteredProducts={filteredProducts}
+        subcategories={subcategories}
+      />
+    </>
   );
 }

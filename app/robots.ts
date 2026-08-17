@@ -5,7 +5,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: '*',
       allow: '/',
-      disallow: ['/admin/', '/checkout/', '/profile/', '/api/'],
+      disallow: ['/admin/', '/checkout/', '/profile/', '/api/', '/login/', '/auth/', '/orders/', '/vendor/', '/vendors/', '/hometest/'],
     },
     sitemap: 'https://neoblue.in/sitemap.xml',
   };

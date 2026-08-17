@@ -2,9 +2,20 @@ import { connectDB } from '@/lib/db';
 import Blog from '@/lib/models/Blog';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
+import { buildArticleJsonLd, buildBreadcrumbJsonLd } from '@/lib/utils/seo';
 import BlogDetailClient from './BlogDetailClient';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 3600;
+
+export async function generateStaticParams() {
+  try {
+    await connectDB();
+    const blogs = await Blog.find({ isPublished: true }).select('slug').lean();
+    return blogs.map((b: any) => ({ slug: b.slug }));
+  } catch {
+    return [];
+  }
+}
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
@@ -16,6 +27,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     return {
       title: `${blog.seoTitle || blog.title} | NeoBlue Insights`,
       description: blog.seoDescription || blog.excerpt,
+      keywords: blog.keywords || [blog.title, 'aquarium', 'fish care', 'NeoBlue'],
+      alternates: { canonical: `https://neoblue.in/blog/${slug}` },
       openGraph: {
         title: blog.seoTitle || blog.title,
         description: blog.seoDescription || blog.excerpt,
@@ -149,11 +162,40 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ slu
   });
 
   return (
-    <BlogDetailClient
-      blog={blog}
-      relatedBlogs={relatedBlogs}
-      paragraphs={paragraphs}
-      formattedDate={formattedDate}
-    />
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(
+            buildArticleJsonLd({
+              title: blog.title,
+              description: blog.excerpt,
+              image: blog.coverImage,
+              datePublished: blog.createdAt,
+              author: blog.author,
+              url: `https://neoblue.in/blog/${slug}`,
+            })
+          ),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(
+            buildBreadcrumbJsonLd([
+              { name: 'Home', url: 'https://neoblue.in' },
+              { name: 'Blog', url: 'https://neoblue.in/blog' },
+              { name: blog.title, url: `https://neoblue.in/blog/${slug}` },
+            ])
+          ),
+        }}
+      />
+      <BlogDetailClient
+        blog={blog}
+        relatedBlogs={relatedBlogs}
+        paragraphs={paragraphs}
+        formattedDate={formattedDate}
+      />
+    </>
   );
 }

@@ -11,51 +11,42 @@ const toSlug = (value: string) =>
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://neoblue.in';
 
-  // Static routes
-  const staticRoutes = [
-    '',
-    '/products',
-    '/categories',
-    '/combos',
-    '/about',
-    '/blog',
-    '/privacy-policy',
-    '/return-refund-policy',
-    '/terms-and-conditions',
-  ].map((route) => ({
-    url: `${baseUrl}${route}`,
-    lastModified: new Date().toISOString(),
-    changeFrequency: 'daily' as const,
-    priority: route === '' ? 1.0 : 0.8,
-  }));
-
-
   let productRoutes: any[] = [];
   let blogRoutes: any[] = [];
   let categoryRoutes: any[] = [];
   let vendorRoutes: any[] = [];
   let comboRoutes: any[] = [];
+  let latestUpdate = '2026-08-01T00:00:00.000Z';
 
   try {
     await connectDB();
 
     // Fetch all approved products (include out-of-stock so Google keeps them indexed)
     const products = await Product.find({ approvalStatus: 'approved' })
-      .select('_id category updatedAt')
+      .select('_id title category images updatedAt')
       .lean();
 
-    productRoutes = products.map((product: any) => ({
+    // Track the most recent product update for static route lastModified
+    for (const p of products as any[]) {
+      const d = p.updatedAt ? new Date(p.updatedAt).toISOString() : latestUpdate;
+      if (d > latestUpdate) latestUpdate = d;
+    }
+
+    productRoutes = (products as any[]).map((product) => ({
       url: `${baseUrl}/products/${product._id}`,
       lastModified: new Date(product.updatedAt || Date.now()).toISOString(),
       changeFrequency: 'weekly' as const,
       priority: 0.7,
+      ...(product.images?.[0] ? {
+        images: [product.images.find((img: string) => img.startsWith('http')) || `${baseUrl}${product.images[0]}`],
+      } : {}),
     }));
 
     // Extract unique categories dynamically from products and generate category paths
-    const uniqueCategories = Array.from(new Set(products.map((p: any) => p.category).filter(Boolean)));
+    const uniqueCategories = Array.from(new Set((products as any[]).map((p) => p.category).filter(Boolean)));
     categoryRoutes = uniqueCategories.map((category: any) => ({
       url: `${baseUrl}/categories/${toSlug(category)}`,
-      lastModified: new Date().toISOString(),
+      lastModified: latestUpdate,
       changeFrequency: 'daily' as const,
       priority: 0.6,
     }));
@@ -65,7 +56,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .select('slug updatedAt')
       .lean();
 
-    blogRoutes = blogs.map((blog: any) => ({
+    blogRoutes = (blogs as any[]).map((blog) => ({
       url: `${baseUrl}/blog/${blog.slug}`,
       lastModified: new Date(blog.updatedAt || Date.now()).toISOString(),
       changeFrequency: 'weekly' as const,
@@ -77,7 +68,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .select('slug updatedAt')
       .lean();
 
-    vendorRoutes = vendors.map((vendor: any) => {
+    vendorRoutes = (vendors as any[]).map((vendor) => {
       const slugVal = vendor.slug || vendor._id.toString();
       return {
         url: `${baseUrl}/shop/${slugVal}`,
@@ -91,7 +82,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .select('_id updatedAt')
       .lean();
 
-    comboRoutes = combos.map((combo: any) => ({
+    comboRoutes = (combos as any[]).map((combo) => ({
       url: `${baseUrl}/combos/${combo._id}`,
       lastModified: new Date(combo.updatedAt || Date.now()).toISOString(),
       changeFrequency: 'weekly' as const,
@@ -101,5 +92,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error('Error generating sitemap routes:', error);
   }
 
+  // Static routes use the most recent product update date, not new Date()
+  const staticRoutes = [
+    '',
+    '/products',
+    '/categories',
+    '/combos',
+    '/about',
+    '/blog',
+    '/privacy-policy',
+    '/return-refund-policy',
+    '/terms-and-conditions',
+  ].map((route) => ({
+    url: `${baseUrl}${route}`,
+    lastModified: latestUpdate,
+    changeFrequency: route === '' ? 'daily' as const : 'weekly' as const,
+    priority: route === '' ? 1.0 : 0.8,
+  }));
+
   return [...staticRoutes, ...productRoutes, ...categoryRoutes, ...comboRoutes, ...blogRoutes, ...vendorRoutes];
 }
+

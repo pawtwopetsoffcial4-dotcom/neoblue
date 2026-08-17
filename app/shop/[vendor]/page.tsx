@@ -6,18 +6,30 @@ import VendorShopContent from './VendorShopContent';
 import Link from 'next/link';
 import { ArrowLeft, Fish } from 'lucide-react';
 
+export const revalidate = 3600;
+
+export async function generateStaticParams() {
+  try {
+    await connectDB();
+    const vendors = await User.find({ role: 'vendor', isApproved: true }).select('slug').lean();
+    return vendors.map((v: any) => ({ vendor: v.slug || v._id.toString() }));
+  } catch {
+    return [];
+  }
+}
+
 type Props = { params: Promise<{ vendor: string }> };
 
 export async function generateMetadata({ params }: Props) {
   await connectDB();
   const { vendor: identifier } = await params;
   
-  let vendor: any = await User.findOne({ slug: identifier }).select('name').lean();
+  let vendor: any = await User.findOne({ slug: identifier }).select('name logo').lean();
   if (!vendor) {
     try {
       const { Types } = await import('mongoose');
       if (Types.ObjectId.isValid(identifier)) {
-        vendor = await User.findById(identifier).select('name').lean();
+        vendor = await User.findById(identifier).select('name logo').lean();
       }
     } catch {
       vendor = null;
@@ -35,6 +47,20 @@ export async function generateMetadata({ params }: Props) {
     keywords: vendor ? [vendor.name, 'certified breeder', 'live fish store', 'NeoBlue seller'] : ['aquarium vendors', 'live fish breeders'],
     alternates: {
       canonical: `https://neoblue.in/shop/${identifier}`,
+    },
+    openGraph: {
+      title: titleText,
+      description: descText,
+      url: `https://neoblue.in/shop/${identifier}`,
+      siteName: 'NeoBlue',
+      type: 'website',
+      images: [{ url: vendor?.logo ? vendor.logo : 'https://neoblue.in/logo.png', alt: titleText }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: titleText,
+      description: descText,
+      images: [vendor?.logo || 'https://neoblue.in/logo.png'],
     },
   };
 }

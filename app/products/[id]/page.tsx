@@ -8,6 +8,7 @@ import { connectDB } from '@/lib/db';
 import Product from '@/lib/models/Product';
 import Review from '@/lib/models/Review';
 import type { Metadata } from 'next';
+import { getBestProductOgImage } from '@/lib/utils/seo';
 import ProductClientPage from './ProductClientPage';
 
 const toSlug = (value: string) =>
@@ -17,7 +18,19 @@ type ProductDetailProps = {
   params: Promise<{ id: string }>;
 };
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 3600;
+
+export async function generateStaticParams() {
+  try {
+    await connectDB();
+    const products = await Product.find({ approvalStatus: 'approved' })
+      .select('_id')
+      .lean();
+    return products.map((p: any) => ({ id: p._id.toString() }));
+  } catch {
+    return [];
+  }
+}
 
 export async function generateMetadata({ params }: ProductDetailProps): Promise<Metadata> {
   const { id } = await params;
@@ -67,15 +80,15 @@ export async function generateMetadata({ params }: ProductDetailProps): Promise<
         title: titleText,
         description: truncatedDesc,
         url: productUrl,
-        images: product.images?.[0] ? [{ url: product.images[0] }] : [],
-        type: 'article',
+        images: getBestProductOgImage(product.images) ? [{ url: getBestProductOgImage(product.images) as string, width: 1200, height: 630, alt: product.title }] : [],
+        type: 'website',
         siteName: 'NeoBlue',
       },
       twitter: {
         card: 'summary_large_image',
         title: titleText,
         description: truncatedDesc,
-        images: product.images?.[0] ? [product.images[0]] : [],
+        images: getBestProductOgImage(product.images) ? [getBestProductOgImage(product.images) as string] : [],
       },
     };
   } catch {
