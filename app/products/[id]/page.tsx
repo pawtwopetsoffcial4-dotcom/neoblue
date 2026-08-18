@@ -112,7 +112,7 @@ export default async function ProductDetailPage({ params }: ProductDetailProps) 
     await connectDB();
 
     // 1. Fetch Product
-    const dbProduct = await Product.findById(id).populate('vendorId', 'name email logo slug').lean();
+    const dbProduct = await Product.findById(id).populate('vendorId', 'name email logo slug').lean() as any;
     if (!dbProduct) {
       notFound();
     }
@@ -124,21 +124,28 @@ export default async function ProductDetailPage({ params }: ProductDetailProps) 
     const dbReviews = await Review.find({ productId: id }).sort({ createdAt: -1 }).lean();
     reviews = JSON.parse(JSON.stringify(dbReviews));
 
-    // 3. Fetch Recommendations (same category first)
-    const dbRecommendations = await Product.find({ 
-      _id: { $ne: id },
-      approvalStatus: 'approved',
-      inStock: true
-    }).populate('vendorId', 'name email logo slug').limit(4).lean();
+    // 3. Fetch Recommendations (from the same vendor)
+    const rawVendorId = dbProduct.vendorId?._id || dbProduct.vendorId;
+    let dbRecommendations: any[] = [];
+    if (rawVendorId) {
+      dbRecommendations = await Product.find({ 
+        _id: { $ne: id },
+        vendorId: rawVendorId,
+        approvalStatus: 'approved',
+        inStock: true
+      }).populate('vendorId', 'name email logo slug').limit(10).lean();
+    }
     
-    // Sort recommendations to prioritize same category
-    const list = JSON.parse(JSON.stringify(dbRecommendations)) as any[];
-    list.sort((a, b) => {
-      if (a.category === product.category && b.category !== product.category) return -1;
-      if (a.category !== product.category && b.category === product.category) return 1;
-      return 0;
-    });
-    recommendations = list;
+    // If the vendor has no other active products, fallback to same category
+    if (dbRecommendations.length === 0) {
+      dbRecommendations = await Product.find({ 
+        _id: { $ne: id },
+        category: dbProduct.category,
+        approvalStatus: 'approved',
+        inStock: true
+      }).populate('vendorId', 'name email logo slug').limit(10).lean();
+    }
+    recommendations = JSON.parse(JSON.stringify(dbRecommendations));
 
     // 4. Fetch All Products (compact fields only for compatibility checker species search)
     const dbAllProducts = await Product.find({ approvalStatus: 'approved', inStock: true }).select('title scientific category temperament').lean();

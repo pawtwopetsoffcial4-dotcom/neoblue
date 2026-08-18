@@ -5,10 +5,12 @@ import Link from 'next/link';
 import { Home, Layers, ShoppingCart, User, Fish, Leaf } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useMode } from '@/lib/hooks/useMode';
+import { useCart } from '@/lib/hooks/useCart';
 
 export default function MobileDock() {
   const pathname = usePathname();
   const { mode } = useMode();
+  const { openCart, cartCount } = useCart();
 
   const isPlants = mode === 'plants';
   const activeBg = isPlants ? 'bg-green-50' : 'bg-blue-50';
@@ -34,10 +36,15 @@ export default function MobileDock() {
       active: pathname.startsWith('/products') 
     },
     { 
-      href: '/checkout', 
+      href: '#', 
       label: 'Cart', 
       icon: ShoppingCart, 
-      active: pathname.startsWith('/checkout') 
+      active: pathname.startsWith('/checkout'),
+      onClick: (e: React.MouseEvent) => {
+        e.preventDefault();
+        openCart();
+      },
+      badge: cartCount > 0 ? cartCount : undefined,
     },
     { 
       href: '/profile', 
@@ -57,13 +64,21 @@ export default function MobileDock() {
               <li key={item.label}>
                 <Link
                   href={item.href}
-                  className={`flex flex-col items-center justify-center rounded-xl py-2 text-[11px] font-semibold transition-all duration-300 ${
+                  onClick={item.onClick}
+                  className={`flex flex-col items-center justify-center rounded-xl py-2 text-[11px] font-semibold transition-all duration-300 relative ${
                     item.active 
                       ? `${activeBg} ${activeText}` 
                       : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'
                   }`}
                 >
-                  <Icon className="h-4 w-4 mb-1" />
+                  <div className="relative">
+                    <Icon className="h-4 w-4 mb-1" />
+                    {item.badge != null && item.badge > 0 && (
+                      <span className="absolute -top-1.5 -right-2.5 h-4 min-w-[16px] px-1 rounded-full bg-blue-600 text-white text-[9px] font-black flex items-center justify-center shadow-xs">
+                        {item.badge}
+                      </span>
+                    )}
+                  </div>
                   {item.label}
                 </Link>
               </li>

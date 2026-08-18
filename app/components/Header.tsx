@@ -20,7 +20,7 @@ type HeaderProps = {
 };
 
 export default function Header({ cartCount = 0 }: HeaderProps) {
-  const { cartCount: contextCartCount } = useCart();
+  const { cartCount: contextCartCount, openCart } = useCart();
   const { user, logout } = useAuth();
   const { mode, setMode } = useMode();
   const router = useRouter();
@@ -165,17 +165,19 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
 
 
           {/* Shopping Bag / Cart */}
-          <Link 
-            href="/checkout" 
-            className={`h-8.5 px-2.5 sm:h-9 sm:px-4 rounded-xl flex items-center gap-1.5 sm:gap-2 font-black text-xs uppercase tracking-wider transition-all duration-300 shadow-md ${
+          <button 
+            type="button"
+            onClick={openCart}
+            className={`h-8.5 px-2.5 sm:h-9 sm:px-4 rounded-xl flex items-center gap-1.5 sm:gap-2 font-black text-xs uppercase tracking-wider transition-all duration-300 shadow-md cursor-pointer ${
               isFishes 
                 ? 'bg-blue-700 hover:bg-blue-800 text-white shadow-blue-900/20' 
                 : 'bg-green-800 hover:bg-green-900 text-white shadow-green-900/20'
             }`}
+            aria-label="Open Shopping Cart"
           >
             <ShoppingBag className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             <span>{visibleCartCount}</span>
-          </Link>
+          </button>
 
           {/* Notification Bell (Desktop) */}
           {user && (

@@ -6,6 +6,7 @@ import { X, CheckCircle2, ArrowRight, ShoppingBag } from 'lucide-react';
 import type { MarketplaceProduct } from '@/lib/types/marketplace';
 import { useAuth } from './useAuth';
 import { useMode } from './useMode';
+import CartDrawer from '@/app/components/CartDrawer';
 
 export type CartItem = {
   productId: string;
@@ -15,17 +16,29 @@ export type CartItem = {
   quantity: number;
   perPairPrice?: number | null;
   unitLabel?: string;
+  weightPerPiece?: number;
+  category?: string;
+  waterType?: string;
+  scientific?: string;
+  originalPrice?: number;
+  discountPercentage?: number;
+  vendorId?: string;
+  vendorName?: string;
 };
 
 type CartContextType = {
   items: CartItem[];
-  addToCart: (product: MarketplaceProduct) => void;
+  addToCart: (product: MarketplaceProduct, openDrawer?: boolean) => void;
   removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
   loadSharedCart: (sharedItems: CartItem[], action: 'merge' | 'replace') => void;
   cartCount: number;
   totalAmount: number;
+  isCartOpen: boolean;
+  openCart: () => void;
+  closeCart: () => void;
+  toggleCart: () => void;
 };
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -33,12 +46,17 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
   const [toast, setToast] = useState<{ id: number; title: string; image?: string; price: number; unitLabel?: string } | null>(null);
   const toastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { user } = useAuth();
   const { mode } = useMode();
   const isPlants = mode === 'plants';
   const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const openCart = () => setIsCartOpen(true);
+  const closeCart = () => setIsCartOpen(false);
+  const toggleCart = () => setIsCartOpen((prev) => !prev);
 
   // Cleanup timeouts on unmount
   useEffect(() => {
@@ -169,17 +187,30 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }, 500);
   };
 
-  const addToCart = (product: MarketplaceProduct) => {
+  const addToCart = (product: MarketplaceProduct, openDrawer: boolean = true) => {
     const existingIndex = items.findIndex((item) => item.productId === product._id);
     let newItems: CartItem[] = [];
     const isPair = (product as any).perPairPrice != null;
     const unitLabel = isPair ? 'pair' : 'piece';
+    const weightPerPiece = product.weightPerPiece && product.weightPerPiece > 0
+      ? product.weightPerPiece
+      : (product.category === 'Plants' ? 80 : 100);
+
+    const vendorId = typeof product.vendorId === 'object' && product.vendorId !== null 
+      ? product.vendorId._id 
+      : product.vendorId;
+    const vendorName = typeof product.vendorId === 'object' && product.vendorId !== null 
+      ? product.vendorId.name 
+      : undefined;
 
     if (existingIndex > -1) {
       newItems = [...items];
       newItems[existingIndex].quantity += 1;
       if (!newItems[existingIndex].unitLabel) {
         newItems[existingIndex].unitLabel = unitLabel;
+      }
+      if (!newItems[existingIndex].weightPerPiece) {
+        newItems[existingIndex].weightPerPiece = weightPerPiece;
       }
     } else {
       newItems = [
@@ -188,28 +219,27 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           productId: product._id,
           title: product.title,
           price: product.price,
-          image: product.images?.[0] ?? '/api/placeholder/400/300',
+          image: product.images?.[0] ?? '/illustrations/placeholder.png',
           quantity: 1,
           perPairPrice: (product as any).perPairPrice ?? null,
           unitLabel,
+          weightPerPiece,
+          category: product.category,
+          waterType: product.waterType,
+          scientific: product.scientific,
+          originalPrice: product.originalPrice,
+          discountPercentage: product.discountPercentage,
+          vendorId: vendorId ? String(vendorId) : undefined,
+          vendorName,
         },
       ];
     }
     setItems(newItems);
     syncCartToDB(newItems);
 
-    // Show toast notification
-    if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
-    setToast({
-      id: Date.now(),
-      title: product.title,
-      image: product.images?.[0],
-      price: product.price,
-      unitLabel,
-    });
-    toastTimeoutRef.current = setTimeout(() => {
-      setToast(null);
-    }, 3800);
+    if (openDrawer) {
+      setIsCartOpen(true);
+    }
   };
 
   const removeFromCart = (productId: string) => {
@@ -276,72 +306,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         loadSharedCart,
         cartCount,
         totalAmount,
+        isCartOpen,
+        openCart,
+        closeCart,
+        toggleCart,
       }}
     >
       {children}
-
-      {/* Modern Storefront-Matching Toast Notification */}
-      {toast && (
-        <div
-          key={toast.id}
-          className="fixed bottom-20 md:bottom-6 right-4 md:right-6 z-50 max-w-md w-[calc(100vw-2rem)] sm:w-auto bg-white/95 backdrop-blur-md text-slate-900 rounded-2xl p-3.5 shadow-2xl shadow-slate-900/15 border border-slate-200/90 flex items-center justify-between gap-3 sm:gap-4 animate-in fade-in slide-in-from-bottom-4 duration-300"
-        >
-          <div className="flex items-center gap-3 min-w-0">
-            {toast.image ? (
-              <img
-                src={toast.image}
-                alt={toast.title}
-                className="w-12 h-12 rounded-xl object-cover border border-slate-100 shrink-0 bg-slate-50 shadow-2xs"
-              />
-            ) : (
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 font-bold border ${
-                isPlants ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-blue-50 text-blue-600 border-blue-100'
-              }`}>
-                <ShoppingBag className="w-5 h-5" />
-              </div>
-            )}
-
-            <div className="min-w-0">
-              <div className="flex items-center gap-1.5">
-                <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md border flex items-center gap-1 ${
-                  isPlants ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-blue-50 text-blue-700 border-blue-200'
-                }`}>
-                  <CheckCircle2 className="w-3 h-3" />
-                  Added
-                </span>
-              </div>
-              <p className="text-xs font-black text-slate-900 truncate mt-1 max-w-[160px] sm:max-w-[210px]">
-                {toast.title}
-              </p>
-              <p className="text-[11px] font-semibold text-slate-500 mt-0.5">
-                Added to cart • <strong className="text-slate-900">₹{toast.price ?? 0} / {toast.unitLabel || 'piece'}</strong>
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 shrink-0">
-            <Link
-              href="/checkout"
-              onClick={() => setToast(null)}
-              className={`h-9 px-3.5 rounded-xl text-white font-extrabold text-xs transition-all active:scale-95 flex items-center gap-1 cursor-pointer shadow-md ${
-                isPlants
-                  ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/20'
-                  : 'bg-blue-600 hover:bg-blue-700 shadow-blue-600/20'
-              }`}
-            >
-              View Cart
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-            <button
-              onClick={() => setToast(null)}
-              className="h-7 w-7 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center transition-colors cursor-pointer"
-              aria-label="Close notification"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-      )}
+      <CartDrawer />
     </CartContext.Provider>
   );
 }

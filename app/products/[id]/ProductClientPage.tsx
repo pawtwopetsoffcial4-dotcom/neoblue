@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { ShoppingBag, Star, Truck, Shield, Droplets, Thermometer, Info, MessageSquare, ChevronRight, ChevronDown, Store, CheckCircle2, Search, X, ShieldAlert, Sparkles, Scale, Heart, Package, Leaf, Ruler, User, Activity, Box, Home, Fish, Beaker, Sun, Wind, Smile } from 'lucide-react';
+import { ShoppingBag, Star, Truck, Shield, Droplets, Thermometer, Info, MessageSquare, ChevronRight, ChevronLeft, ChevronDown, Store, CheckCircle2, Search, X, ShieldAlert, Sparkles, Scale, Heart, Package, Leaf, Ruler, User, Activity, Box, Home, Fish, Beaker, Sun, Wind, Smile } from 'lucide-react';
 import ReviewList from '@/app/components/ReviewList';
 import ReviewForm from '@/app/components/ReviewForm';
 import ReviewStars from '@/app/components/ReviewStars';
+import ProductCard from '@/app/components/ProductCard';
 import type { MarketplaceProduct } from '@/lib/types/marketplace';
 import { useCart } from '@/lib/hooks/useCart';
 
@@ -40,6 +41,7 @@ export default function ProductClientPage({
   const [mateSearchQuery, setMateSearchQuery] = useState('');
   const [showMatesDropdown, setShowMatesDropdown] = useState(false);
   const [liked, setLiked] = useState(false);
+  const recScrollRef = useRef<HTMLDivElement>(null);
 
   const isPlants = product.category === 'Plants';
   const theme = isPlants ? {
@@ -777,56 +779,60 @@ export default function ProductClientPage({
         </div>
       </div>
 
-      {/* Related Products Section at the Bottom */}
+      {/* Horizontal Recommendations Section (Same Vendor / Breeder) */}
       {initialRecommendations.length > 0 && (
-        <div className="mt-12 pt-10 border-t border-slate-200/80 space-y-5">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xl font-bold tracking-tight text-slate-900">You may also like</h3>
-            <span className={`text-xs font-semibold ${theme.text} uppercase tracking-widest`}>Recommended Products</span>
+        <div className="mt-12 pt-10 border-t border-slate-200/80 space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+            <div>
+              <span className={`text-[11px] font-bold ${theme.text} uppercase tracking-widest`}>
+                {vendor?.name ? `${vendor.name}'s Collection` : 'Breeder Collection'}
+              </span>
+              <h3 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 mt-0.5">
+                More from {vendor?.name || 'this Breeder'}
+              </h3>
+            </div>
+
+            <div className="flex items-center justify-between sm:justify-end gap-2">
+              {vendor && (
+                <Link
+                  href={`/shop/${vendor.slug || vendor._id}`}
+                  className={`inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:${theme.text} transition-colors mr-1 sm:mr-3`}
+                >
+                  <Store className="w-3.5 h-3.5" />
+                  <span>Visit Storefront</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </Link>
+              )}
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => recScrollRef.current?.scrollBy({ left: -280, behavior: 'smooth' })}
+                  className="h-8.5 w-8.5 rounded-full bg-white border border-slate-200/80 flex items-center justify-center text-slate-600 hover:text-slate-900 hover:border-slate-300 transition-colors shadow-2xs active:scale-95"
+                  aria-label="Scroll left"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => recScrollRef.current?.scrollBy({ left: 280, behavior: 'smooth' })}
+                  className="h-8.5 w-8.5 rounded-full bg-white border border-slate-200/80 flex items-center justify-center text-slate-600 hover:text-slate-900 hover:border-slate-300 transition-colors shadow-2xs active:scale-95"
+                  aria-label="Scroll right"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
           </div>
-          <div className="flex flex-col gap-3.5 max-w-3xl">
-            {initialRecommendations.map(rec => (
-              <Link 
-                key={rec._id} 
-                href={`/products/${rec._id}`} 
-                className={`group flex gap-4 p-4 rounded-3xl bg-white border border-slate-200/80 transition-all duration-350 ${
-                  rec.category === 'Plants' 
-                    ? 'hover:border-emerald-400 hover:shadow-lg hover:shadow-emerald-500/5' 
-                    : 'hover:border-blue-400 hover:shadow-lg hover:shadow-blue-500/5'
-                }`}
-              >
-                <div className="h-20 w-20 rounded-2xl overflow-hidden shrink-0 bg-slate-100 border border-slate-100">
-                  <img
-                    src={rec.images?.[0] || 'https://images.stockcake.com/public/1/9/4/194f4315-a8d9-422b-b237-18b1e224b7a1_large/colorful-tropical-fish-stockcake.jpg'}
-                    alt={rec.title} 
-                    className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                </div>
-                <div className="flex-1 min-w-0 flex flex-col justify-center">
-                  <div className="flex items-center gap-2">
-                    <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${
-                      rec.category === 'Plants' 
-                        ? 'text-emerald-600 bg-emerald-50' 
-                        : 'text-blue-600 bg-blue-50'
-                    }`}>
-                      {rec.category}
-                    </span>
-                    <span className="text-[10px] font-semibold text-slate-400">
-                      {rec.waterType}
-                    </span>
-                  </div>
-                  <h4 className={`text-sm font-bold text-slate-900 mt-1 truncate transition-colors ${
-                    rec.category === 'Plants' ? 'group-hover:text-emerald-600' : 'group-hover:text-blue-600'
-                  }`}>{rec.title}</h4>
-                  {rec.scientific && <p className="text-xs text-slate-400 italic font-serif truncate mt-0.5">{rec.scientific}</p>}
-                  <div className="flex items-baseline gap-1 mt-2">
-                    <span className="text-sm font-black text-slate-900">{formatPrice(rec.price)}</span>
-                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
-                      /{rec.perPairPrice != null && typeof rec.perPairPrice === 'number' ? 'Pair' : 'Piece'}
-                    </span>
-                  </div>
-                </div>
-              </Link>
+
+          {/* Horizontal scroll list */}
+          <div
+            ref={recScrollRef}
+            className="flex gap-4 sm:gap-5 overflow-x-auto pb-4 pt-1 snap-x snap-mandatory scroll-smooth hide-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0"
+          >
+            {initialRecommendations.map((rec, idx) => (
+              <div key={rec._id} className="w-[200px] sm:w-[230px] md:w-[250px] shrink-0 snap-start">
+                <ProductCard product={rec} idx={idx} />
+              </div>
             ))}
           </div>
         </div>

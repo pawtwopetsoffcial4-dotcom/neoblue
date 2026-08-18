@@ -26,8 +26,16 @@ export async function GET(request: NextRequest) {
         productId: item.productId._id.toString(),
         title: item.productId.title,
         price: item.productId.price,
-        image: item.productId.images?.[0] ?? '/api/placeholder/400/300',
+        image: item.productId.images?.[0] ?? '/illustrations/placeholder.png',
         quantity: item.quantity,
+        perPairPrice: item.productId.perPairPrice ?? null,
+        unitLabel: item.productId.perPairPrice != null ? 'pair' : 'piece',
+        weightPerPiece: item.productId.weightPerPiece || (item.productId.category === 'Plants' ? 80 : 100),
+        category: item.productId.category,
+        waterType: item.productId.waterType,
+        scientific: item.productId.scientific,
+        originalPrice: item.productId.originalPrice,
+        discountPercentage: item.productId.discountPercentage,
       }));
 
     return createSuccessResponse({ items: formattedItems });
@@ -70,8 +78,16 @@ export async function POST(request: NextRequest) {
         productId: item.productId._id.toString(),
         title: item.productId.title,
         price: item.productId.price,
-        image: item.productId.images?.[0] ?? '/api/placeholder/400/300',
+        image: item.productId.images?.[0] ?? '/illustrations/placeholder.png',
         quantity: item.quantity,
+        perPairPrice: item.productId.perPairPrice ?? null,
+        unitLabel: item.productId.perPairPrice != null ? 'pair' : 'piece',
+        weightPerPiece: item.productId.weightPerPiece || (item.productId.category === 'Plants' ? 80 : 100),
+        category: item.productId.category,
+        waterType: item.productId.waterType,
+        scientific: item.productId.scientific,
+        originalPrice: item.productId.originalPrice,
+        discountPercentage: item.productId.discountPercentage,
       }));
 
     return createSuccessResponse({ items: formattedItems });
