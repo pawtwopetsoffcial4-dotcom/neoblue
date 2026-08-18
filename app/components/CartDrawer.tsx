@@ -118,9 +118,9 @@ export default function CartDrawer() {
 
   const theme = isPlants ? {
     accent: 'emerald',
-    badgeBg: 'bg-emerald-500',
-    btnGradient: 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-emerald-600/25',
-    progressBg: 'bg-emerald-500',
+    badgeBg: 'bg-emerald-600',
+    btnBg: 'bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 shadow-md shadow-emerald-600/20',
+    progressBg: 'bg-emerald-600',
     bannerBg: 'bg-emerald-50/90 border-emerald-200/80',
     bannerText: 'text-emerald-950',
     bannerIconBg: 'bg-emerald-100 text-emerald-700',
@@ -128,8 +128,8 @@ export default function CartDrawer() {
   } : {
     accent: 'blue',
     badgeBg: 'bg-blue-600',
-    btnGradient: 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-blue-600/25',
-    progressBg: 'bg-gradient-to-r from-blue-500 to-indigo-600',
+    btnBg: 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800 shadow-md shadow-blue-600/20',
+    progressBg: 'bg-blue-600',
     bannerBg: 'bg-blue-50/90 border-blue-200/80',
     bannerText: 'text-blue-950',
     bannerIconBg: 'bg-blue-100 text-blue-700',
@@ -230,7 +230,7 @@ export default function CartDrawer() {
                 <Link
                   href="/products"
                   onClick={closeCart}
-                  className={`inline-flex h-11 items-center justify-center px-6 rounded-xl text-white font-extrabold text-xs tracking-wider uppercase transition-all shadow-md active:scale-95 ${theme.btnGradient}`}
+                  className={`inline-flex h-11 items-center justify-center px-6 rounded-xl text-white font-extrabold text-xs tracking-wider uppercase transition-all active:scale-95 ${theme.btnBg}`}
                 >
                   Start Shopping
                 </Link>
@@ -354,7 +354,7 @@ export default function CartDrawer() {
               <Link
                 href="/checkout"
                 onClick={closeCart}
-                className={`w-full h-12 rounded-2xl text-white font-black text-sm tracking-wider uppercase transition-all shadow-lg flex items-center justify-between px-5 active:scale-[0.99] cursor-pointer ${theme.btnGradient}`}
+                className={`w-full h-12 rounded-2xl text-white font-black text-sm tracking-wider uppercase transition-all flex items-center justify-between px-5 active:scale-[0.99] cursor-pointer ${theme.btnBg}`}
               >
                 <span>Checkout Now</span>
                 <span className="flex items-center gap-1 text-xs font-bold opacity-90">
