@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document } from 'mongoose';
+import { normalizeCategoryName } from '@/lib/catalog';
 
 export interface IProduct extends Document {
   title: string;
@@ -118,6 +119,7 @@ const productSchema = new Schema<IProduct>(
     category: {
       type: String,
       required: true,
+      trim: true,
     },
     subcategory: {
       type: String,
@@ -305,6 +307,29 @@ const productSchema = new Schema<IProduct>(
   },
   { timestamps: true }
 );
+
+// Automatic category normalization middleware
+productSchema.pre('validate', function () {
+  if (this.category) {
+    this.category = normalizeCategoryName(this.category);
+  }
+});
+
+productSchema.pre('save', function () {
+  if (this.category) {
+    this.category = normalizeCategoryName(this.category);
+  }
+});
+
+productSchema.pre('findOneAndUpdate', function () {
+  const update: any = this.getUpdate();
+  if (update?.category) {
+    update.category = normalizeCategoryName(update.category);
+  }
+  if (update?.$set?.category) {
+    update.$set.category = normalizeCategoryName(update.$set.category);
+  }
+});
 
 // Indexes for common queries
 productSchema.index({ category: 1, inStock: 1, approvalStatus: 1 });

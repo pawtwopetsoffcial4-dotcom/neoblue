@@ -122,24 +122,28 @@ export default function VendorAddProductPage() {
 
   const registerCustomCategoryAndVariety = async (category: string, variety: string) => {
     try {
+      const normalizedCat = normalizeCategoryName(category);
+      if (!normalizedCat) return;
+
       const config = await apiClient.request<{ categories?: string[]; subcategories?: Record<string, string[]> }>('/config');
       let updated = false;
 
-      // Handle Category
+      // Handle Category with deduplication & normalization
       const currentCats = Array.isArray(config.categories) ? config.categories : [];
       let nextCats = [...currentCats];
-      if (category && !currentCats.includes(category)) {
-        nextCats.push(category);
+      const exists = currentCats.some(c => c.toLowerCase().trim() === normalizedCat.toLowerCase().trim());
+      if (!exists) {
+        nextCats.push(normalizedCat);
         updated = true;
       }
 
       // Handle Variety
       const currentSubs = config.subcategories && typeof config.subcategories === 'object' ? config.subcategories : {};
       let nextSubs = { ...currentSubs };
-      if (category && variety) {
-        const categorySubs = Array.isArray(currentSubs[category]) ? currentSubs[category] : [];
-        if (!categorySubs.includes(variety)) {
-          nextSubs[category] = [...categorySubs, variety];
+      if (variety) {
+        const categorySubs = Array.isArray(currentSubs[normalizedCat]) ? currentSubs[normalizedCat] : [];
+        if (!categorySubs.some((v: string) => v.toLowerCase().trim() === variety.toLowerCase().trim())) {
+          nextSubs[normalizedCat] = [...categorySubs, variety.trim()];
           updated = true;
         }
       }

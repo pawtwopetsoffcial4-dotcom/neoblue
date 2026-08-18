@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
-import { PRODUCT_CATEGORIES, PRODUCT_CATALOG } from '@/lib/catalog';
+import { PRODUCT_CATEGORIES, PRODUCT_CATALOG, normalizeCategoryName } from '@/lib/catalog';
 import StoreConfig from '@/lib/models/StoreConfig';
 
 // Single, clean GET/PUT implementation for /api/config
@@ -36,7 +36,14 @@ export async function PUT(request: Request) {
     delete data.shippingPerPiece;
     delete data.shippingPerWeight;
     if (Array.isArray(raw?.categories)) {
-      data.categories = raw.categories.map((c: any) => String(c).trim()).filter((c: string) => c.length > 0);
+      const uniqueCats = new Set<string>();
+      for (const c of raw.categories) {
+        if (typeof c === 'string' && c.trim().length > 0) {
+          const norm = normalizeCategoryName(c);
+          if (norm) uniqueCats.add(norm);
+        }
+      }
+      data.categories = Array.from(uniqueCats);
     }
 
     const config = await StoreConfig.findOneAndUpdate({}, { $set: data }, { new: true, upsert: true });
