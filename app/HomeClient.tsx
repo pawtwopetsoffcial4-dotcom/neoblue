@@ -97,61 +97,102 @@ function MobileScrollSection({
 
 
 
+/* ------------------------------------------------------------------ */
+/* SKELETON PLACEHOLDERS                                              */
+/* ------------------------------------------------------------------ */
+function ProductCardSkeleton({ className = "" }: { className?: string }) {
+  return (
+    <div className={`flex flex-col overflow-hidden rounded-[20px] sm:rounded-[24px] bg-white border border-slate-100 p-0 animate-pulse shadow-2xs ${className}`}>
+      <div className="aspect-square w-full bg-slate-100 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent -translate-x-full animate-[shimmer_1.5s_infinite]" />
+      </div>
+      <div className="p-3 space-y-2">
+        <div className="h-2.5 w-14 bg-slate-100 rounded-md" />
+        <div className="h-3.5 w-28 bg-slate-200 rounded-md" />
+        <div className="h-2.5 w-20 bg-slate-100 rounded-md" />
+        <div className="pt-2 flex justify-between items-center">
+          <div className="h-4 w-12 bg-slate-200 rounded-md" />
+          <div className="h-7 w-7 bg-slate-100 rounded-lg" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CategorySkeleton() {
+  return (
+    <div className="flex flex-col items-center gap-2 shrink-0 animate-pulse">
+      <div className="w-15 h-15 rounded-full bg-slate-100 border border-slate-200/50" />
+      <div className="h-2.5 w-12 bg-slate-200 rounded-full" />
+    </div>
+  );
+}
+
+type HomeClientProps = {
+  initialProducts?: MarketplaceProduct[];
+  initialCombos?: any[];
+  initialCategories?: Array<{ name: string; image: string }>;
+};
+
 /* ================================================================== */
 /* MAIN PAGE                                                          */
 /* ================================================================== */
-export default function NeoBlueMobileOptimized() {
+export default function NeoBlueMobileOptimized({
+  initialProducts = [],
+  initialCombos = [],
+  initialCategories = [],
+}: HomeClientProps) {
   const { mode } = useMode();
-  const [products, setProducts] = useState<MarketplaceProduct[]>([]);
-  const [categoriesFromDb, setCategoriesFromDb] = useState<Array<{ name: string; image: string }>>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [featuredCombos, setFeaturedCombos] = useState<any[]>([]);
+  const [products, setProducts] = useState<MarketplaceProduct[]>(initialProducts);
+  const [categoriesFromDb, setCategoriesFromDb] = useState<Array<{ name: string; image: string }>>(initialCategories);
+  const [featuredCombos, setFeaturedCombos] = useState<any[]>(initialCombos);
+  const [isLoading, setIsLoading] = useState(initialProducts.length === 0);
 
   useEffect(() => {
+    if (initialProducts.length > 0) {
+      setProducts(initialProducts);
+      setIsLoading(false);
+      return;
+    }
+
     const fetchHomepageData = async () => {
       try {
         setIsLoading(true);
 
         const [productsResponse, categoriesResponse, combosResponse] = await Promise.all([
-          fetch('/api/products?limit=500', { cache: 'no-store' }),
-          fetch('/api/categories', { cache: 'no-store' }),
-          fetch('/api/combos?featured=true', { cache: 'no-store' }),
+          fetch('/api/products?limit=200'),
+          fetch('/api/categories'),
+          fetch('/api/combos?featured=true'),
         ]);
 
-        if (!productsResponse.ok) {
-          throw new Error('Failed to load homepage products');
+        if (productsResponse.ok) {
+          const productsData = await productsResponse.json();
+          const liveProducts = extractProducts(productsData).filter((product) => {
+            const isApproved = (product.approvalStatus ?? 'approved') === 'approved';
+            return isApproved && product.inStock;
+          });
+          setProducts(liveProducts);
         }
-
-        const productsData = await productsResponse.json();
-        const liveProducts = extractProducts(productsData).filter((product) => {
-          const isApproved = (product.approvalStatus ?? 'approved') === 'approved';
-          return isApproved && product.inStock;
-        });
-
-        setProducts(liveProducts);
 
         if (categoriesResponse.ok) {
           const categoriesData = await categoriesResponse.json();
           const dbCategories = Array.isArray(categoriesData?.categoriesWithImages) ? categoriesData.categoriesWithImages : [];
           setCategoriesFromDb(dbCategories);
-        } else {
-          setCategoriesFromDb([]);
         }
 
         if (combosResponse.ok) {
           const combosData = await combosResponse.json();
           setFeaturedCombos(combosData.combos ?? []);
         }
-      } catch {
-        setProducts([]);
-        setCategoriesFromDb([]);
+      } catch (err) {
+        console.error('Failed to load homepage data:', err);
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchHomepageData();
-  }, []);
+  }, [initialProducts]);
 
   // Filter products by mode
   const modeFilteredProducts = useMemo(() => {
@@ -240,7 +281,7 @@ export default function NeoBlueMobileOptimized() {
               )}
             </h1>
             <p className="text-blue-100 text-xs mb-5 font-light max-w-[80%]">
-              {isLoading
+              {isLoading && modeFilteredProducts.length === 0
                 ? 'Loading live inventory...'
                 : mode === 'fishes' 
                   ? `Live arrival guaranteed across ${modeFilteredProducts.length} in-stock fish and aquatic listings.`
@@ -260,10 +301,14 @@ export default function NeoBlueMobileOptimized() {
       </section>
 
       {/* 3. CATEGORIES (Circular Scroll) */}
-      {categories.length > 0 && (
-        <section className="pt-6 pb-2 bg-white">
-          <div className="flex overflow-x-auto gap-5 px-5 snap-x snap-mandatory [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-            {categories.map((cat, i) => {
+      <section className="pt-6 pb-2 bg-white">
+        <div className="flex overflow-x-auto gap-5 px-5 snap-x snap-mandatory [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+          {isLoading && categories.length === 0 ? (
+            Array.from({ length: 7 }).map((_, i) => (
+              <CategorySkeleton key={`cat-skel-${i}`} />
+            ))
+          ) : (
+            categories.map((cat, i) => {
               const isPlants = toCategorySlug(cat.label) === 'plants';
               return (
                 <Link
@@ -292,37 +337,49 @@ export default function NeoBlueMobileOptimized() {
                   }`}>{cat.label}</span>
                 </Link>
               );
-            })}
-          </div>
-        </section>
-      )}
+            })
+          )}
+        </div>
+      </section>
 
       {/* 4. TRENDING */}
       <MobileScrollSection title="Trending Now" mode={mode}>
-        {trendingProducts.map((product, idx) => (
-          <ProductCard key={`trend-${product.id}`} product={product} idx={idx} className="w-40 md:w-55 shrink-0 snap-start" />
-        ))}
-        {!isLoading && trendingProducts.length === 0 ? (
+        {isLoading && trendingProducts.length === 0 ? (
+          Array.from({ length: 5 }).map((_, i) => (
+            <ProductCardSkeleton key={`trend-skel-${i}`} className="w-40 md:w-55 shrink-0 snap-start" />
+          ))
+        ) : (
+          trendingProducts.map((product, idx) => (
+            <ProductCard key={`trend-${product.id}`} product={product} idx={idx} className="w-40 md:w-55 shrink-0 snap-start" />
+          ))
+        )}
+        {!isLoading && trendingProducts.length === 0 && (
           <div className={`w-full rounded-2xl border border-dashed p-4 text-xs ${
             mode === 'fishes' ? 'border-blue-100 text-blue-600' : 'border-green-100 text-green-700'
           }`}>
             No live products available right now.
           </div>
-        ) : null}
+        )}
       </MobileScrollSection>
 
       {/* 5. NEW ARRIVALS */}
       <MobileScrollSection title="New Arrivals" mode={mode}>
-        {newArrivalProducts.map((product, idx) => (
-          <ProductCard key={`new-${product.id}`} product={product} idx={idx} className="w-40 md:w-55 shrink-0 snap-start" />
-        ))}
-        {!isLoading && newArrivalProducts.length === 0 ? (
+        {isLoading && newArrivalProducts.length === 0 ? (
+          Array.from({ length: 5 }).map((_, i) => (
+            <ProductCardSkeleton key={`new-skel-${i}`} className="w-40 md:w-55 shrink-0 snap-start" />
+          ))
+        ) : (
+          newArrivalProducts.map((product, idx) => (
+            <ProductCard key={`new-${product.id}`} product={product} idx={idx} className="w-40 md:w-55 shrink-0 snap-start" />
+          ))
+        )}
+        {!isLoading && newArrivalProducts.length === 0 && (
           <div className={`w-full rounded-2xl border border-dashed p-4 text-xs ${
             mode === 'fishes' ? 'border-blue-100 text-blue-600' : 'border-green-100 text-green-700'
           }`}>
             New arrivals will appear as soon as products are published.
           </div>
-        ) : null}
+        )}
       </MobileScrollSection>
 
       {/* 6. FEATURED COMBOS */}

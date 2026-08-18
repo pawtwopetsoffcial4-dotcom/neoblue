@@ -2,6 +2,13 @@ import React from 'react';
 import type { Metadata } from 'next';
 import HomeClient from './HomeClient';
 import { buildOrganizationJsonLd, buildWebSiteJsonLd } from '@/lib/utils/seo';
+import { connectDB } from '@/lib/db';
+import Product from '@/lib/models/Product';
+import Combo from '@/lib/models/Combo';
+import StoreConfig from '@/lib/models/StoreConfig';
+import { PRODUCT_CATEGORIES, getCategoryImage } from '@/lib/catalog';
+
+export const revalidate = 60; // Revalidate every 60 seconds (Instant server cache)
 
 export const metadata: Metadata = {
   title: "NeoBlue - Buy Aquarium Fish, Live Plants & Specs Online",
@@ -12,9 +19,44 @@ export const metadata: Metadata = {
   },
 };
 
-export default function HomePage() {
+async function getHomepageData() {
+  try {
+    await connectDB();
+
+    const [productsRaw, combosRaw, configRaw] = await Promise.all([
+      Product.find({ approvalStatus: 'approved', inStock: true })
+        .populate('vendorId', 'name logo slug')
+        .sort({ createdAt: -1 })
+        .limit(200)
+        .lean(),
+      Combo.find({ isActive: true }).lean(),
+      StoreConfig.findOne({}).lean(),
+    ]);
+
+    const initialProducts = JSON.parse(JSON.stringify(productsRaw));
+    const initialCombos = JSON.parse(JSON.stringify(combosRaw));
+    const config = JSON.parse(JSON.stringify(configRaw || {}));
+
+    const configuredCategories = Array.isArray(config?.categories) && config.categories.length > 0
+      ? config.categories
+      : PRODUCT_CATEGORIES;
+
+    const initialCategories = configuredCategories.map((name: string) => ({
+      name,
+      image: config?.categoryImages?.[name] || getCategoryImage(name),
+    }));
+
+    return { initialProducts, initialCombos, initialCategories };
+  } catch (error) {
+    console.error('Failed to pre-fetch homepage data:', error);
+    return { initialProducts: [], initialCombos: [], initialCategories: [] };
+  }
+}
+
+export default async function HomePage() {
   const organizationJsonLd = buildOrganizationJsonLd();
   const webSiteJsonLd = buildWebSiteJsonLd();
+  const { initialProducts, initialCombos, initialCategories } = await getHomepageData();
 
   return (
     <>
@@ -26,7 +68,11 @@ export default function HomePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(webSiteJsonLd) }}
       />
-      <HomeClient />
+      <HomeClient 
+        initialProducts={initialProducts} 
+        initialCombos={initialCombos}
+        initialCategories={initialCategories}
+      />
     </>
   );
 }
