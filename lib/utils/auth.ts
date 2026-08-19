@@ -93,7 +93,11 @@ export function getTokenFromRequest(request: NextRequest): string | null {
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return null;
   }
-  return authHeader.slice(7);
+  const token = authHeader.slice(7).trim();
+  if (!token || token === 'null' || token === 'undefined') {
+    return null;
+  }
+  return token;
 }
 
 export function createErrorResponse(message: string, status: number) {

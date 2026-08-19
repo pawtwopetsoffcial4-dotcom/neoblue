@@ -381,7 +381,12 @@ export default function VendorProductsPage() {
       await loadProducts();
       closeEdit();
     } catch (error: any) {
-      setEditError(error?.message || 'Failed to update product');
+      const msg = error?.message || 'Failed to update product';
+      if (/invalid token|expired|unauthorized/i.test(msg)) {
+        setEditError('Your session has expired. Please log in again to save changes.');
+      } else {
+        setEditError(msg);
+      }
     } finally {
       setIsSavingEdit(false);
     }
@@ -1178,7 +1183,17 @@ export default function VendorProductsPage() {
             {/* Footer / Actions */}
             <div className="flex-none flex items-center justify-between border-t border-slate-100 bg-white px-5 py-4 md:px-8">
               {editError ? (
-                <p className="text-sm font-bold text-rose-600 animate-pulse">{editError}</p>
+                <div className="flex items-center gap-3">
+                  <p className="text-sm font-bold text-rose-600 animate-pulse">{editError}</p>
+                  {/session has expired|log in again/i.test(editError) && (
+                    <Link
+                      href="/auth/vendor-login"
+                      className="px-3 py-1.5 bg-rose-600 text-white rounded-xl text-xs font-bold hover:bg-rose-700 transition-colors shrink-0"
+                    >
+                      Log In Again
+                    </Link>
+                  )}
+                </div>
               ) : (
                 <p className="text-xs font-bold text-slate-400 uppercase tracking-widest hidden md:block">Unsaved Changes</p>
               )}

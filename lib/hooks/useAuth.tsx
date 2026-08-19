@@ -32,26 +32,69 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Load token from localStorage on mount
+  // Load token from localStorage on mount and listen for expiration events
   useEffect(() => {
-    try {
-      const storedToken = localStorage.getItem('authToken');
-      const storedUser = localStorage.getItem('authUser');
-      if (storedToken) {
-        setToken(storedToken);
-      }
-      if (storedUser) {
-        try {
-          setUser(JSON.parse(storedUser));
-        } catch {
-          localStorage.removeItem('authUser');
+    const restoreAuth = () => {
+      try {
+        const storedToken = localStorage.getItem('authToken');
+        const storedUser = localStorage.getItem('authUser');
+        if (storedToken) {
+          let isExpired = false;
+          try {
+            const parts = storedToken.split('.');
+            if (parts.length === 3) {
+              const payload = JSON.parse(atob(parts[1]));
+              if (payload.exp && typeof payload.exp === 'number' && Date.now() >= payload.exp * 1000) {
+                isExpired = true;
+              }
+            }
+          } catch {
+            isExpired = true;
+          }
+
+          if (isExpired) {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('authUser');
+            setToken(null);
+            setUser(null);
+            return;
+          }
+
+          setToken(storedToken);
+        } else {
+          setToken(null);
         }
+
+        if (storedUser) {
+          try {
+            setUser(JSON.parse(storedUser));
+          } catch {
+            localStorage.removeItem('authUser');
+            setUser(null);
+          }
+        } else {
+          setUser(null);
+        }
+      } catch (e) {
+        console.error('Failed to restore auth state:', e);
+      } finally {
+        setIsLoading(false);
       }
-    } catch (e) {
-      console.error('Failed to restore auth state:', e);
-    } finally {
-      setIsLoading(false);
-    }
+    };
+
+    restoreAuth();
+
+    const handleAuthExpired = () => {
+      setToken(null);
+      setUser(null);
+    };
+
+    window.addEventListener('auth:expired', handleAuthExpired);
+    window.addEventListener('storage', restoreAuth);
+    return () => {
+      window.removeEventListener('auth:expired', handleAuthExpired);
+      window.removeEventListener('storage', restoreAuth);
+    };
   }, []);
 
   const signup = async (name: string, email: string, password: string, phone: string, role: 'user' | 'vendor'): Promise<User> => {

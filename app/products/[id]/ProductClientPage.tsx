@@ -66,6 +66,14 @@ export default function ProductClientPage({
     thumbActive: 'border-blue-600 shadow-md shadow-blue-600/20',
   };
 
+  const specBadgeStyle = isPlants
+    ? 'bg-emerald-50 border-emerald-100 text-emerald-700'
+    : product.waterType === 'Saltwater'
+    ? 'bg-cyan-50 border-cyan-100 text-cyan-700'
+    : product.waterType === 'Brackish'
+    ? 'bg-indigo-50 border-indigo-100 text-indigo-700'
+    : 'bg-blue-50 border-blue-100 text-blue-700';
+
   useEffect(() => {
     const saved = localStorage.getItem('neoblue_wishlist');
     if (saved) {
@@ -341,46 +349,46 @@ export default function ProductClientPage({
               <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-3">Quick Specs</h4>
               <div className="flex flex-wrap gap-2.5">
                 {product.size && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 border border-indigo-100 text-xs font-bold text-indigo-700">
+                  <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold ${specBadgeStyle}`}>
                     <Ruler className="h-3.5 w-3.5" /> Size: {product.size}
                   </span>
                 )}
                 {product.ageCategory && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-pink-50 border border-pink-100 text-xs font-bold text-pink-700 capitalize">
+                  <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold capitalize ${specBadgeStyle}`}>
                     <Fish className="h-3.5 w-3.5" /> Age: {product.ageCategory}
                   </span>
                 )}
                 {product.waterType && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-50 border border-cyan-100 text-xs font-bold text-cyan-700">
+                  <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold ${specBadgeStyle}`}>
                     <Droplets className="h-3.5 w-3.5" /> {product.waterType}
                   </span>
                 )}
                 {product.phMin && product.phMax && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-50 border border-teal-100 text-xs font-bold text-teal-700">
+                  <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold ${specBadgeStyle}`}>
                     <Beaker className="h-3.5 w-3.5" /> pH {product.phMin}-{product.phMax}
                   </span>
                 )}
                 {product.tempMin && product.tempMax && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-50 border border-rose-100 text-xs font-bold text-rose-700">
+                  <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold ${specBadgeStyle}`}>
                     <Thermometer className="h-3.5 w-3.5" /> {product.tempMin}-{product.tempMax}°C
                   </span>
                 )}
                 {product.category === 'Plants' ? (
                   <>
                     {product.lightingRequirement && (
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-100 text-xs font-bold text-amber-700">
+                      <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold ${specBadgeStyle}`}>
                         <Sun className="h-3.5 w-3.5" /> {product.lightingRequirement} Light
                       </span>
                     )}
                     {product.co2Requirement && (
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-100 text-xs font-bold text-emerald-700">
+                      <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold ${specBadgeStyle}`}>
                         <Wind className="h-3.5 w-3.5" /> {product.co2Requirement} CO2
                       </span>
                     )}
                   </>
                 ) : (
                   product.temperament && (
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-100 text-xs font-bold text-amber-700">
+                    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold ${specBadgeStyle}`}>
                       <Smile className="h-3.5 w-3.5" /> {product.temperament}
                     </span>
                   )
@@ -540,7 +548,7 @@ export default function ProductClientPage({
                     <button
                       type="button"
                       onClick={() => setIsDescExpanded(!isDescExpanded)}
-                      className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all border ${theme.border} ${theme.text} hover:bg-slate-50 cursor-pointer shadow-sm`}
+                      className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${theme.btn}`}
                     >
                       {isDescExpanded ? 'See Less' : 'See More'}
                       <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isDescExpanded ? 'rotate-180' : ''}`} />

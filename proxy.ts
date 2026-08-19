@@ -33,7 +33,7 @@ export async function proxy(request: NextRequest) {
 
   const payload = verifyToken(token);
   if (!payload) {
-    return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+    return NextResponse.json({ error: 'Session expired or invalid token. Please log in again.' }, { status: 401 });
   }
 
   const requestHeaders = new Headers(request.headers);

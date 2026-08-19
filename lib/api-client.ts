@@ -11,7 +11,23 @@ export class APIClient {
 
   private getToken(): string | null {
     if (typeof window === 'undefined') return null;
-    return localStorage.getItem('authToken');
+    const token = localStorage.getItem('authToken');
+    if (!token || token === 'null' || token === 'undefined' || token.trim() === '') {
+      return null;
+    }
+    try {
+      const parts = token.split('.');
+      if (parts.length === 3) {
+        const payload = JSON.parse(atob(parts[1]));
+        if (payload.exp && typeof payload.exp === 'number' && Date.now() >= payload.exp * 1000) {
+          this.clearAuthState();
+          return null;
+        }
+      }
+    } catch {
+      // ignore parsing errors
+    }
+    return token;
   }
 
   private getHeaders(isFormData = false): Record<string, string> {
@@ -54,9 +70,12 @@ export class APIClient {
       const error = await response.json().catch(() => ({}));
       const message = error.error || `API error: ${response.status}`;
 
-      // Only clear auth state if token is explicitly expired or malformed
-      if (response.status === 401 && /jwt expired|token expired|invalid token format|token revoked/i.test(String(message))) {
+      // Clear auth state on any 401 Unauthorized / Invalid / Expired token
+      if (response.status === 401) {
         this.clearAuthState();
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('auth:expired', { detail: { message } }));
+        }
       }
 
       throw new Error(message);
