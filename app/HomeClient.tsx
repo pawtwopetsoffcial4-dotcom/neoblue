@@ -12,7 +12,7 @@ import type { MarketplaceProduct } from '@/lib/types/marketplace';
 import { PRODUCT_CATEGORIES, getCategoryImage } from '@/lib/catalog';
 import { useMode } from '@/lib/hooks/useMode';
 import ProductCard from '@/app/components/ProductCard';
-import { IHeroSlide, DEFAULT_HERO_SLIDES } from '@/lib/models/StoreConfig';
+import { IHeroSlide, DEFAULT_HERO_SLIDES } from '@/lib/types/config';
 
 
 /* ------------------------------------------------------------------ */

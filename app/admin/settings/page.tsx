@@ -7,7 +7,7 @@ import {
   Image as ImageIcon, Eye, ExternalLink, Layers, CheckCircle2 
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { IHeroSlide, DEFAULT_HERO_SLIDES } from '@/lib/models/StoreConfig';
+import { IHeroSlide, DEFAULT_HERO_SLIDES } from '@/lib/types/config';
 
 export default function AdminSettingsPage() {
   const [loading, setLoading] = useState(true);
