@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { PRODUCT_CATEGORIES, PRODUCT_CATALOG, normalizeCategoryName } from '@/lib/catalog';
-import StoreConfig from '@/lib/models/StoreConfig';
+import StoreConfig, { DEFAULT_HERO_SLIDES } from '@/lib/models/StoreConfig';
 
 // Single, clean GET/PUT implementation for /api/config
 export async function GET() {
@@ -17,6 +17,7 @@ export async function GET() {
 
     return NextResponse.json({
       ...rest,
+      heroSlides: Array.isArray(payload.heroSlides) && payload.heroSlides.length > 0 ? payload.heroSlides : DEFAULT_HERO_SLIDES,
       categories: Array.isArray(payload.categories) && payload.categories.length ? payload.categories : PRODUCT_CATEGORIES,
       subcategories: payload.subcategories && Object.keys(payload.subcategories).length ? payload.subcategories : PRODUCT_CATALOG,
     });

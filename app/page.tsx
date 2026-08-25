@@ -46,17 +46,21 @@ async function getHomepageData() {
       image: config?.categoryImages?.[name] || getCategoryImage(name),
     }));
 
-    return { initialProducts, initialCombos, initialCategories };
+    const initialHeroSlides = Array.isArray(config?.heroSlides) && config.heroSlides.length > 0
+      ? config.heroSlides
+      : [];
+
+    return { initialProducts, initialCombos, initialCategories, initialHeroSlides, initialConfig: config };
   } catch (error) {
     console.error('Failed to pre-fetch homepage data:', error);
-    return { initialProducts: [], initialCombos: [], initialCategories: [] };
+    return { initialProducts: [], initialCombos: [], initialCategories: [], initialHeroSlides: [], initialConfig: null };
   }
 }
 
 export default async function HomePage() {
   const organizationJsonLd = buildOrganizationJsonLd();
   const webSiteJsonLd = buildWebSiteJsonLd();
-  const { initialProducts, initialCombos, initialCategories } = await getHomepageData();
+  const { initialProducts, initialCombos, initialCategories, initialHeroSlides, initialConfig } = await getHomepageData();
 
   return (
     <>
@@ -72,6 +76,8 @@ export default async function HomePage() {
         initialProducts={initialProducts} 
         initialCombos={initialCombos}
         initialCategories={initialCategories}
+        initialHeroSlides={initialHeroSlides}
+        initialConfig={initialConfig}
       />
     </>
   );

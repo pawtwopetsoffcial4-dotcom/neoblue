@@ -4,13 +4,15 @@ import Link from 'next/link';
 import Image from 'next/image';
 import {
   Waves, Sparkles, Droplets, Package, Fish, Leaf,
-  Search, Home, ShoppingBag, User, ArrowRight
+  Search, Home, ShoppingBag, User, ArrowRight,
+  ChevronLeft, ChevronRight
 } from 'lucide-react';
 import ReviewStars from '@/app/components/ReviewStars';
 import type { MarketplaceProduct } from '@/lib/types/marketplace';
 import { PRODUCT_CATEGORIES, getCategoryImage } from '@/lib/catalog';
 import { useMode } from '@/lib/hooks/useMode';
 import ProductCard from '@/app/components/ProductCard';
+import { IHeroSlide, DEFAULT_HERO_SLIDES } from '@/lib/models/StoreConfig';
 
 
 /* ------------------------------------------------------------------ */
@@ -132,6 +134,8 @@ type HomeClientProps = {
   initialProducts?: MarketplaceProduct[];
   initialCombos?: any[];
   initialCategories?: Array<{ name: string; image: string }>;
+  initialHeroSlides?: IHeroSlide[];
+  initialConfig?: any;
 };
 
 /* ================================================================== */
@@ -141,12 +145,23 @@ export default function NeoBlueMobileOptimized({
   initialProducts = [],
   initialCombos = [],
   initialCategories = [],
+  initialHeroSlides = [],
+  initialConfig = null,
 }: HomeClientProps) {
   const { mode } = useMode();
   const [products, setProducts] = useState<MarketplaceProduct[]>(initialProducts);
   const [categoriesFromDb, setCategoriesFromDb] = useState<Array<{ name: string; image: string }>>(initialCategories);
   const [featuredCombos, setFeaturedCombos] = useState<any[]>(initialCombos);
+  const [heroSlides, setHeroSlides] = useState<IHeroSlide[]>(
+    initialHeroSlides && initialHeroSlides.length > 0 ? initialHeroSlides : DEFAULT_HERO_SLIDES
+  );
   const [isLoading, setIsLoading] = useState(initialProducts.length === 0);
+
+  // Carousel state
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+  const touchStartX = useRef<number | null>(null);
+  const touchEndX = useRef<number | null>(null);
 
   useEffect(() => {
     if (initialProducts.length > 0) {
@@ -159,10 +174,11 @@ export default function NeoBlueMobileOptimized({
       try {
         setIsLoading(true);
 
-        const [productsResponse, categoriesResponse, combosResponse] = await Promise.all([
+        const [productsResponse, categoriesResponse, combosResponse, configResponse] = await Promise.all([
           fetch('/api/products?limit=200'),
           fetch('/api/categories'),
           fetch('/api/combos?featured=true'),
+          fetch('/api/config'),
         ]);
 
         if (productsResponse.ok) {
@@ -184,6 +200,13 @@ export default function NeoBlueMobileOptimized({
           const combosData = await combosResponse.json();
           setFeaturedCombos(combosData.combos ?? []);
         }
+
+        if (configResponse.ok) {
+          const configData = await configResponse.json();
+          if (Array.isArray(configData?.heroSlides) && configData.heroSlides.length > 0) {
+            setHeroSlides(configData.heroSlides);
+          }
+        }
       } catch (err) {
         console.error('Failed to load homepage data:', err);
       } finally {
@@ -204,6 +227,57 @@ export default function NeoBlueMobileOptimized({
       }
     });
   }, [products, mode]);
+
+  // Filter slides based on active mode
+  const activeSlides = useMemo(() => {
+    const slides = heroSlides.length > 0 ? heroSlides : DEFAULT_HERO_SLIDES;
+    const filtered = slides.filter((slide) => !slide.mode || slide.mode === 'all' || slide.mode === mode);
+    return filtered.length > 0 ? filtered : slides;
+  }, [heroSlides, mode]);
+
+  // Reset slide index if out of range
+  useEffect(() => {
+    if (currentSlide >= activeSlides.length) {
+      setCurrentSlide(0);
+    }
+  }, [activeSlides.length, currentSlide]);
+
+  // Carousel auto-play
+  useEffect(() => {
+    if (isHovered || activeSlides.length <= 1) return;
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % activeSlides.length);
+    }, 5500);
+    return () => clearInterval(interval);
+  }, [isHovered, activeSlides.length]);
+
+  const handleNextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % activeSlides.length);
+  };
+
+  const handlePrevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + activeSlides.length) % activeSlides.length);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStartX.current || !touchEndX.current) return;
+    const diff = touchStartX.current - touchEndX.current;
+    if (diff > 50) {
+      handleNextSlide();
+    } else if (diff < -50) {
+      handlePrevSlide();
+    }
+    touchStartX.current = null;
+    touchEndX.current = null;
+  };
 
   const cards = useMemo<HeroCardProduct[]>(
     () =>
@@ -264,39 +338,142 @@ export default function NeoBlueMobileOptimized({
       mode === 'fishes' ? 'text-blue-950 selection:bg-blue-100' : 'text-green-950 selection:bg-green-100'
     }`}>
       <>
-      {/* 2. AD BANNER (Hero) */}
-      <section className="px-4 pt-4 pb-2 bg-white">
-        <div className={`relative w-full rounded-3xl overflow-hidden shadow-sm flex flex-col justify-center p-6 min-h-55 transition-colors duration-500 ${
-          mode === 'fishes' ? 'bg-blue-600' : 'bg-green-700'
-        }`}>
-          <div className="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-2xl animate-float-slow" />
-          <div className="absolute -left-10 -bottom-10 w-32 h-32 bg-white/10 rounded-full blur-xl animate-float-reverse" />
-          
-          <div className="relative z-10 animate-fade-in-up">
-            <h1 className="text-2xl font-black text-white leading-tight mb-2">
-              {mode === 'fishes' ? (
-                <>Save 35% on All<br/>Premium Stock</>
-              ) : (
-                <>Save 35% on All<br/>Aquatic Plants</>
-              )}
-            </h1>
-            <p className="text-blue-100 text-xs mb-5 font-light max-w-[80%]">
-              {isLoading && modeFilteredProducts.length === 0
-                ? 'Loading live inventory...'
-                : mode === 'fishes' 
-                  ? `Live arrival guaranteed across ${modeFilteredProducts.length} in-stock fish and aquatic listings.`
-                  : `100% fresh arrival guaranteed across ${modeFilteredProducts.length} snail-free plant variants.`
-              }
-            </p>
-            <Link 
-              href="/products"
-              className={`h-10 px-5 rounded-full bg-white text-xs font-bold uppercase tracking-wider inline-flex items-center w-fit shadow-sm transition-colors ${
-                mode === 'fishes' ? 'text-blue-700' : 'text-green-800'
-              }`}
-            >
-              Claim Deal <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
-            </Link>
-          </div>
+      {/* 2. HERO CAROUSEL */}
+      <section className="px-3 sm:px-4 pt-3 sm:pt-4 pb-2 bg-white">
+        <div 
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          className="relative w-full rounded-3xl overflow-hidden shadow-lg min-h-[260px] sm:min-h-[300px] md:min-h-[350px] flex items-center group select-none transition-all duration-500 bg-slate-950"
+        >
+          {/* Background Images & Slides */}
+          {activeSlides.map((slide, index) => {
+            const isActive = index === currentSlide;
+            const bgImage = slide.bgImage || (mode === 'fishes' ? DEFAULT_HERO_SLIDES[1].bgImage : DEFAULT_HERO_SLIDES[2].bgImage);
+            
+            return (
+              <div
+                key={slide.id || index}
+                className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+                  isActive ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
+                }`}
+              >
+                {/* Background Image */}
+                {bgImage ? (
+                  <div className="absolute inset-0 overflow-hidden">
+                    <Image
+                      src={bgImage}
+                      alt={slide.title}
+                      fill
+                      priority={index === 0}
+                      sizes="(max-width: 768px) 100vw, 1200px"
+                      className={`object-cover transition-transform duration-7000 ease-out ${
+                        isActive ? 'scale-105' : 'scale-100'
+                      }`}
+                    />
+                  </div>
+                ) : (
+                  <div className={`absolute inset-0 ${
+                    mode === 'fishes' 
+                      ? 'bg-gradient-to-br from-blue-700 via-blue-800 to-indigo-950' 
+                      : 'bg-gradient-to-br from-emerald-800 via-green-800 to-teal-950'
+                  }`} />
+                )}
+
+                {/* Dark & Brand Gradient Overlays for High-Contrast Typography */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/55 to-black/30 md:bg-gradient-to-r md:from-black/90 md:via-black/65 md:to-black/20" />
+                <div className={`absolute inset-0 mix-blend-overlay opacity-30 ${
+                  mode === 'fishes' ? 'bg-blue-600' : 'bg-emerald-600'
+                }`} />
+
+                {/* Ambient Decorative Light Bubbles */}
+                <div className="absolute -right-10 -top-10 w-48 h-48 bg-white/15 rounded-full blur-3xl animate-float-slow pointer-events-none" />
+                <div className="absolute -left-10 -bottom-10 w-40 h-40 bg-white/15 rounded-full blur-2xl animate-float-reverse pointer-events-none" />
+
+                {/* Slide Content */}
+                <div className="relative z-20 h-full flex flex-col justify-center p-6 sm:p-8 md:p-10 max-w-2xl">
+                  {/* Badge */}
+                  {slide.badge && (
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-[11px] sm:text-xs font-bold text-white uppercase tracking-wider mb-2.5 sm:mb-3 w-fit shadow-xs animate-fade-in-up">
+                      <Sparkles className="h-3 w-3 text-amber-300 animate-pulse" />
+                      <span>{slide.badge}</span>
+                    </div>
+                  )}
+
+                  {/* Title */}
+                  <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-white leading-tight tracking-tight mb-2 sm:mb-3 drop-shadow-md animate-fade-in-up">
+                    {slide.title}
+                  </h1>
+
+                  {/* Description */}
+                  {slide.description && (
+                    <p className="text-slate-100 text-xs sm:text-sm font-medium mb-5 max-w-lg leading-relaxed drop-shadow-xs line-clamp-2 sm:line-clamp-3 opacity-90 animate-fade-in-up">
+                      {slide.description}
+                    </p>
+                  )}
+
+                  {/* CTA Button */}
+                  <div className="animate-fade-in-up pt-1">
+                    <Link
+                      href={slide.buttonLink || '/products'}
+                      className={`h-10 sm:h-11 px-6 rounded-full text-xs sm:text-sm font-bold uppercase tracking-wider inline-flex items-center gap-2 shadow-lg transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer ${
+                        mode === 'fishes'
+                          ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-900/30'
+                          : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-900/30'
+                      }`}
+                    >
+                      <span>{slide.buttonText || 'Shop Now'}</span>
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+
+          {/* Previous / Next Chevron Navigation */}
+          {activeSlides.length > 1 && (
+            <>
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); handlePrevSlide(); }}
+                className="absolute left-3 top-1/2 -translate-y-1/2 z-30 h-9 w-9 sm:h-10 sm:w-10 rounded-full bg-black/40 hover:bg-black/70 border border-white/20 backdrop-blur-md text-white flex items-center justify-center transition-all opacity-80 sm:opacity-0 sm:group-hover:opacity-100 hover:scale-110 active:scale-90 cursor-pointer shadow-md"
+                title="Previous Slide"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </button>
+
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); handleNextSlide(); }}
+                className="absolute right-3 top-1/2 -translate-y-1/2 z-30 h-9 w-9 sm:h-10 sm:w-10 rounded-full bg-black/40 hover:bg-black/70 border border-white/20 backdrop-blur-md text-white flex items-center justify-center transition-all opacity-80 sm:opacity-0 sm:group-hover:opacity-100 hover:scale-110 active:scale-90 cursor-pointer shadow-md"
+                title="Next Slide"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </button>
+            </>
+          )}
+
+          {/* Indicator Dot / Pill Navigation */}
+          {activeSlides.length > 1 && (
+            <div className="absolute bottom-3.5 sm:bottom-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/40 backdrop-blur-md border border-white/15">
+              {activeSlides.map((_, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); setCurrentSlide(idx); }}
+                  className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
+                    idx === currentSlide
+                      ? 'w-6 bg-white shadow-xs'
+                      : 'w-2 bg-white/40 hover:bg-white/70'
+                  }`}
+                  title={`Go to slide ${idx + 1}`}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
