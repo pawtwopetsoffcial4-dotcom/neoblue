@@ -156,3 +156,41 @@ textarea::placeholder {
   opacity: 0;
   animation: slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 32s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+@keyframes textSlideFade {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  15%, 85% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+.animate-text-slide {
+  animation: textSlideFade 2.6s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}

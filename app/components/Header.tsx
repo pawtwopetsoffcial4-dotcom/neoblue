@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
@@ -25,6 +25,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
   const { mode, setMode } = useMode();
   const router = useRouter();
   const pathname = usePathname();
+  const isFishes = mode === 'fishes';
   
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -34,6 +35,20 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
   
   const profileDropdownRef = useRef<HTMLDivElement>(null);
   const visibleCartCount = contextCartCount || cartCount;
+
+  const [headerPhraseIndex, setHeaderPhraseIndex] = useState(0);
+  const headerPhrases = useMemo(() => {
+    return isFishes
+      ? ['Halfmoon Betta', 'Neon Tetra', 'Red Cherry Shrimp', 'Guppy Pairs', 'Discus & Angelfish']
+      : ['Anubias Nana', 'Java Fern', 'Low Light Plants', 'Aquarium Moss', 'Carpet Flora'];
+  }, [isFishes]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setHeaderPhraseIndex((prev) => (prev + 1) % headerPhrases.length);
+    }, 2800);
+    return () => clearInterval(timer);
+  }, [headerPhrases.length]);
 
   // Close profile dropdown when clicking outside
   useEffect(() => {
@@ -96,8 +111,6 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
     return name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
   };
 
-  const isFishes = mode === 'fishes';
-  
   // Outer header theme matches user requested colors: blue for neoblue, green for plants
   const headerBgClass = isFishes ? 'bg-blue-600 border-blue-500' : 'bg-green-700 border-green-600';
   const headerTextMuted = isFishes ? 'text-blue-100' : 'text-green-100';
@@ -496,21 +509,35 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
           : 'opacity-0 -translate-y-3 pointer-events-none invisible'
       } ${headerBgClass}`}>
           <form onSubmit={handleSearchSubmit} className="max-w-4xl mx-auto flex gap-2">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={isFishes ? "Search fishes, tanks, feeds..." : "Search plants, aquascapes, fertilizers..."}
-              className="flex-1 px-4 py-2.5 rounded-xl border border-white/15 bg-white/10 text-white text-xs outline-none focus:ring-2 focus:ring-white/30 placeholder-white/60"
-              autoFocus
-            />
+            <div className="relative flex-1 flex items-center">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder=""
+                className="w-full px-4 py-2.5 rounded-xl border border-white/15 bg-white/10 text-white text-xs outline-none focus:ring-2 focus:ring-white/30"
+                autoFocus
+              />
+              {!searchQuery && (
+                <div className="absolute left-4 right-4 top-0 bottom-0 flex items-center pointer-events-none overflow-hidden select-none">
+                  <div key={headerPhraseIndex} className="animate-text-slide flex items-center gap-1 text-xs text-white/60">
+                    <span>Search</span>
+                    <span className="font-bold text-white/95">&ldquo;{headerPhrases[headerPhraseIndex]}&rdquo;</span>
+                  </div>
+                </div>
+              )}
+            </div>
             <button
               type="submit"
-              className={`px-5 rounded-xl font-black text-xs uppercase tracking-wider text-white transition-colors ${
+              className={`px-5 rounded-xl font-black text-xs uppercase tracking-wider text-white transition-colors flex items-center gap-1.5 ${
                 isFishes ? 'bg-blue-700 hover:bg-blue-800' : 'bg-green-800 hover:bg-green-900'
               }`}
             >
-              Search
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-white"></span>
+              </span>
+              <span>Search</span>
             </button>
             <button
               type="button"

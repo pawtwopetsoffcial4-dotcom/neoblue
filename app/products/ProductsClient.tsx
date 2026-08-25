@@ -239,8 +239,39 @@ function ProductsPageContent() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const [phraseIndex, setPhraseIndex] = useState(0);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchContainerRef = useRef<HTMLDivElement>(null);
+
+  // Running live search suggestion phrases
+  const runningPhrases = useMemo(() => {
+    return mode === 'fishes'
+      ? [
+          'Halfmoon Betta & Fighter Fish',
+          'Neon Tetra & Schooling Fish',
+          'Red Cherry & Amano Shrimp',
+          'Fancy Guppy Pairs',
+          'Discus & Angelfish',
+          'Peaceful Community Nano Fish',
+          'Hardy Freshwater Bottom Feeders',
+        ]
+      : [
+          'Anubias Nana Petite on Driftwood',
+          'Low Light Carpeting Plants',
+          'Java Fern & Aquascaping Moss',
+          'Easy Care No-CO2 Plants',
+          'Foreground Hairgrass & Glosso',
+          'Stem Plants for Healthy Water',
+          'Floating Plants & Red Root Floater',
+        ];
+  }, [mode]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setPhraseIndex((prev) => (prev + 1) % runningPhrases.length);
+    }, 2800);
+    return () => clearInterval(timer);
+  }, [runningPhrases.length]);
 
   const searchParams = useSearchParams();
   const urlSearchTerm = searchParams.get('search') || '';
@@ -620,12 +651,14 @@ function ProductsPageContent() {
           <div className="max-w-3xl mx-auto relative">
             
             {/* Search Input Box */}
-            <form onSubmit={handleSearchSubmit} className="relative flex items-center">
-              <Search className={`absolute left-4.5 top-1/2 h-5 w-5 -translate-y-1/2 transition-colors duration-300 z-10 ${
-                isSearchFocused 
-                  ? (mode === 'fishes' ? 'text-blue-600' : 'text-emerald-600') 
-                  : 'text-slate-400'
-              }`} />
+            <form onSubmit={handleSearchSubmit} className="relative flex items-center group">
+              <div className="absolute left-4.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5 z-10 pointer-events-none">
+                <Search className={`h-5 w-5 transition-colors duration-300 ${
+                  isSearchFocused 
+                    ? (mode === 'fishes' ? 'text-blue-600' : 'text-emerald-600') 
+                    : 'text-slate-400'
+                }`} />
+              </div>
               
               <input
                 ref={searchInputRef}
@@ -637,18 +670,55 @@ function ProductsPageContent() {
                   WebkitBackdropFilter: 'blur(24px) saturate(190%)',
                   backdropFilter: 'blur(24px) saturate(190%)',
                 }}
-                placeholder={mode === 'fishes' ? "Search by species, common name, temperament, tags..." : "Search plants, placement, light/CO2, moss..."}
-                className={`w-full h-[52px] rounded-2xl border bg-white/80 pl-12 pr-28 text-sm md:text-base font-semibold text-slate-900 shadow-[0_10px_35px_rgba(0,0,0,0.08),inset_0_1px_1.5px_rgba(255,255,255,1)] outline-none placeholder:text-slate-400 transition-all duration-300 ${
+                className={`w-full h-[54px] rounded-2xl border bg-white/85 pl-12 pr-44 text-sm md:text-base font-semibold text-slate-900 shadow-[0_10px_35px_rgba(0,0,0,0.08),inset_0_1px_1.5px_rgba(255,255,255,1)] outline-none transition-all duration-300 ${
                   isSearchFocused
                     ? (mode === 'fishes' 
                         ? 'border-blue-500/80 bg-white ring-4 ring-blue-500/15 shadow-blue-500/10' 
                         : 'border-emerald-500/80 bg-white ring-4 ring-emerald-500/15 shadow-emerald-500/10')
-                    : 'border-white/90 hover:border-slate-300 hover:bg-white/90'
+                    : 'border-white/90 hover:border-slate-300 hover:bg-white/95'
                 }`}
               />
 
-              {/* Clear Button & Keyboard Shortcut Hint */}
-              <div className="absolute right-3.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5 z-10">
+              {/* Running Animated Placeholder Overlay */}
+              {!searchTerm && (
+                <div 
+                  onClick={() => { searchInputRef.current?.focus(); setIsSearchFocused(true); }}
+                  className="absolute left-12 right-44 top-0 bottom-0 flex items-center pointer-events-none overflow-hidden select-none"
+                >
+                  <div key={phraseIndex} className="animate-text-slide flex items-center gap-1.5 text-xs md:text-sm font-semibold text-slate-400 truncate">
+                    <span>Search for</span>
+                    <span className={`font-bold transition-colors ${
+                      mode === 'fishes' ? 'text-blue-600' : 'text-emerald-600'
+                    }`}>
+                      &ldquo;{runningPhrases[phraseIndex]}&rdquo;
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Action Group: Live Status Badge, Clear Button & Keyboard Shortcut Hint */}
+              <div className="absolute right-3.5 top-1/2 -translate-y-1/2 flex items-center gap-2 z-10">
+                
+                {/* Live Pulse Indicator Badge */}
+                <div 
+                  className={`hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black tracking-wider uppercase border transition-all duration-300 select-none ${
+                    mode === 'fishes'
+                      ? 'bg-blue-500/10 border-blue-500/20 text-blue-700'
+                      : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-700'
+                  }`}
+                  title="Live Instant Search Active"
+                >
+                  <span className="relative flex h-1.5 w-1.5">
+                    <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
+                      mode === 'fishes' ? 'bg-blue-400' : 'bg-emerald-400'
+                    }`}></span>
+                    <span className={`relative inline-flex rounded-full h-1.5 w-1.5 ${
+                      mode === 'fishes' ? 'bg-blue-600' : 'bg-emerald-600'
+                    }`}></span>
+                  </span>
+                  <span>LIVE</span>
+                </div>
+
                 {searchTerm && (
                   <button
                     type="button"
@@ -660,12 +730,39 @@ function ProductsPageContent() {
                   </button>
                 )}
 
-                <div className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-100/80 border border-slate-200/60 text-[10px] font-bold text-slate-500 select-none">
+                <div className="hidden md:flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-100/90 border border-slate-200/70 text-[10px] font-bold text-slate-500 select-none">
                   <Command className="h-2.5 w-2.5" />
                   <span>K</span>
                 </div>
               </div>
             </form>
+
+            {/* Live Running Text Marquee Ribbon */}
+            <div className="mt-2.5 flex items-center gap-2 overflow-hidden px-1 select-none">
+              <div className="flex items-center gap-1 shrink-0 px-2 py-0.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-[10px] font-black text-amber-700 uppercase tracking-wider">
+                <Sparkles className="h-3 w-3 text-amber-500 animate-spin" style={{ animationDuration: '6s' }} />
+                <span>Live Trends</span>
+              </div>
+
+              <div className="relative flex-1 overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_15px,black_calc(100%-15px),transparent)]">
+                <div className="animate-marquee flex items-center gap-2">
+                  {[...trendingChips, ...runningPhrases, ...trendingChips, ...runningPhrases].map((item, idx) => (
+                    <button
+                      key={`${item}-${idx}`}
+                      type="button"
+                      onClick={() => handleSelectQuickChip(item)}
+                      className={`shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer border ${
+                        mode === 'fishes'
+                          ? 'bg-white/80 hover:bg-blue-50 border-slate-200/70 hover:border-blue-300 text-slate-600 hover:text-blue-700 shadow-xs'
+                          : 'bg-white/80 hover:bg-emerald-50 border-slate-200/70 hover:border-emerald-300 text-slate-600 hover:text-emerald-700 shadow-xs'
+                      }`}
+                    >
+                      <span>{item}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
 
             {/* Smart Autocomplete Dropdown Overlay */}
             {isSearchFocused && (
