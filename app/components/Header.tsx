@@ -7,7 +7,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { 
   Menu, X, ShoppingBag, Search, Fish, Leaf, User, LogOut, 
   LayoutDashboard, ClipboardList, ChevronDown, Home, BookOpen, 
-  FolderHeart, Info, LogIn, Bell
+  FolderHeart, Info, LogIn, Bell, Settings
 } from 'lucide-react';
 import { useCart } from '@/lib/hooks/useCart';
 import { useAuth } from '@/lib/hooks/useAuth';
@@ -282,13 +282,22 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
                 </Link>
 
                 {user.role === 'admin' && (
-                  <Link
-                    href="/admin/dashboard"
-                    className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold text-slate-300 hover:bg-white/5 hover:text-white transition-colors text-left"
-                  >
-                    <LayoutDashboard className="w-4 h-4 text-red-400" />
-                    Admin Dashboard
-                  </Link>
+                  <>
+                    <Link
+                      href="/admin/dashboard"
+                      className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold text-slate-300 hover:bg-white/5 hover:text-white transition-colors text-left"
+                    >
+                      <LayoutDashboard className="w-4 h-4 text-red-400" />
+                      Admin Dashboard
+                    </Link>
+                    <Link
+                      href="/admin/settings"
+                      className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold text-blue-400 hover:bg-white/5 hover:text-white transition-colors text-left"
+                    >
+                      <Settings className="w-4 h-4 text-blue-400" />
+                      Homepage & Carousel
+                    </Link>
+                  </>
                 )}
 
                 {user.role === 'vendor' && (
@@ -454,14 +463,24 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
                   </Link>
 
                   {user.role === 'admin' && (
-                    <Link
-                      href="/admin/dashboard"
-                      onClick={() => setIsMenuOpen(false)}
-                      className="flex h-11 items-center justify-center gap-2 rounded-xl bg-red-950/20 text-red-300 text-xs font-black uppercase tracking-wider border border-red-500/20 hover:bg-red-500/30"
-                    >
-                      <LayoutDashboard className="w-4 h-4" />
-                      Admin Dashboard
-                    </Link>
+                    <>
+                      <Link
+                        href="/admin/dashboard"
+                        onClick={() => setIsMenuOpen(false)}
+                        className="flex h-11 items-center justify-center gap-2 rounded-xl bg-red-950/20 text-red-300 text-xs font-black uppercase tracking-wider border border-red-500/20 hover:bg-red-500/30"
+                      >
+                        <LayoutDashboard className="w-4 h-4" />
+                        Admin Dashboard
+                      </Link>
+                      <Link
+                        href="/admin/settings"
+                        onClick={() => setIsMenuOpen(false)}
+                        className="flex h-11 items-center justify-center gap-2 rounded-xl bg-blue-950/20 text-blue-300 text-xs font-black uppercase tracking-wider border border-blue-500/20 hover:bg-blue-500/30"
+                      >
+                        <Settings className="w-4 h-4" />
+                        Homepage & Carousel
+                      </Link>
+                    </>
                   )}
 
                   {user.role === 'vendor' && (

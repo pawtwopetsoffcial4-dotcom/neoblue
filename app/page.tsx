@@ -50,17 +50,49 @@ async function getHomepageData() {
       ? config.heroSlides
       : [];
 
-    return { initialProducts, initialCombos, initialCategories, initialHeroSlides, initialConfig: config };
+    const initialHeroSlidesFishes = Array.isArray(config?.heroSlidesFishes) && config.heroSlidesFishes.length > 0
+      ? config.heroSlidesFishes
+      : [];
+
+    const initialHeroSlidesPlants = Array.isArray(config?.heroSlidesPlants) && config.heroSlidesPlants.length > 0
+      ? config.heroSlidesPlants
+      : [];
+
+    return { 
+      initialProducts, 
+      initialCombos, 
+      initialCategories, 
+      initialHeroSlides, 
+      initialHeroSlidesFishes, 
+      initialHeroSlidesPlants, 
+      initialConfig: config 
+    };
   } catch (error) {
     console.error('Failed to pre-fetch homepage data:', error);
-    return { initialProducts: [], initialCombos: [], initialCategories: [], initialHeroSlides: [], initialConfig: null };
+    return { 
+      initialProducts: [], 
+      initialCombos: [], 
+      initialCategories: [], 
+      initialHeroSlides: [], 
+      initialHeroSlidesFishes: [], 
+      initialHeroSlidesPlants: [], 
+      initialConfig: null 
+    };
   }
 }
 
 export default async function HomePage() {
   const organizationJsonLd = buildOrganizationJsonLd();
   const webSiteJsonLd = buildWebSiteJsonLd();
-  const { initialProducts, initialCombos, initialCategories, initialHeroSlides, initialConfig } = await getHomepageData();
+  const { 
+    initialProducts, 
+    initialCombos, 
+    initialCategories, 
+    initialHeroSlides,
+    initialHeroSlidesFishes,
+    initialHeroSlidesPlants,
+    initialConfig 
+  } = await getHomepageData();
 
   return (
     <>
@@ -77,6 +109,8 @@ export default async function HomePage() {
         initialCombos={initialCombos}
         initialCategories={initialCategories}
         initialHeroSlides={initialHeroSlides}
+        initialHeroSlidesFishes={initialHeroSlidesFishes}
+        initialHeroSlidesPlants={initialHeroSlidesPlants}
         initialConfig={initialConfig}
       />
     </>

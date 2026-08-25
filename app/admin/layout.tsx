@@ -8,6 +8,7 @@ import { useAuth } from '@/lib/hooks/useAuth';
 
 const navItems = [
   { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/admin/settings', label: 'Homepage & Carousel', icon: Settings },
   { href: '/admin/products', label: 'Products', icon: ClipboardList },
   { href: '/admin/combos', label: 'Combos', icon: Package },
   { href: '/admin/blogs', label: 'Blogs', icon: BookOpen },

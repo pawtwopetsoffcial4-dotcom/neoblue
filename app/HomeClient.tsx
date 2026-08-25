@@ -12,7 +12,12 @@ import type { MarketplaceProduct } from '@/lib/types/marketplace';
 import { PRODUCT_CATEGORIES, getCategoryImage } from '@/lib/catalog';
 import { useMode } from '@/lib/hooks/useMode';
 import ProductCard from '@/app/components/ProductCard';
-import { IHeroSlide, DEFAULT_HERO_SLIDES } from '@/lib/types/config';
+import { 
+  IHeroSlide, 
+  DEFAULT_HERO_SLIDES, 
+  DEFAULT_FISHES_HERO_SLIDES, 
+  DEFAULT_PLANTS_HERO_SLIDES 
+} from '@/lib/types/config';
 
 
 /* ------------------------------------------------------------------ */
@@ -135,6 +140,8 @@ type HomeClientProps = {
   initialCombos?: any[];
   initialCategories?: Array<{ name: string; image: string }>;
   initialHeroSlides?: IHeroSlide[];
+  initialHeroSlidesFishes?: IHeroSlide[];
+  initialHeroSlidesPlants?: IHeroSlide[];
   initialConfig?: any;
 };
 
@@ -146,14 +153,23 @@ export default function NeoBlueMobileOptimized({
   initialCombos = [],
   initialCategories = [],
   initialHeroSlides = [],
+  initialHeroSlidesFishes = [],
+  initialHeroSlidesPlants = [],
   initialConfig = null,
 }: HomeClientProps) {
   const { mode } = useMode();
   const [products, setProducts] = useState<MarketplaceProduct[]>(initialProducts);
   const [categoriesFromDb, setCategoriesFromDb] = useState<Array<{ name: string; image: string }>>(initialCategories);
   const [featuredCombos, setFeaturedCombos] = useState<any[]>(initialCombos);
-  const [heroSlides, setHeroSlides] = useState<IHeroSlide[]>(
-    initialHeroSlides && initialHeroSlides.length > 0 ? initialHeroSlides : DEFAULT_HERO_SLIDES
+  const [heroSlidesFishes, setHeroSlidesFishes] = useState<IHeroSlide[]>(
+    initialHeroSlidesFishes && initialHeroSlidesFishes.length > 0 
+      ? initialHeroSlidesFishes 
+      : DEFAULT_FISHES_HERO_SLIDES
+  );
+  const [heroSlidesPlants, setHeroSlidesPlants] = useState<IHeroSlide[]>(
+    initialHeroSlidesPlants && initialHeroSlidesPlants.length > 0 
+      ? initialHeroSlidesPlants 
+      : DEFAULT_PLANTS_HERO_SLIDES
   );
   const [isLoading, setIsLoading] = useState(initialProducts.length === 0);
 
@@ -203,8 +219,11 @@ export default function NeoBlueMobileOptimized({
 
         if (configResponse.ok) {
           const configData = await configResponse.json();
-          if (Array.isArray(configData?.heroSlides) && configData.heroSlides.length > 0) {
-            setHeroSlides(configData.heroSlides);
+          if (Array.isArray(configData?.heroSlidesFishes) && configData.heroSlidesFishes.length > 0) {
+            setHeroSlidesFishes(configData.heroSlidesFishes);
+          }
+          if (Array.isArray(configData?.heroSlidesPlants) && configData.heroSlidesPlants.length > 0) {
+            setHeroSlidesPlants(configData.heroSlidesPlants);
           }
         }
       } catch (err) {
@@ -228,14 +247,19 @@ export default function NeoBlueMobileOptimized({
     });
   }, [products, mode]);
 
-  // Filter slides based on active mode
+  // Dedicated slide list for current mode
   const activeSlides = useMemo(() => {
-    const slides = heroSlides.length > 0 ? heroSlides : DEFAULT_HERO_SLIDES;
-    const filtered = slides.filter((slide) => !slide.mode || slide.mode === 'all' || slide.mode === mode);
-    return filtered.length > 0 ? filtered : slides;
-  }, [heroSlides, mode]);
+    if (mode === 'plants') {
+      return heroSlidesPlants && heroSlidesPlants.length > 0 ? heroSlidesPlants : DEFAULT_PLANTS_HERO_SLIDES;
+    }
+    return heroSlidesFishes && heroSlidesFishes.length > 0 ? heroSlidesFishes : DEFAULT_FISHES_HERO_SLIDES;
+  }, [mode, heroSlidesFishes, heroSlidesPlants]);
 
-  // Reset slide index if out of range
+  // Reset slide index if mode changes or out of range
+  useEffect(() => {
+    setCurrentSlide(0);
+  }, [mode]);
+
   useEffect(() => {
     if (currentSlide >= activeSlides.length) {
       setCurrentSlide(0);
@@ -414,20 +438,62 @@ export default function NeoBlueMobileOptimized({
                     </p>
                   )}
 
-                  {/* CTA Button */}
-                  <div className="animate-fade-in-up pt-1">
-                    <Link
-                      href={slide.buttonLink || '/products'}
-                      className={`h-10 sm:h-11 px-6 rounded-full text-xs sm:text-sm font-bold uppercase tracking-wider inline-flex items-center gap-2 shadow-lg transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer ${
-                        mode === 'fishes'
-                          ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-900/30'
-                          : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-900/30'
-                      }`}
-                    >
-                      <span>{slide.buttonText || 'Shop Now'}</span>
-                      <ArrowRight className="h-4 w-4" />
-                    </Link>
-                  </div>
+                  {/* CTA Buttons (Multi-button support) */}
+                  {(() => {
+                    const slideButtons = Array.isArray(slide.buttons) && slide.buttons.length > 0
+                      ? slide.buttons
+                      : [{ id: 'default-btn', text: slide.buttonText || 'Shop Now', link: slide.buttonLink || '/products', variant: 'primary' as const }];
+
+                    return (
+                      <div className="animate-fade-in-up pt-1 flex flex-wrap items-center gap-2.5 sm:gap-3">
+                        {slideButtons.map((btn, bIdx) => {
+                          const isSecondary = btn.variant === 'secondary';
+                          const isGlass = btn.variant === 'glass';
+
+                          if (isSecondary) {
+                            return (
+                              <Link
+                                key={btn.id || bIdx}
+                                href={btn.link || '/products'}
+                                className="h-10 sm:h-11 px-5 sm:px-6 rounded-full text-xs sm:text-sm font-bold uppercase tracking-wider inline-flex items-center gap-2 bg-white text-slate-900 hover:bg-slate-100 shadow-md transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
+                              >
+                                <span>{btn.text}</span>
+                                <ArrowRight className="h-4 w-4" />
+                              </Link>
+                            );
+                          }
+
+                          if (isGlass) {
+                            return (
+                              <Link
+                                key={btn.id || bIdx}
+                                href={btn.link || '/products'}
+                                className="h-10 sm:h-11 px-5 sm:px-6 rounded-full text-xs sm:text-sm font-bold uppercase tracking-wider inline-flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white backdrop-blur-md border border-white/30 shadow-md transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
+                              >
+                                <span>{btn.text}</span>
+                                <ArrowRight className="h-4 w-4 text-white/80" />
+                              </Link>
+                            );
+                          }
+
+                          return (
+                            <Link
+                              key={btn.id || bIdx}
+                              href={btn.link || '/products'}
+                              className={`h-10 sm:h-11 px-6 rounded-full text-xs sm:text-sm font-bold uppercase tracking-wider inline-flex items-center gap-2 shadow-lg transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer ${
+                                mode === 'fishes'
+                                  ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-900/30'
+                                  : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-900/30'
+                              }`}
+                            >
+                              <span>{btn.text}</span>
+                              <ArrowRight className="h-4 w-4" />
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
             );

@@ -240,12 +240,21 @@ export default function AdminDashboardPage() {
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 p-6 md:p-8 text-white shadow-xl shadow-blue-900/10">
         <div className="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-2xl animate-pulse" />
         <div className="absolute -left-10 -bottom-10 w-32 h-32 bg-white/10 rounded-full blur-xl" />
-        <div className="relative z-10">
-          <p className="text-xs font-bold uppercase tracking-[0.25em] text-blue-100/90 mb-1.5">Management Portal</p>
-          <h1 className="text-3xl md:text-5xl font-black tracking-tight leading-none">Admin Dashboard</h1>
-          <p className="text-sm text-blue-100/80 mt-2.5 max-w-xl">
-            Welcome to the control center. Configure categories, moderate blog publications, and curate featured aquatic products for the homepage.
-          </p>
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.25em] text-blue-100/90 mb-1.5">Management Portal</p>
+            <h1 className="text-3xl md:text-5xl font-black tracking-tight leading-none">Admin Dashboard</h1>
+            <p className="text-sm text-blue-100/80 mt-2.5 max-w-xl">
+              Welcome to the control center. Configure categories, moderate blog publications, and curate hero carousels & featured aquatic products.
+            </p>
+          </div>
+          <Link
+            href="/admin/settings"
+            className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-white text-blue-700 hover:bg-blue-50 font-black text-xs uppercase tracking-wider shadow-lg transition-all hover:scale-105 active:scale-95 shrink-0 w-fit cursor-pointer"
+          >
+            <Sparkles className="h-4 w-4 text-amber-500" />
+            <span>Customize Carousel & Homepage</span>
+          </Link>
         </div>
       </div>
 

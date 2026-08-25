@@ -1,6 +1,11 @@
 import mongoose from 'mongoose';
 import { PRODUCT_CATEGORIES } from '@/lib/catalog';
-import { IHeroSlide, DEFAULT_HERO_SLIDES } from '@/lib/types/config';
+import { 
+  IHeroSlide, 
+  DEFAULT_FISHES_HERO_SLIDES, 
+  DEFAULT_PLANTS_HERO_SLIDES, 
+  DEFAULT_HERO_SLIDES 
+} from '@/lib/types/config';
 
 export * from '@/lib/types/config';
 
@@ -11,6 +16,8 @@ export interface IStoreConfig {
   offerButtonText: string;
   offerButtonLink: string;
   heroSlides?: IHeroSlide[];
+  heroSlidesFishes?: IHeroSlide[];
+  heroSlidesPlants?: IHeroSlide[];
   heroBgImage?: string;
   categories: string[];
   categoryImages?: Record<string, string>;
@@ -25,6 +32,16 @@ export interface IStoreConfig {
   freeShippingMinAmount?: number;
 }
 
+const HeroButtonSchema = new mongoose.Schema(
+  {
+    id: { type: String },
+    text: { type: String, required: true },
+    link: { type: String, required: true },
+    variant: { type: String, enum: ['primary', 'secondary', 'glass'], default: 'primary' },
+  },
+  { _id: false }
+);
+
 const HeroSlideSchema = new mongoose.Schema(
   {
     id: { type: String },
@@ -33,6 +50,7 @@ const HeroSlideSchema = new mongoose.Schema(
     description: { type: String, default: '' },
     buttonText: { type: String, default: 'Shop Now' },
     buttonLink: { type: String, default: '/products' },
+    buttons: { type: [HeroButtonSchema], default: [] },
     bgImage: { type: String, default: '' },
     mode: { type: String, enum: ['all', 'fishes', 'plants'], default: 'all' },
   },
@@ -47,6 +65,8 @@ const StoreConfigSchema = new mongoose.Schema<IStoreConfig>(
     offerButtonText: { type: String, default: 'Shop The Offer' },
     offerButtonLink: { type: String, default: '/products' },
     heroSlides: { type: [HeroSlideSchema], default: DEFAULT_HERO_SLIDES },
+    heroSlidesFishes: { type: [HeroSlideSchema], default: DEFAULT_FISHES_HERO_SLIDES },
+    heroSlidesPlants: { type: [HeroSlideSchema], default: DEFAULT_PLANTS_HERO_SLIDES },
     heroBgImage: { type: String, default: '' },
     categories: { type: [String], default: PRODUCT_CATEGORIES },
     categoryImages: { type: mongoose.Schema.Types.Mixed, default: {} },
