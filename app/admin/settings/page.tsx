@@ -4,7 +4,8 @@ import React, { useEffect, useState } from 'react';
 import { CldUploadWidget } from 'next-cloudinary';
 import { 
   Save, Loader2, Sparkles, X, Plus, Trash2, ArrowUp, ArrowDown, 
-  Image as ImageIcon, Eye, ExternalLink, Layers, Fish, Leaf, Link2, Palette
+  Image as ImageIcon, Eye, ExternalLink, Layers, Fish, Leaf, Link2, Palette,
+  Copy, Check
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { 
@@ -44,6 +45,7 @@ export default function AdminSettingsPage() {
 
   const [allCategories, setAllCategories] = useState<string[]>([]);
   const [activePreviewIndex, setActivePreviewIndex] = useState(0);
+  const [copiedFeed, setCopiedFeed] = useState(false);
 
   useEffect(() => {
     const fetchConfig = async () => {
@@ -680,16 +682,16 @@ export default function AdminSettingsPage() {
         </div>
       </div>
 
-      {/* 2. META / FACEBOOK PIXEL TRACKING CONFIGURATION */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
-        <div className="mb-5 border-b border-slate-100 pb-4 flex items-center justify-between">
+      {/* 2. META / FACEBOOK PIXEL & CATALOG INTEGRATION */}
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 space-y-6">
+        <div className="border-b border-slate-100 pb-4 flex items-center justify-between">
           <div>
             <h2 className="text-lg sm:text-xl font-black text-slate-800 flex items-center gap-2">
               <span className="flex items-center justify-center h-6 w-6 rounded-full bg-blue-600 text-white text-xs font-black">f</span>
-              Meta / Facebook Pixel Tracking
+              Meta / Facebook Pixel & Catalog Integration
             </h2>
             <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-              Tracks visitor PageViews, product ViewContent with categories, AddToCart, and Purchases for Meta Ads Manager.
+              Connect your store to Meta Business Suite, Facebook & Instagram Shops, and run Dynamic Product Ads.
             </p>
           </div>
           <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-200">
@@ -697,23 +699,104 @@ export default function AdminSettingsPage() {
           </span>
         </div>
 
-        <div className="max-w-xl space-y-3">
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">
-              Meta Pixel ID
-            </label>
-            <input
-              type="text"
-              name="facebookPixelId"
-              value={config.facebookPixelId || ''}
-              onChange={handleChange}
-              placeholder="e.g. 1689531238818724"
-              className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-800 outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-            />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Pixel ID Setting */}
+          <div className="space-y-3 bg-slate-50/50 p-4 rounded-xl border border-slate-100">
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                Meta Pixel ID
+              </label>
+              <input
+                type="text"
+                name="facebookPixelId"
+                value={config.facebookPixelId || ''}
+                onChange={handleChange}
+                placeholder="e.g. 1689531238818724"
+                className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-800 outline-none focus:ring-2 focus:ring-blue-500 bg-white shadow-sm"
+              />
+            </div>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Tracks visitor PageViews, product ViewContent with categories, AddToCart, and Purchases for Meta Ads Manager in real-time.
+            </p>
           </div>
-          <p className="text-xs text-slate-500 leading-relaxed">
-            All product categories (e.g. <em>Plants</em>, <em>Freshwater Fish</em>, <em>Discus</em>, <em>Cichlids</em>) and e-commerce events are automatically sent to this Pixel ID in real-time.
+
+          {/* Catalog Data Feed URL */}
+          <div className="space-y-3 bg-blue-50/30 p-4 rounded-xl border border-blue-100">
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-bold uppercase tracking-wider text-blue-900">
+                  Meta Catalog Data Feed URL (XML / RSS)
+                </label>
+                <span className="text-[10px] font-bold text-blue-600 uppercase">Auto-Sync</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  readOnly
+                  value="https://neoblue.in/api/catalog/facebook"
+                  className="w-full border border-blue-200 rounded-xl px-3 py-2 text-xs font-mono font-medium text-slate-700 bg-white select-all outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText('https://neoblue.in/api/catalog/facebook');
+                    setCopiedFeed(true);
+                    setTimeout(() => setCopiedFeed(false), 2500);
+                  }}
+                  className="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold flex items-center gap-1.5 shrink-0 shadow-sm transition-all active:scale-95 cursor-pointer"
+                >
+                  {copiedFeed ? (
+                    <>
+                      <Check className="h-3.5 w-3.5 text-emerald-300" />
+                      <span>Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-3.5 w-3.5" />
+                      <span>Copy</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between text-xs pt-1">
+              <span className="text-slate-500">Scheduled sync for Commerce Manager</span>
+              <div className="flex items-center gap-3">
+                <a
+                  href="/api/catalog/facebook"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-blue-600 hover:text-blue-700 font-bold flex items-center gap-1 hover:underline"
+                >
+                  <span>Preview XML</span>
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+                <a
+                  href="/api/catalog/facebook?format=csv"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-blue-600 hover:text-blue-700 font-bold flex items-center gap-1 hover:underline"
+                >
+                  <span>Download CSV</span>
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Instructions Banner */}
+        <div className="bg-slate-50 rounded-xl p-4 border border-slate-200/60 text-xs text-slate-600 space-y-1.5">
+          <p className="font-bold text-slate-800 flex items-center gap-1.5">
+            <span>💡 How to connect this Feed in Meta Commerce Manager:</span>
           </p>
+          <ol className="list-decimal list-inside space-y-1 pl-1 text-slate-600 leading-relaxed">
+            <li>Go to <strong>Meta Business Suite</strong> → <strong>Commerce Manager</strong> → <strong>Catalogs</strong>.</li>
+            <li>Click <strong>Data Sources</strong> → <strong>Add Items</strong> → Select <strong>Data Feed (Scheduled feed)</strong>.</li>
+            <li>Paste the URL: <code className="bg-white px-1.5 py-0.5 rounded border border-slate-200 text-blue-700 font-bold font-mono">https://neoblue.in/api/catalog/facebook</code></li>
+            <li>Set the automatic update schedule to <strong>Daily</strong> or <strong>Hourly</strong> and click <strong>Save & Upload</strong>.</li>
+          </ol>
         </div>
       </div>
 

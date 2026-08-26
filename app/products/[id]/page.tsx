@@ -90,6 +90,15 @@ export async function generateMetadata({ params }: ProductDetailProps): Promise<
         description: truncatedDesc,
         images: getBestProductOgImage(product.images) ? [getBestProductOgImage(product.images) as string] : [],
       },
+      other: {
+        'product:price:amount': String(product.price || 0),
+        'product:price:currency': 'INR',
+        'product:availability': product.inStock ? 'in stock' : 'out of stock',
+        'product:condition': 'new',
+        'product:retailer_item_id': String(product._id),
+        'product:category': product.category || 'Aquatic',
+        'product:brand': product.vendorId?.name || 'NeoBlue',
+      },
     };
   } catch {
     return {};
