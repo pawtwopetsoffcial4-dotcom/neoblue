@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, Suspense } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import Script from 'next/script';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { FB_PIXEL_ID, pageview } from '@/lib/fpixel';
@@ -10,17 +10,39 @@ function FacebookPixelTracker() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    // Trigger pageview on route changes
+    // Trigger pageview on client-side route changes
     pageview();
   }, [pathname, searchParams]);
 
   return null;
 }
 
-export default function FacebookPixel({ pixelId }: { pixelId?: string }) {
-  const currentPixelId = pixelId || FB_PIXEL_ID;
+export default function FacebookPixel({ initialPixelId }: { initialPixelId?: string }) {
+  const [pixelId, setPixelId] = useState<string>(initialPixelId || FB_PIXEL_ID);
 
-  if (!currentPixelId) return null;
+  useEffect(() => {
+    // Dynamically fetch Pixel ID from database config if updated in Admin Settings
+    const fetchLivePixelId = async () => {
+      try {
+        const res = await fetch('/api/config');
+        if (res.ok) {
+          const data = await res.json();
+          if (data?.facebookPixelId && data.facebookPixelId !== pixelId) {
+            setPixelId(data.facebookPixelId);
+            if (typeof window !== 'undefined' && window.fbq) {
+              window.fbq('init', data.facebookPixelId);
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load dynamic pixel config:', err);
+      }
+    };
+
+    fetchLivePixelId();
+  }, [pixelId]);
+
+  if (!pixelId) return null;
 
   return (
     <>
@@ -37,7 +59,7 @@ export default function FacebookPixel({ pixelId }: { pixelId?: string }) {
             t.src=v;s=b.getElementsByTagName(e)[0];
             s.parentNode.insertBefore(t,s)}(window, document,'script',
             'https://connect.facebook.net/en_US/fbevents.js');
-            fbq('init', '${currentPixelId}');
+            fbq('init', '${pixelId}');
             fbq('track', 'PageView');
           `,
         }}
@@ -48,7 +70,7 @@ export default function FacebookPixel({ pixelId }: { pixelId?: string }) {
           height="1"
           width="1"
           style={{ display: 'none' }}
-          src={`https://www.facebook.com/tr?id=${currentPixelId}&ev=PageView&noscript=1`}
+          src={`https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1`}
           alt="meta-pixel"
         />
       </noscript>
