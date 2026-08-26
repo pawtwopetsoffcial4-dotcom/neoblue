@@ -69,7 +69,7 @@ const StoreConfigSchema = new mongoose.Schema<IStoreConfig>(
     heroSlidesFishes: { type: [HeroSlideSchema], default: DEFAULT_FISHES_HERO_SLIDES },
     heroSlidesPlants: { type: [HeroSlideSchema], default: DEFAULT_PLANTS_HERO_SLIDES },
     heroBgImage: { type: String, default: '' },
-    facebookPixelId: { type: String, default: '1689531238818724' },
+    facebookPixelId: { type: String, default: () => process.env.FACEBOOK_PIXEL_ID || process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID || '1689531238818724' },
     categories: { type: [String], default: PRODUCT_CATEGORIES },
     categoryImages: { type: mongoose.Schema.Types.Mixed, default: {} },
     subcategories: { type: mongoose.Schema.Types.Mixed, default: {} },
