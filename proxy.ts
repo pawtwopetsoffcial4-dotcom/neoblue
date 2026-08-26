@@ -21,7 +21,20 @@ export async function proxy(request: NextRequest) {
   const isPublicFishDescGet = pathname.startsWith('/api/fish-descriptions') && method === 'GET';
   const isPublicConfigRoute = pathname === '/api/config';
   const isPublicReviews = pathname.startsWith('/api/reviews/');
-  if (isPublicAuthRoute || isPublicProductsGet || isPublicCategoriesGet || isPublicFishDescGet || isPublicConfigRoute || isPublicReviews) {
+  const isPublicCatalog = pathname.startsWith('/api/catalog') && method === 'GET';
+  const isPublicBlogs = pathname.startsWith('/api/blogs') && method === 'GET';
+  const isPublicCombos = pathname.startsWith('/api/combos') && method === 'GET';
+  if (
+    isPublicAuthRoute ||
+    isPublicProductsGet ||
+    isPublicCategoriesGet ||
+    isPublicFishDescGet ||
+    isPublicConfigRoute ||
+    isPublicReviews ||
+    isPublicCatalog ||
+    isPublicBlogs ||
+    isPublicCombos
+  ) {
     return NextResponse.next();
   }
 
