@@ -4,6 +4,7 @@ import "./globals.css";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import MobileDock from "./components/MobileDock";
+import FacebookPixel from "./components/FacebookPixel";
 import { RootProviders } from "./providers";
 import Script from "next/script";
 
@@ -95,6 +96,7 @@ export default function RootLayout({
             `}
           </Script>
         )}
+        <FacebookPixel />
         <RootProviders>
           <Header />
           <div className="flex-1">{children}</div>

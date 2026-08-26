@@ -24,6 +24,7 @@ export async function GET() {
       heroSlides: Array.isArray(payload.heroSlides) && payload.heroSlides.length > 0 ? payload.heroSlides : DEFAULT_HERO_SLIDES,
       heroSlidesFishes: Array.isArray(payload.heroSlidesFishes) && payload.heroSlidesFishes.length > 0 ? payload.heroSlidesFishes : DEFAULT_FISHES_HERO_SLIDES,
       heroSlidesPlants: Array.isArray(payload.heroSlidesPlants) && payload.heroSlidesPlants.length > 0 ? payload.heroSlidesPlants : DEFAULT_PLANTS_HERO_SLIDES,
+      facebookPixelId: payload.facebookPixelId || '1689531238818724',
       categories: Array.isArray(payload.categories) && payload.categories.length ? payload.categories : PRODUCT_CATEGORIES,
       subcategories: payload.subcategories && Object.keys(payload.subcategories).length ? payload.subcategories : PRODUCT_CATALOG,
     });

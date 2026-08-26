@@ -12,6 +12,7 @@ import type { MarketplaceProduct } from '@/lib/types/marketplace';
 import { getRegionFromState, getProductShippingCharge, checkFreeShippingEligibility } from '@/lib/utils/shipping';
 import { useMode } from '@/lib/hooks/useMode';
 import { decodeSharedCart, getShareableCartUrl, createShortShareCode, resolveSharedCartCode, buildShareableUrl, type SharedCartItem } from '@/lib/utils/cartShare';
+import { trackInitiateCheckout, trackPurchase } from '@/lib/fpixel';
 
 const PENDING_CASHFREE_CHECKOUT_KEY = 'pendingCashfreeCheckout';
 
@@ -310,6 +311,14 @@ function CheckoutPageContent() {
           }
         }
 
+        trackPurchase({
+          orderId: cashfreeOrderId,
+          value: totalAmount || (verifyData as any)?.orderAmount || 0,
+          currency: 'INR',
+          content_ids: items.map((i) => i.productId),
+          num_items: items.reduce((sum, item) => sum + item.quantity, 0),
+        });
+
         localStorage.removeItem(PENDING_CASHFREE_CHECKOUT_KEY);
         clearCart();
         router.replace(`/orders?confirmed=true&order_id=${encodeURIComponent(cashfreeOrderId)}`);
@@ -323,6 +332,18 @@ function CheckoutPageContent() {
 
     finalizeCheckout();
   }, [searchParams, router, clearCart, isFinalizing]);
+
+  // Track Meta Pixel InitiateCheckout
+  useEffect(() => {
+    if (items.length > 0) {
+      trackInitiateCheckout({
+        value: totalAmount,
+        currency: 'INR',
+        num_items: items.reduce((sum, item) => sum + item.quantity, 0),
+        content_ids: items.map((i) => i.productId),
+      });
+    }
+  }, []); // Run once on initial checkout mount
 
   const cartQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
 

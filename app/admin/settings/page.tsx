@@ -30,6 +30,7 @@ export default function AdminSettingsPage() {
     heroSlidesPlants: DEFAULT_PLANTS_HERO_SLIDES as IHeroSlide[],
     heroSlides: DEFAULT_HERO_SLIDES as IHeroSlide[],
     heroBgImage: '',
+    facebookPixelId: '1689531238818724',
     categories: [] as string[],
     categoryImages: {} as Record<string, string>,
     stat1Value: '',
@@ -679,7 +680,44 @@ export default function AdminSettingsPage() {
         </div>
       </div>
 
-      {/* 2. PROMOTIONAL OFFER & STATS CONFIGURATION */}
+      {/* 2. META / FACEBOOK PIXEL TRACKING CONFIGURATION */}
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+        <div className="mb-5 border-b border-slate-100 pb-4 flex items-center justify-between">
+          <div>
+            <h2 className="text-lg sm:text-xl font-black text-slate-800 flex items-center gap-2">
+              <span className="flex items-center justify-center h-6 w-6 rounded-full bg-blue-600 text-white text-xs font-black">f</span>
+              Meta / Facebook Pixel Tracking
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+              Tracks visitor PageViews, product ViewContent with categories, AddToCart, and Purchases for Meta Ads Manager.
+            </p>
+          </div>
+          <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-200">
+            ● Active
+          </span>
+        </div>
+
+        <div className="max-w-xl space-y-3">
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">
+              Meta Pixel ID
+            </label>
+            <input
+              type="text"
+              name="facebookPixelId"
+              value={config.facebookPixelId || ''}
+              onChange={handleChange}
+              placeholder="e.g. 1689531238818724"
+              className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-800 outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+            />
+          </div>
+          <p className="text-xs text-slate-500 leading-relaxed">
+            All product categories (e.g. <em>Plants</em>, <em>Freshwater Fish</em>, <em>Discus</em>, <em>Cichlids</em>) and e-commerce events are automatically sent to this Pixel ID in real-time.
+          </p>
+        </div>
+      </div>
+
+      {/* 3. PROMOTIONAL OFFER & STATS CONFIGURATION */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
         <div className="mb-6 border-b border-gray-100 pb-4">
           <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">

@@ -7,6 +7,7 @@ import type { MarketplaceProduct } from '@/lib/types/marketplace';
 import { useAuth } from './useAuth';
 import { useMode } from './useMode';
 import CartDrawer from '@/app/components/CartDrawer';
+import { trackAddToCart } from '@/lib/fpixel';
 
 export type CartItem = {
   productId: string;
@@ -236,6 +237,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
     setItems(newItems);
     syncCartToDB(newItems);
+
+    trackAddToCart({
+      id: product._id,
+      name: product.title,
+      category: product.category,
+      price: product.price,
+      quantity: 1,
+      currency: 'INR',
+    });
 
     if (openDrawer) {
       setIsCartOpen(true);

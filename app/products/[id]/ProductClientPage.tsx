@@ -9,6 +9,7 @@ import ReviewStars from '@/app/components/ReviewStars';
 import ProductCard from '@/app/components/ProductCard';
 import type { MarketplaceProduct } from '@/lib/types/marketplace';
 import { useCart } from '@/lib/hooks/useCart';
+import { trackViewContent } from '@/lib/fpixel';
 
 type Props = {
   productId: string;
@@ -87,6 +88,18 @@ export default function ProductClientPage({
       }
     }
   }, [productId]);
+
+  useEffect(() => {
+    if (product) {
+      trackViewContent({
+        id: product._id,
+        name: product.title,
+        category: product.category,
+        price: product.price,
+        currency: 'INR',
+      });
+    }
+  }, [product]);
 
   const toggleLike = () => {
     const saved = localStorage.getItem('neoblue_wishlist');
