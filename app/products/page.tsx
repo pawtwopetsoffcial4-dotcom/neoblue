@@ -3,9 +3,15 @@ import type { Metadata } from 'next';
 import ProductsClient from './ProductsClient';
 
 export const metadata: Metadata = {
-  title: "Buy Aquarium Fish & Live Plants Online - NeoBlue Shop",
-  description: "Browse our premium selection of freshwater aquarium fish, shrimp, snails, and live aquatic plants. Filter by category, temperament, and care parameters with secure live-arrival guarantee.",
-  keywords: ["aquarium fish shop online", "buy live plants online", "aquarium fish price India", "shrimp snail store", "aquarium pets online"],
+  title: "Buy Live Aquarium Fish & Plants Online: NeoBlue Shop",
+  description: "Browse premium freshwater aquarium fish, shrimp, snails & live aquatic plants. Filter by species care specs with live-arrival guaranteed delivery.",
+  keywords: [
+    "aquarium fish shop online",
+    "buy live plants online India",
+    "aquarium fish price India",
+    "shrimp snail store",
+    "guppy betta discus cichlids online"
+  ],
   alternates: {
     canonical: 'https://neoblue.in/products',
   },

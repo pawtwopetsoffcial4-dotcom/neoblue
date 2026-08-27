@@ -116,7 +116,14 @@ export async function GET(request: Request) {
         const availability = product.inStock ? 'in stock' : 'out of stock';
         const price = `${Number(product.price || 0).toFixed(2)} INR`;
         const link = `${siteUrl}/products/${id}`;
-        const mainImage = product.images?.[0] || `${siteUrl}/logo.png`;
+        const formatImageUrl = (url?: string) => {
+          if (!url) return `${siteUrl}/logo.png`;
+          if (url.startsWith('http://') || url.startsWith('https://')) return url;
+          return `${siteUrl}${url.startsWith('/') ? '' : '/'}${url}`;
+        };
+
+        const rawMain = product.images?.[0];
+        const mainImage = formatImageUrl(rawMain);
         const brand = sanitizeXml(product.vendorId?.name || 'NeoBlue');
         const isPlants = product.category === 'Plants';
         const googleCat = isPlants ? 'Home &amp; Garden &gt; Plants' : 'Animals &amp; Pet Supplies &gt; Pet Supplies &gt; Fish Supplies';
@@ -126,7 +133,7 @@ export async function GET(request: Request) {
         const waterType = sanitizeXml(product.waterType || 'Freshwater');
 
         const additionalImageTags = Array.isArray(product.images) && product.images.length > 1
-          ? product.images.slice(1, 10).map((img: string) => `<g:additional_image_link>${sanitizeXml(img)}</g:additional_image_link>`).join('\n        ')
+          ? product.images.slice(1, 10).map((img: string) => `<g:additional_image_link>${sanitizeXml(formatImageUrl(img))}</g:additional_image_link>`).join('\n      ')
           : '';
 
         return `    <item>

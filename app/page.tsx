@@ -11,9 +11,19 @@ import { PRODUCT_CATEGORIES, getCategoryImage } from '@/lib/catalog';
 export const revalidate = 60; // Revalidate every 60 seconds (Instant server cache)
 
 export const metadata: Metadata = {
-  title: "NeoBlue - Buy Aquarium Fish, Live Plants & Specs Online",
-  description: "Shop premium quality aquarium fish, shrimp, snails, and live plants online. Browse species care specifications and get secure, live-arrival guaranteed delivery across India from NeoBlue.",
-  keywords: ["aquarium fish buy online", "live aquarium plants online", "buy guppy fish online", "buy guppies online India", "freshwater aquarium pets", "aquarium specs", "NeoBlue shop", "live fish delivery India", "aquarium fish price India"],
+  title: "NeoBlue: Buy Aquarium Fish & Live Plants Online India",
+  description: "Shop healthy aquarium fish, live aquatic plants, shrimp & snails online. Live-arrival guaranteed delivery with detailed care parameters across India.",
+  keywords: [
+    "aquarium fish buy online",
+    "live aquarium plants online",
+    "buy guppy fish online India",
+    "buy discus fish online",
+    "cichlids aquarium fish",
+    "freshwater aquarium pets",
+    "aquarium plants India",
+    "live fish delivery India",
+    "NeoBlue store"
+  ],
   alternates: {
     canonical: 'https://neoblue.in',
   },

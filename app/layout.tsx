@@ -26,10 +26,22 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL('https://neoblue.in'),
   title: {
-    default: "NeoBlue — India's Premium Aquarium Fish & Live Plants Store",
+    default: "NeoBlue: Buy Aquarium Fish & Live Plants Online India",
     template: "%s | NeoBlue",
   },
-  description: "Shop premium quality live aquarium fish, shrimp, snails, and aquatic plants online at NeoBlue. Browse species care specs, detailed parameters, and get live-arrival guaranteed delivery across India.",
+  description: "Shop premium live aquarium fish, plants, shrimp & snails online. Live-arrival guaranteed delivery with detailed species water care specs across India.",
+  keywords: [
+    "aquarium fish online",
+    "buy aquarium fish India",
+    "live aquarium plants online",
+    "aquarium plants India",
+    "guppy fish buy online",
+    "discus fish price India",
+    "cichlid fish online",
+    "aquatic snails shrimp India",
+    "NeoBlue aquarium store",
+    "live fish delivery India"
+  ],
   icons: {
     icon: "/logo.png",
     shortcut: "/logo.png",
@@ -59,15 +71,15 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'en_IN',
     siteName: 'NeoBlue',
-    title: "NeoBlue — India's Premium Aquarium Fish & Live Plants Store",
-    description: "Shop premium quality live aquarium fish, shrimp, snails, and aquatic plants online. Live-arrival guaranteed delivery across India.",
+    title: "NeoBlue: Buy Aquarium Fish & Live Plants Online India",
+    description: "Shop premium live aquarium fish, plants, shrimp & snails online. Live-arrival guaranteed delivery with detailed species water care specs across India.",
     url: 'https://neoblue.in',
     images: [{ url: '/logo.png', width: 512, height: 512, alt: 'NeoBlue Logo' }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: "NeoBlue — India's Premium Aquarium Fish & Live Plants Store",
-    description: "Shop premium quality live aquarium fish, shrimp, snails, and aquatic plants online. Live-arrival guaranteed delivery across India.",
+    title: "NeoBlue: Buy Aquarium Fish & Live Plants Online India",
+    description: "Shop premium live aquarium fish, plants, shrimp & snails online. Live-arrival guaranteed delivery with detailed species water care specs across India.",
     images: ['/logo.png'],
   },
 };
@@ -78,13 +90,41 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const clarityId = process.env.NEXT_PUBLIC_CLARITY_ID || "xugqoiowbx";
+  const gaId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || process.env.GA_MEASUREMENT_ID || process.env.NEXT_PUBLIC_GA_ID;
 
   return (
     <html
       lang="en"
       className={`${interSans.variable} ${interTight.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        <link rel="preconnect" href="https://res.cloudinary.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://connect.facebook.net" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://www.googletagmanager.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://res.cloudinary.com" />
+        <link rel="dns-prefetch" href="https://connect.facebook.net" />
+      </head>
       <body className="min-h-full flex flex-col pb-24 md:pb-0">
+        {/* Google Analytics GA4 */}
+        {gaId && (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
+              strategy="afterInteractive"
+            />
+            <Script id="google-analytics" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', '${gaId}', {
+                  page_path: window.location.pathname,
+                });
+              `}
+            </Script>
+          </>
+        )}
+
         {clarityId && (
           <Script id="microsoft-clarity" strategy="afterInteractive">
             {`

@@ -645,9 +645,25 @@ function ProductsPageContent() {
       </div>
 
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-0 pb-28">
-        
+        {/* Semantic SEO Page Title */}
+        <div className="pt-3 pb-2 flex flex-col sm:flex-row sm:items-end justify-between gap-1 border-b border-slate-200/60 mb-3">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+              {category !== 'All' 
+                ? `${category} — Aquatic Collection` 
+                : (mode === 'plants' ? 'Live Aquarium Plants & Flora' : 'Aquarium Fish & Live Aquatic Stock')}
+            </h1>
+            <p className="text-xs text-slate-500 font-medium mt-0.5">
+              Verified livestock &amp; flora with 100% Live-Arrival Guarantee across India.
+            </p>
+          </div>
+          <span className="text-[11px] font-bold text-slate-400">
+            {filteredProducts.length} items available
+          </span>
+        </div>
+
         {/* Pro Max Search Bar & Smart Interactive Dropdown */}
-        <div ref={searchContainerRef} className="z-40 w-full pt-3 mb-6 relative">
+        <div ref={searchContainerRef} className="z-40 w-full pt-1 mb-6 relative">
           <div className="max-w-3xl mx-auto relative">
             
             {/* Search Input Box */}

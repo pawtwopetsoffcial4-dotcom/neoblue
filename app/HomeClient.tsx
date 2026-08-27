@@ -426,10 +426,16 @@ export default function NeoBlueMobileOptimized({
                     </div>
                   )}
 
-                  {/* Title */}
-                  <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-white leading-tight tracking-tight mb-2 sm:mb-3 drop-shadow-md animate-fade-in-up">
-                    {slide.title}
-                  </h1>
+                  {/* Title (Single semantic H1 for primary slide, H2 for secondary slides) */}
+                  {index === 0 ? (
+                    <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-white leading-tight tracking-tight mb-2 sm:mb-3 drop-shadow-md animate-fade-in-up">
+                      {slide.title}
+                    </h1>
+                  ) : (
+                    <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-white leading-tight tracking-tight mb-2 sm:mb-3 drop-shadow-md animate-fade-in-up">
+                      {slide.title}
+                    </h2>
+                  )}
 
                   {/* Description */}
                   {slide.description && (
