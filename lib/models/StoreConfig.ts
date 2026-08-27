@@ -30,6 +30,7 @@ export interface IStoreConfig {
   stat3Label: string;
   freeShippingEnabled?: boolean;
   freeShippingMinAmount?: number;
+  minOrderAmount?: number;
   facebookPixelId?: string;
 }
 
@@ -81,6 +82,7 @@ const StoreConfigSchema = new mongoose.Schema<IStoreConfig>(
     stat3Label: { type: String, default: 'Live Arrival Cover' },
     freeShippingEnabled: { type: Boolean, default: false },
     freeShippingMinAmount: { type: Number, default: 1499 },
+    minOrderAmount: { type: Number, default: 599 },
   },
   { timestamps: true }
 );

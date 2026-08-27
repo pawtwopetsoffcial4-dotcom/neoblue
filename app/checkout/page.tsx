@@ -416,6 +416,12 @@ function CheckoutPageContent() {
       return;
     }
 
+    const MIN_ORDER_AMOUNT = 599;
+    if (totalAmount < MIN_ORDER_AMOUNT) {
+      alert(`Minimum order value is ₹${MIN_ORDER_AMOUNT} to place an order. Please add ₹${(MIN_ORDER_AMOUNT - totalAmount).toFixed(0)} more worth of items to your bag.`);
+      return;
+    }
+
     try {
       setIsPaying(true);
 
@@ -1097,9 +1103,27 @@ function CheckoutPageContent() {
                     </label>
                   </div>
 
+                  {totalAmount < 599 && (
+                    <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl flex items-start gap-3 text-amber-900 text-xs">
+                      <AlertCircle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+                      <div className="flex-1">
+                        <p className="font-extrabold text-sm text-amber-950">Minimum Order Value: ₹599</p>
+                        <p className="font-medium mt-0.5 text-amber-800">
+                          Your current subtotal is ₹{totalAmount.toFixed(2)}. Please add <strong>₹{(599 - totalAmount).toFixed(0)}</strong> more worth of items to place your order.
+                        </p>
+                        <Link
+                          href="/products"
+                          className="inline-flex items-center gap-1 mt-2.5 font-bold text-amber-900 underline hover:text-amber-950"
+                        >
+                          Browse More Products <ArrowRight className="h-3.5 w-3.5" />
+                        </Link>
+                      </div>
+                    </div>
+                  )}
+
                   <button
                     onClick={handlePayNow}
-                    disabled={isPaying || isFinalizing || items.length === 0 || isDeliveryBlocked}
+                    disabled={isPaying || isFinalizing || items.length === 0 || isDeliveryBlocked || totalAmount < 599}
                     className={`w-full h-14 rounded-2xl ${bgTheme} text-white font-bold text-lg ${bgThemeHover} transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-md ${shadowTheme} active:scale-[0.98]`}
                   >
                     {isPaying || isFinalizing ? (
@@ -1108,7 +1132,7 @@ function CheckoutPageContent() {
                         {isSavingAddress ? 'Saving address...' : isFinalizing ? 'Verifying payment...' : 'Processing...'}
                       </span>
                     ) : (
-                      <>Checkout Securely <ArrowRight className="h-5 w-5" /></>
+                      <>{totalAmount < 599 ? `Add ₹${(599 - totalAmount).toFixed(0)} More to Order` : 'Checkout Securely'} <ArrowRight className="h-5 w-5" /></>
                     )}
                   </button>
                   

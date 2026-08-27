@@ -4,6 +4,7 @@ import { connectDB } from '@/lib/db';
 import Product from '@/lib/models/Product';
 import Order from '@/lib/models/Order';
 import User from '@/lib/models/User';
+import StoreConfig from '@/lib/models/StoreConfig';
 import { getProductShippingCharge, getRegionFromState } from '@/lib/utils/shipping';
 
 const appId = process.env.CASHFREE_APP_ID;
@@ -89,6 +90,16 @@ export async function POST(request: NextRequest) {
         vendorId: product.vendorId.toString(),
       };
     });
+
+    const storeConfig = await StoreConfig.findOne({}).lean();
+    const minOrderAmount = Number((storeConfig as any)?.minOrderAmount) || 599;
+
+    if (subtotal < minOrderAmount) {
+      return createErrorResponse(
+        `Minimum order value is ₹${minOrderAmount} to place an order. Please add ₹${minOrderAmount - subtotal} more worth of items to your bag.`,
+        400
+      );
+    }
 
     const region = getRegionFromState(stateName);
 

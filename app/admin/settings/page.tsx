@@ -5,7 +5,7 @@ import { CldUploadWidget } from 'next-cloudinary';
 import { 
   Save, Loader2, Sparkles, X, Plus, Trash2, ArrowUp, ArrowDown, 
   Image as ImageIcon, Eye, ExternalLink, Layers, Fish, Leaf, Link2, Palette,
-  Copy, Check
+  Copy, Check, ShoppingBag
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { 
@@ -32,6 +32,7 @@ export default function AdminSettingsPage() {
     heroSlides: DEFAULT_HERO_SLIDES as IHeroSlide[],
     heroBgImage: '',
     facebookPixelId: '1689531238818724',
+    minOrderAmount: 599,
     categories: [] as string[],
     categoryImages: {} as Record<string, string>,
     stat1Value: '',
@@ -800,7 +801,43 @@ export default function AdminSettingsPage() {
         </div>
       </div>
 
-      {/* 3. PROMOTIONAL OFFER & STATS CONFIGURATION */}
+      {/* 3. ORDER & CHECKOUT RULES (MINIMUM ORDER VALUE) */}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        <div className="flex items-center justify-between border-b border-gray-100 pb-4 mb-6">
+          <div>
+            <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+              <ShoppingBag className="h-5 w-5 text-blue-600" />
+              <span>Checkout &amp; Minimum Order Value (MOV)</span>
+            </h2>
+            <p className="text-sm text-gray-500 mt-1">
+              Set the minimum cart subtotal required for customers to place an order.
+            </p>
+          </div>
+        </div>
+
+        <div className="max-w-md bg-slate-50/70 p-4 rounded-xl border border-slate-200/80 space-y-2">
+          <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+            Minimum Order Value (₹)
+          </label>
+          <div className="relative">
+            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 font-bold text-slate-400">₹</span>
+            <input
+              type="number"
+              name="minOrderAmount"
+              value={config.minOrderAmount ?? 599}
+              onChange={(e) => setConfig((prev) => ({ ...prev, minOrderAmount: Number(e.target.value) || 0 }))}
+              className="w-full border border-slate-200 rounded-xl pl-8 pr-4 py-2.5 text-sm font-bold text-slate-800 outline-none focus:ring-2 focus:ring-blue-500 bg-white shadow-sm"
+              placeholder="599"
+              min="0"
+            />
+          </div>
+          <p className="text-xs text-slate-500 leading-relaxed">
+            Customers with a cart subtotal below this amount will see a progress bar in their cart drawer and will be prevented from checking out until reaching ₹{config.minOrderAmount ?? 599}.
+          </p>
+        </div>
+      </div>
+
+      {/* 4. PROMOTIONAL OFFER & STATS CONFIGURATION */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
         <div className="mb-6 border-b border-gray-100 pb-4">
           <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">

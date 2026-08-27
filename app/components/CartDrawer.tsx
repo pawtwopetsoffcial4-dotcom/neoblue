@@ -350,17 +350,76 @@ export default function CartDrawer() {
                 </div>
               </div>
 
-              {/* Big Checkout CTA Button */}
-              <Link
-                href="/checkout"
-                onClick={closeCart}
-                className={`w-full h-12 rounded-2xl text-white font-black text-sm tracking-wider uppercase transition-all flex items-center justify-between px-5 active:scale-[0.99] cursor-pointer ${theme.btnBg}`}
-              >
-                <span>Checkout Now</span>
-                <span className="flex items-center gap-1 text-xs font-bold opacity-90">
-                  Proceed <ArrowRight className="w-4 h-4" />
-                </span>
-              </Link>
+              {/* Minimum Order Value Progress Bar */}
+              {(() => {
+                const MIN_ORDER_AMOUNT = 599;
+                const isMinOrderMet = totalAmount >= MIN_ORDER_AMOUNT;
+                const remainingForMinOrder = Math.max(0, MIN_ORDER_AMOUNT - totalAmount);
+                const minOrderPercentage = Math.min(100, Math.round((totalAmount / MIN_ORDER_AMOUNT) * 100));
+
+                return (
+                  <>
+                    <div className={`p-3 rounded-2xl border text-xs ${
+                      isMinOrderMet 
+                        ? 'bg-emerald-50/80 border-emerald-200 text-emerald-900' 
+                        : 'bg-amber-50/80 border-amber-200 text-amber-900'
+                    }`}>
+                      <div className="flex items-center justify-between font-bold mb-1.5 text-[11px]">
+                        <span className="flex items-center gap-1.5">
+                          {isMinOrderMet ? (
+                            <>
+                              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                              <span>Minimum Order Met (₹599)</span>
+                            </>
+                          ) : (
+                            <>
+                              <Sparkles className="w-3.5 h-3.5 text-amber-600 animate-pulse" />
+                              <span>Min. Order Value: ₹599</span>
+                            </>
+                          )}
+                        </span>
+                        <span className="font-extrabold">
+                          {isMinOrderMet ? '✓ Ready' : `Add ₹${remainingForMinOrder} more`}
+                        </span>
+                      </div>
+                      {/* Progress Bar */}
+                      <div className="w-full h-1.5 rounded-full bg-slate-200/80 overflow-hidden">
+                        <div 
+                          className={`h-full rounded-full transition-all duration-500 ${
+                            isMinOrderMet ? 'bg-emerald-500' : 'bg-amber-500'
+                          }`}
+                          style={{ width: `${minOrderPercentage}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Checkout CTA Button */}
+                    {isMinOrderMet ? (
+                      <Link
+                        href="/checkout"
+                        onClick={closeCart}
+                        className={`w-full h-12 rounded-2xl text-white font-black text-sm tracking-wider uppercase transition-all flex items-center justify-between px-5 active:scale-[0.99] cursor-pointer ${theme.btnBg}`}
+                      >
+                        <span>Checkout Now</span>
+                        <span className="flex items-center gap-1 text-xs font-bold opacity-90">
+                          Proceed <ArrowRight className="w-4 h-4" />
+                        </span>
+                      </Link>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={closeCart}
+                        className="w-full h-12 rounded-2xl bg-amber-100/90 text-amber-900 border border-amber-300/80 font-black text-xs tracking-wider uppercase flex items-center justify-between px-5 cursor-pointer hover:bg-amber-200 transition-all active:scale-[0.99]"
+                      >
+                        <span>Add ₹{remainingForMinOrder} more to Order</span>
+                        <span className="flex items-center gap-1 font-bold">
+                          Add Items <ArrowRight className="w-4 h-4" />
+                        </span>
+                      </button>
+                    )}
+                  </>
+                );
+              })()}
 
               {/* Live Arrival & Payment Trust Badges */}
               <div className="pt-2 border-t border-slate-200/60 flex flex-col items-center gap-1.5 text-center">
