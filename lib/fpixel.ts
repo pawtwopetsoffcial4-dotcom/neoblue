@@ -19,7 +19,7 @@ export const event = (name: string, options: Record<string, any> = {}) => {
   }
 };
 
-// Standard Meta Pixel E-Commerce Events
+// Standard Meta Pixel & Google Analytics E-Commerce Events
 export const trackViewContent = ({
   id,
   name,
@@ -41,6 +41,14 @@ export const trackViewContent = ({
     value: Number(price) || 0,
     currency,
   });
+
+  if (typeof window !== 'undefined' && typeof (window as any).gtag === 'function') {
+    (window as any).gtag('event', 'view_item', {
+      currency,
+      value: Number(price) || 0,
+      items: [{ item_id: id, item_name: name, item_category: category || 'Aquatic', price: Number(price) || 0 }],
+    });
+  }
 };
 
 export const trackAddToCart = ({
@@ -67,6 +75,14 @@ export const trackAddToCart = ({
     currency,
     num_items: quantity,
   });
+
+  if (typeof window !== 'undefined' && typeof (window as any).gtag === 'function') {
+    (window as any).gtag('event', 'add_to_cart', {
+      currency,
+      value: (Number(price) || 0) * (Number(quantity) || 1),
+      items: [{ item_id: id, item_name: name, item_category: category || 'Aquatic', price: Number(price) || 0, quantity }],
+    });
+  }
 };
 
 export const trackInitiateCheckout = ({
@@ -87,6 +103,14 @@ export const trackInitiateCheckout = ({
     content_ids: content_ids || [],
     content_type: 'product',
   });
+
+  if (typeof window !== 'undefined' && typeof (window as any).gtag === 'function') {
+    (window as any).gtag('event', 'begin_checkout', {
+      currency,
+      value: Number(value) || 0,
+      items: (content_ids || []).map((id) => ({ item_id: id })),
+    });
+  }
 };
 
 export const trackPurchase = ({
@@ -110,6 +134,15 @@ export const trackPurchase = ({
     num_items: num_items || 1,
     order_id: orderId,
   });
+
+  if (typeof window !== 'undefined' && typeof (window as any).gtag === 'function') {
+    (window as any).gtag('event', 'purchase', {
+      transaction_id: orderId,
+      value: Number(value) || 0,
+      currency,
+      items: (content_ids || []).map((id) => ({ item_id: id })),
+    });
+  }
 };
 
 export const trackSearch = ({ search_string }: { search_string: string }) => {
@@ -117,4 +150,10 @@ export const trackSearch = ({ search_string }: { search_string: string }) => {
   event('Search', {
     search_string,
   });
+
+  if (typeof window !== 'undefined' && typeof (window as any).gtag === 'function') {
+    (window as any).gtag('event', 'search', {
+      search_term: search_string,
+    });
+  }
 };
