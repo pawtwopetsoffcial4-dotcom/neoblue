@@ -41,8 +41,9 @@ export async function generateMetadata({ params }: ProductDetailProps): Promise<
     if (!product) return {};
     const productUrl = `https://neoblue.in/products/${product._id}`;
     
-    // Highly optimized title for transaction and species queries (e.g., "Buy Guppy Fish Online")
-    const titleText = `${product.title} ${product.scientific ? `(${product.scientific})` : ''} - Buy Online | NeoBlue Fishes`;
+    // Highly optimized title within 55-60 chars (e.g. "Platinum white dumbo ear — Buy Live Online | NeoBlue")
+    const scientificSnippet = product.scientific?.trim() ? `(${product.scientific.trim()}) ` : '';
+    const titleText = `${product.title.trim()} ${scientificSnippet}— Buy Live Online`;
     
     // Dynamic meta description containing key parameters to hook user and crawler attention
     let truncatedDesc = '';

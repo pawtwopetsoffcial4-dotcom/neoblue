@@ -36,7 +36,7 @@ export async function generateMetadata({ params }: Props) {
     }
   }
 
-  const titleText = vendor ? `${vendor.name} Storefront - Buy Live Fish & Plants | NeoBlue` : 'Storefront | NeoBlue';
+  const titleText = vendor ? `${vendor.name} Storefront — Live Fish & Plants` : 'Breeder Storefront';
   const descText = vendor 
     ? `Browse and purchase premium quality aquarium fish, live plants, and breeding pairs directly from ${vendor.name} on NeoBlue. Live-arrival guaranteed delivery.` 
     : 'Browse certified vendor storefronts, breeders, and aquatic varieties on NeoBlue.';

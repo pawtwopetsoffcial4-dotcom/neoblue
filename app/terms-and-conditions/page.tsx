@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 
 export const metadata: Metadata = {
-  title: 'Terms & Conditions | NeoBlue',
-  description: 'Read the NeoBlue terms and conditions for using the platform.',
+  title: 'Terms & Conditions: Platform Use & Care Guidelines',
+  description: 'Read the official NeoBlue terms and conditions regarding account use, live livestock sales, and buyer responsibilities.',
   alternates: {
     canonical: 'https://neoblue.in/terms-and-conditions',
   },

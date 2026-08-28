@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 
 export const metadata: Metadata = {
-  title: 'Return & Refund Policy | NeoBlue',
-  description: 'Read the NeoBlue return and refund policy for aquatic fish and plants.',
+  title: 'Return & Refund Policy: Live Arrival Claim Rules',
+  description: 'Understand NeoBlue return, live arrival guarantee (DOA), and refund procedures for live fish and plants.',
   alternates: {
     canonical: 'https://neoblue.in/return-refund-policy',
   },

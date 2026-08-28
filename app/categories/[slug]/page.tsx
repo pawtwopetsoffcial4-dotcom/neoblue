@@ -79,7 +79,7 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
   const { slug } = await params;
   try {
     const { categoryTitle, filteredProducts } = await getCategoryData(slug);
-    const titleText = `Buy ${categoryTitle} Online - Live Arrival Guaranteed | NeoBlue`;
+    const titleText = `Buy ${categoryTitle} Online — Live Arrival Guaranteed`;
     const descText = `Shop premium ${categoryTitle.toLowerCase()} specimens. Explore ${filteredProducts.length} high-quality options available with secure shipping and live-arrival guarantee from NeoBlue.`;
     const categoryImageUrl = getCategoryImage(categoryTitle);
     const ogImageUrl = resolveOgImageUrl(categoryImageUrl);
