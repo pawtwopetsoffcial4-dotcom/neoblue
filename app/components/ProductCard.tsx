@@ -1,8 +1,9 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ShoppingCart, Star } from 'lucide-react';
+import { ShoppingCart, Star, Heart } from 'lucide-react';
 import { useCart } from '@/lib/hooks/useCart';
+import { useWishlist } from '@/lib/hooks/useWishlist';
 
 interface ProductCardProps {
   product: any;
@@ -12,6 +13,10 @@ interface ProductCardProps {
 
 export default function ProductCard({ product, idx = 0, className = "" }: ProductCardProps) {
   const { addToCart } = useCart();
+  const { isInWishlist, toggleWishlist } = useWishlist();
+  const productId = product._id || product.id;
+  const isLiked = isInWishlist(productId);
+
   const isPairPrice = product.perPairPrice != null && typeof product.perPairPrice === 'number';
   const hasDiscount = product.discountPercentage != null && product.discountPercentage > 0;
   const isPlants = product.category === 'Plants';
@@ -60,8 +65,26 @@ export default function ProductCard({ product, idx = 0, className = "" }: Produc
           </span>
         )}
 
+        {/* Wishlist Heart Action */}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleWishlist(productId);
+          }}
+          className={`absolute top-2.5 right-2.5 sm:top-3 sm:right-3 h-7 w-7 rounded-full flex items-center justify-center transition-all duration-300 z-20 cursor-pointer ${
+            isLiked
+              ? 'bg-rose-500 text-white shadow-md shadow-rose-500/30'
+              : 'bg-white/80 hover:bg-white text-slate-600 hover:text-rose-500 backdrop-blur-xs shadow-xs'
+          }`}
+          aria-label="Toggle Wishlist"
+        >
+          <Heart className={`h-3.5 w-3.5 ${isLiked ? 'fill-white text-white' : ''}`} />
+        </button>
+
         {hasDiscount && (
-          <span className="absolute top-2.5 right-2.5 sm:top-3 sm:right-3 px-2 py-1 rounded-md text-[9px] font-black bg-gradient-to-br from-rose-500 to-pink-600 text-white shadow-md shadow-rose-500/20 uppercase tracking-wider">
+          <span className="absolute top-2.5 left-2.5 sm:top-3 sm:left-3 mt-6 sm:mt-7 px-2 py-0.5 rounded-md text-[9px] font-black bg-gradient-to-br from-rose-500 to-pink-600 text-white shadow-md shadow-rose-500/20 uppercase tracking-wider z-10">
             {product.discountPercentage}% Off
           </span>
         )}

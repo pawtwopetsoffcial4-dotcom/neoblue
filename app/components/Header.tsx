@@ -7,9 +7,10 @@ import { useRouter, usePathname } from 'next/navigation';
 import { 
   Menu, X, ShoppingBag, Search, Fish, Leaf, User, LogOut, 
   LayoutDashboard, ClipboardList, ChevronDown, Home, BookOpen, 
-  FolderHeart, Info, LogIn, Bell, Settings
+  FolderHeart, Info, LogIn, Bell, Settings, Heart
 } from 'lucide-react';
 import { useCart } from '@/lib/hooks/useCart';
+import { useWishlist } from '@/lib/hooks/useWishlist';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useMode } from '@/lib/hooks/useMode';
 import { useNotifications } from '@/lib/hooks/useNotifications';
@@ -21,6 +22,7 @@ type HeaderProps = {
 
 export default function Header({ cartCount = 0 }: HeaderProps) {
   const { cartCount: contextCartCount, openCart } = useCart();
+  const { wishlistCount } = useWishlist();
   const { user, logout } = useAuth();
   const { mode, setMode } = useMode();
   const router = useRouter();
@@ -176,6 +178,20 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
             <Search className="h-4 w-4 sm:h-4.5 sm:w-4.5" />
           </button>
 
+
+          {/* Wishlist Button */}
+          <Link
+            href="/wishlist"
+            className="relative h-8.5 w-8.5 sm:h-9 sm:w-9 rounded-xl border border-white/10 bg-white/5 hover:bg-white/15 text-white flex items-center justify-center transition-all duration-300 shadow-xs cursor-pointer"
+            aria-label="View Wishlist"
+          >
+            <Heart className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${wishlistCount > 0 ? 'text-rose-400 fill-rose-400' : 'text-white'}`} />
+            {wishlistCount > 0 && (
+              <span className="absolute -top-1 -right-1 h-4 min-w-4 px-1 rounded-full bg-rose-500 text-[9px] font-black text-white flex items-center justify-center shadow-xs">
+                {wishlistCount}
+              </span>
+            )}
+          </Link>
 
           {/* Shopping Bag / Cart */}
           <button 

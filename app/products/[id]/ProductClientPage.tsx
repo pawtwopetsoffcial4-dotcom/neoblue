@@ -2,13 +2,16 @@
 
 import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { ShoppingBag, Star, Truck, Shield, Droplets, Thermometer, Info, MessageSquare, ChevronRight, ChevronLeft, ChevronDown, Store, CheckCircle2, Search, X, ShieldAlert, Sparkles, Scale, Heart, Package, Leaf, Ruler, User, Activity, Box, Home, Fish, Beaker, Sun, Wind, Smile } from 'lucide-react';
+import { ShoppingBag, Star, Truck, Shield, Droplets, Thermometer, Info, MessageSquare, ChevronRight, ChevronLeft, ChevronDown, Store, CheckCircle2, Search, X, ShieldAlert, Sparkles, Scale, Heart, Package, Leaf, Ruler, User, Activity, Box, Home, Fish, Beaker, Sun, Wind, Smile, Bell, Check } from 'lucide-react';
 import ReviewList from '@/app/components/ReviewList';
 import ReviewForm from '@/app/components/ReviewForm';
 import ReviewStars from '@/app/components/ReviewStars';
 import ProductCard from '@/app/components/ProductCard';
+import FrequentlyBoughtTogether from '@/app/components/FrequentlyBoughtTogether';
+import StockAlertModal from '@/app/components/StockAlertModal';
 import type { MarketplaceProduct } from '@/lib/types/marketplace';
 import { useCart } from '@/lib/hooks/useCart';
+import { useWishlist } from '@/lib/hooks/useWishlist';
 import { trackViewContent } from '@/lib/fpixel';
 
 type Props = {
@@ -33,16 +36,31 @@ export default function ProductClientPage({
   const [activeTab, setActiveTab] = useState<'description' | 'specifications' | 'policies' | 'faq' | 'reviews'>('description');
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
+  const [selectedPackQty, setSelectedPackQty] = useState(1);
   const [showForm, setShowForm] = useState(false);
   const [isDescExpanded, setIsDescExpanded] = useState(false);
+  const [isStockAlertOpen, setIsStockAlertOpen] = useState(false);
   const { addToCart } = useCart();
+  const { isInWishlist, toggleWishlist } = useWishlist();
+  const liked = isInWishlist(productId);
   const [tankPh, setTankPh] = useState(7.0);
   const [tankTemp, setTankTemp] = useState(24);
   const [selectedMates, setSelectedMates] = useState<string[]>([]);
   const [mateSearchQuery, setMateSearchQuery] = useState('');
   const [showMatesDropdown, setShowMatesDropdown] = useState(false);
-  const [liked, setLiked] = useState(false);
   const recScrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (product) {
+      trackViewContent({
+        id: product._id,
+        name: product.title,
+        category: product.category,
+        price: product.price,
+        currency: 'INR',
+      });
+    }
+  }, [product]);
 
   const isPlants = product.category === 'Plants';
   const theme = isPlants ? {
@@ -75,50 +93,8 @@ export default function ProductClientPage({
     ? 'bg-indigo-50 border-indigo-100 text-indigo-700'
     : 'bg-blue-50 border-blue-100 text-blue-700';
 
-  useEffect(() => {
-    const saved = localStorage.getItem('neoblue_wishlist');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) {
-          setLiked(parsed.includes(productId));
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    }
-  }, [productId]);
-
-  useEffect(() => {
-    if (product) {
-      trackViewContent({
-        id: product._id,
-        name: product.title,
-        category: product.category,
-        price: product.price,
-        currency: 'INR',
-      });
-    }
-  }, [product]);
-
   const toggleLike = () => {
-    const saved = localStorage.getItem('neoblue_wishlist');
-    let list: string[] = [];
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) {
-          list = parsed;
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    }
-    const next = list.includes(productId)
-      ? list.filter((id) => id !== productId)
-      : [...list, productId];
-    localStorage.setItem('neoblue_wishlist', JSON.stringify(next));
-    setLiked(next.includes(productId));
+    toggleWishlist(productId);
   };
 
   const refetchProductStats = useCallback(async () => {
@@ -409,31 +385,112 @@ export default function ProductClientPage({
               </div>
             </div>
 
-            {/* Quantity & Cart */}
-            <div className="flex items-center gap-3">
-              <div className="flex items-center border border-slate-200 rounded-xl overflow-hidden">
-                <button
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="w-10 h-10 flex items-center justify-center text-slate-600 hover:bg-slate-50 transition-colors font-medium text-lg"
-                >−</button>
-                <span className="w-10 h-10 flex items-center justify-center font-bold text-sm text-slate-900 border-x border-slate-200">{quantity}</span>
-                <button
-                  onClick={() => setQuantity(quantity + 1)}
-                  className="w-10 h-10 flex items-center justify-center text-slate-600 hover:bg-slate-50 transition-colors font-medium text-lg"
-                >+</button>
-              </div>
+            {/* ── Volume Quantity Packs (Schooling / Aquascaper Bundles) ── */}
+            {product.inStock && (
+              <div className="pt-3 border-t border-slate-100 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                    <Package className="h-3.5 w-3.5 text-blue-600" />
+                    <span>Schooling &amp; Volume Packs</span>
+                  </span>
+                  <span className="text-[10px] font-extrabold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+                    Up to 15% OFF
+                  </span>
+                </div>
 
-              <button
-                onClick={() => { for (let i = 0; i < quantity; i++) product && addToCart(product); }}
-                disabled={!product.inStock}
-                className={`flex-1 h-12 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all
-                  ${product.inStock
-                    ? theme.btn
-                    : 'bg-slate-100 text-slate-400 cursor-not-allowed'}`}
-              >
-                <ShoppingBag className="h-4 w-4" />
-                {product.inStock ? 'Add to Cart' : 'Out of Stock'}
-              </button>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                  {[
+                    { qty: 1, label: '1 Piece', discount: 0, badge: 'Standard' },
+                    { qty: 3, label: 'Pack of 3', discount: 5, badge: '5% OFF' },
+                    { qty: 6, label: 'Pack of 6', discount: 10, badge: '10% OFF 🔥' },
+                    { qty: 10, label: 'Pack of 10', discount: 15, badge: '15% OFF' },
+                  ].map((pack) => {
+                    const isSelected = selectedPackQty === pack.qty;
+                    const discountedTotal = Math.round(product.price * pack.qty * (1 - pack.discount / 100));
+
+                    return (
+                      <button
+                        key={pack.qty}
+                        type="button"
+                        onClick={() => {
+                          setSelectedPackQty(pack.qty);
+                          setQuantity(pack.qty);
+                        }}
+                        className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer relative overflow-hidden ${
+                          isSelected
+                            ? (isPlants ? 'border-emerald-600 bg-emerald-50/40 ring-2 ring-emerald-600/20' : 'border-blue-600 bg-blue-50/40 ring-2 ring-blue-600/20')
+                            : 'border-slate-200 bg-slate-50/50 hover:bg-slate-100/60'
+                        }`}
+                      >
+                        <span className="block font-black text-slate-900 text-xs">
+                          {pack.label}
+                        </span>
+                        <span className="block text-[11px] font-bold text-slate-700 mt-0.5">
+                          ₹{discountedTotal.toLocaleString('en-IN')}
+                        </span>
+                        <span className={`inline-block mt-1 text-[9px] font-black uppercase px-1.5 py-0.2 rounded ${
+                          pack.discount > 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'
+                        }`}>
+                          {pack.badge}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Quantity & Cart or Out of Stock Alert */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
+              {product.inStock ? (
+                <>
+                  <div className="flex items-center border border-slate-200 rounded-xl overflow-hidden self-center sm:self-auto shrink-0">
+                    <button
+                      onClick={() => {
+                        const newQ = Math.max(1, quantity - 1);
+                        setQuantity(newQ);
+                        setSelectedPackQty(newQ);
+                      }}
+                      className="w-10 h-10 flex items-center justify-center text-slate-600 hover:bg-slate-50 transition-colors font-medium text-lg cursor-pointer"
+                    >−</button>
+                    <span className="w-12 h-10 flex items-center justify-center font-bold text-sm text-slate-900 border-x border-slate-200">{quantity}</span>
+                    <button
+                      onClick={() => {
+                        const newQ = quantity + 1;
+                        setQuantity(newQ);
+                        setSelectedPackQty(newQ);
+                      }}
+                      className="w-10 h-10 flex items-center justify-center text-slate-600 hover:bg-slate-50 transition-colors font-medium text-lg cursor-pointer"
+                    >+</button>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      for (let i = 0; i < quantity; i++) {
+                        product && addToCart(product);
+                      }
+                    }}
+                    className={`flex-1 h-12 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all cursor-pointer ${theme.btn}`}
+                  >
+                    <ShoppingBag className="h-4 w-4" />
+                    <span>Add {quantity} to Bag • ₹{Math.round(product.price * quantity * (selectedPackQty === 10 ? 0.85 : selectedPackQty === 6 ? 0.90 : selectedPackQty === 3 ? 0.95 : 1)).toLocaleString('en-IN')}</span>
+                  </button>
+                </>
+              ) : (
+                <div className="w-full space-y-2.5">
+                  <div className="p-3 rounded-xl bg-rose-50 border border-rose-100 text-rose-700 text-xs font-bold text-center">
+                    Currently Sold Out at Verified Nurseries
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsStockAlertOpen(true)}
+                    className="w-full h-12 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs uppercase tracking-wider shadow-md shadow-amber-500/20 flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-98"
+                  >
+                    <Bell className="h-4 w-4 animate-bounce" />
+                    <span>Notify Me When in Stock</span>
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
@@ -473,6 +530,12 @@ export default function ProductClientPage({
           )}
         </div>
       </div>
+
+      {/* ─────── FREQUENTLY BOUGHT TOGETHER BUNDLE ─────── */}
+      <FrequentlyBoughtTogether
+        currentProduct={product}
+        recommendations={initialRecommendations}
+      />
 
       {/* ─────── ROW 2: TABS + SIDEBAR ─────── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-10 mt-10">
@@ -858,6 +921,15 @@ export default function ProductClientPage({
           </div>
         </div>
       )}
+
+      {/* Stock Alert Modal */}
+      <StockAlertModal
+        isOpen={isStockAlertOpen}
+        onClose={() => setIsStockAlertOpen(false)}
+        productId={product._id}
+        productTitle={product.title}
+        productImage={product.images?.[0]}
+      />
     </>
   );
 }
