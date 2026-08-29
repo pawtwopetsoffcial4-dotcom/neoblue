@@ -5,7 +5,7 @@ import { CldUploadWidget } from 'next-cloudinary';
 import { 
   Save, Loader2, Sparkles, X, Plus, Trash2, ArrowUp, ArrowDown, 
   Image as ImageIcon, Eye, ExternalLink, Layers, Fish, Leaf, Link2, Palette,
-  Copy, Check, ShoppingBag
+  Copy, Check, ShoppingBag, BarChart3
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { 
@@ -32,6 +32,7 @@ export default function AdminSettingsPage() {
     heroSlides: DEFAULT_HERO_SLIDES as IHeroSlide[],
     heroBgImage: '',
     facebookPixelId: '1689531238818724',
+    googleAnalyticsId: '',
     minOrderAmount: 599,
     categories: [] as string[],
     categoryImages: {} as Record<string, string>,
@@ -798,6 +799,65 @@ export default function AdminSettingsPage() {
             <li>Paste the URL: <code className="bg-white px-1.5 py-0.5 rounded border border-slate-200 text-blue-700 font-bold font-mono">https://neoblue.in/api/catalog/facebook</code></li>
             <li>Set the automatic update schedule to <strong>Daily</strong> or <strong>Hourly</strong> and click <strong>Save & Upload</strong>.</li>
           </ol>
+        </div>
+      </div>
+
+      {/* 3. GOOGLE ANALYTICS 4 (GA4) INTEGRATION */}
+      <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-5 sm:p-7 space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
+          <div>
+            <h2 className="text-lg sm:text-xl font-black text-slate-800 flex items-center gap-2">
+              <BarChart3 className="h-5 w-5 text-amber-500" />
+              <span>Google Analytics 4 (GA4)</span>
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+              Track live website visitors, traffic sources, pageviews, and e-commerce conversions directly in Google Analytics.
+            </p>
+          </div>
+          {config.googleAnalyticsId ? (
+            <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-200">
+              ● Active ({config.googleAnalyticsId})
+            </span>
+          ) : (
+            <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-bold border border-amber-200">
+              ○ Not Configured
+            </span>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* GA4 Measurement ID Setting */}
+          <div className="space-y-3 bg-slate-50/50 p-4 rounded-xl border border-slate-100">
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                GA4 Measurement ID
+              </label>
+              <input
+                type="text"
+                name="googleAnalyticsId"
+                value={config.googleAnalyticsId || ''}
+                onChange={handleChange}
+                placeholder="e.g. G-XXXXXXXXXX"
+                className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-800 outline-none focus:ring-2 focus:ring-amber-500 bg-white shadow-sm font-mono"
+              />
+            </div>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Dispatches dual-tracked e-commerce events (Pageviews, ViewItem, AddToCart, BeginCheckout, and Purchases) directly to your GA4 property.
+            </p>
+          </div>
+
+          {/* Quick Setup Instructions */}
+          <div className="bg-amber-50/40 rounded-xl p-4 border border-amber-200/60 text-xs text-slate-700 space-y-2">
+            <p className="font-black text-amber-900 flex items-center gap-1.5">
+              <span>💡 Where to find your GA4 Measurement ID:</span>
+            </p>
+            <ol className="list-decimal list-inside space-y-1 pl-1 text-slate-600 leading-relaxed">
+              <li>Open <strong>Google Analytics</strong> (analytics.google.com).</li>
+              <li>Click the gear icon <strong>Admin</strong> (bottom left) → <strong>Data Streams</strong>.</li>
+              <li>Click your <strong>Web</strong> stream (e.g., <code className="bg-white px-1 py-0.5 rounded border text-amber-900 font-mono">neoblue.in</code>).</li>
+              <li>Copy the <strong>Measurement ID</strong> starting with <code className="bg-white px-1.5 py-0.5 rounded border border-amber-200 text-amber-800 font-bold font-mono">G-</code> and paste it above.</li>
+            </ol>
+          </div>
         </div>
       </div>
 

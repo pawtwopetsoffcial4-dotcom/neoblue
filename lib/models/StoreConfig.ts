@@ -32,6 +32,7 @@ export interface IStoreConfig {
   freeShippingMinAmount?: number;
   minOrderAmount?: number;
   facebookPixelId?: string;
+  googleAnalyticsId?: string;
 }
 
 const HeroButtonSchema = new mongoose.Schema(
@@ -71,6 +72,7 @@ const StoreConfigSchema = new mongoose.Schema<IStoreConfig>(
     heroSlidesPlants: { type: [HeroSlideSchema], default: DEFAULT_PLANTS_HERO_SLIDES },
     heroBgImage: { type: String, default: '' },
     facebookPixelId: { type: String, default: () => process.env.FACEBOOK_PIXEL_ID || process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID || '1689531238818724' },
+    googleAnalyticsId: { type: String, default: () => process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || process.env.GA_MEASUREMENT_ID || process.env.NEXT_PUBLIC_GA_ID || '' },
     categories: { type: [String], default: PRODUCT_CATEGORIES },
     categoryImages: { type: mongoose.Schema.Types.Mixed, default: {} },
     subcategories: { type: mongoose.Schema.Types.Mixed, default: {} },

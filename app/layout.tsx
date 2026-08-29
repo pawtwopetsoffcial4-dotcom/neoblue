@@ -5,6 +5,7 @@ import Header from "./components/Header";
 import Footer from "./components/Footer";
 import MobileDock from "./components/MobileDock";
 import FacebookPixel from "./components/FacebookPixel";
+import GoogleAnalytics from "./components/GoogleAnalytics";
 import { RootProviders } from "./providers";
 import Script from "next/script";
 
@@ -105,25 +106,8 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://connect.facebook.net" />
       </head>
       <body className="min-h-full flex flex-col pb-24 md:pb-0">
-        {/* Google Analytics GA4 */}
-        {gaId && (
-          <>
-            <Script
-              src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
-              strategy="afterInteractive"
-            />
-            <Script id="google-analytics" strategy="afterInteractive">
-              {`
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){dataLayer.push(arguments);}
-                gtag('js', new Date());
-                gtag('config', '${gaId}', {
-                  page_path: window.location.pathname,
-                });
-              `}
-            </Script>
-          </>
-        )}
+        {/* Google Analytics GA4 (Dynamic & Env Supported) */}
+        <GoogleAnalytics initialGaId={gaId} />
 
         {clarityId && (
           <Script id="microsoft-clarity" strategy="afterInteractive">
