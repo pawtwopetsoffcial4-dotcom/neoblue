@@ -1,7 +1,8 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { Mail, Phone, MessageSquare, MapPin, Clock, ShieldCheck, ArrowRight, Sparkles, Send } from 'lucide-react';
+import { Mail, Phone, MessageSquare, MapPin, Clock, ShieldCheck, ArrowRight, Sparkles } from 'lucide-react';
+import ContactClientForm from './ContactClientForm';
 
 export const metadata: Metadata = {
   title: "Contact NeoBlue: Customer Support & Live Help",
@@ -142,78 +143,7 @@ export default function ContactPage() {
               Fill in your details below and our specialist team will get back to you within 2-4 business hours.
             </p>
 
-            <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); alert('Thank you for reaching out! Our team will contact you shortly.'); }}>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-                    Your Name <span className="text-rose-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Enter your full name"
-                    className="w-full h-11 px-4 rounded-xl border border-slate-200 text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 bg-slate-50/50"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-                    Email Address <span className="text-rose-500">*</span>
-                  </label>
-                  <input
-                    type="email"
-                    required
-                    placeholder="name@example.com"
-                    className="w-full h-11 px-4 rounded-xl border border-slate-200 text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 bg-slate-50/50"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-                    Phone / WhatsApp Number
-                  </label>
-                  <input
-                    type="tel"
-                    placeholder="+91 98765 43210"
-                    className="w-full h-11 px-4 rounded-xl border border-slate-200 text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 bg-slate-50/50"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-                    Inquiry Topic
-                  </label>
-                  <select className="w-full h-11 px-4 rounded-xl border border-slate-200 text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 bg-slate-50/50">
-                    <option>Order Status & Tracking</option>
-                    <option>Fish Care & Water Specs</option>
-                    <option>Live Plant Inquiries</option>
-                    <option>Live-Arrival Guarantee Claim</option>
-                    <option>Vendor / Wholesale Partnership</option>
-                    <option>Other Question</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-                  Message Details <span className="text-rose-500">*</span>
-                </label>
-                <textarea
-                  required
-                  rows={4}
-                  placeholder="Describe your inquiry, order ID, or questions..."
-                  className="w-full p-4 rounded-xl border border-slate-200 text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 bg-slate-50/50 resize-none"
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="w-full sm:w-auto px-8 h-12 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-black uppercase tracking-wider shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
-              >
-                <Send className="h-4 w-4" />
-                <span>Send Inquiry</span>
-              </button>
-            </form>
+            <ContactClientForm />
           </div>
         </div>
       </div>
