@@ -6,11 +6,15 @@ export type SharedCartItem = {
   price: number;
   image: string;
   quantity: number;
+  unitLabel?: string;
+  packQty?: number;
 };
 
 export type ShortCartItem = {
   productId: string;
   quantity: number;
+  unitLabel?: string;
+  packQty?: number;
 };
 
 /**

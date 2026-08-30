@@ -293,9 +293,14 @@ function OrdersPageContent() {
                       </div>
                       <div>
                         <p className="font-bold text-slate-900 text-sm">{item.productId?.title || 'Unknown Product'}</p>
-                        <p className="text-xs text-slate-500 mt-0.5">
-                          Quantity: {item.quantity} • ₹{item.price} / {(item.productId as any)?.perPairPrice != null || (item as any)?.perPairPrice != null ? 'pair' : 'piece'}
-                        </p>
+                        {(() => {
+                          const label = (item as any)?.unitLabel || ((item.productId as any)?.perPairPrice != null ? 'pair' : 'piece');
+                          return (
+                            <p className="text-xs text-slate-500 mt-0.5">
+                              Quantity: {item.quantity} • ₹{item.price} {label.startsWith('Pack') ? `(${label})` : `/ ${label}`}
+                            </p>
+                          );
+                        })()}
                       </div>
                     </div>
                     <p className="font-black text-slate-950 text-sm">₹{(item.price * item.quantity).toLocaleString('en-IN')}</p>

@@ -9,12 +9,20 @@ import { useMode } from './useMode';
 import CartDrawer from '@/app/components/CartDrawer';
 import { trackAddToCart } from '@/lib/fpixel';
 
+export type PackOptions = {
+  packQty?: number;
+  unitLabel?: string;
+  customPrice?: number;
+  customOriginalPrice?: number;
+};
+
 export type CartItem = {
   productId: string;
   title: string;
   price: number;
   image: string;
   quantity: number;
+  packQty?: number;
   perPairPrice?: number | null;
   unitLabel?: string;
   weightPerPiece?: number;
@@ -29,7 +37,12 @@ export type CartItem = {
 
 type CartContextType = {
   items: CartItem[];
-  addToCart: (product: MarketplaceProduct, openDrawer?: boolean) => void;
+  addToCart: (
+    product: MarketplaceProduct, 
+    quantityToAdd?: number, 
+    openDrawer?: boolean,
+    packOptions?: PackOptions
+  ) => void;
   removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
@@ -188,62 +201,93 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }, 500);
   };
 
-  const addToCart = (product: MarketplaceProduct, openDrawer: boolean = true) => {
-    const existingIndex = items.findIndex((item) => item.productId === product._id);
-    let newItems: CartItem[] = [];
+  const addToCart = (
+    product: MarketplaceProduct, 
+    quantityToAdd: number = 1, 
+    openDrawer: boolean = true,
+    packOptions?: PackOptions
+  ) => {
+    const packQty = packOptions?.packQty || 1;
     const isPair = (product as any).perPairPrice != null;
-    const unitLabel = isPair ? 'pair' : 'piece';
-    const weightPerPiece = product.weightPerPiece && product.weightPerPiece > 0
+    const unitLabel = packOptions?.unitLabel || (packQty > 1 ? `Pack of ${packQty}` : (isPair ? 'pair' : 'piece'));
+
+    // Price calculation
+    let itemPrice = product.price;
+    if (packOptions?.customPrice != null) {
+      itemPrice = packOptions.customPrice;
+    } else if (packQty > 1) {
+      const discount = packQty === 6 ? 0.10 : packQty === 3 ? 0.05 : 0;
+      itemPrice = Math.round(product.price * packQty * (1 - discount));
+    }
+
+    const baseWeight = product.weightPerPiece && product.weightPerPiece > 0
       ? product.weightPerPiece
       : (product.category === 'Plants' ? 80 : 100);
+    const weightPerItem = baseWeight * packQty;
 
-    const vendorId = typeof product.vendorId === 'object' && product.vendorId !== null 
-      ? product.vendorId._id 
-      : product.vendorId;
-    const vendorName = typeof product.vendorId === 'object' && product.vendorId !== null 
-      ? product.vendorId.name 
-      : undefined;
+    // Unique key per product variant/pack size
+    const itemKey = packQty > 1 ? `${product._id}_pack_${packQty}` : product._id;
 
-    if (existingIndex > -1) {
-      newItems = [...items];
-      newItems[existingIndex].quantity += 1;
-      if (!newItems[existingIndex].unitLabel) {
-        newItems[existingIndex].unitLabel = unitLabel;
+    setItems((prevItems) => {
+      const existingIndex = prevItems.findIndex(
+        (item) => item.productId === itemKey || (item.productId === product._id && item.unitLabel === unitLabel)
+      );
+      let nextItems: CartItem[] = [];
+
+      if (existingIndex > -1) {
+        nextItems = prevItems.map((item, idx) => {
+          if (idx === existingIndex) {
+            return {
+              ...item,
+              quantity: item.quantity + quantityToAdd,
+              price: itemPrice,
+              unitLabel,
+              weightPerPiece: weightPerItem,
+            };
+          }
+          return item;
+        });
+      } else {
+        const vendorId = typeof product.vendorId === 'object' && product.vendorId !== null 
+          ? product.vendorId._id 
+          : product.vendorId;
+        const vendorName = typeof product.vendorId === 'object' && product.vendorId !== null 
+          ? product.vendorId.name 
+          : undefined;
+
+        nextItems = [
+          ...prevItems,
+          {
+            productId: itemKey,
+            title: product.title,
+            price: itemPrice,
+            image: product.images?.[0] ?? '/illustrations/placeholder.png',
+            quantity: quantityToAdd,
+            packQty,
+            perPairPrice: (product as any).perPairPrice ?? null,
+            unitLabel,
+            weightPerPiece: weightPerItem,
+            category: product.category,
+            waterType: product.waterType,
+            scientific: product.scientific,
+            originalPrice: packOptions?.customOriginalPrice || (product.price * packQty),
+            discountPercentage: packQty === 6 ? 10 : packQty === 3 ? 5 : product.discountPercentage,
+            vendorId: vendorId ? String(vendorId) : undefined,
+            vendorName,
+          },
+        ];
       }
-      if (!newItems[existingIndex].weightPerPiece) {
-        newItems[existingIndex].weightPerPiece = weightPerPiece;
-      }
-    } else {
-      newItems = [
-        ...items,
-        {
-          productId: product._id,
-          title: product.title,
-          price: product.price,
-          image: product.images?.[0] ?? '/illustrations/placeholder.png',
-          quantity: 1,
-          perPairPrice: (product as any).perPairPrice ?? null,
-          unitLabel,
-          weightPerPiece,
-          category: product.category,
-          waterType: product.waterType,
-          scientific: product.scientific,
-          originalPrice: product.originalPrice,
-          discountPercentage: product.discountPercentage,
-          vendorId: vendorId ? String(vendorId) : undefined,
-          vendorName,
-        },
-      ];
-    }
-    setItems(newItems);
-    syncCartToDB(newItems);
+
+      syncCartToDB(nextItems);
+      return nextItems;
+    });
 
     trackAddToCart({
       id: product._id,
       name: product.title,
       category: product.category,
-      price: product.price,
-      quantity: 1,
+      price: itemPrice,
+      quantity: quantityToAdd,
       currency: 'INR',
     });
 

@@ -269,8 +269,8 @@ export default function CartDrawer() {
 
                           {/* Specs & Weight Tags */}
                           <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
-                            <span className="text-[9px] sm:text-[10px] font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded-md">
-                              {item.unitLabel ? `1 ${item.unitLabel}` : 'piece'}
+                            <span className="text-[9px] sm:text-[10px] font-bold text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded-md">
+                              {item.unitLabel ? (item.unitLabel.startsWith('Pack') ? item.unitLabel : `1 ${item.unitLabel}`) : '1 piece'}
                             </span>
                             <span className="text-[9px] sm:text-[10px] font-semibold text-blue-600 bg-blue-50/80 px-1.5 py-0.5 rounded-md">
                               {itemWeight}g

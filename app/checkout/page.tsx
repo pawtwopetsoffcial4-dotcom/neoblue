@@ -66,6 +66,8 @@ function CheckoutPageContent() {
               title: details?.title || 'Aquatic Product',
               price: details?.price || 0,
               image: details?.images?.[0] || '/illustrations/placeholder.png',
+              unitLabel: item.unitLabel || (details?.perPairPrice != null ? 'pair' : 'piece'),
+              packQty: item.packQty,
             };
           })
         );
@@ -448,7 +450,10 @@ function CheckoutPageContent() {
 
       const products = items.map((item) => ({
         productId: item.productId,
-        quantity: item.quantity
+        quantity: item.quantity,
+        unitLabel: item.unitLabel,
+        packQty: item.packQty,
+        price: item.price,
       }));
 
       const cashfreeOrder = await apiClient.request<{
@@ -561,7 +566,7 @@ function CheckoutPageContent() {
                       <div>
                         <h3 className="font-extrabold text-base sm:text-lg text-gray-900 leading-tight">{item.title}</h3>
                         <p className="text-xs text-gray-500 mt-1 font-medium">
-                          ₹{item.price.toFixed(2)} / {(item as any).perPairPrice != null || (item as any).unitLabel === 'pair' ? 'pair' : 'piece'}
+                          ₹{item.price.toFixed(2)} {item.unitLabel ? (item.unitLabel.startsWith('Pack') ? `(${item.unitLabel})` : `/ ${item.unitLabel}`) : ((item as any).perPairPrice != null ? '/ pair' : '/ piece')}
                         </p>
                       </div>
                       <div className="text-right shrink-0">
@@ -751,9 +756,10 @@ function CheckoutPageContent() {
                           {(() => {
                             const product = productDetails[item.productId];
                             const isPair = product?.perPairPrice != null || (item as any).perPairPrice != null || (item as any).unitLabel === 'pair';
+                            const label = item.unitLabel || (isPair ? 'pair' : 'piece');
                             return (
                               <p className="text-sm text-gray-500 mt-1 font-medium">
-                                ₹{item.price.toFixed(2)} / {isPair ? 'pair' : 'piece'}
+                                ₹{item.price.toFixed(2)} {label.startsWith('Pack') ? `(${label})` : `/ ${label}`}
                               </p>
                             );
                           })()}

@@ -53,14 +53,18 @@ export default function ProductClientPage({
 
   // Volume discount calculation (5% on 3-pack, 10% on 6-pack, 0% on 1-pack and 10-pack)
   const currentDiscount = selectedPackQty === 6 ? 0.10 : selectedPackQty === 3 ? 0.05 : 0;
-  const unitPriceAfterDiscount = Math.round(product.price * (1 - currentDiscount));
-  const calculatedTotalPrice = unitPriceAfterDiscount * quantity;
+  const packUnitPrice = Math.round(product.price * selectedPackQty * (1 - currentDiscount));
+  const calculatedTotalPrice = packUnitPrice * quantity;
 
   const handleAddToCart = () => {
     if (!product || !product.inStock) return;
-    for (let i = 0; i < quantity; i++) {
-      addToCart(product);
-    }
+    const packLabel = selectedPackQty > 1 ? `Pack of ${selectedPackQty}` : (product.perPairPrice != null ? 'pair' : 'piece');
+    addToCart(product, quantity, true, {
+      packQty: selectedPackQty,
+      unitLabel: packLabel,
+      customPrice: packUnitPrice,
+      customOriginalPrice: product.price * selectedPackQty,
+    });
     setIsJustAdded(true);
     setTimeout(() => setIsJustAdded(false), 2200);
   };
@@ -412,7 +416,6 @@ export default function ProductClientPage({
                     Up to 10% OFF
                   </span>
                 </div>
-
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
                   {[
                     { qty: 1, label: '1 Piece', discount: 0, badge: 'Standard' },
@@ -427,10 +430,7 @@ export default function ProductClientPage({
                       <button
                         key={pack.qty}
                         type="button"
-                        onClick={() => {
-                          setSelectedPackQty(pack.qty);
-                          setQuantity(pack.qty);
-                        }}
+                        onClick={() => setSelectedPackQty(pack.qty)}
                         className={`p-2.5 rounded-2xl border text-left transition-all cursor-pointer relative overflow-hidden ${
                           isSelected
                             ? (isPlants ? 'border-emerald-600 bg-emerald-50/50 ring-2 ring-emerald-600/20 shadow-xs' : 'border-blue-600 bg-blue-50/50 ring-2 ring-blue-600/20 shadow-xs')
@@ -460,15 +460,11 @@ export default function ProductClientPage({
               {product.inStock ? (
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 sm:gap-3">
-                    {/* Stepper */}
+                    {/* Stepper (Number of packs/pieces) */}
                     <div className="flex items-center bg-slate-100/80 border border-slate-200/90 rounded-2xl p-1 shrink-0 shadow-2xs">
                       <button
                         type="button"
-                        onClick={() => {
-                          const newQ = Math.max(1, quantity - 1);
-                          setQuantity(newQ);
-                          setSelectedPackQty(newQ);
-                        }}
+                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
                         className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white text-slate-700 hover:text-slate-950 flex items-center justify-center font-bold text-base shadow-2xs active:scale-90 transition-all cursor-pointer"
                         aria-label="Decrease quantity"
                       >−</button>
@@ -477,11 +473,7 @@ export default function ProductClientPage({
                       </span>
                       <button
                         type="button"
-                        onClick={() => {
-                          const newQ = quantity + 1;
-                          setQuantity(newQ);
-                          setSelectedPackQty(newQ);
-                        }}
+                        onClick={() => setQuantity(quantity + 1)}
                         className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white text-slate-700 hover:text-slate-950 flex items-center justify-center font-bold text-base shadow-2xs active:scale-90 transition-all cursor-pointer"
                         aria-label="Increase quantity"
                       >+</button>
@@ -499,15 +491,19 @@ export default function ProductClientPage({
                           : 'bg-blue-600 hover:bg-blue-700 shadow-blue-600/25 hover:shadow-blue-600/35'
                       }`}
                     >
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 truncate">
                         {isJustAdded ? (
-                          <Check className="h-4 w-4 text-emerald-200 animate-bounce" />
+                          <Check className="h-4 w-4 text-emerald-200 shrink-0 animate-bounce" />
                         ) : (
-                          <ShoppingBag className="h-4 w-4" />
+                          <ShoppingBag className="h-4 w-4 shrink-0" />
                         )}
-                        <span>{isJustAdded ? 'Added to Bag!' : `Add ${quantity > 1 ? `${quantity} ` : ''}to Bag`}</span>
+                        <span className="truncate">
+                          {isJustAdded 
+                            ? 'Added to Bag!' 
+                            : `Add ${quantity > 1 ? `${quantity} ` : ''}${selectedPackQty > 1 ? `(Pack of ${selectedPackQty})` : 'to Bag'}`}
+                        </span>
                       </div>
-                      <span className="bg-white/20 backdrop-blur-xs px-2.5 py-1 rounded-xl text-xs font-black tracking-tight">
+                      <span className="bg-white/20 backdrop-blur-xs px-2.5 py-1 rounded-xl text-xs font-black tracking-tight shrink-0 ml-2">
                         ₹{calculatedTotalPrice.toLocaleString('en-IN')}
                       </span>
                     </button>

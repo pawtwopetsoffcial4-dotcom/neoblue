@@ -67,27 +67,51 @@ export async function POST(request: NextRequest) {
 
     const stateName = address?.state || '';
 
-    const productIds = products.map((product: any) => product.productId);
-    const dbProducts = await Product.find({ _id: { $in: productIds } }).populate('vendorId');
+    const productIds = products.map((product: any) => {
+      const id = String(product.productId || '');
+      return id.includes('_pack_') ? id.split('_pack_')[0] : (id.includes('-pack-') ? id.split('-pack-')[0] : id);
+    });
+    const uniqueProductIds = Array.from(new Set(productIds));
+    const dbProducts = await Product.find({ _id: { $in: uniqueProductIds } }).populate('vendorId');
 
-    if (dbProducts.length !== productIds.length) {
+    if (dbProducts.length !== uniqueProductIds.length) {
       return createErrorResponse('Some products not found', 404);
     }
 
     let subtotal = 0;
     const orderProducts = products.map((item: any) => {
-      const product = dbProducts.find((entry) => entry._id.toString() === item.productId);
+      const rawId = String(item.productId || '');
+      const cleanId = rawId.includes('_pack_') ? rawId.split('_pack_')[0] : (rawId.includes('-pack-') ? rawId.split('-pack-')[0] : rawId);
+      const product = dbProducts.find((entry) => entry._id.toString() === cleanId);
       if (!product) {
         throw new Error(`Product not found: ${item.productId}`);
       }
-      const itemSubtotal = Number(product.price) * Number(item.quantity || 0);
+
+      const packQty = Number(item.packQty) || (item.unitLabel?.startsWith('Pack of ') ? parseInt(item.unitLabel.replace('Pack of ', ''), 10) : 1);
+      const unitLabel = item.unitLabel || (packQty > 1 ? `Pack of ${packQty}` : (product.perPairPrice != null ? 'pair' : 'piece'));
+
+      let itemPrice = Number(product.price);
+      if (item.price != null && Number(item.price) > 0) {
+        itemPrice = Number(item.price);
+      } else if (packQty > 1) {
+        const discount = packQty === 6 ? 0.10 : packQty === 3 ? 0.05 : 0;
+        itemPrice = Math.round(product.price * packQty * (1 - discount));
+      }
+
+      const itemSubtotal = itemPrice * Number(item.quantity || 0);
       subtotal += itemSubtotal;
 
+      const vendorIdStr = typeof product.vendorId === 'object' && product.vendorId !== null
+        ? ((product.vendorId as any)._id?.toString() || (product.vendorId as any).id?.toString() || String(product.vendorId))
+        : String(product.vendorId);
+
       return {
-        productId: item.productId,
+        productId: product._id.toString(),
         quantity: item.quantity,
-        price: product.price,
-        vendorId: product.vendorId.toString(),
+        price: itemPrice,
+        unitLabel,
+        packQty,
+        vendorId: vendorIdStr,
       };
     });
 
