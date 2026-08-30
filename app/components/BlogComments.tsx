@@ -244,7 +244,7 @@ export default function BlogComments({ blogId }: BlogCommentsProps) {
       {/* Comments List */}
       {loading ? (
         <div className="flex justify-center py-10">
-          <LoadingSpinner size={36} label="Loading Comments..." />
+          <LoadingSpinner size={72} label="Loading Comments..." />
         </div>
       ) : comments.length > 0 ? (
         <div className="space-y-5 animate-fade-in-up">

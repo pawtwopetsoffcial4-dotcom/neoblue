@@ -1012,7 +1012,7 @@ function ProductsPageContent() {
         {/* Loading / Error States */}
         {isLoading && (
           <div className="py-24 flex justify-center">
-            <LoadingSpinner size={48} label={mode === 'fishes' ? "Loading Fishes..." : "Loading Plants..."} />
+            <LoadingSpinner size={100} label={mode === 'fishes' ? "Loading Fishes..." : "Loading Plants..."} />
           </div>
         )}
 

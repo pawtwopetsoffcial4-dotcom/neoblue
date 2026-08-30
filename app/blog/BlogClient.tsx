@@ -69,7 +69,7 @@ function BlogPageContent() {
             {/* Loading Spinner */}
             {loading && (
               <div className="flex flex-col justify-center items-center py-20 bg-white/50 rounded-2xl border border-slate-100 backdrop-blur-sm shadow-sm animate-fade-in-up">
-                <LoadingSpinner size={44} label="Fetching Articles..." />
+                <LoadingSpinner size={90} label="Fetching Articles..." />
               </div>
             )}
 
@@ -156,7 +156,7 @@ export default function BlogPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50/50">
-        <LoadingSpinner size={48} label="Loading Blog Insights..." />
+        <LoadingSpinner size={96} label="Loading Blog Insights..." />
       </div>
     }>
       <BlogPageContent />
