@@ -40,6 +40,7 @@ export default function ProductClientPage({
   const [showForm, setShowForm] = useState(false);
   const [isDescExpanded, setIsDescExpanded] = useState(false);
   const [isStockAlertOpen, setIsStockAlertOpen] = useState(false);
+  const [isJustAdded, setIsJustAdded] = useState(false);
   const { addToCart } = useCart();
   const { isInWishlist, toggleWishlist } = useWishlist();
   const liked = isInWishlist(productId);
@@ -49,6 +50,20 @@ export default function ProductClientPage({
   const [mateSearchQuery, setMateSearchQuery] = useState('');
   const [showMatesDropdown, setShowMatesDropdown] = useState(false);
   const recScrollRef = useRef<HTMLDivElement>(null);
+
+  // Volume discount calculation (5% on 3-pack, 10% on 6-pack, 0% on 1-pack and 10-pack)
+  const currentDiscount = selectedPackQty === 6 ? 0.10 : selectedPackQty === 3 ? 0.05 : 0;
+  const unitPriceAfterDiscount = Math.round(product.price * (1 - currentDiscount));
+  const calculatedTotalPrice = unitPriceAfterDiscount * quantity;
+
+  const handleAddToCart = () => {
+    if (!product || !product.inStock) return;
+    for (let i = 0; i < quantity; i++) {
+      addToCart(product);
+    }
+    setIsJustAdded(true);
+    setTimeout(() => setIsJustAdded(false), 2200);
+  };
 
   useEffect(() => {
     if (product) {
@@ -387,14 +402,14 @@ export default function ProductClientPage({
 
             {/* ── Volume Quantity Packs (Schooling / Aquascaper Bundles) ── */}
             {product.inStock && (
-              <div className="pt-3 border-t border-slate-100 space-y-2">
+              <div className="pt-3 border-t border-slate-100 space-y-2.5">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
                     <Package className="h-3.5 w-3.5 text-blue-600" />
                     <span>Schooling &amp; Volume Packs</span>
                   </span>
                   <span className="text-[10px] font-extrabold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
-                    Up to 15% OFF
+                    Up to 10% OFF
                   </span>
                 </div>
 
@@ -403,7 +418,7 @@ export default function ProductClientPage({
                     { qty: 1, label: '1 Piece', discount: 0, badge: 'Standard' },
                     { qty: 3, label: 'Pack of 3', discount: 5, badge: '5% OFF' },
                     { qty: 6, label: 'Pack of 6', discount: 10, badge: '10% OFF 🔥' },
-                    { qty: 10, label: 'Pack of 10', discount: 15, badge: '15% OFF' },
+                    { qty: 10, label: 'Pack of 10', discount: 0, badge: 'Pack of 10' },
                   ].map((pack) => {
                     const isSelected = selectedPackQty === pack.qty;
                     const discountedTotal = Math.round(product.price * pack.qty * (1 - pack.discount / 100));
@@ -416,10 +431,10 @@ export default function ProductClientPage({
                           setSelectedPackQty(pack.qty);
                           setQuantity(pack.qty);
                         }}
-                        className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer relative overflow-hidden ${
+                        className={`p-2.5 rounded-2xl border text-left transition-all cursor-pointer relative overflow-hidden ${
                           isSelected
-                            ? (isPlants ? 'border-emerald-600 bg-emerald-50/40 ring-2 ring-emerald-600/20' : 'border-blue-600 bg-blue-50/40 ring-2 ring-blue-600/20')
-                            : 'border-slate-200 bg-slate-50/50 hover:bg-slate-100/60'
+                            ? (isPlants ? 'border-emerald-600 bg-emerald-50/50 ring-2 ring-emerald-600/20 shadow-xs' : 'border-blue-600 bg-blue-50/50 ring-2 ring-blue-600/20 shadow-xs')
+                            : 'border-slate-200/90 bg-slate-50/50 hover:bg-slate-100/70'
                         }`}
                       >
                         <span className="block font-black text-slate-900 text-xs">
@@ -428,8 +443,8 @@ export default function ProductClientPage({
                         <span className="block text-[11px] font-bold text-slate-700 mt-0.5">
                           ₹{discountedTotal.toLocaleString('en-IN')}
                         </span>
-                        <span className={`inline-block mt-1 text-[9px] font-black uppercase px-1.5 py-0.2 rounded ${
-                          pack.discount > 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'
+                        <span className={`inline-block mt-1 text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md ${
+                          pack.discount > 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200/80 text-slate-600'
                         }`}>
                           {pack.badge}
                         </span>
@@ -441,41 +456,63 @@ export default function ProductClientPage({
             )}
 
             {/* Quantity & Cart or Out of Stock Alert */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
+            <div className="pt-2">
               {product.inStock ? (
-                <>
-                  <div className="flex items-center border border-slate-200 rounded-xl overflow-hidden self-center sm:self-auto shrink-0">
-                    <button
-                      onClick={() => {
-                        const newQ = Math.max(1, quantity - 1);
-                        setQuantity(newQ);
-                        setSelectedPackQty(newQ);
-                      }}
-                      className="w-10 h-10 flex items-center justify-center text-slate-600 hover:bg-slate-50 transition-colors font-medium text-lg cursor-pointer"
-                    >−</button>
-                    <span className="w-12 h-10 flex items-center justify-center font-bold text-sm text-slate-900 border-x border-slate-200">{quantity}</span>
-                    <button
-                      onClick={() => {
-                        const newQ = quantity + 1;
-                        setQuantity(newQ);
-                        setSelectedPackQty(newQ);
-                      }}
-                      className="w-10 h-10 flex items-center justify-center text-slate-600 hover:bg-slate-50 transition-colors font-medium text-lg cursor-pointer"
-                    >+</button>
-                  </div>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    {/* Stepper */}
+                    <div className="flex items-center bg-slate-100/80 border border-slate-200/90 rounded-2xl p-1 shrink-0 shadow-2xs">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newQ = Math.max(1, quantity - 1);
+                          setQuantity(newQ);
+                          setSelectedPackQty(newQ);
+                        }}
+                        className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white text-slate-700 hover:text-slate-950 flex items-center justify-center font-bold text-base shadow-2xs active:scale-90 transition-all cursor-pointer"
+                        aria-label="Decrease quantity"
+                      >−</button>
+                      <span className="w-8 sm:w-10 text-center font-black text-sm text-slate-900 select-none">
+                        {quantity}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newQ = quantity + 1;
+                          setQuantity(newQ);
+                          setSelectedPackQty(newQ);
+                        }}
+                        className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white text-slate-700 hover:text-slate-950 flex items-center justify-center font-bold text-base shadow-2xs active:scale-90 transition-all cursor-pointer"
+                        aria-label="Increase quantity"
+                      >+</button>
+                    </div>
 
-                  <button
-                    onClick={() => {
-                      for (let i = 0; i < quantity; i++) {
-                        product && addToCart(product);
-                      }
-                    }}
-                    className={`flex-1 h-12 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all cursor-pointer ${theme.btn}`}
-                  >
-                    <ShoppingBag className="h-4 w-4" />
-                    <span>Add {quantity} to Bag • ₹{Math.round(product.price * quantity * (selectedPackQty === 10 ? 0.85 : selectedPackQty === 6 ? 0.90 : selectedPackQty === 3 ? 0.95 : 1)).toLocaleString('en-IN')}</span>
-                  </button>
-                </>
+                    {/* Premium Add to Bag CTA Button */}
+                    <button
+                      type="button"
+                      onClick={handleAddToCart}
+                      className={`flex-1 h-11 sm:h-12 rounded-2xl font-black text-xs sm:text-sm tracking-wide text-white flex items-center justify-between px-4 sm:px-5 transition-all duration-300 active:scale-[0.98] cursor-pointer shadow-md ${
+                        isJustAdded
+                          ? 'bg-emerald-600 shadow-emerald-600/30'
+                          : isPlants
+                          ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/25 hover:shadow-emerald-600/35'
+                          : 'bg-blue-600 hover:bg-blue-700 shadow-blue-600/25 hover:shadow-blue-600/35'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        {isJustAdded ? (
+                          <Check className="h-4 w-4 text-emerald-200 animate-bounce" />
+                        ) : (
+                          <ShoppingBag className="h-4 w-4" />
+                        )}
+                        <span>{isJustAdded ? 'Added to Bag!' : `Add ${quantity > 1 ? `${quantity} ` : ''}to Bag`}</span>
+                      </div>
+                      <span className="bg-white/20 backdrop-blur-xs px-2.5 py-1 rounded-xl text-xs font-black tracking-tight">
+                        ₹{calculatedTotalPrice.toLocaleString('en-IN')}
+                      </span>
+                    </button>
+                  </div>
+                </div>
               ) : (
                 <div className="w-full space-y-2.5">
                   <div className="p-3 rounded-xl bg-rose-50 border border-rose-100 text-rose-700 text-xs font-bold text-center">
