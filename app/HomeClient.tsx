@@ -18,6 +18,7 @@ import {
   DEFAULT_FISHES_HERO_SLIDES, 
   DEFAULT_PLANTS_HERO_SLIDES 
 } from '@/lib/types/config';
+import { getTrendingProducts, getNewArrivalProducts } from '@/lib/utils/productAlgorithm';
 
 
 /* ------------------------------------------------------------------ */
@@ -324,18 +325,14 @@ export default function NeoBlueMobileOptimized({
     [modeFilteredProducts]
   );
 
+  // Automated Algorithmic Trending Ranking (Velocity Score: Sales + Rating + Reviews + Discount + Recency + Category Diversity)
   const trendingProducts = useMemo(() => {
-    const selected = cards.filter((c) => c.isTrending);
-    if (selected.length > 0) return selected;
-    return [...cards].sort((a, b) => (Number(b.rating) || 0) - (Number(a.rating) || 0)).slice(0, 8);
+    return getTrendingProducts(cards, 10);
   }, [cards]);
 
+  // Automated Algorithmic New Arrivals Ranking (Freshness + Diversity)
   const newArrivalProducts = useMemo(() => {
-    const selected = cards.filter((c) => c.isNewArrival);
-    if (selected.length > 0) return selected;
-    return [...cards]
-      .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
-      .slice(0, 8);
+    return getNewArrivalProducts(cards, 10);
   }, [cards]);
 
   const categories = useMemo(() => {

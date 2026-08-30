@@ -17,6 +17,7 @@ import { useCart } from '@/lib/hooks/useCart';
 import ProductCard from '@/app/components/ProductCard';
 import { getSubcategoriesForCategory } from '@/lib/catalog';
 import { useMode } from '@/lib/hooks/useMode';
+import { calculateTrendingScore } from '@/lib/utils/productAlgorithm';
 
 const formatPrice = (price: number) => `₹${price}`;
 
@@ -550,16 +551,20 @@ function ProductsPageContent() {
       })
       .sort((a, b) => {
         // If searching with active query and default sort, prioritize search relevance!
-        if (query && sortBy === 'featured') {
+        if (query && (sortBy === 'featured' || sortBy === 'trending')) {
           return b.score - a.score;
         }
 
         switch (sortBy) {
+          case 'trending':
+            return calculateTrendingScore(b.product) - calculateTrendingScore(a.product);
+          case 'newest':
+            return new Date(b.product.createdAt || 0).getTime() - new Date(a.product.createdAt || 0).getTime();
           case 'price-asc': return a.product.price - b.product.price;
           case 'price-desc': return b.product.price - a.product.price;
           case 'name-asc': return a.product.title.localeCompare(b.product.title);
           case 'rating-desc': return (Number(b.product.rating) || 0) - (Number(a.product.rating) || 0);
-          default: return (Number(b.product.rating) || 0) - (Number(a.product.rating) || 0);
+          default: return calculateTrendingScore(b.product) - calculateTrendingScore(a.product);
         }
       })
       .map(item => item.product);
@@ -1143,10 +1148,12 @@ function ProductsPageContent() {
                     value={sortBy} 
                     onChange={(e) => setSortBy(e.target.value)}
                   >
-                    <option value="featured">Featured</option>
+                    <option value="featured">Featured (Smart Rank)</option>
+                    <option value="trending">🔥 Trending Now</option>
+                    <option value="newest">✨ New Arrivals</option>
+                    <option value="rating-desc">⭐ Top Rated</option>
                     <option value="price-asc">Price: Low to High</option>
                     <option value="price-desc">Price: High to Low</option>
-                    <option value="rating-desc">Top Rated</option>
                     <option value="name-asc">Name: A to Z</option>
                   </select>
                 </div>
