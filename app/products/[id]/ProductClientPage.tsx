@@ -344,13 +344,20 @@ export default function ProductClientPage({
 
           {/* ── Price Block ── */}
           <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm space-y-4">
-            <div className="flex items-baseline gap-3">
-              <span className="text-3xl font-black text-slate-900">{formatPrice(product.price)}</span>
-              {typeof product.perPairPrice === 'number' ? (
-                <span className="text-sm text-slate-400 font-medium">per pair</span>
-              ) : typeof product.perPiecePrice === 'number' ? (
-                <span className="text-sm text-slate-400 font-medium">per piece</span>
-              ) : null}
+            <div className="flex items-baseline gap-3 flex-wrap">
+              <span className="text-3xl font-black text-slate-900">
+                ₹{packUnitPrice.toLocaleString('en-IN')}
+              </span>
+              <span className="text-sm text-slate-500 font-semibold">
+                {selectedPackQty > 1 
+                  ? `(Pack of ${selectedPackQty})` 
+                  : (typeof product.perPairPrice === 'number' ? 'per pair' : 'per piece')}
+              </span>
+              {selectedPackQty > 1 && currentDiscount > 0 && (
+                <span className="text-xs font-black text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full">
+                  Save {Math.round(currentDiscount * 100)}%
+                </span>
+              )}
             </div>
 
             <div className="pt-4 border-t border-slate-100">

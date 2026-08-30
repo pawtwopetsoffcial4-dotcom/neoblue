@@ -122,7 +122,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
                   'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify({
-                  items: merged.map((item) => ({ productId: item.productId, quantity: item.quantity })),
+                  items: merged.map((item) => ({ 
+                    productId: item.productId, 
+                    quantity: item.quantity,
+                    unitLabel: item.unitLabel,
+                    packQty: item.packQty,
+                    price: item.price,
+                  })),
                 }),
               });
 
@@ -192,6 +198,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             items: currentItems.map((item) => ({
               productId: item.productId,
               quantity: item.quantity,
+              unitLabel: item.unitLabel,
+              packQty: item.packQty,
+              price: item.price,
             })),
           }),
         });
