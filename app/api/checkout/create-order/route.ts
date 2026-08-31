@@ -187,10 +187,23 @@ export async function POST(request: NextRequest) {
       let groupShipping = 0;
       for (const gp of group.products) {
         const productDoc = dbProducts.find((p) => p._id.toString() === gp.productId);
-        groupShipping += getProductShippingCharge(productDoc, gp.quantity, stateName);
+        const packMultiplier = (gp as any).packQty || ((gp as any).unitLabel?.startsWith('Pack of ') ? parseInt((gp as any).unitLabel.replace('Pack of ', ''), 10) : 1);
+        const effectiveQty = gp.quantity * packMultiplier;
+        groupShipping += getProductShippingCharge(productDoc, effectiveQty, stateName);
       }
       group.shippingAmount = groupShipping;
       shippingAmount += groupShipping;
+    }
+
+    const freeShippingEnabled = Boolean((storeConfig as any)?.freeShippingEnabled);
+    const freeShippingMin = Number((storeConfig as any)?.freeShippingMinAmount) || 1499;
+    const isSingleVendor = Object.keys(vendorGroups).length === 1;
+
+    if (freeShippingEnabled && isSingleVendor && subtotal >= freeShippingMin) {
+      shippingAmount = 0;
+      for (const vId of Object.keys(vendorGroups)) {
+        vendorGroups[vId].shippingAmount = 0;
+      }
     }
 
     const amount = subtotal + shippingAmount;

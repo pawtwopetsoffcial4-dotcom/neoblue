@@ -13,12 +13,14 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
     await connectDB();
 
     const { id } = await context.params;
+    const rawId = String(id || '');
+    const cleanId = rawId.includes('_pack_') ? rawId.split('_pack_')[0] : (rawId.includes('-pack-') ? rawId.split('-pack-')[0] : rawId);
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
+    if (!mongoose.Types.ObjectId.isValid(cleanId)) {
       return createErrorResponse('Invalid product ID', 400);
     }
 
-    const product = await Product.findById(id).populate('vendorId', 'name email slug logo shippingRatesSouth shippingRatesNorth nonServiceableStates addresses');
+    const product = await Product.findById(cleanId).populate('vendorId', 'name email slug logo shippingRatesSouth shippingRatesNorth nonServiceableStates addresses');
 
     if (!product) {
       return createErrorResponse('Product not found', 404);

@@ -16,6 +16,23 @@ export type PackOptions = {
   customOriginalPrice?: number;
 };
 
+export function sanitizeCartItems(rawItems: CartItem[]): CartItem[] {
+  if (!Array.isArray(rawItems)) return [];
+  return rawItems.map((item) => {
+    const rawId = String(item.productId || '');
+    const packFromId = rawId.includes('_pack_') ? parseInt(rawId.split('_pack_')[1], 10) : 1;
+    const packQty = item.packQty || (packFromId > 1 ? packFromId : (item.unitLabel?.startsWith('Pack of ') ? parseInt(item.unitLabel.replace('Pack of ', ''), 10) : 1));
+    const isPair = (item as any).perPairPrice != null;
+    const unitLabel = packQty > 1 ? `Pack of ${packQty}` : (item.unitLabel || (isPair ? 'pair' : 'piece'));
+
+    return {
+      ...item,
+      packQty,
+      unitLabel,
+    };
+  });
+}
+
 export type CartItem = {
   productId: string;
   title: string;
@@ -134,13 +151,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
               if (saveResponse.ok) {
                 const saveData = await saveResponse.json();
-                setItems(saveData.items || merged);
+                setItems(sanitizeCartItems(saveData.items || merged));
               } else {
-                setItems(merged);
+                setItems(sanitizeCartItems(merged));
               }
               localStorage.removeItem('neoblue-cart-guest');
             } else {
-              setItems(dbItems);
+              setItems(sanitizeCartItems(dbItems));
             }
           } else {
             const rawUserCart = localStorage.getItem(`neoblue-cart-${user.id}`);
@@ -150,7 +167,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
                 userItems = JSON.parse(rawUserCart);
               } catch {}
             }
-            setItems(userItems);
+            setItems(sanitizeCartItems(userItems));
           }
         } catch (err) {
           console.error('Failed to load cart from DB, falling back to localStorage:', err);
@@ -161,10 +178,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
               userItems = JSON.parse(rawUserCart);
             } catch {}
           }
-          setItems(userItems);
+          setItems(sanitizeCartItems(userItems));
         }
       } else {
-        setItems(guestItems);
+        setItems(sanitizeCartItems(guestItems));
       }
       setIsLoaded(true);
     };

@@ -268,14 +268,23 @@ export default function CartDrawer() {
                           </div>
 
                           {/* Specs & Weight Tags */}
-                          <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
-                            <span className="text-[9px] sm:text-[10px] font-bold text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded-md">
-                              {item.unitLabel ? (item.unitLabel.startsWith('Pack') ? item.unitLabel : `1 ${item.unitLabel}`) : '1 piece'}
-                            </span>
-                            <span className="text-[9px] sm:text-[10px] font-semibold text-blue-600 bg-blue-50/80 px-1.5 py-0.5 rounded-md">
-                              {itemWeight}g
-                            </span>
-                          </div>
+                          {(() => {
+                            const rawId = String(item.productId || '');
+                            const packNum = item.packQty || (rawId.includes('_pack_') ? parseInt(rawId.split('_pack_')[1], 10) : (item.unitLabel?.startsWith('Pack of ') ? parseInt(item.unitLabel.replace('Pack of ', ''), 10) : 1));
+                            const displayUnit = item.unitLabel || (packNum > 1 ? `Pack of ${packNum}` : (item.perPairPrice != null ? 'pair' : 'piece'));
+                            const badgeText = displayUnit.startsWith('Pack') ? displayUnit : `1 ${displayUnit}`;
+
+                            return (
+                              <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
+                                <span className="text-[9px] sm:text-[10px] font-bold text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded-md">
+                                  {badgeText}
+                                </span>
+                                <span className="text-[9px] sm:text-[10px] font-semibold text-blue-600 bg-blue-50/80 px-1.5 py-0.5 rounded-md">
+                                  {itemWeight}g
+                                </span>
+                              </div>
+                            );
+                          })()}
                         </div>
 
                         {/* Price & Quantity Stepper */}
@@ -286,7 +295,11 @@ export default function CartDrawer() {
                             </span>
                             {item.quantity > 1 && (
                               <span className="text-[9px] sm:text-[10px] text-slate-400 font-medium ml-1">
-                                (₹{item.price} ea)
+                                {(() => {
+                                  const rawId = String(item.productId || '');
+                                  const packNum = item.packQty || (rawId.includes('_pack_') ? parseInt(rawId.split('_pack_')[1], 10) : (item.unitLabel?.startsWith('Pack of ') ? parseInt(item.unitLabel.replace('Pack of ', ''), 10) : 1));
+                                  return packNum > 1 ? `(₹${item.price} / pack)` : `(₹${item.price} ea)`;
+                                })()}
                               </span>
                             )}
                           </div>

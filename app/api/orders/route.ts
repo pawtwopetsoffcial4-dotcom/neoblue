@@ -1,6 +1,7 @@
 import { connectDB } from '@/lib/db';
 import Order from '@/lib/models/Order';
 import Product from '@/lib/models/Product';
+import StoreConfig from '@/lib/models/StoreConfig';
 import { createErrorResponse, createSuccessResponse, getTokenFromRequest, verifyToken } from '@/lib/utils/auth';
 import { getProductShippingCharge, getRegionFromState } from '@/lib/utils/shipping';
 import { decrementStockForOrder } from '@/lib/utils/stock';
@@ -303,14 +304,24 @@ export async function POST(request: NextRequest) {
       let groupShipping = 0;
       for (const gp of group.products) {
         const productDoc = dbProducts.find((p) => p._id.toString() === gp.productId);
-        groupShipping += getProductShippingCharge(productDoc, gp.quantity, stateName);
+        const packMultiplier = (gp as any).packQty || ((gp as any).unitLabel?.startsWith('Pack of ') ? parseInt((gp as any).unitLabel.replace('Pack of ', ''), 10) : 1);
+        const effectiveQty = gp.quantity * packMultiplier;
+        groupShipping += getProductShippingCharge(productDoc, effectiveQty, stateName);
       }
       group.shippingAmount = groupShipping;
       shippingAmount += groupShipping;
     }
 
-    if (shippingAmount <= 0) {
-      return createErrorResponse('Shipping charges are compulsory for every order. The vendor has not configured shipping rates for your location.', 400);
+    const storeConfig = await StoreConfig.findOne({}).lean();
+    const freeShippingEnabled = Boolean((storeConfig as any)?.freeShippingEnabled);
+    const freeShippingMin = Number((storeConfig as any)?.freeShippingMinAmount) || 1499;
+    const isSingleVendor = Object.keys(vendorGroups).length === 1;
+
+    if (freeShippingEnabled && isSingleVendor && totalAmount >= freeShippingMin) {
+      shippingAmount = 0;
+      for (const vId of Object.keys(vendorGroups)) {
+        vendorGroups[vId].shippingAmount = 0;
+      }
     }
 
     // Verify cashfree payment if Cashfree is used

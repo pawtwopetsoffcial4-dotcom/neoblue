@@ -253,6 +253,16 @@ function CheckoutPageContent() {
           }
         });
 
+        items.forEach((item) => {
+          const rawId = String(item.productId || '');
+          const cleanId = rawId.includes('_pack_') ? rawId.split('_pack_')[0] : (rawId.includes('-pack-') ? rawId.split('-pack-')[0] : rawId);
+          const found = nextDetails[cleanId] || responses.find((p) => p?._id === cleanId);
+          if (found) {
+            nextDetails[item.productId] = found;
+            nextDetails[cleanId] = found;
+          }
+        });
+
         if (Object.keys(nextDetails).length > 0) {
           setProductDetails((current) => ({ ...current, ...nextDetails }));
         }
@@ -363,7 +373,9 @@ function CheckoutPageContent() {
   );
 
   items.forEach((item) => {
-    const product = productDetails[item.productId];
+    const rawId = String(item.productId || '');
+    const cleanId = rawId.includes('_pack_') ? rawId.split('_pack_')[0] : (rawId.includes('-pack-') ? rawId.split('-pack-')[0] : rawId);
+    const product = productDetails[item.productId] || productDetails[cleanId];
     if (!product) return;
     const vendor = (typeof product.vendorId === 'object' && product.vendorId !== null ? product.vendorId : null) as any;
 
@@ -382,7 +394,9 @@ function CheckoutPageContent() {
       nonServiceableMessage = `Sorry, this product cannot be delivered to your location.`;
     }
 
-    const itemShipping = getProductShippingCharge(product, item.quantity, address.state);
+    const packMultiplier = item.packQty || (item.unitLabel?.startsWith('Pack of ') ? parseInt(item.unitLabel.replace('Pack of ', ''), 10) : (rawId.includes('_pack_') ? parseInt(rawId.split('_pack_')[1], 10) : 1));
+    const effectiveQty = item.quantity * packMultiplier;
+    const itemShipping = getProductShippingCharge(product, effectiveQty, address.state);
     shippingAmount += itemShipping;
   });
 
@@ -754,56 +768,71 @@ function CheckoutPageContent() {
                             <p className="font-bold text-lg text-gray-900 shrink-0">₹{(item.price * item.quantity).toFixed(2)}</p>
                           </div>
                           {(() => {
-                            const product = productDetails[item.productId];
+                            const rawId = String(item.productId || '');
+                            const cleanId = rawId.includes('_pack_') ? rawId.split('_pack_')[0] : (rawId.includes('-pack-') ? rawId.split('-pack-')[0] : rawId);
+                            const product = productDetails[item.productId] || productDetails[cleanId];
+                            const packMultiplier = item.packQty || (item.unitLabel?.startsWith('Pack of ') ? parseInt(item.unitLabel.replace('Pack of ', ''), 10) : (rawId.includes('_pack_') ? parseInt(rawId.split('_pack_')[1], 10) : 1));
                             const isPair = product?.perPairPrice != null || (item as any).perPairPrice != null || (item as any).unitLabel === 'pair';
-                            const label = item.unitLabel || (isPair ? 'pair' : 'piece');
+                            const isPack = packMultiplier > 1;
+                            const label = item.unitLabel || (isPack ? `Pack of ${packMultiplier}` : (isPair ? 'pair' : 'piece'));
+
                             return (
                               <p className="text-sm text-gray-500 mt-1 font-medium">
                                 ₹{item.price.toFixed(2)} {label.startsWith('Pack') ? `(${label})` : `/ ${label}`}
                               </p>
                             );
                           })()}
-                          {productDetails[item.productId] ? (
-                            (() => {
-                              const product = productDetails[item.productId];
-                              const vendor = (typeof product.vendorId === 'object' && product.vendorId !== null ? product.vendorId : null) as any;
-                              const nonServiceable = vendor?.nonServiceableStates || [];
-                              const isRestricted = address.state && nonServiceable.some((s: string) => s.toLowerCase().trim() === address.state.toLowerCase().trim());
+                          {(() => {
+                            const rawId = String(item.productId || '');
+                            const cleanId = rawId.includes('_pack_') ? rawId.split('_pack_')[0] : (rawId.includes('-pack-') ? rawId.split('-pack-')[0] : rawId);
+                            const product = productDetails[item.productId] || productDetails[cleanId];
 
-                              if (isRestricted) {
-                                return (
-                                  <div className="mt-3 bg-rose-50 rounded-2xl border border-rose-100 p-3.5 flex items-start gap-2.5 text-rose-700">
-                                    <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
-                                    <div>
-                                      <p className="text-xs font-bold">Delivery Unavailable</p>
-                                      <p className="text-[11px] font-medium mt-0.5">
-                                        Sorry, this product cannot be delivered to your location.
-                                      </p>
-                                    </div>
-                                  </div>
-                                );
-                              }
+                            if (!product) {
+                              return <p className="text-xs text-gray-400 mt-1 font-medium">Loading shipping...</p>;
+                            }
 
-                              const itemShipping = getProductShippingCharge(
-                                product,
-                                item.quantity,
-                                address.state
-                              );
+                            const vendor = (typeof product.vendorId === 'object' && product.vendorId !== null ? product.vendorId : null) as any;
+                            const nonServiceable = vendor?.nonServiceableStates || [];
+                            const isRestricted = address.state && nonServiceable.some((s: string) => s.toLowerCase().trim() === address.state.toLowerCase().trim());
 
+                            if (isRestricted) {
                               return (
-                                <div className="mt-1 space-y-0.5">
-                                  <p className="text-xs text-gray-400 font-medium">
-                                    Weight: {product.weightPerPiece || 0} gm per piece
-                                  </p>
-                                  <p className="text-xs text-slate-500 font-bold">
-                                    Est. Shipping: ₹{itemShipping.toFixed(2)}
-                                  </p>
+                                <div className="mt-3 bg-rose-50 rounded-2xl border border-rose-100 p-3.5 flex items-start gap-2.5 text-rose-700">
+                                  <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
+                                  <div>
+                                    <p className="text-xs font-bold">Delivery Unavailable</p>
+                                    <p className="text-[11px] font-medium mt-0.5">
+                                      Sorry, this product cannot be delivered to your location.
+                                    </p>
+                                  </div>
                                 </div>
                               );
-                            })()
-                          ) : (
-                            <p className="text-xs text-gray-400 mt-1 font-medium">Loading shipping...</p>
-                          )}
+                            }
+
+                            const packMultiplier = item.packQty || (item.unitLabel?.startsWith('Pack of ') ? parseInt(item.unitLabel.replace('Pack of ', ''), 10) : (rawId.includes('_pack_') ? parseInt(rawId.split('_pack_')[1], 10) : 1));
+                            const effectiveQty = item.quantity * packMultiplier;
+                            const isPair = product?.perPairPrice != null || (item as any).perPairPrice != null || (item as any).unitLabel === 'pair';
+                            const isPack = packMultiplier > 1;
+                            const unitText = item.unitLabel || (isPack ? `Pack of ${packMultiplier}` : (isPair ? 'pair' : 'piece'));
+                            const singleItemWeight = product.weightPerPiece || (product.category === 'Plants' ? 80 : 100);
+                            const itemWeightDisplay = singleItemWeight * packMultiplier;
+                            const itemShipping = getProductShippingCharge(
+                              product,
+                              effectiveQty,
+                              address.state
+                            );
+
+                            return (
+                              <div className="mt-1 space-y-0.5">
+                                <p className="text-xs text-gray-400 font-medium">
+                                  Weight: {itemWeightDisplay} gm {isPack ? `(${unitText})` : `per ${unitText}`}
+                                </p>
+                                <p className="text-xs text-slate-500 font-bold">
+                                  Est. Shipping: ₹{itemShipping.toFixed(2)}
+                                </p>
+                              </div>
+                            );
+                          })()}
                         </div>
                         
                         <div className="flex items-center justify-between mt-4">
