@@ -560,6 +560,7 @@ export default function NeoBlueMobileOptimized({
                 <Link
                   key={i}
                   href={`/categories/${toCategorySlug(cat.label)}`}
+                  prefetch={false}
                   style={{ animationDelay: `${i * 50}ms` }}
                   className="flex flex-col items-center gap-2 shrink-0 snap-start group animate-fade-in-up"
                 >
@@ -649,6 +650,7 @@ export default function NeoBlueMobileOptimized({
                 <Link
                   key={combo._id}
                   href={`/combos/${combo._id}`}
+                  prefetch={false}
                   className="group shrink-0 w-44 bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm active:scale-95 transition-transform"
                 >
                   <div className="relative h-28 bg-slate-100 overflow-hidden">

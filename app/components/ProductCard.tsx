@@ -44,6 +44,7 @@ export default function ProductCard({ product, idx = 0, className = "" }: Produc
   return (
     <Link
       href={`/products/${product._id || product.id}`}
+      prefetch={false}
       style={{ animationDelay: `${idx * 45}ms` }}
       className={`group flex flex-col overflow-hidden rounded-[20px] sm:rounded-[24px] bg-white border border-slate-100 hover:-translate-y-1.5 transition-all duration-500 animate-fade-in-up ${theme.hoverBorder} ${theme.hoverShadow} ${className}`}
     >

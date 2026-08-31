@@ -144,7 +144,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Set up polling loop
+  // Set up polling loop (optimized to prevent edge request exhaustion)
   useEffect(() => {
     if (!user) {
       setNotifications([]);
@@ -153,12 +153,24 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     }
 
     fetchNotifications(false);
+
     const interval = setInterval(() => {
+      // Skip background polling if tab is hidden
+      if (typeof document !== 'undefined' && document.hidden) return;
       fetchNotifications(true);
-    }, 15000); // Poll every 15 seconds
+    }, 90000); // Poll every 90 seconds instead of 15s
+
+    // Refetch immediately when user focuses back on the tab
+    const handleVisibilityChange = () => {
+      if (typeof document !== 'undefined' && !document.hidden) {
+        fetchNotifications(true);
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
       clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [user]);
 

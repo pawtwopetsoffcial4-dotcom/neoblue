@@ -26,27 +26,27 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async headers() {
+    return [
+      {
+        source: '/:all*(svg|jpg|png|webp|gif|ico|woff|woff2|ttf|css|js)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default withSentryConfig(nextConfig, {
-  // For all available options, see:
-  // https://github.com/getsentry/sentry-webpack-plugin#options
-
-  // Suppresses source map uploading logs during bundling
   silent: true,
   org: "neoblue",
   project: "nextjs",
-
-  // For all available options, see:
-  // https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
-
-  // Upload a larger set of source maps for prettier stack traces (increases build time)
   widenClientFileUpload: true,
-
-  // Routes Browser SDK requests through Tunnel to avoid ad-blockers (e.g. /sentry-tunnel)
   tunnelRoute: "/monitoring",
-
-  // Webpack plugin options for Sentry
   webpack: {
     treeshake: {
       removeDebugLogging: true,
@@ -54,4 +54,3 @@ export default withSentryConfig(nextConfig, {
     automaticVercelMonitors: true,
   },
 });
-// Force configuration reload to clear middleware cache - v2

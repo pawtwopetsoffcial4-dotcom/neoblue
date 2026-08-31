@@ -58,7 +58,7 @@ export default function BlogCard({ blog }: BlogCardProps) {
         {/* Category */}
         {blog.category && (
           <div className="mb-2.5">
-            <Link href={`/blog?category=${blog.category.slug}`}>
+            <Link href={`/blog?category=${blog.category.slug}`} prefetch={false}>
               <span className={`inline-block text-xs font-bold ${accentColorClass} ${categoryHoverClass} uppercase tracking-widest transition-colors`}>
                 {blog.category.name}
               </span>
@@ -67,7 +67,7 @@ export default function BlogCard({ blog }: BlogCardProps) {
         )}
 
         {/* Title */}
-        <Link href={`/blog/${blog.slug}`}>
+        <Link href={`/blog/${blog.slug}`} prefetch={false}>
           <h3 className={`text-lg sm:text-xl font-extrabold text-slate-900 leading-snug line-clamp-2 ${titleHoverClass} transition-colors duration-300 mb-3`}>
             {blog.title}
           </h3>
