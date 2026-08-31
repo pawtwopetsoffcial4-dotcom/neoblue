@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, Users, ClipboardList, LogOut, BookOpen, Menu, X, Package, FileText, Settings } from 'lucide-react';
+import { LayoutDashboard, Users, ClipboardList, LogOut, BookOpen, Menu, X, Package, FileText, Settings, ShoppingCart } from 'lucide-react';
 import { useAuth } from '@/lib/hooks/useAuth';
 
 const navItems = [
@@ -15,6 +15,7 @@ const navItems = [
   { href: '/admin/fish-descriptions', label: 'Descriptions', icon: FileText },
   { href: '/admin/vendors', label: 'Vendors & Shipping', icon: Users },
   { href: '/admin/orders', label: 'Orders', icon: ClipboardList },
+  { href: '/admin/carts', label: 'Carts & Leads', icon: ShoppingCart },
   { href: '/admin/users', label: 'Users', icon: Users },
 ];
 

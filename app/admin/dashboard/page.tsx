@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { apiClient } from '@/lib/api-client';
-import { Plus, Loader2, Trash2, BookOpen, FolderTree, Tags, MessageSquare, Star, Sparkles, Search, Users, ShoppingBag, DollarSign, TrendingUp, ImageIcon } from 'lucide-react';
+import { Plus, Loader2, Trash2, BookOpen, FolderTree, Tags, MessageSquare, Star, Sparkles, Search, Users, ShoppingBag, DollarSign, TrendingUp, ImageIcon, ShoppingCart } from 'lucide-react';
 import { CldUploadWidget } from 'next-cloudinary';
 
 type AdminOrder = { _id: string; totalAmount: number; status: string };
@@ -259,7 +259,7 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Metric Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {/* Metric 1 */}
         <div className="group rounded-3xl bg-gradient-to-br from-white to-blue-50/20 border border-blue-100/80 p-6 shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden bg-white">
           <div className="absolute top-0 left-0 w-1 h-full bg-blue-600 rounded-l-3xl" />
@@ -302,7 +302,26 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        {/* Metric 4 */}
+        {/* Metric 4: Carts & Leads */}
+        <Link 
+          href="/admin/carts"
+          className="group rounded-3xl bg-gradient-to-br from-white to-amber-50/20 border border-amber-200/80 p-6 shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden bg-white cursor-pointer"
+        >
+          <div className="absolute top-0 left-0 w-1 h-full bg-amber-500 rounded-l-3xl" />
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wider text-amber-700">Carts & Leads</p>
+              <p className="text-xs font-black text-amber-600 mt-3 tracking-tight group-hover:translate-x-1 transition-transform duration-300 flex items-center gap-1">
+                <span>View Products</span> &rarr;
+              </p>
+            </div>
+            <div className="h-12 w-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center group-hover:bg-amber-500 group-hover:text-white transition-all duration-300 shadow-inner">
+              <ShoppingCart className="h-5 w-5" />
+            </div>
+          </div>
+        </Link>
+
+        {/* Metric 5 */}
         <div className="group rounded-3xl bg-gradient-to-br from-white to-rose-50/20 border border-blue-100/80 p-6 shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden bg-white">
           <div className="absolute top-0 left-0 w-1 h-full bg-rose-600 rounded-l-3xl" />
           <div className="flex items-center justify-between">
