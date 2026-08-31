@@ -7,6 +7,7 @@ import type { MarketplaceProduct } from '@/lib/types/marketplace';
 import { useAuth } from './useAuth';
 import { useMode } from './useMode';
 import CartDrawer from '@/app/components/CartDrawer';
+import GuestCartAuthModal from '@/app/components/GuestCartAuthModal';
 import { trackAddToCart } from '@/lib/fpixel';
 
 export type PackOptions = {
@@ -80,10 +81,16 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [toast, setToast] = useState<{ id: number; title: string; image?: string; price: number; unitLabel?: string } | null>(null);
   const toastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const { user } = useAuth();
+  const { user, setSession } = useAuth();
   const { mode } = useMode();
   const isPlants = mode === 'plants';
   const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [pendingAuthItem, setPendingAuthItem] = useState<{
+    product: MarketplaceProduct;
+    quantity: number;
+    openDrawer: boolean;
+    packOptions?: PackOptions;
+  } | null>(null);
 
   const openCart = () => setIsCartOpen(true);
   const closeCart = () => setIsCartOpen(false);
@@ -227,7 +234,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }, 500);
   };
 
-  const addToCart = (
+  const executeAddToCart = (
     product: MarketplaceProduct, 
     quantityToAdd: number = 1, 
     openDrawer: boolean = true,
@@ -322,6 +329,39 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const addToCart = (
+    product: MarketplaceProduct, 
+    quantityToAdd: number = 1, 
+    openDrawer: boolean = true,
+    packOptions?: PackOptions
+  ) => {
+    // If not logged in, prompt user with modal to enter name, phone, email
+    if (!user) {
+      setPendingAuthItem({
+        product,
+        quantity: quantityToAdd,
+        openDrawer,
+        packOptions,
+      });
+      return;
+    }
+
+    executeAddToCart(product, quantityToAdd, openDrawer, packOptions);
+  };
+
+  const handleAuthSuccess = (newToken: string, newUser: any) => {
+    setSession(newToken, newUser);
+    if (pendingAuthItem) {
+      executeAddToCart(
+        pendingAuthItem.product,
+        pendingAuthItem.quantity,
+        pendingAuthItem.openDrawer,
+        pendingAuthItem.packOptions
+      );
+      setPendingAuthItem(null);
+    }
+  };
+
   const removeFromCart = (productId: string) => {
     const newItems = items.filter((item) => item.productId !== productId);
     setItems(newItems);
@@ -394,6 +434,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     >
       {children}
       <CartDrawer />
+      <GuestCartAuthModal
+        isOpen={!!pendingAuthItem}
+        onClose={() => setPendingAuthItem(null)}
+        pendingItem={pendingAuthItem}
+        onSuccess={handleAuthSuccess}
+      />
     </CartContext.Provider>
   );
 }

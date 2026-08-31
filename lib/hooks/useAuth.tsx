@@ -19,6 +19,7 @@ interface AuthContextType {
   signup: (name: string, email: string, password: string, phone: string, role: 'user' | 'vendor') => Promise<User>;
   login: (email: string, password: string) => Promise<User>;
   loginWithSocial: (name: string, email: string, idToken: string, role?: 'user' | 'vendor') => Promise<User>;
+  setSession: (token: string, user: User) => void;
   logout: () => void;
   error: string | null;
   clearError: () => void;
@@ -184,6 +185,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const setSession = (newToken: string, newUser: User) => {
+    setToken(newToken);
+    setUser(newUser);
+    localStorage.setItem('authToken', newToken);
+    localStorage.setItem('authUser', JSON.stringify(newUser));
+  };
+
   const logout = () => {
     setUser(null);
     setToken(null);
@@ -203,6 +211,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signup,
         login,
         loginWithSocial,
+        setSession,
         logout,
         error,
         clearError,
