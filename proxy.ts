@@ -10,12 +10,7 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const isPublicAuthRoute =
-    pathname === '/api/auth/login' ||
-    pathname === '/api/auth/signup' ||
-    pathname === '/api/auth/social-login' ||
-    pathname === '/api/auth/vendor/login' ||
-    pathname === '/api/auth/vendor/signup';
+  const isPublicAuthRoute = pathname.startsWith('/api/auth/');
   const isPublicProductsGet = pathname.startsWith('/api/products') && method === 'GET';
   const isPublicCategoriesGet = pathname.startsWith('/api/categories') && method === 'GET';
   const isPublicFishDescGet = pathname.startsWith('/api/fish-descriptions') && method === 'GET';
