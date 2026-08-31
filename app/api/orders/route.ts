@@ -217,27 +217,52 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate products exist and get vendor info
-    const productIds = products.map((p) => p.productId);
-    const dbProducts = await Product.find({ _id: { $in: productIds } }).populate('vendorId');
+    const productIds = products.map((product: any) => {
+      const id = String(product.productId || '');
+      return id.includes('_pack_') ? id.split('_pack_')[0] : (id.includes('-pack-') ? id.split('-pack-')[0] : id);
+    });
+    const uniqueProductIds = Array.from(new Set(productIds));
+    const dbProducts = await Product.find({ _id: { $in: uniqueProductIds } }).populate('vendorId');
 
-    if (dbProducts.length !== productIds.length) {
+    if (dbProducts.length !== uniqueProductIds.length) {
       return createErrorResponse('Some products not found', 404);
     }
 
     let totalAmount = 0;
-    const orderProducts = products.map((p: any) => {
-      const product = dbProducts.find((dp) => dp._id.toString() === p.productId);
+    const orderProducts = products.map((item: any) => {
+      const rawId = String(item.productId || '');
+      const cleanId = rawId.includes('_pack_') ? rawId.split('_pack_')[0] : (rawId.includes('-pack-') ? rawId.split('-pack-')[0] : rawId);
+      const product = dbProducts.find((entry) => entry._id.toString() === cleanId);
       if (!product) {
-        throw new Error(`Product not found: ${p.productId}`);
+        throw new Error(`Product not found: ${item.productId}`);
       }
-      const itemSubtotal = product.price * p.quantity;
+
+      const packQty = Number(item.packQty) || (item.unitLabel?.startsWith('Pack of ') ? parseInt(item.unitLabel.replace('Pack of ', ''), 10) : (rawId.includes('_pack_') ? parseInt(rawId.split('_pack_')[1], 10) : 1));
+      const unitLabel = item.unitLabel || (packQty > 1 ? `Pack of ${packQty}` : (product.perPairPrice != null ? 'pair' : 'piece'));
+
+      let itemPrice = Number(product.price);
+      if (item.price != null && Number(item.price) > 0) {
+        itemPrice = Number(item.price);
+      } else if (packQty > 1) {
+        const discount = packQty === 6 ? 0.10 : packQty === 3 ? 0.05 : 0;
+        itemPrice = Math.round(product.price * packQty * (1 - discount));
+      }
+
+      const qty = Math.max(1, Number(item.quantity) || 1);
+      const itemSubtotal = itemPrice * qty;
       totalAmount += itemSubtotal;
 
+      const vendorIdStr = typeof product.vendorId === 'object' && product.vendorId !== null
+        ? ((product.vendorId as any)._id?.toString() || (product.vendorId as any).id?.toString() || String(product.vendorId))
+        : String(product.vendorId);
+
       return {
-        productId: p.productId,
-        quantity: p.quantity,
-        price: product.price,
-        vendorId: product.vendorId.toString(),
+        productId: product._id.toString(),
+        quantity: qty,
+        price: itemPrice,
+        unitLabel,
+        packQty,
+        vendorId: vendorIdStr,
       };
     });
 
@@ -248,7 +273,13 @@ export async function POST(request: NextRequest) {
     const vendorGroups: Record<
       string,
       {
-        products: Array<{ productId: string; quantity: number; price: number }>;
+        products: Array<{ 
+          productId: string; 
+          quantity: number; 
+          price: number;
+          unitLabel?: string;
+          packQty?: number;
+        }>;
         subtotal: number;
         shippingAmount: number;
         totalWeight: number;
@@ -256,10 +287,14 @@ export async function POST(request: NextRequest) {
       }
     > = {};
 
-    for (const op of dbProducts) {
-      const orderItem = products.find((item: any) => item.productId === op._id.toString());
-      const qty = Number(orderItem?.quantity || 0);
-      const vId = op.vendorId._id ? op.vendorId._id.toString() : op.vendorId.toString();
+    for (const op of orderProducts) {
+      const productDoc = dbProducts.find((p) => p._id.toString() === op.productId);
+      if (!productDoc) continue;
+
+      const vId = op.vendorId;
+      const qty = Math.max(1, Number(op.quantity) || 1);
+      const packMultiplier = op.packQty || (op.unitLabel?.startsWith('Pack of ') ? parseInt(op.unitLabel.replace('Pack of ', ''), 10) : 1);
+      const singleWeight = productDoc.weightPerPiece || (productDoc.category === 'Plants' ? 80 : 100);
 
       if (!vendorGroups[vId]) {
         vendorGroups[vId] = {
@@ -272,16 +307,18 @@ export async function POST(request: NextRequest) {
       }
 
       vendorGroups[vId].products.push({
-        productId: op._id.toString(),
+        productId: op.productId,
         quantity: qty,
         price: op.price,
+        unitLabel: op.unitLabel,
+        packQty: op.packQty,
       });
 
       vendorGroups[vId].subtotal += op.price * qty;
-      vendorGroups[vId].totalWeight += (op.weightPerPiece || 0) * qty;
+      vendorGroups[vId].totalWeight += singleWeight * packMultiplier * qty;
 
       // Check if state is non-serviceable or if region delivery is disabled by vendor
-      const vendorUser = op.vendorId; // populated
+      const vendorUser = productDoc.vendorId as any;
       const nonServiceable = vendorUser?.nonServiceableStates || [];
       if (stateName && nonServiceable.some((s: string) => s.toLowerCase().trim() === stateName.toLowerCase().trim())) {
         vendorGroups[vId].isServiceable = false;

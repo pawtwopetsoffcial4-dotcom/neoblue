@@ -131,7 +131,13 @@ export async function POST(request: NextRequest) {
     const vendorGroups: Record<
       string,
       {
-        products: Array<{ productId: string; quantity: number; price: number }>;
+        products: Array<{ 
+          productId: string; 
+          quantity: number; 
+          price: number;
+          unitLabel?: string;
+          packQty?: number;
+        }>;
         subtotal: number;
         shippingAmount: number;
         totalWeight: number;
@@ -139,10 +145,14 @@ export async function POST(request: NextRequest) {
       }
     > = {};
 
-    for (const op of dbProducts) {
-      const orderItem = products.find((item: any) => item.productId === op._id.toString());
-      const qty = Number(orderItem?.quantity || 0);
-      const vId = op.vendorId._id ? op.vendorId._id.toString() : op.vendorId.toString();
+    for (const op of orderProducts) {
+      const productDoc = dbProducts.find((p) => p._id.toString() === op.productId);
+      if (!productDoc) continue;
+
+      const vId = op.vendorId;
+      const qty = Math.max(1, Number(op.quantity) || 1);
+      const packMultiplier = op.packQty || (op.unitLabel?.startsWith('Pack of ') ? parseInt(op.unitLabel.replace('Pack of ', ''), 10) : 1);
+      const singleWeight = productDoc.weightPerPiece || (productDoc.category === 'Plants' ? 80 : 100);
 
       if (!vendorGroups[vId]) {
         vendorGroups[vId] = {
@@ -155,16 +165,18 @@ export async function POST(request: NextRequest) {
       }
 
       vendorGroups[vId].products.push({
-        productId: op._id.toString(),
+        productId: op.productId,
         quantity: qty,
         price: op.price,
+        unitLabel: op.unitLabel,
+        packQty: op.packQty,
       });
 
       vendorGroups[vId].subtotal += op.price * qty;
-      vendorGroups[vId].totalWeight += (op.weightPerPiece || 0) * qty;
+      vendorGroups[vId].totalWeight += singleWeight * packMultiplier * qty;
 
       // Check if state is non-serviceable or if region delivery is disabled by vendor
-      const vendorUser = op.vendorId; // populated
+      const vendorUser = productDoc.vendorId as any;
       const nonServiceable = vendorUser?.nonServiceableStates || [];
       if (stateName && nonServiceable.some((s: string) => s.toLowerCase().trim() === stateName.toLowerCase().trim())) {
         vendorGroups[vId].isServiceable = false;
