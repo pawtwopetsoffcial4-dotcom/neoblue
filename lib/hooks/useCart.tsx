@@ -34,6 +34,59 @@ export function sanitizeCartItems(rawItems: CartItem[]): CartItem[] {
   });
 }
 
+export function createCartItemFromProduct(
+  product: MarketplaceProduct, 
+  quantityToAdd: number = 1, 
+  packOptions?: PackOptions
+): CartItem {
+  const packQty = packOptions?.packQty || 1;
+  const isPair = (product as any).perPairPrice != null;
+  const unitLabel = packOptions?.unitLabel || (packQty > 1 ? `Pack of ${packQty}` : (isPair ? 'pair' : 'piece'));
+
+  // Price calculation
+  let itemPrice = product.price;
+  if (packOptions?.customPrice != null) {
+    itemPrice = packOptions.customPrice;
+  } else if (packQty > 1) {
+    const discount = packQty === 6 ? 0.10 : packQty === 3 ? 0.05 : 0;
+    itemPrice = Math.round(product.price * packQty * (1 - discount));
+  }
+
+  const baseWeight = product.weightPerPiece && product.weightPerPiece > 0
+    ? product.weightPerPiece
+    : (product.category === 'Plants' ? 80 : 100);
+  const weightPerItem = baseWeight * packQty;
+
+  // Unique key per product variant/pack size
+  const itemKey = packQty > 1 ? `${product._id}_pack_${packQty}` : product._id;
+
+  const vendorId = typeof product.vendorId === 'object' && product.vendorId !== null 
+    ? product.vendorId._id 
+    : product.vendorId;
+  const vendorName = typeof product.vendorId === 'object' && product.vendorId !== null 
+    ? product.vendorId.name 
+    : undefined;
+
+  return {
+    productId: itemKey,
+    title: product.title,
+    price: itemPrice,
+    image: product.images?.[0] ?? '/illustrations/placeholder.png',
+    quantity: quantityToAdd,
+    packQty,
+    perPairPrice: (product as any).perPairPrice ?? null,
+    unitLabel,
+    weightPerPiece: weightPerItem,
+    category: product.category,
+    waterType: product.waterType,
+    scientific: product.scientific,
+    originalPrice: packOptions?.customOriginalPrice || (product.price * packQty),
+    discountPercentage: packQty === 6 ? 10 : packQty === 3 ? 5 : product.discountPercentage,
+    vendorId: vendorId ? String(vendorId) : undefined,
+    vendorName,
+  };
+}
+
 export type CartItem = {
   productId: string;
   title: string;
@@ -128,18 +181,19 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             const data = await response.json();
             const dbItems: CartItem[] = data.items || [];
 
-            if (guestItems.length > 0) {
-              const merged = [...dbItems];
-              guestItems.forEach((gItem) => {
-                const existing = merged.find((uItem) => uItem.productId === gItem.productId);
-                if (existing) {
-                  existing.quantity += gItem.quantity;
-                } else {
-                  merged.push(gItem);
-                }
-              });
+            // Merge dbItems with guestItems and any existing items in memory
+            const merged = [...dbItems];
+            [...guestItems, ...items].forEach((gItem) => {
+              const existing = merged.find((uItem) => uItem.productId === gItem.productId);
+              if (existing) {
+                existing.quantity = Math.max(existing.quantity, gItem.quantity);
+              } else {
+                merged.push(gItem);
+              }
+            });
 
-              const saveResponse = await fetch('/api/cart', {
+            if (merged.length > dbItems.length) {
+              await fetch('/api/cart', {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
@@ -155,17 +209,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
                   })),
                 }),
               });
-
-              if (saveResponse.ok) {
-                const saveData = await saveResponse.json();
-                setItems(sanitizeCartItems(saveData.items || merged));
-              } else {
-                setItems(sanitizeCartItems(merged));
-              }
-              localStorage.removeItem('neoblue-cart-guest');
-            } else {
-              setItems(sanitizeCartItems(dbItems));
             }
+
+            setItems(sanitizeCartItems(merged));
+            localStorage.removeItem('neoblue-cart-guest');
           } else {
             const rawUserCart = localStorage.getItem(`neoblue-cart-${user.id}`);
             let userItems: CartItem[] = [];
@@ -174,7 +221,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
                 userItems = JSON.parse(rawUserCart);
               } catch {}
             }
-            setItems(sanitizeCartItems(userItems));
+            const merged = [...userItems];
+            [...guestItems, ...items].forEach((gItem) => {
+              if (!merged.some((u) => u.productId === gItem.productId)) {
+                merged.push(gItem);
+              }
+            });
+            setItems(sanitizeCartItems(merged));
           }
         } catch (err) {
           console.error('Failed to load cart from DB, falling back to localStorage:', err);
@@ -185,7 +238,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
               userItems = JSON.parse(rawUserCart);
             } catch {}
           }
-          setItems(sanitizeCartItems(userItems));
+          const merged = [...userItems];
+          [...guestItems, ...items].forEach((gItem) => {
+            if (!merged.some((u) => u.productId === gItem.productId)) {
+              merged.push(gItem);
+            }
+          });
+          setItems(sanitizeCartItems(merged));
         }
       } else {
         setItems(sanitizeCartItems(guestItems));
@@ -240,30 +299,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     openDrawer: boolean = true,
     packOptions?: PackOptions
   ) => {
-    const packQty = packOptions?.packQty || 1;
-    const isPair = (product as any).perPairPrice != null;
-    const unitLabel = packOptions?.unitLabel || (packQty > 1 ? `Pack of ${packQty}` : (isPair ? 'pair' : 'piece'));
-
-    // Price calculation
-    let itemPrice = product.price;
-    if (packOptions?.customPrice != null) {
-      itemPrice = packOptions.customPrice;
-    } else if (packQty > 1) {
-      const discount = packQty === 6 ? 0.10 : packQty === 3 ? 0.05 : 0;
-      itemPrice = Math.round(product.price * packQty * (1 - discount));
-    }
-
-    const baseWeight = product.weightPerPiece && product.weightPerPiece > 0
-      ? product.weightPerPiece
-      : (product.category === 'Plants' ? 80 : 100);
-    const weightPerItem = baseWeight * packQty;
-
-    // Unique key per product variant/pack size
-    const itemKey = packQty > 1 ? `${product._id}_pack_${packQty}` : product._id;
+    const newItem = createCartItemFromProduct(product, quantityToAdd, packOptions);
 
     setItems((prevItems) => {
       const existingIndex = prevItems.findIndex(
-        (item) => item.productId === itemKey || (item.productId === product._id && item.unitLabel === unitLabel)
+        (item) => item.productId === newItem.productId || (item.productId === product._id && item.unitLabel === newItem.unitLabel)
       );
       let nextItems: CartItem[] = [];
 
@@ -273,42 +313,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             return {
               ...item,
               quantity: item.quantity + quantityToAdd,
-              price: itemPrice,
-              unitLabel,
-              weightPerPiece: weightPerItem,
+              price: newItem.price,
+              unitLabel: newItem.unitLabel,
+              weightPerPiece: newItem.weightPerPiece,
             };
           }
           return item;
         });
       } else {
-        const vendorId = typeof product.vendorId === 'object' && product.vendorId !== null 
-          ? product.vendorId._id 
-          : product.vendorId;
-        const vendorName = typeof product.vendorId === 'object' && product.vendorId !== null 
-          ? product.vendorId.name 
-          : undefined;
-
-        nextItems = [
-          ...prevItems,
-          {
-            productId: itemKey,
-            title: product.title,
-            price: itemPrice,
-            image: product.images?.[0] ?? '/illustrations/placeholder.png',
-            quantity: quantityToAdd,
-            packQty,
-            perPairPrice: (product as any).perPairPrice ?? null,
-            unitLabel,
-            weightPerPiece: weightPerItem,
-            category: product.category,
-            waterType: product.waterType,
-            scientific: product.scientific,
-            originalPrice: packOptions?.customOriginalPrice || (product.price * packQty),
-            discountPercentage: packQty === 6 ? 10 : packQty === 3 ? 5 : product.discountPercentage,
-            vendorId: vendorId ? String(vendorId) : undefined,
-            vendorName,
-          },
-        ];
+        nextItems = [...prevItems, newItem];
       }
 
       syncCartToDB(nextItems);
@@ -319,7 +332,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       id: product._id,
       name: product.title,
       category: product.category,
-      price: itemPrice,
+      price: newItem.price,
       quantity: quantityToAdd,
       currency: 'INR',
     });
@@ -349,16 +362,67 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     executeAddToCart(product, quantityToAdd, openDrawer, packOptions);
   };
 
-  const handleAuthSuccess = (newToken: string, newUser: any) => {
-    setSession(newToken, newUser);
+  const handleAuthSuccess = async (newToken: string, newUser: any) => {
     if (pendingAuthItem) {
-      executeAddToCart(
-        pendingAuthItem.product,
-        pendingAuthItem.quantity,
-        pendingAuthItem.openDrawer,
-        pendingAuthItem.packOptions
-      );
+      const { product, quantity, openDrawer, packOptions } = pendingAuthItem;
+      const newItem = createCartItemFromProduct(product, quantity, packOptions);
+
+      // Pre-update guest cart and user cart in localStorage so loadCart won't overwrite it
+      const rawGuest = localStorage.getItem('neoblue-cart-guest');
+      let currentGuest: CartItem[] = [];
+      try { currentGuest = rawGuest ? JSON.parse(rawGuest) : []; } catch {}
+      const existingIdx = currentGuest.findIndex((it) => it.productId === newItem.productId);
+      if (existingIdx > -1) {
+        currentGuest[existingIdx].quantity += quantity;
+      } else {
+        currentGuest.push(newItem);
+      }
+      const finalItems = sanitizeCartItems(currentGuest);
+      localStorage.setItem('neoblue-cart-guest', JSON.stringify(finalItems));
+      if (newUser?.id) {
+        localStorage.setItem(`neoblue-cart-${newUser.id}`, JSON.stringify(finalItems));
+      }
+
+      // Immediately sync with database
+      try {
+        await fetch('/api/cart', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${newToken}`,
+          },
+          body: JSON.stringify({
+            items: finalItems.map((item) => ({
+              productId: item.productId,
+              quantity: item.quantity,
+              unitLabel: item.unitLabel,
+              packQty: item.packQty,
+              price: item.price,
+            })),
+          }),
+        });
+      } catch (e) {
+        console.error('Immediate cart sync error:', e);
+      }
+
+      setItems(finalItems);
       setPendingAuthItem(null);
+      setSession(newToken, newUser);
+
+      trackAddToCart({
+        id: product._id,
+        name: product.title,
+        category: product.category,
+        price: newItem.price,
+        quantity,
+        currency: 'INR',
+      });
+
+      if (openDrawer) {
+        setIsCartOpen(true);
+      }
+    } else {
+      setSession(newToken, newUser);
     }
   };
 
