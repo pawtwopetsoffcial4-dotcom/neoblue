@@ -350,11 +350,10 @@ export async function POST(request: NextRequest) {
     }
 
     const storeConfig = await StoreConfig.findOne({}).lean();
-    const freeShippingEnabled = Boolean((storeConfig as any)?.freeShippingEnabled);
-    const freeShippingMin = Number((storeConfig as any)?.freeShippingMinAmount) || 1499;
-    const isSingleVendor = Object.keys(vendorGroups).length === 1;
+    const freeShippingEnabled = (storeConfig as any)?.freeShippingEnabled !== false;
+    const freeShippingMin = Number((storeConfig as any)?.freeShippingMinAmount) || 599;
 
-    if (freeShippingEnabled && isSingleVendor && totalAmount >= freeShippingMin) {
+    if (freeShippingEnabled && totalAmount >= freeShippingMin) {
       shippingAmount = 0;
       for (const vId of Object.keys(vendorGroups)) {
         vendorGroups[vId].shippingAmount = 0;

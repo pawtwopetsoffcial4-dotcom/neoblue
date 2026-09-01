@@ -227,12 +227,12 @@ export function checkFreeShippingEligibility(
   remainingAmount: number;
   enabled: boolean;
 } {
-  const enabled = Boolean(storeConfig?.freeShippingEnabled);
-  const minAmount = Number(storeConfig?.freeShippingMinAmount) || 1499;
+  const enabled = storeConfig?.freeShippingEnabled !== false;
+  const minAmount = Number(storeConfig?.freeShippingMinAmount) || 599;
 
   const { isSingleVendor, vendorName } = isSingleVendorCart(items, productDetails);
   const remainingAmount = Math.max(0, minAmount - subtotal);
-  const isEligible = enabled && isSingleVendor && subtotal >= minAmount;
+  const isEligible = enabled && subtotal >= minAmount;
 
   return {
     isEligible,

@@ -55,8 +55,8 @@ export default function AdminVendorsPage() {
   const [isSavingBulk, setIsSavingBulk] = useState(false);
 
   // Free Shipping Threshold Config State
-  const [freeShippingEnabled, setFreeShippingEnabled] = useState(false);
-  const [freeShippingMinAmount, setFreeShippingMinAmount] = useState<number | string>(1499);
+  const [freeShippingEnabled, setFreeShippingEnabled] = useState(true);
+  const [freeShippingMinAmount, setFreeShippingMinAmount] = useState<number | string>(599);
   const [isSavingFreeShipping, setIsSavingFreeShipping] = useState(false);
 
   const SLABS = [
@@ -85,8 +85,8 @@ export default function AdminVendorsPage() {
 
       const configRes = (await apiClient.getStoreConfig()) as any;
       if (configRes) {
-        setFreeShippingEnabled(Boolean(configRes.freeShippingEnabled));
-        setFreeShippingMinAmount(configRes.freeShippingMinAmount ?? 1499);
+        setFreeShippingEnabled(configRes.freeShippingEnabled !== false);
+        setFreeShippingMinAmount(configRes.freeShippingMinAmount ?? 599);
       }
     } catch {
       setVendors([]);
@@ -249,10 +249,10 @@ export default function AdminVendorsPage() {
 
       await apiClient.updateStoreConfig({
         freeShippingEnabled,
-        freeShippingMinAmount: parseFloat(String(freeShippingMinAmount)) || 1499,
+        freeShippingMinAmount: parseFloat(String(freeShippingMinAmount)) || 599,
       });
 
-      setMessage(`Free Shipping rule saved: ${freeShippingEnabled ? `Enabled (Min ₹${freeShippingMinAmount} for single-seller order)` : 'Disabled'}`);
+      setMessage(`Free Shipping rule saved: ${freeShippingEnabled ? `Enabled (Min ₹${freeShippingMinAmount} on all orders)` : 'Disabled'}`);
     } catch {
       setMessage('Failed to update Free Shipping configuration');
     } finally {
@@ -658,7 +658,7 @@ export default function AdminVendorsPage() {
                     <div className="flex items-center justify-between border-b border-slate-200 pb-3">
                       <div className="flex items-center gap-2">
                         <Gift className="h-4 w-4 text-slate-900" />
-                        <h4 className="font-semibold text-slate-900 text-sm">Single-Seller Free Shipping Threshold</h4>
+                        <h4 className="font-semibold text-slate-900 text-sm">Storewide Free Shipping Threshold (₹599+)</h4>
                       </div>
                       <input
                         type="checkbox"
@@ -669,7 +669,7 @@ export default function AdminVendorsPage() {
                     </div>
 
                     <p className="text-xs text-slate-600 leading-relaxed">
-                      Automatically grant <strong>FREE (₹0) Shipping</strong> when all items in the cart are from the <strong>same vendor</strong> and cart subtotal meets or exceeds the threshold.
+                      Automatically grant <strong>FREE (₹0) Shipping</strong> on all orders meeting or exceeding the minimum subtotal, <strong>including orders with items from multiple different vendors</strong>.
                     </p>
 
                     <div>

@@ -82,8 +82,8 @@ const StoreConfigSchema = new mongoose.Schema<IStoreConfig>(
     stat2Label: { type: String, default: 'Priority Dispatch' },
     stat3Value: { type: String, default: '100%' },
     stat3Label: { type: String, default: 'Live Arrival Cover' },
-    freeShippingEnabled: { type: Boolean, default: false },
-    freeShippingMinAmount: { type: Number, default: 1499 },
+    freeShippingEnabled: { type: Boolean, default: true },
+    freeShippingMinAmount: { type: Number, default: 599 },
     minOrderAmount: { type: Number, default: 599 },
   },
   { timestamps: true }

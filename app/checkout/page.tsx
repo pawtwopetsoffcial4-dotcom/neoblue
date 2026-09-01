@@ -1071,14 +1071,14 @@ function CheckoutPageContent() {
                     {freeShippingInfo.isEligible && (
                       <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-2xl text-emerald-800 text-xs font-semibold flex items-center gap-2">
                         <span className="text-base">🎉</span>
-                        <span>Free Shipping Applied! (Single-seller order over ₹{freeShippingInfo.minAmount})</span>
+                        <span>Free Shipping Applied! (Orders over ₹{freeShippingInfo.minAmount})</span>
                       </div>
                     )}
 
-                    {freeShippingInfo.enabled && freeShippingInfo.isSingleVendor && !freeShippingInfo.isEligible && freeShippingInfo.remainingAmount > 0 && (
+                    {freeShippingInfo.enabled && !freeShippingInfo.isEligible && freeShippingInfo.remainingAmount > 0 && (
                       <div className="p-3 bg-amber-50 border border-amber-200 rounded-2xl text-amber-900 text-xs font-semibold flex items-center gap-2">
                         <span className="text-base">🚚</span>
-                        <span>Add <strong>₹{freeShippingInfo.remainingAmount.toFixed(0)}</strong> more of <strong>{freeShippingInfo.vendorName}</strong>&apos;s items for FREE Shipping!</span>
+                        <span>Add <strong>₹{freeShippingInfo.remainingAmount.toFixed(0)}</strong> more items for FREE Shipping!</span>
                       </div>
                     )}
 
