@@ -36,7 +36,6 @@ export default function ProductClientPage({
   const [activeTab, setActiveTab] = useState<'description' | 'specifications' | 'policies' | 'faq' | 'reviews'>('description');
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
-  const [selectedPackQty, setSelectedPackQty] = useState(1);
   const [showForm, setShowForm] = useState(false);
   const [isDescExpanded, setIsDescExpanded] = useState(false);
   const [isStockAlertOpen, setIsStockAlertOpen] = useState(false);
@@ -51,19 +50,16 @@ export default function ProductClientPage({
   const [showMatesDropdown, setShowMatesDropdown] = useState(false);
   const recScrollRef = useRef<HTMLDivElement>(null);
 
-  // Volume discount calculation (5% on 3-pack, 10% on 6-pack, 0% on 1-pack and 10-pack)
-  const currentDiscount = selectedPackQty === 6 ? 0.10 : selectedPackQty === 3 ? 0.05 : 0;
-  const packUnitPrice = Math.round(product.price * selectedPackQty * (1 - currentDiscount));
-  const calculatedTotalPrice = packUnitPrice * quantity;
+  const calculatedTotalPrice = product.price * quantity;
 
   const handleAddToCart = () => {
     if (!product || !product.inStock) return;
-    const packLabel = selectedPackQty > 1 ? `Pack of ${selectedPackQty}` : (product.perPairPrice != null ? 'pair' : 'piece');
+    const unitLabel = product.perPairPrice != null ? 'pair' : 'piece';
     addToCart(product, quantity, true, {
-      packQty: selectedPackQty,
-      unitLabel: packLabel,
-      customPrice: packUnitPrice,
-      customOriginalPrice: product.price * selectedPackQty,
+      packQty: 1,
+      unitLabel,
+      customPrice: product.price,
+      customOriginalPrice: product.price,
     });
     setIsJustAdded(true);
     setTimeout(() => setIsJustAdded(false), 2200);
@@ -346,16 +342,14 @@ export default function ProductClientPage({
           <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm space-y-4">
             <div className="flex items-baseline gap-3 flex-wrap">
               <span className="text-3xl font-black text-slate-900">
-                ₹{packUnitPrice.toLocaleString('en-IN')}
+                ₹{product.price.toLocaleString('en-IN')}
               </span>
               <span className="text-sm text-slate-500 font-semibold">
-                {selectedPackQty > 1 
-                  ? `(Pack of ${selectedPackQty})` 
-                  : (typeof product.perPairPrice === 'number' ? 'per pair' : 'per piece')}
+                {typeof product.perPairPrice === 'number' ? 'per pair' : 'per piece'}
               </span>
-              {selectedPackQty > 1 && currentDiscount > 0 && (
+              {product.discountPercentage != null && product.discountPercentage > 0 && (
                 <span className="text-xs font-black text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full">
-                  Save {Math.round(currentDiscount * 100)}%
+                  Save {product.discountPercentage}%
                 </span>
               )}
             </div>
@@ -411,63 +405,12 @@ export default function ProductClientPage({
               </div>
             </div>
 
-            {/* ── Volume Quantity Packs (Schooling / Aquascaper Bundles) ── */}
-            {product.inStock && (
-              <div className="pt-3 border-t border-slate-100 space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                    <Package className="h-3.5 w-3.5 text-blue-600" />
-                    <span>Schooling &amp; Volume Packs</span>
-                  </span>
-                  <span className="text-[10px] font-extrabold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
-                    Up to 10% OFF
-                  </span>
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-                  {[
-                    { qty: 1, label: '1 Piece', discount: 0, badge: 'Standard' },
-                    { qty: 3, label: 'Pack of 3', discount: 5, badge: '5% OFF' },
-                    { qty: 6, label: 'Pack of 6', discount: 10, badge: '10% OFF 🔥' },
-                    { qty: 10, label: 'Pack of 10', discount: 0, badge: 'Pack of 10' },
-                  ].map((pack) => {
-                    const isSelected = selectedPackQty === pack.qty;
-                    const discountedTotal = Math.round(product.price * pack.qty * (1 - pack.discount / 100));
-
-                    return (
-                      <button
-                        key={pack.qty}
-                        type="button"
-                        onClick={() => setSelectedPackQty(pack.qty)}
-                        className={`p-2.5 rounded-2xl border text-left transition-all cursor-pointer relative overflow-hidden ${
-                          isSelected
-                            ? (isPlants ? 'border-emerald-600 bg-emerald-50/50 ring-2 ring-emerald-600/20 shadow-xs' : 'border-blue-600 bg-blue-50/50 ring-2 ring-blue-600/20 shadow-xs')
-                            : 'border-slate-200/90 bg-slate-50/50 hover:bg-slate-100/70'
-                        }`}
-                      >
-                        <span className="block font-black text-slate-900 text-xs">
-                          {pack.label}
-                        </span>
-                        <span className="block text-[11px] font-bold text-slate-700 mt-0.5">
-                          ₹{discountedTotal.toLocaleString('en-IN')}
-                        </span>
-                        <span className={`inline-block mt-1 text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md ${
-                          pack.discount > 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200/80 text-slate-600'
-                        }`}>
-                          {pack.badge}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
             {/* Quantity & Cart or Out of Stock Alert */}
             <div className="pt-2">
               {product.inStock ? (
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 sm:gap-3">
-                    {/* Stepper (Number of packs/pieces) */}
+                    {/* Stepper (Quantity) */}
                     <div className="flex items-center bg-slate-100/80 border border-slate-200/90 rounded-2xl p-1 shrink-0 shadow-2xs">
                       <button
                         type="button"
@@ -507,7 +450,7 @@ export default function ProductClientPage({
                         <span className="truncate">
                           {isJustAdded 
                             ? 'Added to Bag!' 
-                            : `Add ${quantity > 1 ? `${quantity} ` : ''}${selectedPackQty > 1 ? `(Pack of ${selectedPackQty})` : 'to Bag'}`}
+                            : `Add ${quantity > 1 ? `${quantity} ` : ''}to Bag`}
                         </span>
                       </div>
                       <span className="bg-white/20 backdrop-blur-xs px-2.5 py-1 rounded-xl text-xs font-black tracking-tight shrink-0 ml-2">

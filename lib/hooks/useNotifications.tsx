@@ -158,7 +158,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       // Skip background polling if tab is hidden
       if (typeof document !== 'undefined' && document.hidden) return;
       fetchNotifications(true);
-    }, 90000); // Poll every 90 seconds instead of 15s
+    }, 180000); // Poll every 3 minutes instead of rapid polling
 
     // Refetch immediately when user focuses back on the tab
     const handleVisibilityChange = () => {

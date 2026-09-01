@@ -3,6 +3,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',
@@ -37,6 +38,15 @@ const nextConfig: NextConfig = {
           },
         ],
       },
+      {
+        source: '/_next/static/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
     ];
   },
 };
@@ -46,11 +56,9 @@ export default withSentryConfig(nextConfig, {
   org: "neoblue",
   project: "nextjs",
   widenClientFileUpload: true,
-  tunnelRoute: "/monitoring",
   webpack: {
     treeshake: {
       removeDebugLogging: true,
     },
-    automaticVercelMonitors: true,
   },
 });
