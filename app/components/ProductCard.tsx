@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ShoppingCart, Star, Heart } from 'lucide-react';
+import { ShoppingCart, Heart } from 'lucide-react';
 import { useCart } from '@/lib/hooks/useCart';
 import { useWishlist } from '@/lib/hooks/useWishlist';
 
@@ -106,11 +106,6 @@ export default function ProductCard({ product, idx = 0, className = "" }: Produc
             <span className="text-[9px] sm:text-[10px] font-extrabold text-slate-400 uppercase tracking-widest truncate">
               {product.category || 'Product'}
             </span>
-            {(product.rating > 0) ? (
-              <span className="flex items-center gap-0.5 text-[9px] sm:text-[10px] font-black text-amber-500 bg-amber-50 px-1.5 py-0.5 rounded-md shrink-0">
-                <Star className="w-3 h-3 inline fill-amber-400 text-amber-400 mr-1" /> {product.rating}
-              </span>
-            ) : null}
           </div>
 
           <div className="mb-2">
