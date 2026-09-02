@@ -6,10 +6,11 @@ import { createErrorResponse, createSuccessResponse } from '@/lib/utils/auth';
 export const dynamic = 'force-dynamic';
 
 function formatCartItem(item: any) {
-  if (!item.productId) return null;
   const prod = item.productId;
+  if (!prod) return null;
   const packQty = item.packQty || (item.unitLabel?.startsWith('Pack of ') ? parseInt(item.unitLabel.replace('Pack of ', ''), 10) : 1);
-  const unitLabel = item.unitLabel || (packQty > 1 ? `Pack of ${packQty}` : (prod.perPairPrice != null ? 'pair' : 'piece'));
+  const isPair = item.unitLabel === 'pair' || prod.perPairPrice != null;
+  const unitLabel = item.unitLabel || (packQty > 1 ? `Pack of ${packQty}` : (isPair ? 'pair' : 'piece'));
   
   let itemPrice = Number(item.price) || 0;
   if (!itemPrice || itemPrice <= 0) {

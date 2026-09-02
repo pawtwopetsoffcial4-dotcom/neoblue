@@ -140,12 +140,22 @@ export default function ProductCard({ product, idx = 0, className = "" }: Produc
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
+              const isPair = product.perPairPrice != null;
               addToCart({
+                ...product,
                 _id: product._id || product.id,
                 title: product.title,
                 price: product.price,
                 images: product.images || [product.img || '/illustrations/placeholder.png'],
-              } as any);
+                perPairPrice: product.perPairPrice ?? null,
+                category: product.category,
+                weightPerPiece: product.weightPerPiece,
+                vendorId: product.vendorId,
+              } as any, 1, true, {
+                packQty: 1,
+                unitLabel: isPair ? 'pair' : 'piece',
+                customPrice: product.price,
+              });
             }}
           >
             <div className={`group/btn flex items-center justify-center gap-2 py-2 w-full rounded-lg sm:rounded-xl font-bold text-[11px] sm:text-xs text-white transition-all duration-300 shadow-md active:scale-95 cursor-pointer ${theme.btnGradient} ${theme.btnHover} ${theme.btnShadow}`}>

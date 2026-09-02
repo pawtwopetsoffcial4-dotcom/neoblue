@@ -23,13 +23,14 @@ export function sanitizeCartItems(rawItems: CartItem[]): CartItem[] {
     const rawId = String(item.productId || '');
     const packFromId = rawId.includes('_pack_') ? parseInt(rawId.split('_pack_')[1], 10) : 1;
     const packQty = item.packQty || (packFromId > 1 ? packFromId : (item.unitLabel?.startsWith('Pack of ') ? parseInt(item.unitLabel.replace('Pack of ', ''), 10) : 1));
-    const isPair = (item as any).perPairPrice != null;
+    const isPair = item.unitLabel === 'pair' || (item as any).perPairPrice != null;
     const unitLabel = packQty > 1 ? `Pack of ${packQty}` : (item.unitLabel || (isPair ? 'pair' : 'piece'));
 
     return {
       ...item,
       packQty,
       unitLabel,
+      perPairPrice: isPair ? ((item as any).perPairPrice ?? item.price) : null,
     };
   });
 }
@@ -40,7 +41,7 @@ export function createCartItemFromProduct(
   packOptions?: PackOptions
 ): CartItem {
   const packQty = packOptions?.packQty || 1;
-  const isPair = (product as any).perPairPrice != null;
+  const isPair = packOptions?.unitLabel === 'pair' || (product as any).unitLabel === 'pair' || (product as any).perPairPrice != null;
   const unitLabel = packOptions?.unitLabel || (packQty > 1 ? `Pack of ${packQty}` : (isPair ? 'pair' : 'piece'));
 
   // Price calculation

@@ -271,7 +271,8 @@ export default function CartDrawer() {
                           {(() => {
                             const rawId = String(item.productId || '');
                             const packNum = item.packQty || (rawId.includes('_pack_') ? parseInt(rawId.split('_pack_')[1], 10) : (item.unitLabel?.startsWith('Pack of ') ? parseInt(item.unitLabel.replace('Pack of ', ''), 10) : 1));
-                            const displayUnit = item.unitLabel || (packNum > 1 ? `Pack of ${packNum}` : (item.perPairPrice != null ? 'pair' : 'piece'));
+                            const isPair = item.unitLabel === 'pair' || item.perPairPrice != null;
+                            const displayUnit = item.unitLabel || (packNum > 1 ? `Pack of ${packNum}` : (isPair ? 'pair' : 'piece'));
                             const badgeText = displayUnit.startsWith('Pack') ? displayUnit : `1 ${displayUnit}`;
 
                             return (
