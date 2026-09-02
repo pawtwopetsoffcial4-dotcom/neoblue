@@ -93,9 +93,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </div>
 
       {/* Main Container Layout */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 grid grid-cols-1 md:grid-cols-[250px_1fr] gap-6 lg:gap-8 items-start">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex flex-col md:flex-row gap-6 lg:gap-8 items-start">
         {/* Desktop Sticky Sidebar */}
-        <aside className="hidden md:flex flex-col sticky top-20 lg:top-24 h-[calc(100vh-6rem)] rounded-2xl bg-white border border-slate-200/80 p-4 shadow-xs self-start overflow-hidden z-20">
+        <aside className="hidden md:flex flex-col w-[250px] shrink-0 sticky top-20 lg:top-24 h-[calc(100vh-6.5rem)] rounded-2xl bg-white border border-slate-200/80 p-4 shadow-sm overflow-hidden z-20">
           <div className="px-2 pt-1 border-b border-slate-100 pb-3 shrink-0">
             <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Admin Control</p>
             <h2 className="text-base font-bold text-slate-900 mt-0.5">Management</h2>
