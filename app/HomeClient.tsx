@@ -12,11 +12,13 @@ import type { MarketplaceProduct } from '@/lib/types/marketplace';
 import { PRODUCT_CATEGORIES, getCategoryImage } from '@/lib/catalog';
 import { useMode } from '@/lib/hooks/useMode';
 import ProductCard from '@/app/components/ProductCard';
+import AnnouncementMarquee from '@/app/components/AnnouncementMarquee';
 import { 
   IHeroSlide, 
   DEFAULT_HERO_SLIDES, 
   DEFAULT_FISHES_HERO_SLIDES, 
-  DEFAULT_PLANTS_HERO_SLIDES 
+  DEFAULT_PLANTS_HERO_SLIDES,
+  DEFAULT_MARQUEE_TEXT
 } from '@/lib/types/config';
 import { getTrendingProducts, getNewArrivalProducts } from '@/lib/utils/productAlgorithm';
 
@@ -172,6 +174,15 @@ export default function NeoBlueMobileOptimized({
       ? initialHeroSlidesPlants 
       : DEFAULT_PLANTS_HERO_SLIDES
   );
+  const [marqueeText, setMarqueeText] = useState<string>(
+    initialConfig?.marqueeText || DEFAULT_MARQUEE_TEXT
+  );
+  const [marqueeEnabled, setMarqueeEnabled] = useState<boolean>(
+    initialConfig?.marqueeEnabled !== false
+  );
+  const [marqueeLink, setMarqueeLink] = useState<string>(
+    initialConfig?.marqueeLink || '/products'
+  );
   const [isLoading, setIsLoading] = useState(initialProducts.length === 0);
 
   // Carousel state
@@ -225,6 +236,15 @@ export default function NeoBlueMobileOptimized({
           }
           if (Array.isArray(configData?.heroSlidesPlants) && configData.heroSlidesPlants.length > 0) {
             setHeroSlidesPlants(configData.heroSlidesPlants);
+          }
+          if (typeof configData?.marqueeText === 'string') {
+            setMarqueeText(configData.marqueeText);
+          }
+          if (typeof configData?.marqueeEnabled === 'boolean') {
+            setMarqueeEnabled(configData.marqueeEnabled);
+          }
+          if (typeof configData?.marqueeLink === 'string') {
+            setMarqueeLink(configData.marqueeLink);
           }
         }
       } catch (err) {
@@ -358,6 +378,13 @@ export default function NeoBlueMobileOptimized({
     <div className={`min-h-screen bg-white pb-20 md:pb-0 font-sans transition-colors duration-500 ${
       mode === 'fishes' ? 'text-blue-950 selection:bg-blue-100' : 'text-green-950 selection:bg-green-100'
     }`}>
+      {/* 1. EDITABLE ANNOUNCEMENT / SHIPPING MARQUEE */}
+      <AnnouncementMarquee 
+        text={marqueeText} 
+        enabled={marqueeEnabled} 
+        link={marqueeLink} 
+      />
+
       <>
       {/* 2. HERO CAROUSEL */}
       <section className="px-3 sm:px-4 pt-3 sm:pt-4 pb-2 bg-white">

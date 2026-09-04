@@ -33,6 +33,9 @@ export interface IStoreConfig {
   minOrderAmount?: number;
   facebookPixelId?: string;
   googleAnalyticsId?: string;
+  marqueeText?: string;
+  marqueeEnabled?: boolean;
+  marqueeLink?: string;
 }
 
 const HeroButtonSchema = new mongoose.Schema(
@@ -85,6 +88,9 @@ const StoreConfigSchema = new mongoose.Schema<IStoreConfig>(
     freeShippingEnabled: { type: Boolean, default: true },
     freeShippingMinAmount: { type: Number, default: 599 },
     minOrderAmount: { type: Number, default: 599 },
+    marqueeText: { type: String, default: 'Next shipping on Monday! Order fast for fastest delivery.' },
+    marqueeEnabled: { type: Boolean, default: true },
+    marqueeLink: { type: String, default: '/products' },
   },
   { timestamps: true }
 );

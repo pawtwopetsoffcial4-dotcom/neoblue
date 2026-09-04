@@ -17,6 +17,8 @@ export interface IHeroSlide {
   mode?: 'all' | 'fishes' | 'plants';
 }
 
+export const DEFAULT_MARQUEE_TEXT = 'Next shipping on Monday! Order fast for fastest delivery.';
+
 export const DEFAULT_FISHES_HERO_SLIDES: IHeroSlide[] = [
   {
     id: 'fish-slide-1',

@@ -5,7 +5,7 @@ import { CldUploadWidget } from 'next-cloudinary';
 import { 
   Save, Loader2, Sparkles, X, Plus, Trash2, ArrowUp, ArrowDown, 
   Image as ImageIcon, Eye, ExternalLink, Layers, Fish, Leaf, Link2, Palette,
-  Copy, Check, ShoppingBag, BarChart3
+  Copy, Check, ShoppingBag, BarChart3, Truck, Megaphone
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { 
@@ -13,7 +13,8 @@ import {
   IHeroButton, 
   DEFAULT_FISHES_HERO_SLIDES, 
   DEFAULT_PLANTS_HERO_SLIDES, 
-  DEFAULT_HERO_SLIDES 
+  DEFAULT_HERO_SLIDES,
+  DEFAULT_MARQUEE_TEXT
 } from '@/lib/types/config';
 
 export default function AdminSettingsPage() {
@@ -43,6 +44,9 @@ export default function AdminSettingsPage() {
     stat3Value: '',
     stat3Label: '',
     subcategories: {} as Record<string, string[]>,
+    marqueeText: DEFAULT_MARQUEE_TEXT,
+    marqueeEnabled: true,
+    marqueeLink: '/products',
   });
 
   const [allCategories, setAllCategories] = useState<string[]>([]);
@@ -70,6 +74,9 @@ export default function AdminSettingsPage() {
             heroSlidesPlants: Array.isArray(data.heroSlidesPlants) && data.heroSlidesPlants.length > 0
               ? data.heroSlidesPlants
               : DEFAULT_PLANTS_HERO_SLIDES,
+            marqueeText: typeof data.marqueeText === 'string' ? data.marqueeText : DEFAULT_MARQUEE_TEXT,
+            marqueeEnabled: typeof data.marqueeEnabled === 'boolean' ? data.marqueeEnabled : true,
+            marqueeLink: typeof data.marqueeLink === 'string' ? data.marqueeLink : '/products',
           });
         }
 
@@ -294,6 +301,92 @@ export default function AdminSettingsPage() {
           <span className="hidden sm:inline">{saving ? 'Saving...' : 'Save Settings'}</span>
           <span className="sm:hidden">{saving ? '...' : 'Save'}</span>
         </button>
+      </div>
+
+      {/* 0. ANNOUNCEMENT & SHIPPING MARQUEE BANNER */}
+      <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-5 sm:p-7">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 border-b border-slate-100 pb-5">
+          <div>
+            <h2 className="text-lg sm:text-xl font-black text-slate-800 flex items-center gap-2">
+              <Megaphone className="h-5 w-5 text-blue-600" />
+              Announcement &amp; Shipping Marquee
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+              Continuous marquee ticker displayed at the top of the homepage for urgent shipping updates or dispatch notices.
+            </p>
+          </div>
+          <label className="flex items-center gap-3 cursor-pointer shrink-0">
+            <span className="text-xs font-bold text-slate-700">Enable Marquee</span>
+            <input
+              type="checkbox"
+              checked={config.marqueeEnabled !== false}
+              onChange={(e) => setConfig((prev) => ({ ...prev, marqueeEnabled: e.target.checked }))}
+              className="w-5 h-5 rounded text-blue-600 focus:ring-blue-500 cursor-pointer"
+            />
+          </label>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="md:col-span-2">
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+              Announcement / Marquee Text
+            </label>
+            <input
+              type="text"
+              name="marqueeText"
+              value={config.marqueeText || ''}
+              onChange={handleChange}
+              placeholder="e.g., Next shipping on Monday! Order fast for fastest delivery."
+              className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 bg-slate-50/50"
+            />
+            <p className="text-[11px] text-slate-400 mt-1.5">
+              This text will scroll seamlessly across the screen on the homepage.
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+              Click Link (Optional)
+            </label>
+            <input
+              type="text"
+              name="marqueeLink"
+              value={config.marqueeLink || ''}
+              onChange={handleChange}
+              placeholder="/products"
+              className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 bg-slate-50/50"
+            />
+            <p className="text-[11px] text-slate-400 mt-1.5">
+              Optional URL to redirect users when clicked (default: /products).
+            </p>
+          </div>
+        </div>
+
+        {/* Live Preview Box */}
+        {config.marqueeEnabled !== false && config.marqueeText && (
+          <div className="mt-5 pt-4 border-t border-slate-100">
+            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              <Eye className="w-3.5 h-3.5 text-blue-500" />
+              Live Marquee Preview:
+            </p>
+            <div className="rounded-2xl overflow-hidden shadow-xs border border-blue-200/50">
+              <div className="bg-gradient-to-r from-blue-700 via-indigo-600 to-blue-800 py-2.5 px-4 text-white flex items-center overflow-hidden">
+                <div className="animate-marquee flex items-center gap-6 text-xs font-bold tracking-wide">
+                  {[...Array(4)].map((_, i) => (
+                    <div key={i} className="flex items-center gap-4 shrink-0">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-950/60 text-cyan-300 border border-cyan-400/30">
+                        <Truck className="w-3 h-3 text-amber-300 animate-pulse" />
+                        Dispatch Alert
+                      </span>
+                      <span>{config.marqueeText}</span>
+                      <span className="opacity-60 text-amber-300">• Live-Arrival Guaranteed •</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 1. HERO CAROUSEL SETTINGS WITH MODE TABS */}

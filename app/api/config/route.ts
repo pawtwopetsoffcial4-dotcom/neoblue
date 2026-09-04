@@ -29,6 +29,9 @@ export async function GET() {
       minOrderAmount: payload.minOrderAmount ?? 599,
       categories: Array.isArray(payload.categories) && payload.categories.length ? payload.categories : PRODUCT_CATEGORIES,
       subcategories: payload.subcategories && Object.keys(payload.subcategories).length ? payload.subcategories : PRODUCT_CATALOG,
+      marqueeText: payload.marqueeText ?? 'Next shipping on Monday! Order fast for fastest delivery.',
+      marqueeEnabled: payload.marqueeEnabled !== false,
+      marqueeLink: payload.marqueeLink ?? '/products',
     });
   } catch (error) {
     console.error('Config GET error:', error);
