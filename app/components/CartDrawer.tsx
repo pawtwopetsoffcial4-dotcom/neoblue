@@ -334,26 +334,29 @@ export default function CartDrawer() {
                 })}
 
                 {/* Why No COD Section */}
-                <div className="p-3.5 rounded-2xl bg-amber-50/90 border border-amber-200/90 text-amber-950 shadow-2xs">
-                  <div className="flex gap-3 items-start">
-                    <div className="relative w-12 h-12 sm:w-13 sm:h-13 shrink-0 rounded-xl overflow-hidden bg-white border border-amber-200/80 shadow-2xs p-1 flex items-center justify-center">
+                <div className="p-4 rounded-2xl bg-amber-50/90 border border-amber-200/90 text-amber-950 shadow-2xs mt-2">
+                  <div className="flex flex-col sm:flex-row items-center sm:items-start gap-3.5 sm:gap-4">
+                    <div className="relative w-24 h-24 sm:w-28 sm:h-28 shrink-0 rounded-2xl overflow-hidden bg-white border border-amber-200/90 shadow-xs p-2 flex items-center justify-center">
                       <Image
                         src="/praying hands.png"
-                        alt="Praying hands - Protecting live fish"
-                        width={48}
-                        height={48}
+                        alt="Protecting live fish"
+                        width={112}
+                        height={112}
                         className="w-full h-full object-contain"
                       />
                     </div>
-                    <div className="flex-1 min-w-0 space-y-1">
-                      <h4 className="text-xs font-black text-amber-950 flex items-center gap-1.5 tracking-tight">
-                        Why No Cash on Delivery (COD)?
+                    <div className="flex-1 min-w-0 space-y-1.5 text-center sm:text-left">
+                      <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-amber-200/70 text-amber-900 text-[10px] font-black uppercase tracking-wider">
+                        <span>🙏</span> Safety of Live Lives
+                      </div>
+                      <h4 className="text-xs sm:text-sm font-black text-amber-950 tracking-tight leading-snug">
+                        Why We Don't Offer Cash on Delivery (COD)
                       </h4>
-                      <p className="text-[11px] leading-relaxed text-amber-900/90 font-medium">
-                        Our fish and plants are delicate living beings, not factory goods. In COD, if someone doesn't collect their parcel at the doorstep, the return journey takes days and the fish might die before reaching back.
+                      <p className="text-[11px] sm:text-xs leading-relaxed text-amber-900/90 font-medium">
+                        Our fish and plants are delicate living beings, not factory products. In COD, if someone doesn't collect their parcel at the doorstep, the return journey takes days in transit and the fish might die before reaching back.
                       </p>
-                      <p className="text-[10px] font-bold text-amber-950 pt-0.5">
-                        🙏 We only accept prepaid orders to guarantee 100% safe, direct live arrival.
+                      <p className="text-[10px] sm:text-[11px] font-bold text-amber-950 flex items-center justify-center sm:justify-start gap-1 pt-0.5">
+                        <span>❤️</span> We only accept prepaid orders to guarantee 100% safe & live arrival.
                       </p>
                     </div>
                   </div>
