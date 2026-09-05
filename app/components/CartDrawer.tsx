@@ -333,6 +333,32 @@ export default function CartDrawer() {
                   );
                 })}
 
+                {/* Why No COD Section */}
+                <div className="p-3.5 rounded-2xl bg-amber-50/90 border border-amber-200/90 text-amber-950 shadow-2xs">
+                  <div className="flex gap-3 items-start">
+                    <div className="relative w-12 h-12 sm:w-13 sm:h-13 shrink-0 rounded-xl overflow-hidden bg-white border border-amber-200/80 shadow-2xs p-1 flex items-center justify-center">
+                      <Image
+                        src="/praying hands.png"
+                        alt="Praying hands - Protecting live fish"
+                        width={48}
+                        height={48}
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0 space-y-1">
+                      <h4 className="text-xs font-black text-amber-950 flex items-center gap-1.5 tracking-tight">
+                        Why No Cash on Delivery (COD)?
+                      </h4>
+                      <p className="text-[11px] leading-relaxed text-amber-900/90 font-medium">
+                        Our fish and plants are delicate living beings, not factory goods. In COD, if someone doesn't collect their parcel at the doorstep, the return journey takes days and the fish might die before reaching back.
+                      </p>
+                      <p className="text-[10px] font-bold text-amber-950 pt-0.5">
+                        🙏 We only accept prepaid orders to guarantee 100% safe, direct live arrival.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Trust Badges inside Scrollable Area */}
                 <div className="pt-4 pb-2 border-t border-slate-100 flex flex-col items-center gap-1.5 text-center">
                   <div className="flex items-center gap-3 text-[10px] font-black text-slate-500 uppercase tracking-wider">
@@ -341,7 +367,7 @@ export default function CartDrawer() {
                     </span>
                     <span>•</span>
                     <span className="flex items-center gap-1">
-                      <Truck className="w-3.5 h-3.5 text-blue-600" /> Insulated Box
+                      <Truck className="w-3.5 h-3.5 text-slate-700" /> Insulated Box
                     </span>
                   </div>
 
