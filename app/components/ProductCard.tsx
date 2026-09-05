@@ -24,21 +24,21 @@ export default function ProductCard({ product, idx = 0, className = "" }: Produc
   const formatPrice = (price: number) => `₹${price.toLocaleString('en-IN')}`;
 
   const theme = isPlants ? {
-    hoverBorder: 'hover:border-emerald-300',
-    hoverShadow: 'hover:shadow-[0_8px_30px_rgb(16,185,129,0.12)]',
-    titleHover: 'group-hover:text-emerald-600',
-    badgeBg: 'bg-emerald-500/90',
-    btnGradient: 'bg-emerald-600',
-    btnHover: 'hover:bg-emerald-700',
-    btnShadow: 'shadow-emerald-500/25 hover:shadow-emerald-500/40',
+    hoverBorder: 'hover:border-slate-200',
+    hoverShadow: 'hover:shadow-md',
+    titleHover: 'group-hover:text-emerald-700',
+    badgeBg: 'bg-emerald-600',
+    btnBg: 'bg-slate-900',
+    btnHover: 'hover:bg-slate-800',
+    btnShadow: 'shadow-xs',
   } : {
-    hoverBorder: 'hover:border-blue-300',
-    hoverShadow: 'hover:shadow-[0_8px_30px_rgb(37,99,235,0.12)]',
-    titleHover: 'group-hover:text-blue-600',
-    badgeBg: product.waterType === 'Freshwater' ? 'bg-blue-500/90' : product.waterType === 'Saltwater' ? 'bg-cyan-500/90' : 'bg-indigo-500/90',
-    btnGradient: 'bg-blue-600',
-    btnHover: 'hover:bg-blue-700',
-    btnShadow: 'shadow-blue-500/25 hover:shadow-blue-500/40',
+    hoverBorder: 'hover:border-slate-200',
+    hoverShadow: 'hover:shadow-md',
+    titleHover: 'group-hover:text-slate-900',
+    badgeBg: 'bg-slate-800',
+    btnBg: 'bg-slate-900',
+    btnHover: 'hover:bg-slate-800',
+    btnShadow: 'shadow-xs',
   };
 
   return (
@@ -85,7 +85,7 @@ export default function ProductCard({ product, idx = 0, className = "" }: Produc
         </button>
 
         {hasDiscount && (
-          <span className="absolute top-2.5 left-2.5 sm:top-3 sm:left-3 mt-6 sm:mt-7 px-2 py-0.5 rounded-md text-[9px] font-black bg-gradient-to-br from-rose-500 to-pink-600 text-white shadow-md shadow-rose-500/20 uppercase tracking-wider z-10">
+          <span className="absolute top-2.5 left-2.5 sm:top-3 sm:left-3 mt-6 sm:mt-7 px-2 py-0.5 rounded-md text-[9px] font-black bg-rose-600 text-white shadow-xs uppercase tracking-wider z-10">
             {product.discountPercentage}% Off
           </span>
         )}
@@ -158,7 +158,7 @@ export default function ProductCard({ product, idx = 0, className = "" }: Produc
               });
             }}
           >
-            <div className={`group/btn flex items-center justify-center gap-2 py-2 w-full rounded-lg sm:rounded-xl font-bold text-[11px] sm:text-xs text-white transition-all duration-300 shadow-md active:scale-95 cursor-pointer ${theme.btnGradient} ${theme.btnHover} ${theme.btnShadow}`}>
+            <div className={`group/btn flex items-center justify-center gap-2 py-2 w-full rounded-lg sm:rounded-xl font-bold text-[11px] sm:text-xs text-white transition-all duration-300 shadow-xs active:scale-95 cursor-pointer ${theme.btnBg} ${theme.btnHover} ${theme.btnShadow}`}>
               <ShoppingCart className="h-3.5 w-3.5 transition-transform duration-300 group-hover/btn:-rotate-12 group-hover/btn:scale-110" />
               <span>Add to Cart</span>
             </div>

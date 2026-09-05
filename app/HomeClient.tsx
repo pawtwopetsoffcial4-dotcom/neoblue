@@ -94,13 +94,13 @@ function MobileScrollSection({
   return (
     <section className="pt-6 pb-2 bg-white">
       <div className="px-5 mb-4 flex justify-between items-end">
-        <h2 className={`text-xl font-bold tracking-tight ${mode === 'fishes' ? 'text-blue-950' : 'text-green-950'}`}>{title}</h2>
+        <h2 className="text-xl font-bold tracking-tight text-slate-900">{title}</h2>
         {seeAllHref ? (
-          <Link href={seeAllHref} className={`text-xs font-semibold uppercase tracking-widest ${mode === 'fishes' ? 'text-blue-600 hover:text-blue-700' : 'text-green-700 hover:text-green-800'} hover:underline transition-colors`}>
+          <Link href={seeAllHref} className="text-xs font-semibold uppercase tracking-widest text-slate-600 hover:text-slate-900 hover:underline transition-colors">
             See All
           </Link>
         ) : (
-          <span className={`text-xs font-semibold uppercase tracking-widest ${mode === 'fishes' ? 'text-blue-600' : 'text-green-700'}`}>See All</span>
+          <span className="text-xs font-semibold uppercase tracking-widest text-slate-500">See All</span>
         )}
       </div>
       <div 
@@ -543,11 +543,7 @@ export default function NeoBlueMobileOptimized({
                             <Link
                               key={btn.id || bIdx}
                               href={btn.link || '/products'}
-                              className={`h-10 sm:h-11 px-6 rounded-full text-xs sm:text-sm font-bold uppercase tracking-wider inline-flex items-center gap-2 shadow-lg transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer ${
-                                mode === 'fishes'
-                                  ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-900/30'
-                                  : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-900/30'
-                              }`}
+                              className="h-10 sm:h-11 px-6 rounded-full text-xs sm:text-sm font-bold uppercase tracking-wider inline-flex items-center gap-2 shadow-lg transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer bg-white text-slate-900 hover:bg-slate-100"
                             >
                               <span>{btn.text}</span>
                               <ArrowRight className="h-4 w-4" />
@@ -615,7 +611,6 @@ export default function NeoBlueMobileOptimized({
             ))
           ) : (
             categories.map((cat, i) => {
-              const isPlants = toCategorySlug(cat.label) === 'plants';
               return (
                 <Link
                   key={i}
@@ -624,11 +619,7 @@ export default function NeoBlueMobileOptimized({
                   style={{ animationDelay: `${i * 50}ms` }}
                   className="flex flex-col items-center gap-2 shrink-0 snap-start group animate-fade-in-up"
                 >
-                  <div className={`relative w-15 h-15 rounded-full overflow-hidden border bg-slate-50 transition-all duration-300 group-hover:scale-110 group-hover:shadow-md ${
-                    isPlants 
-                      ? 'border-green-300 ring-2 ring-green-100 group-hover:ring-green-300' 
-                      : 'border-blue-100 group-hover:border-blue-300 group-hover:ring-4 group-hover:ring-blue-100/50'
-                  }`}>
+                  <div className="relative w-15 h-15 rounded-full overflow-hidden border border-slate-200 bg-slate-50 transition-all duration-300 group-hover:scale-110 group-hover:border-slate-400 group-hover:shadow-md">
                     <Image 
                       src={cat.image} 
                       alt={cat.label} 
@@ -637,11 +628,7 @@ export default function NeoBlueMobileOptimized({
                       className="object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                   </div>
-                  <span className={`text-[10px] font-semibold tracking-wide transition-all duration-300 ${
-                    isPlants 
-                      ? 'text-green-700 font-extrabold group-hover:text-green-800' 
-                      : 'text-blue-900/70 group-hover:text-blue-950 font-bold'
-                  }`}>{cat.label}</span>
+                  <span className="text-[10px] font-bold tracking-wide text-slate-700 group-hover:text-slate-900 transition-all duration-300">{cat.label}</span>
                 </Link>
               );
             })
@@ -661,9 +648,7 @@ export default function NeoBlueMobileOptimized({
           ))
         )}
         {!isLoading && trendingProducts.length === 0 && (
-          <div className={`w-full rounded-2xl border border-dashed p-4 text-xs ${
-            mode === 'fishes' ? 'border-blue-100 text-blue-600' : 'border-green-100 text-green-700'
-          }`}>
+          <div className="w-full rounded-2xl border border-dashed border-slate-200 p-4 text-xs text-slate-500">
             No live products available right now.
           </div>
         )}
@@ -681,9 +666,7 @@ export default function NeoBlueMobileOptimized({
           ))
         )}
         {!isLoading && accessoriesProducts.length === 0 && (
-          <div className={`w-full rounded-2xl border border-dashed p-4 text-xs ${
-            mode === 'fishes' ? 'border-blue-100 text-blue-600' : 'border-green-100 text-green-700'
-          }`}>
+          <div className="w-full rounded-2xl border border-dashed border-slate-200 p-4 text-xs text-slate-500">
             Aquarium filters, lighting, heaters, and accessories will appear here.
           </div>
         )}
@@ -701,9 +684,7 @@ export default function NeoBlueMobileOptimized({
           ))
         )}
         {!isLoading && newArrivalProducts.length === 0 && (
-          <div className={`w-full rounded-2xl border border-dashed p-4 text-xs ${
-            mode === 'fishes' ? 'border-blue-100 text-blue-600' : 'border-green-100 text-green-700'
-          }`}>
+          <div className="w-full rounded-2xl border border-dashed border-slate-200 p-4 text-xs text-slate-500">
             New arrivals will appear as soon as products are published.
           </div>
         )}
@@ -714,10 +695,10 @@ export default function NeoBlueMobileOptimized({
         <section className="px-4 py-6">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <p className={`text-[10px] font-bold uppercase tracking-[0.2em] mb-0.5 ${mode === 'fishes' ? 'text-blue-500' : 'text-emerald-600'}`}>Exclusive</p>
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] mb-0.5 text-slate-500">Exclusive</p>
               <h2 className="text-lg font-black text-slate-900">Combo Packages</h2>
             </div>
-            <Link href="/combos" className={`text-xs font-semibold flex items-center gap-1 ${mode === 'fishes' ? 'text-blue-600' : 'text-emerald-600'}`}>
+            <Link href="/combos" className="text-xs font-semibold flex items-center gap-1 text-slate-600 hover:text-slate-900">
               See all <ArrowRight className="h-3 w-3" />
             </Link>
           </div>
@@ -749,7 +730,7 @@ export default function NeoBlueMobileOptimized({
                     <p className="text-xs font-bold text-slate-900 truncate">{combo.name}</p>
                     <p className="text-xs text-slate-500 mt-0.5">{combo.products?.length ?? 0} items</p>
                     <div className="flex items-center gap-1.5 mt-1.5">
-                      <span className={`text-sm font-black ${mode === 'fishes' ? 'text-blue-700' : 'text-emerald-700'}`}>₹{combo.price}</span>
+                      <span className="text-sm font-black text-slate-900">₹{combo.price}</span>
                       {combo.originalPrice && <span className="text-[10px] text-slate-400 line-through">₹{combo.originalPrice}</span>}
                     </div>
                   </div>
