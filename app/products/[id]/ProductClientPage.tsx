@@ -78,6 +78,7 @@ export default function ProductClientPage({
   }, [product]);
 
   const isPlants = product.category === 'Plants';
+  const isAccessories = product.category === 'Accessories' || (product.category && product.category.toLowerCase().includes('accessor'));
   const theme = isPlants ? {
     text: 'text-emerald-600',
     hoverText: 'hover:text-emerald-600',
@@ -88,6 +89,16 @@ export default function ProductClientPage({
     icon: 'text-emerald-500',
     btn: 'bg-emerald-600 text-white hover:bg-emerald-700 active:scale-[0.98] shadow-md shadow-emerald-600/20 cursor-pointer',
     thumbActive: 'border-emerald-600 shadow-md shadow-emerald-600/20',
+  } : isAccessories ? {
+    text: 'text-indigo-600',
+    hoverText: 'hover:text-indigo-600',
+    groupHoverText: 'group-hover:text-indigo-600',
+    bg: 'bg-indigo-600',
+    bgLight: 'bg-indigo-50',
+    border: 'border-indigo-600',
+    icon: 'text-indigo-500',
+    btn: 'bg-indigo-600 text-white hover:bg-indigo-700 active:scale-[0.98] shadow-md shadow-indigo-600/20 cursor-pointer',
+    thumbActive: 'border-indigo-600 shadow-md shadow-indigo-600/20',
   } : {
     text: 'text-blue-600',
     hoverText: 'hover:text-blue-600',
@@ -102,6 +113,8 @@ export default function ProductClientPage({
 
   const specBadgeStyle = isPlants
     ? 'bg-emerald-50 border-emerald-100 text-emerald-700'
+    : isAccessories
+    ? 'bg-indigo-50 border-indigo-100 text-indigo-700'
     : product.waterType === 'Saltwater'
     ? 'bg-cyan-50 border-cyan-100 text-cyan-700'
     : product.waterType === 'Brackish'
@@ -357,50 +370,73 @@ export default function ProductClientPage({
             <div className="pt-4 border-t border-slate-100">
               <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-3">Quick Specs</h4>
               <div className="flex flex-wrap gap-2.5">
-                {product.size && (
-                  <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold ${specBadgeStyle}`}>
-                    <Ruler className="h-3.5 w-3.5" /> Size: {product.size}
-                  </span>
-                )}
-                {product.ageCategory && (
-                  <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold capitalize ${specBadgeStyle}`}>
-                    <Fish className="h-3.5 w-3.5" /> Age: {product.ageCategory}
-                  </span>
-                )}
-                {product.waterType && (
-                  <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold ${specBadgeStyle}`}>
-                    <Droplets className="h-3.5 w-3.5" /> {product.waterType}
-                  </span>
-                )}
-                {product.phMin && product.phMax && (
-                  <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold ${specBadgeStyle}`}>
-                    <Beaker className="h-3.5 w-3.5" /> pH {product.phMin}-{product.phMax}
-                  </span>
-                )}
-                {product.tempMin && product.tempMax && (
-                  <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold ${specBadgeStyle}`}>
-                    <Thermometer className="h-3.5 w-3.5" /> {product.tempMin}-{product.tempMax}°C
-                  </span>
-                )}
-                {product.category === 'Plants' ? (
+                {isAccessories ? (
                   <>
-                    {product.lightingRequirement && (
+                    {product.size && (
                       <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold ${specBadgeStyle}`}>
-                        <Sun className="h-3.5 w-3.5" /> {product.lightingRequirement} Light
+                        <Ruler className="h-3.5 w-3.5" /> Specs: {product.size}
                       </span>
                     )}
-                    {product.co2Requirement && (
+                    {product.scientific && (
                       <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold ${specBadgeStyle}`}>
-                        <Wind className="h-3.5 w-3.5" /> {product.co2Requirement} CO2
+                        <Store className="h-3.5 w-3.5" /> Brand/Model: {product.scientific}
                       </span>
                     )}
+                    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold ${specBadgeStyle}`}>
+                      <Package className="h-3.5 w-3.5" /> {product.category}
+                    </span>
+                    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold ${specBadgeStyle}`}>
+                      <Scale className="h-3.5 w-3.5" /> {product.weightPerPiece || 250} gm
+                    </span>
                   </>
                 ) : (
-                  product.temperament && (
-                    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold ${specBadgeStyle}`}>
-                      <Smile className="h-3.5 w-3.5" /> {product.temperament}
-                    </span>
-                  )
+                  <>
+                    {product.size && (
+                      <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold ${specBadgeStyle}`}>
+                        <Ruler className="h-3.5 w-3.5" /> Size: {product.size}
+                      </span>
+                    )}
+                    {product.ageCategory && (
+                      <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold capitalize ${specBadgeStyle}`}>
+                        <Fish className="h-3.5 w-3.5" /> Age: {product.ageCategory}
+                      </span>
+                    )}
+                    {product.waterType && (
+                      <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold ${specBadgeStyle}`}>
+                        <Droplets className="h-3.5 w-3.5" /> {product.waterType}
+                      </span>
+                    )}
+                    {product.phMin && product.phMax && (
+                      <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold ${specBadgeStyle}`}>
+                        <Beaker className="h-3.5 w-3.5" /> pH {product.phMin}-{product.phMax}
+                      </span>
+                    )}
+                    {product.tempMin && product.tempMax && (
+                      <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold ${specBadgeStyle}`}>
+                        <Thermometer className="h-3.5 w-3.5" /> {product.tempMin}-{product.tempMax}°C
+                      </span>
+                    )}
+                    {product.category === 'Plants' ? (
+                      <>
+                        {product.lightingRequirement && (
+                          <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold ${specBadgeStyle}`}>
+                            <Sun className="h-3.5 w-3.5" /> {product.lightingRequirement} Light
+                          </span>
+                        )}
+                        {product.co2Requirement && (
+                          <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold ${specBadgeStyle}`}>
+                            <Wind className="h-3.5 w-3.5" /> {product.co2Requirement} CO2
+                          </span>
+                        )}
+                      </>
+                    ) : (
+                      product.temperament && (
+                        <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold ${specBadgeStyle}`}>
+                          <Smile className="h-3.5 w-3.5" /> {product.temperament}
+                        </span>
+                      )
+                    )}
+                  </>
                 )}
               </div>
             </div>
@@ -637,27 +673,33 @@ export default function ProductClientPage({
 
             {activeTab === 'specifications' && (
               <div className="space-y-6">
-                <h3 className="text-xl font-bold text-slate-900">Care Requirements & Specifications</h3>
+                <h3 className="text-xl font-bold text-slate-900">
+                  {isAccessories ? 'Technical Specifications & Overview' : 'Care Requirements & Specifications'}
+                </h3>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                   {[
-                    { title: "Common Name", value: product.title, icon: Sparkles, color: `${theme.text} ${theme.bgLight}` },
-                    { title: "Scientific Name", value: product.scientific || 'N/A', icon: Leaf, color: "text-emerald-600 bg-emerald-50" },
-                    { title: "Water Type", value: product.waterType, icon: Droplets, color: "text-cyan-600 bg-cyan-50" },
-                    { title: "pH Range", value: `${product.phMin ?? '6.0'} – ${product.phMax ?? '8.0'}`, icon: Droplets, color: "text-teal-600 bg-teal-50" },
-                    { title: "Temperature", value: `${product.tempMin ?? '20'}°C – ${product.tempMax ?? '30'}°C`, icon: Thermometer, color: "text-rose-600 bg-rose-50" },
+                    { title: isAccessories ? "Model / Item" : "Common Name", value: product.title, icon: Sparkles, color: `${theme.text} ${theme.bgLight}` },
+                    ...(isAccessories ? [
+                      { title: "Brand / Code", value: product.scientific || 'NeoBlue Verified', icon: Store, color: "text-indigo-600 bg-indigo-50" },
+                    ] : [
+                      { title: "Scientific Name", value: product.scientific || 'N/A', icon: Leaf, color: "text-emerald-600 bg-emerald-50" },
+                      { title: "Water Type", value: product.waterType, icon: Droplets, color: "text-cyan-600 bg-cyan-50" },
+                      { title: "pH Range", value: `${product.phMin ?? '6.0'} – ${product.phMax ?? '8.0'}`, icon: Droplets, color: "text-teal-600 bg-teal-50" },
+                      { title: "Temperature", value: `${product.tempMin ?? '20'}°C – ${product.tempMax ?? '30'}°C`, icon: Thermometer, color: "text-rose-600 bg-rose-50" },
+                    ]),
                     ...(product.category === 'Plants' ? [
                       { title: "Lighting", value: product.lightingRequirement || 'Medium', icon: Sparkles, color: "text-amber-600 bg-amber-50" },
                       { title: "CO2", value: product.co2Requirement || 'Recommended', icon: Leaf, color: "text-emerald-600 bg-emerald-50" },
                       { title: "Growth Rate", value: product.growthRate || 'Moderate', icon: Activity, color: "text-emerald-600 bg-emerald-50" },
                       { title: "Placement", value: product.placement || 'Midground', icon: Store, color: "text-indigo-600 bg-indigo-50" },
                       { title: "Difficulty", value: product.careDifficulty || 'Moderate', icon: ShieldAlert, color: "text-rose-600 bg-rose-50" },
-                    ] : [
+                    ] : !isAccessories ? [
                       { title: "Temperament", value: product.temperament || 'Peaceful', icon: ShieldAlert, color: "text-amber-600 bg-amber-50" },
-                    ]),
+                    ] : []),
                     { title: "Category", value: product.category, icon: Store, color: "text-purple-600 bg-purple-50" },
                     ...(product.subcategory ? [{ title: "Subcategory", value: product.subcategory, icon: Store, color: "text-purple-600 bg-purple-50" }] : []),
-                    ...(product.size ? [{ title: "Size", value: product.size, icon: Ruler, color: "text-indigo-600 bg-indigo-50" }] : []),
-                    ...(product.ageCategory ? [{ title: "Age Category", value: product.ageCategory, icon: User, color: "text-pink-600 bg-pink-50" }] : []),
+                    ...(product.size ? [{ title: isAccessories ? "Dimensions / Specs" : "Size", value: product.size, icon: Ruler, color: "text-indigo-600 bg-indigo-50" }] : []),
+                    ...(!isAccessories && product.ageCategory ? [{ title: "Age Category", value: product.ageCategory, icon: User, color: "text-pink-600 bg-pink-50" }] : []),
                     { title: "Weight/Piece", value: `${product.weightPerPiece || 250} gm`, icon: Scale, color: "text-slate-600 bg-slate-100" },
                     { title: "Stock", value: product.inStock ? 'In Stock' : 'Out of Stock', icon: CheckCircle2, color: product.inStock ? "text-emerald-600 bg-emerald-50" : "text-rose-600 bg-rose-50" },
                   ].map((spec, i) => (
@@ -675,41 +717,55 @@ export default function ProductClientPage({
 
                 {/* Deep Care Requirements */}
                 <div className="pt-10 border-t border-slate-100 mt-10">
-                  <h3 className="text-2xl font-black text-slate-900 tracking-tight mb-8">Detailed Care Guide</h3>
+                  <h3 className="text-2xl font-black text-slate-900 tracking-tight mb-8">
+                    {isAccessories ? 'Operation & Maintenance Guide' : 'Detailed Care Guide'}
+                  </h3>
                   <div className="prose prose-slate prose-base max-w-4xl space-y-10">
                     {product.careTemp && (
                       <div>
-                        <h4 className="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2"><Thermometer className="h-5 w-5 text-rose-500"/> Temperature Requirements</h4>
+                        <h4 className="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2">
+                          <Thermometer className="h-5 w-5 text-rose-500"/> {isAccessories ? 'Operating Temperature' : 'Temperature Requirements'}
+                        </h4>
                         <p className="text-slate-600 leading-loose whitespace-pre-wrap">{product.careTemp}</p>
                       </div>
                     )}
                     {product.carePh && (
                       <div>
-                        <h4 className="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2"><Droplets className="h-5 w-5 text-teal-500"/> pH Level & Chemistry</h4>
+                        <h4 className="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2">
+                          <Droplets className="h-5 w-5 text-teal-500"/> {isAccessories ? 'Water Chemistry & Safety' : 'pH Level & Chemistry'}
+                        </h4>
                         <p className="text-slate-600 leading-loose whitespace-pre-wrap">{product.carePh}</p>
                       </div>
                     )}
                     {product.careWaterHardness && (
                       <div>
-                        <h4 className="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2"><ShieldAlert className="h-5 w-5 text-blue-500"/> Water Hardness</h4>
+                        <h4 className="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2">
+                          <ShieldAlert className="h-5 w-5 text-blue-500"/> {isAccessories ? 'Durability & Materials' : 'Water Hardness'}
+                        </h4>
                         <p className="text-slate-600 leading-loose whitespace-pre-wrap">{product.careWaterHardness}</p>
                       </div>
                     )}
                     {product.careWaterCurrent && (
                       <div>
-                        <h4 className="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2"><Activity className="h-5 w-5 text-cyan-500"/> Water Current & Aeration</h4>
+                        <h4 className="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2">
+                          <Activity className="h-5 w-5 text-cyan-500"/> {isAccessories ? 'Flow Rate / Performance' : 'Water Current & Aeration'}
+                        </h4>
                         <p className="text-slate-600 leading-loose whitespace-pre-wrap">{product.careWaterCurrent}</p>
                       </div>
                     )}
                     {product.careTankSetup && (
                       <div>
-                        <h4 className="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2"><Box className="h-5 w-5 text-indigo-500"/> Tank Setup & Housing</h4>
+                        <h4 className="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2">
+                          <Box className="h-5 w-5 text-indigo-500"/> {isAccessories ? 'Installation & Setup' : 'Tank Setup & Housing'}
+                        </h4>
                         <p className="text-slate-600 leading-loose whitespace-pre-wrap">{product.careTankSetup}</p>
                       </div>
                     )}
                     {product.careHidingSpots && (
                       <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
-                        <h4 className="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2"><Home className="h-5 w-5 text-emerald-500"/> {product.category === 'Plants' ? 'Substrate & Decor' : 'Hiding Spots & Decor'}</h4>
+                        <h4 className="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2">
+                          <Home className="h-5 w-5 text-emerald-500"/> {isAccessories ? 'Maintenance & Cleaning Tips' : product.category === 'Plants' ? 'Substrate & Decor' : 'Hiding Spots & Decor'}
+                        </h4>
                         <p className="text-slate-600 leading-loose whitespace-pre-wrap">{product.careHidingSpots}</p>
                       </div>
                     )}
@@ -727,9 +783,30 @@ export default function ProductClientPage({
                 <h3 className="text-xl font-bold text-slate-900">Shipping & Guarantees</h3>
                 <div className="space-y-5">
                   {[
-                    { icon: Shield, color: 'text-emerald-600 bg-emerald-50', title: '100% Live Arrival Guarantee', desc: 'All live specimens arrive healthy. DOA claims require a photo and video of the unopened bag within 2 hours of delivery for a full credit or replacement.' },
-                    { icon: Info, color: `${theme.text} ${theme.bgLight}`, title: 'Return & Replacement Policy', desc: 'Due to biosecurity standards, physical returns of live fish, plants, or invertebrates cannot be accepted. Contact support for post-acclimation advice.' },
-                    { icon: Truck, color: 'text-indigo-600 bg-indigo-50', title: 'Thermo-Insulated Packaging', desc: 'Specimens are packed in double-layered oxygenated bags inside styrofoam boxes with seasonal heat/cold packs. Shipped via express next-day air couriers.' },
+                    { 
+                      icon: Shield, 
+                      color: 'text-emerald-600 bg-emerald-50', 
+                      title: isAccessories ? 'Transit Protection Guarantee' : '100% Live Arrival Guarantee', 
+                      desc: isAccessories
+                        ? 'All accessories and equipment are securely packed with multi-layer cushioning. Inspect packages upon delivery and contact support within 24 hours for any transit discrepancies.'
+                        : 'All live specimens arrive healthy. DOA claims require a photo and video of the unopened bag within 2 hours of delivery for a full credit or replacement.' 
+                    },
+                    { 
+                      icon: Info, 
+                      color: `${theme.text} ${theme.bgLight}`, 
+                      title: 'Return & Replacement Policy', 
+                      desc: isAccessories
+                        ? 'Unused equipment in original condition with box can be returned or replaced within 7 days of delivery.'
+                        : 'Due to biosecurity standards, physical returns of live fish, plants, or invertebrates cannot be accepted. Contact support for post-acclimation advice.' 
+                    },
+                    { 
+                      icon: Truck, 
+                      color: 'text-indigo-600 bg-indigo-50', 
+                      title: isAccessories ? 'Secure Packaging & Express Delivery' : 'Thermo-Insulated Packaging', 
+                      desc: isAccessories
+                        ? 'Items are boxed with shock-absorbent cushioning and dispatched promptly through verified courier partners across India.'
+                        : 'Specimens are packed in double-layered oxygenated bags inside styrofoam boxes with seasonal heat/cold packs. Shipped via express next-day air couriers.' 
+                    },
                   ].map((policy, i) => (
                     <div key={i} className="flex gap-4">
                       <div className={`w-10 h-10 rounded-xl ${policy.color} flex items-center justify-center shrink-0`}>

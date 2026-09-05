@@ -57,6 +57,26 @@ export const PRODUCT_CATALOG = {
     'Agazzizi Fire Gold',
   ],
   Molly: [],
+  Accessories: [
+    'Submersible Aquarium Filter',
+    'Hang-On Back (HOB) Filter',
+    'Canister Filter',
+    'Sponge Filter with Air Pump',
+    'Submersible Aquarium Heater',
+    'Full Spectrum LED Light',
+    'Aquascaping Substrate & Soil',
+    'Aquarium Glass Tank',
+    'CO2 Diffuser & Regulator Kit',
+    'Aquascaping Scissor & Tweezer Set',
+    'Magnetic Glass Cleaner',
+    'Aquarium Air Pump & Air Stone',
+    'Water Conditioner & Dechlorinator',
+    'Liquid Plant Fertilizer',
+    'Digital Aquarium Thermometer',
+    'Fish Catching Soft Net',
+    'Natural Driftwood & Aquascaping Rocks',
+    'Automatic Fish Feeder',
+  ],
 } as const;
 
 export type ProductCategory = keyof typeof PRODUCT_CATALOG;
@@ -78,6 +98,7 @@ export const CATEGORY_IMAGES: Record<string, string> = {
   Apistogramma: '/fishes_cat_cover/Apistogramma.png',
   Molly: '/fishes_cat_cover/Guppies.jpeg',
   Plants: '/fishes_cat_cover/Plants.png',
+  Accessories: 'https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?auto=format&fit=crop&w=800&q=80',
   Angelfish: '/fishes_cat_cover/Guppies.jpeg',
   Bettas: '/fishes_cat_cover/Guppies.jpeg',
   'Discus Fish': '/fishes_cat_cover/Guppies.jpeg',
@@ -95,6 +116,7 @@ export const normalizeCategoryName = (category: string): string => {
   const trimmed = category.replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '').trim();
   const lower = trimmed.toLowerCase();
 
+  if (lower === 'accessory' || lower === 'accessories' || lower === 'aquarium accessories' || lower === 'equipment' || lower === 'aquarium equipment') return 'Accessories';
   if (lower === 'angel' || lower === 'angels' || lower === 'angel fish' || lower === 'angelfish') return 'Angelfish';
   if (lower === 'betta' || lower === 'bettas') return 'Bettas';
   if (lower === 'guppy' || lower === 'guppies') return 'Guppies';

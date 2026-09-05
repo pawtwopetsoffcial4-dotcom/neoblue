@@ -81,11 +81,13 @@ const toCategorySlug = (category: string) =>
 function MobileScrollSection({ 
   title, 
   children, 
-  mode 
+  mode,
+  seeAllHref
 }: { 
   title: string; 
   children: React.ReactNode; 
-  mode: 'fishes' | 'plants' 
+  mode: 'fishes' | 'plants';
+  seeAllHref?: string;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -93,7 +95,13 @@ function MobileScrollSection({
     <section className="pt-6 pb-2 bg-white">
       <div className="px-5 mb-4 flex justify-between items-end">
         <h2 className={`text-xl font-bold tracking-tight ${mode === 'fishes' ? 'text-blue-950' : 'text-green-950'}`}>{title}</h2>
-        <span className={`text-xs font-semibold uppercase tracking-widest ${mode === 'fishes' ? 'text-blue-600' : 'text-green-700'}`}>See All</span>
+        {seeAllHref ? (
+          <Link href={seeAllHref} className={`text-xs font-semibold uppercase tracking-widest ${mode === 'fishes' ? 'text-blue-600 hover:text-blue-700' : 'text-green-700 hover:text-green-800'} hover:underline transition-colors`}>
+            See All
+          </Link>
+        ) : (
+          <span className={`text-xs font-semibold uppercase tracking-widest ${mode === 'fishes' ? 'text-blue-600' : 'text-green-700'}`}>See All</span>
+        )}
       </div>
       <div 
         ref={scrollRef} 
@@ -354,6 +362,31 @@ export default function NeoBlueMobileOptimized({
   const newArrivalProducts = useMemo(() => {
     return getNewArrivalProducts(cards, 10);
   }, [cards]);
+
+  // Automated Accessories Extraction
+  const accessoriesProducts = useMemo<HeroCardProduct[]>(() => {
+    return products
+      .filter((p) => {
+        const cat = (p.category || '').toLowerCase();
+        return cat === 'accessories' || cat === 'accessory' || cat.includes('accessor');
+      })
+      .map((product) => ({
+        id: product._id,
+        title: product.title,
+        price: product.price,
+        img: product.images?.[0] || DEFAULT_IMAGE,
+        tag: product.tag,
+        rating: product.rating,
+        reviewsCount: product.reviewsCount,
+        createdAt: product.createdAt,
+        isTrending: product.isTrending,
+        isNewArrival: product.isNewArrival,
+        category: product.category,
+        perPairPrice: product.perPairPrice,
+        perPiecePrice: product.perPiecePrice,
+        inStock: product.inStock,
+      }));
+  }, [products]);
 
   const categories = useMemo(() => {
     const list = categoriesFromDb.length > 0
@@ -617,7 +650,7 @@ export default function NeoBlueMobileOptimized({
       </section>
 
       {/* 4. TRENDING */}
-      <MobileScrollSection title="Trending Now" mode={mode}>
+      <MobileScrollSection title="Trending Now" mode={mode} seeAllHref="/products">
         {isLoading && trendingProducts.length === 0 ? (
           Array.from({ length: 5 }).map((_, i) => (
             <ProductCardSkeleton key={`trend-skel-${i}`} className="w-40 md:w-55 shrink-0 snap-start" />
@@ -636,8 +669,28 @@ export default function NeoBlueMobileOptimized({
         )}
       </MobileScrollSection>
 
-      {/* 5. NEW ARRIVALS */}
-      <MobileScrollSection title="New Arrivals" mode={mode}>
+      {/* 5. ACCESSORIES */}
+      <MobileScrollSection title="Aquarium Accessories" mode={mode} seeAllHref="/categories/accessories">
+        {isLoading && accessoriesProducts.length === 0 ? (
+          Array.from({ length: 5 }).map((_, i) => (
+            <ProductCardSkeleton key={`acc-skel-${i}`} className="w-40 md:w-55 shrink-0 snap-start" />
+          ))
+        ) : (
+          accessoriesProducts.map((product, idx) => (
+            <ProductCard key={`acc-${product.id}`} product={product} idx={idx} className="w-40 md:w-55 shrink-0 snap-start" />
+          ))
+        )}
+        {!isLoading && accessoriesProducts.length === 0 && (
+          <div className={`w-full rounded-2xl border border-dashed p-4 text-xs ${
+            mode === 'fishes' ? 'border-blue-100 text-blue-600' : 'border-green-100 text-green-700'
+          }`}>
+            Aquarium filters, lighting, heaters, and accessories will appear here.
+          </div>
+        )}
+      </MobileScrollSection>
+
+      {/* 6. NEW ARRIVALS */}
+      <MobileScrollSection title="New Arrivals" mode={mode} seeAllHref="/products">
         {isLoading && newArrivalProducts.length === 0 ? (
           Array.from({ length: 5 }).map((_, i) => (
             <ProductCardSkeleton key={`new-skel-${i}`} className="w-40 md:w-55 shrink-0 snap-start" />

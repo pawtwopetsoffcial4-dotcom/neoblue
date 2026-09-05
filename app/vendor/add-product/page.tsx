@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowRight, Fish, Gauge, Sparkles, X, Info, Plus, Trash2, ChevronRight, ChevronLeft, Upload, Check, AlertCircle, Leaf, Coins, Users, HelpCircle, ClipboardList } from 'lucide-react';
+import { ArrowRight, Fish, Gauge, Sparkles, X, Info, Plus, Trash2, ChevronRight, ChevronLeft, Upload, Check, AlertCircle, Leaf, Coins, Users, HelpCircle, ClipboardList, Package } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import { CldUploadWidget } from 'next-cloudinary';
 import { apiClient } from '@/lib/api-client';
@@ -30,7 +30,7 @@ export default function VendorAddProductPage() {
   const [isGeneratingSpecies, setIsGeneratingSpecies] = useState(false);
   const [isGeneratingCare, setIsGeneratingCare] = useState(false);
   const [isGeneratingAll, setIsGeneratingAll] = useState(false);
-  const [productType, setProductType] = useState<'fish' | 'plant'>('fish');
+  const [productType, setProductType] = useState<'fish' | 'plant' | 'accessory'>('fish');
   
   const [form, setForm] = useState({
     title: '',
@@ -203,18 +203,28 @@ export default function VendorAddProductPage() {
       const plantCats = categories.filter(c => c === 'Plants' || c.toLowerCase().includes('plant'));
       return plantCats.length > 0 ? plantCats : ['Plants'];
     }
-    return categories.filter(c => c !== 'Plants' && !c.toLowerCase().includes('plant'));
+    if (productType === 'accessory') {
+      const accCats = categories.filter(c => c === 'Accessories' || c.toLowerCase().includes('accessor'));
+      return accCats.length > 0 ? accCats : ['Accessories'];
+    }
+    return categories.filter(c => c !== 'Plants' && !c.toLowerCase().includes('plant') && c !== 'Accessories' && !c.toLowerCase().includes('accessor'));
   }, [categories, productType]);
 
   useEffect(() => {
     if (categories.length > 0) {
-      const defaultCat = filteredCategories.length > 0 ? filteredCategories[0] : 'Guppies';
+      const defaultCat = filteredCategories.length > 0 
+        ? filteredCategories[0] 
+        : (productType === 'accessory' ? 'Accessories' : productType === 'plant' ? 'Plants' : 'Guppies');
       if (!filteredCategories.includes(form.category) && !customCategoryMode) {
         setForm(prev => ({ ...prev, category: defaultCat, title: getVarietiesForCategory(defaultCat)[0] || '' }));
       }
     }
     if (productType === 'plant') {
       setForm(prev => ({ ...prev, pricingType: 'piece', category: 'Plants' }));
+      setCustomCategoryMode(false);
+    }
+    if (productType === 'accessory') {
+      setForm(prev => ({ ...prev, pricingType: 'piece', category: 'Accessories', waterType: 'Freshwater' }));
       setCustomCategoryMode(false);
     }
   }, [productType, filteredCategories, customCategoryMode, categories.length]);
@@ -529,11 +539,11 @@ export default function VendorAddProductPage() {
       <form onSubmit={(e) => { e.preventDefault(); if (currentStep < 5) nextStep(); }} className="rounded-3xl border border-slate-200/60 bg-white p-5 sm:p-6 shadow-xs space-y-6">
         
         {currentStep === 1 && (
-          <div className="flex bg-slate-100 p-1 rounded-xl w-full sm:w-80 mb-2 mx-auto sm:mx-0">
+          <div className="flex bg-slate-100 p-1 rounded-xl w-full sm:w-96 mb-2 mx-auto sm:mx-0">
             <button
               type="button"
               onClick={() => setProductType('fish')}
-              className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm font-bold rounded-lg transition-all ${
+              className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm font-bold rounded-lg transition-all cursor-pointer ${
                 productType === 'fish' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
               }`}
             >
@@ -542,11 +552,20 @@ export default function VendorAddProductPage() {
             <button
               type="button"
               onClick={() => setProductType('plant')}
-              className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm font-bold rounded-lg transition-all ${
+              className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm font-bold rounded-lg transition-all cursor-pointer ${
                 productType === 'plant' ? 'bg-white text-green-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
               }`}
             >
               <Leaf className="h-4 w-4" /> Plant
+            </button>
+            <button
+              type="button"
+              onClick={() => setProductType('accessory')}
+              className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm font-bold rounded-lg transition-all cursor-pointer ${
+                productType === 'accessory' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              <Package className="h-4 w-4" /> Accessory
             </button>
           </div>
         )}
@@ -567,7 +586,13 @@ export default function VendorAddProductPage() {
           <div className="space-y-4 animate-fadeIn">
             <div>
               <h2 className="text-lg font-bold text-slate-900">1. Basic Information</h2>
-              <p className="text-xs text-slate-500 mt-0.5">Select category, variety titles, scientific names, and stock details.</p>
+              <p className="text-xs text-slate-500 mt-0.5">
+                {productType === 'accessory' 
+                  ? 'Configure accessory category, equipment name, dimensions, and stock details.'
+                  : productType === 'plant'
+                  ? 'Configure aquatic plant species, placement, care difficulty, and stock details.'
+                  : 'Select category, variety titles, scientific names, and stock details.'}
+              </p>
             </div>
             
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 pt-2">
@@ -580,7 +605,7 @@ export default function VendorAddProductPage() {
                       onClick={() => {
                         const next = !customCategoryMode;
                         setCustomCategoryMode(next);
-                        setForm(prev => ({ ...prev, category: next ? '' : (categories[0] || 'Guppies') }));
+                        setForm(prev => ({ ...prev, category: next ? '' : (filteredCategories[0] || 'Accessories') }));
                       }}
                       className="text-[10px] font-bold text-blue-600 hover:underline cursor-pointer"
                     >
@@ -622,7 +647,9 @@ export default function VendorAddProductPage() {
 
               <div className="flex flex-col gap-1.5">
                 <div className="flex justify-between items-center">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Variety Title</label>
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                    {productType === 'accessory' ? 'Product / Model Title' : 'Variety Title'}
+                  </label>
                   <button
                     type="button"
                     onClick={() => {
@@ -632,14 +659,14 @@ export default function VendorAddProductPage() {
                     }}
                     className="text-[10px] font-bold text-blue-600 hover:underline cursor-pointer"
                   >
-                    {customVarietyMode ? "Or select variety" : "Or enter custom"}
+                    {customVarietyMode ? "Or select from list" : "Or enter custom"}
                   </button>
                 </div>
                 {customVarietyMode ? (
                   <input
                     type="text"
                     className="h-11 px-4 rounded-xl border border-slate-200 outline-hidden focus:ring-2 focus:ring-blue-500 text-sm font-medium bg-white text-slate-900"
-                    placeholder="Enter custom variety name..."
+                    placeholder={productType === 'accessory' ? 'Enter equipment or accessory title...' : 'Enter custom variety name...'}
                     value={form.title}
                     onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))}
                     required
@@ -651,7 +678,7 @@ export default function VendorAddProductPage() {
                     onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))}
                     required
                   >
-                    <option value="" disabled>Select variety</option>
+                    <option value="" disabled>Select item</option>
                     {getVarietiesForCategory(form.category).map((variety) => (
                       <option key={variety} value={variety}>
                         {variety}
@@ -662,27 +689,31 @@ export default function VendorAddProductPage() {
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Scientific Name (Optional)</label>
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  {productType === 'accessory' ? 'Brand / Model Number (Optional)' : 'Scientific Name (Optional)'}
+                </label>
                 <input
                   className="h-11 px-4 rounded-xl border border-slate-200 outline-hidden focus:ring-2 focus:ring-blue-500 text-sm font-medium"
-                  placeholder="e.g. Poecilia reticulata"
+                  placeholder={productType === 'accessory' ? 'e.g. Sobo, SunSun, Eheim, RS-300' : 'e.g. Poecilia reticulata'}
                   value={form.scientific}
                   onChange={(e) => setForm((prev) => ({ ...prev, scientific: e.target.value }))}
                 />
               </div>
 
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Water Type</label>
-                <select
-                  className="h-11 px-4 rounded-xl border border-slate-200 bg-white text-sm font-medium outline-hidden focus:ring-2 focus:ring-blue-500"
-                  value={form.waterType}
-                  onChange={(e) => setForm((prev) => ({ ...prev, waterType: e.target.value }))}
-                >
-                  <option value="Freshwater">Freshwater</option>
-                  <option value="Saltwater">Saltwater</option>
-                  <option value="Brackish">Brackish</option>
-                </select>
-              </div>
+              {productType !== 'accessory' && (
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Water Type</label>
+                  <select
+                    className="h-11 px-4 rounded-xl border border-slate-200 bg-white text-sm font-medium outline-hidden focus:ring-2 focus:ring-blue-500"
+                    value={form.waterType}
+                    onChange={(e) => setForm((prev) => ({ ...prev, waterType: e.target.value }))}
+                  >
+                    <option value="Freshwater">Freshwater</option>
+                    <option value="Saltwater">Saltwater</option>
+                    <option value="Brackish">Brackish</option>
+                  </select>
+                </div>
+              )}
 
               {productType === 'fish' && (
                 <div className="flex flex-col gap-1.5">
@@ -701,11 +732,13 @@ export default function VendorAddProductPage() {
               )}
 
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Product Size (e.g. 2 inches, Medium, 5 cm)</label>
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  {productType === 'accessory' ? 'Size / Specifications (e.g. 50W, 100L, 30cm, Medium)' : 'Product Size (e.g. 2 inches, Medium, 5 cm)'}
+                </label>
                 <input
                   type="text"
                   className="h-11 px-4 rounded-xl border border-slate-200 outline-hidden focus:ring-2 focus:ring-blue-500 text-sm font-medium"
-                  placeholder="e.g. 2 inches, Medium, 5 cm"
+                  placeholder={productType === 'accessory' ? 'e.g. 50W, 100L, 30cm, Medium' : 'e.g. 2 inches, Medium, 5 cm'}
                   value={form.size}
                   onChange={(e) => setForm((prev) => ({ ...prev, size: e.target.value }))}
                 />

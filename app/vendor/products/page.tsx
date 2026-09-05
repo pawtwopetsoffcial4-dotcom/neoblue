@@ -758,35 +758,45 @@ export default function VendorProductsPage() {
               )}
 
               {/* TAB 3: SPECS & LOGISTICS */}
-              {activeTab === 'specs' && (
+              {activeTab === 'specs' && (() => {
+                const isAccessory = editForm.category === 'Accessories' || (editForm.category && editForm.category.toLowerCase().includes('accessor'));
+                const isPlants = editForm.category === 'Plants' || (editForm.category && editForm.category.toLowerCase().includes('plant'));
+
+                return (
                 <div className="space-y-8 animate-fade-in-up">
                   
                   {/* Sizing & Weight */}
                   <div>
-                    <h3 className="text-xs font-bold text-slate-800 uppercase tracking-widest mb-4">Sizing & Weight</h3>
+                    <h3 className="text-xs font-bold text-slate-800 uppercase tracking-widest mb-4">
+                      {isAccessory ? 'Dimensions & Shipping Weight' : 'Sizing & Weight'}
+                    </h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="space-y-1.5">
-                        <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 pl-1">Size</label>
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 pl-1">
+                          {isAccessory ? 'Size / Model Specs' : 'Size'}
+                        </label>
                         <input
                           className="w-full h-12 px-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm transition-all text-sm font-medium"
-                          placeholder="e.g. 2 inches, Medium"
+                          placeholder={isAccessory ? 'e.g. 50W, 100L, 30cm, Medium' : 'e.g. 2 inches, Medium'}
                           value={editForm.size}
                           onChange={(event) => setEditForm((current) => current ? { ...current, size: event.target.value } : current)}
                         />
                       </div>
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 pl-1">Age Category</label>
-                        <select
-                          className="w-full h-12 px-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm transition-all text-sm font-medium"
-                          value={editForm.ageCategory}
-                          onChange={(event) => setEditForm((current) => current ? { ...current, ageCategory: event.target.value } : current)}
-                        >
-                          <option value="adult">Adult</option>
-                          <option value="semi-adult">Semi adult</option>
-                          <option value="juvenile">Juvenile</option>
-                          <option value="first-season-breeding-pair">First season breeding pair</option>
-                        </select>
-                      </div>
+                      {!isAccessory && (
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 pl-1">Age Category</label>
+                          <select
+                            className="w-full h-12 px-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm transition-all text-sm font-medium"
+                            value={editForm.ageCategory}
+                            onChange={(event) => setEditForm((current) => current ? { ...current, ageCategory: event.target.value } : current)}
+                          >
+                            <option value="adult">Adult</option>
+                            <option value="semi-adult">Semi adult</option>
+                            <option value="juvenile">Juvenile</option>
+                            <option value="first-season-breeding-pair">First season breeding pair</option>
+                          </select>
+                        </div>
+                      )}
                       <div className="space-y-1.5">
                         <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 pl-1">Weight Per Piece</label>
                         <select
@@ -805,111 +815,115 @@ export default function VendorProductsPage() {
                   </div>
 
                   {/* Environment Parameters */}
-                  <div className="pt-6 border-t border-slate-200">
-                    <h3 className="text-xs font-bold text-slate-800 uppercase tracking-widest mb-4">Environment Parameters</h3>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 pl-1">Min Temp (°C)</label>
-                        <input
-                          type="number"
-                          className="w-full h-12 px-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm transition-all text-sm"
-                          value={editForm.tempMin}
-                          onChange={(event) => setEditForm((current) => current ? { ...current, tempMin: event.target.value } : current)}
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 pl-1">Max Temp (°C)</label>
-                        <input
-                          type="number"
-                          className="w-full h-12 px-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm transition-all text-sm"
-                          value={editForm.tempMax}
-                          onChange={(event) => setEditForm((current) => current ? { ...current, tempMax: event.target.value } : current)}
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 pl-1">Min pH</label>
-                        <input
-                          type="number"
-                          step="0.1"
-                          className="w-full h-12 px-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm transition-all text-sm"
-                          value={editForm.phMin}
-                          onChange={(event) => setEditForm((current) => current ? { ...current, phMin: event.target.value } : current)}
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 pl-1">Max pH</label>
-                        <input
-                          type="number"
-                          step="0.1"
-                          className="w-full h-12 px-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm transition-all text-sm"
-                          value={editForm.phMax}
-                          onChange={(event) => setEditForm((current) => current ? { ...current, phMax: event.target.value } : current)}
-                        />
+                  {!isAccessory && (
+                    <div className="pt-6 border-t border-slate-200">
+                      <h3 className="text-xs font-bold text-slate-800 uppercase tracking-widest mb-4">Environment Parameters</h3>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 pl-1">Min Temp (°C)</label>
+                          <input
+                            type="number"
+                            className="w-full h-12 px-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm transition-all text-sm"
+                            value={editForm.tempMin}
+                            onChange={(event) => setEditForm((current) => current ? { ...current, tempMin: event.target.value } : current)}
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 pl-1">Max Temp (°C)</label>
+                          <input
+                            type="number"
+                            className="w-full h-12 px-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm transition-all text-sm"
+                            value={editForm.tempMax}
+                            onChange={(event) => setEditForm((current) => current ? { ...current, tempMax: event.target.value } : current)}
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 pl-1">Min pH</label>
+                          <input
+                            type="number"
+                            step="0.1"
+                            className="w-full h-12 px-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm transition-all text-sm"
+                            value={editForm.phMin}
+                            onChange={(event) => setEditForm((current) => current ? { ...current, phMin: event.target.value } : current)}
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 pl-1">Max pH</label>
+                          <input
+                            type="number"
+                            step="0.1"
+                            className="w-full h-12 px-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm transition-all text-sm"
+                            value={editForm.phMax}
+                            onChange={(event) => setEditForm((current) => current ? { ...current, phMax: event.target.value } : current)}
+                          />
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* Specialized Needs */}
-                  <div className="pt-6 border-t border-slate-200">
-                    <h3 className="text-xs font-bold text-slate-800 uppercase tracking-widest mb-4">Specialized Needs</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {editForm.category === 'Plants' ? (
-                        <>
+                  {!isAccessory && (
+                    <div className="pt-6 border-t border-slate-200">
+                      <h3 className="text-xs font-bold text-slate-800 uppercase tracking-widest mb-4">Specialized Needs</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {isPlants ? (
+                          <>
+                            <div className="space-y-1.5">
+                              <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 pl-1">Lighting</label>
+                              <select
+                                className="w-full h-12 px-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm transition-all text-sm font-medium"
+                                value={editForm.lightingRequirement}
+                                onChange={(event) => setEditForm((current) => current ? { ...current, lightingRequirement: event.target.value as any } : current)}
+                              >
+                                <option value="Low">Low Lighting</option>
+                                <option value="Medium">Medium Lighting</option>
+                                <option value="High">High Lighting</option>
+                              </select>
+                            </div>
+                            <div className="space-y-1.5">
+                              <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 pl-1">CO2 Needs</label>
+                              <select
+                                className="w-full h-12 px-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm transition-all text-sm font-medium"
+                                value={editForm.co2Requirement}
+                                onChange={(event) => setEditForm((current) => current ? { ...current, co2Requirement: event.target.value as any } : current)}
+                              >
+                                <option value="None">No CO2</option>
+                                <option value="Recommended">CO2 Recommended</option>
+                                <option value="High">High CO2</option>
+                              </select>
+                            </div>
+                            <div className="space-y-1.5">
+                              <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 pl-1">Placement</label>
+                              <select
+                                className="w-full h-12 px-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm transition-all text-sm font-medium"
+                                value={editForm.placement}
+                                onChange={(event) => setEditForm((current) => current ? { ...current, placement: event.target.value as any } : current)}
+                              >
+                                <option value="Foreground">Foreground</option>
+                                <option value="Midground">Midground</option>
+                                <option value="Background">Background</option>
+                                <option value="Floating">Floating</option>
+                                <option value="Epiphyte">Epiphyte</option>
+                              </select>
+                            </div>
+                          </>
+                        ) : (
                           <div className="space-y-1.5">
-                            <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 pl-1">Lighting</label>
+                            <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 pl-1">Temperament</label>
                             <select
                               className="w-full h-12 px-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm transition-all text-sm font-medium"
-                              value={editForm.lightingRequirement}
-                              onChange={(event) => setEditForm((current) => current ? { ...current, lightingRequirement: event.target.value as any } : current)}
+                              value={editForm.temperament}
+                              onChange={(event) => setEditForm((current) => current ? { ...current, temperament: event.target.value as any } : current)}
                             >
-                              <option value="Low">Low Lighting</option>
-                              <option value="Medium">Medium Lighting</option>
-                              <option value="High">High Lighting</option>
+                              <option value="Peaceful">Peaceful</option>
+                              <option value="Semi-aggressive">Semi-aggressive</option>
+                              <option value="Aggressive">Aggressive</option>
                             </select>
                           </div>
-                          <div className="space-y-1.5">
-                            <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 pl-1">CO2 Needs</label>
-                            <select
-                              className="w-full h-12 px-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm transition-all text-sm font-medium"
-                              value={editForm.co2Requirement}
-                              onChange={(event) => setEditForm((current) => current ? { ...current, co2Requirement: event.target.value as any } : current)}
-                            >
-                              <option value="None">No CO2</option>
-                              <option value="Recommended">CO2 Recommended</option>
-                              <option value="High">High CO2</option>
-                            </select>
-                          </div>
-                          <div className="space-y-1.5">
-                            <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 pl-1">Placement</label>
-                            <select
-                              className="w-full h-12 px-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm transition-all text-sm font-medium"
-                              value={editForm.placement}
-                              onChange={(event) => setEditForm((current) => current ? { ...current, placement: event.target.value as any } : current)}
-                            >
-                              <option value="Foreground">Foreground</option>
-                              <option value="Midground">Midground</option>
-                              <option value="Background">Background</option>
-                              <option value="Floating">Floating</option>
-                              <option value="Epiphyte">Epiphyte</option>
-                            </select>
-                          </div>
-                        </>
-                      ) : (
-                        <div className="space-y-1.5 md:col-span-1">
-                          <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 pl-1">Temperament</label>
-                          <select
-                            className="w-full h-12 px-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm transition-all text-sm font-medium"
-                            value={editForm.temperament}
-                            onChange={(event) => setEditForm((current) => current ? { ...current, temperament: event.target.value as any } : current)}
-                          >
-                            <option value="Peaceful">Peaceful</option>
-                            <option value="Semi-aggressive">Semi-aggressive</option>
-                            <option value="Aggressive">Aggressive</option>
-                          </select>
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* Delivery Zones */}
                   <div className="pt-6 border-t border-slate-200">
@@ -942,7 +956,8 @@ export default function VendorProductsPage() {
                     </div>
                   </div>
                 </div>
-              )}
+                );
+              })()}
 
               {/* TAB 4: MEDIA & CONTENT */}
               {activeTab === 'media' && (
