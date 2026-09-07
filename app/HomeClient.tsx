@@ -5,7 +5,7 @@ import Image from 'next/image';
 import {
   Waves, Sparkles, Droplets, Package, Fish, Leaf,
   Search, Home, ShoppingBag, User, ArrowRight,
-  ChevronLeft, ChevronRight
+  ChevronLeft, ChevronRight, Store
 } from 'lucide-react';
 import ReviewStars from '@/app/components/ReviewStars';
 import type { MarketplaceProduct } from '@/lib/types/marketplace';
@@ -675,7 +675,70 @@ export default function NeoBlueMobileOptimized({
       </section>
       {/* <!-- WHY_NEOBLUE_END --> */}
 
-      {/* 7. FEATURED COMBOS */}
+      {/* 7. SELL WITH US / VENDOR ONBOARDING SECTION */}
+      <section className="px-3 sm:px-4 py-3 my-2">
+        <div className="max-w-4xl mx-auto">
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 p-5 sm:p-7 md:p-8 text-white border border-blue-900/40 shadow-xl">
+            {/* Ambient Background Glows */}
+            <div className="absolute top-0 right-0 -mr-16 -mt-16 w-56 h-56 rounded-full bg-blue-500/15 blur-3xl pointer-events-none" />
+            <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-56 h-56 rounded-full bg-emerald-500/15 blur-3xl pointer-events-none" />
+
+            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+              {/* Left Content Area */}
+              <div className="space-y-2.5 max-w-xl">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/20 border border-blue-400/30 text-[10px] sm:text-[11px] font-extrabold text-blue-300 uppercase tracking-wider">
+                  <Store className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                  <span>Seller &amp; Breeder Partner Program</span>
+                </div>
+
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight text-white leading-tight">
+                  Breeder or Aquatic Nursery? <span className="text-blue-400">Sell with NeoBlue</span>
+                </h2>
+
+                <p className="text-xs sm:text-sm text-slate-300 font-medium leading-relaxed">
+                  Join India&apos;s premier dedicated live aquatic marketplace. Showcase your species to tens of thousands of active hobbyists, set custom shipping slabs, and enjoy fast automated payouts.
+                </p>
+
+                {/* Key Benefits Pills */}
+                <div className="flex flex-wrap gap-2 pt-1.5">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white/10 border border-white/10 text-[11px] font-bold text-slate-200">
+                    <span className="text-emerald-400 font-black">✓</span> Pan-India Reach
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white/10 border border-white/10 text-[11px] font-bold text-slate-200">
+                    <span className="text-emerald-400 font-black">✓</span> Direct Payouts
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white/10 border border-white/10 text-[11px] font-bold text-slate-200">
+                    <span className="text-emerald-400 font-black">✓</span> Custom Regional Shipping
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white/10 border border-white/10 text-[11px] font-bold text-slate-200">
+                    <span className="text-emerald-400 font-black">✓</span> Dedicated Storefront
+                  </span>
+                </div>
+              </div>
+
+              {/* Right CTA Action Buttons */}
+              <div className="flex flex-col sm:flex-row md:flex-col gap-2.5 shrink-0 md:min-w-[210px]">
+                <Link
+                  href="/auth/vendor-signup"
+                  className="h-12 px-6 rounded-2xl bg-blue-600 hover:bg-blue-500 active:scale-95 text-white font-extrabold text-xs sm:text-sm tracking-wider uppercase flex items-center justify-center gap-2 shadow-lg shadow-blue-600/30 transition-all cursor-pointer"
+                >
+                  <span>Start Selling</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+
+                <Link
+                  href="/auth/vendor-login"
+                  className="h-10 px-4 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/20 active:scale-95 text-slate-200 font-bold text-xs flex items-center justify-center gap-1.5 transition-all text-center"
+                >
+                  <span>Vendor Dashboard Login</span>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 8. FEATURED COMBOS */}
       {featuredCombos.length > 0 && (
         <section className="px-4 py-6">
           <div className="flex items-center justify-between mb-4">
