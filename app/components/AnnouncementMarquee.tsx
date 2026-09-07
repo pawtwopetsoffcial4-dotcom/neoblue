@@ -25,13 +25,9 @@ export default function AnnouncementMarquee({
 
   const marqueeContent = (
     <div className="relative overflow-hidden w-full select-none">
-      {/* Background Gradient Bar */}
+      {/* Background Blue Bar */}
       <div 
-        className={`w-full py-2.5 px-4 flex items-center transition-all duration-500 shadow-xs border-y ${
-          isFishes
-            ? 'bg-gradient-to-r from-blue-700 via-indigo-600 to-blue-800 border-blue-500/40 text-white'
-            : 'bg-gradient-to-r from-emerald-800 via-teal-700 to-green-800 border-emerald-600/40 text-white'
-        }`}
+        className="w-full py-2.5 px-4 flex items-center transition-all duration-500 shadow-xs border-y bg-blue-600 border-blue-500/40 text-white"
       >
         {/* Continuous Marquee Track */}
         <div className="animate-marquee flex items-center gap-8 text-xs sm:text-sm font-bold tracking-wide">
@@ -39,11 +35,7 @@ export default function AnnouncementMarquee({
             <div key={idx} className="flex items-center gap-6 shrink-0">
               {/* Badge & Icon */}
               <div className="flex items-center gap-2">
-                <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-wider shadow-2xs ${
-                  isFishes
-                    ? 'bg-blue-950/60 text-cyan-300 border border-cyan-400/30'
-                    : 'bg-emerald-950/60 text-emerald-300 border border-emerald-400/30'
-                }`}>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-wider shadow-2xs bg-blue-950/60 text-cyan-300 border border-cyan-400/30">
                   <Truck className="w-3 h-3 animate-pulse text-amber-300" />
                   <span>Dispatch Alert</span>
                 </span>
