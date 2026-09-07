@@ -419,7 +419,7 @@ export default function NeoBlueMobileOptimized({
       />
 
       <>
-      {/* 2. HERO CAROUSEL */}
+      {/* 2. HERO CAROUSEL (Exact 16:9 Aspect Ratio, Clickable Banner) */}
       <section className="px-3 sm:px-4 pt-3 sm:pt-4 pb-2 bg-white">
         <div 
           onMouseEnter={() => setIsHovered(true)}
@@ -427,26 +427,30 @@ export default function NeoBlueMobileOptimized({
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
-          className="relative w-full rounded-3xl overflow-hidden shadow-lg min-h-[260px] sm:min-h-[300px] md:min-h-[350px] flex items-center group select-none transition-all duration-500 bg-slate-950"
+          className="relative w-full aspect-[16/9] rounded-2xl sm:rounded-3xl overflow-hidden shadow-md flex items-center group select-none transition-all duration-500 bg-slate-950"
         >
           {/* Background Images & Slides */}
           {activeSlides.map((slide, index) => {
             const isActive = index === currentSlide;
             const bgImage = slide.bgImage || (mode === 'fishes' ? DEFAULT_HERO_SLIDES[1].bgImage : DEFAULT_HERO_SLIDES[2].bgImage);
+            const targetLink = slide.buttonLink || (slide as any).link || '/products';
             
             return (
-              <div
+              <Link
                 key={slide.id || index}
-                className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+                href={targetLink}
+                prefetch={false}
+                className={`absolute inset-0 block transition-opacity duration-1000 ease-in-out cursor-pointer ${
                   isActive ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
                 }`}
+                aria-label={slide.title || 'NeoBlue Banner'}
               >
                 {/* Background Image */}
                 {bgImage ? (
                   <div className="absolute inset-0 overflow-hidden">
                     <Image
                       src={bgImage}
-                      alt={slide.title}
+                      alt={slide.title || 'NeoBlue Banner'}
                       fill
                       priority={index === 0}
                       sizes="(max-width: 768px) 100vw, 1200px"
@@ -463,98 +467,26 @@ export default function NeoBlueMobileOptimized({
                   }`} />
                 )}
 
-                {/* Dark & Brand Gradient Overlays for High-Contrast Typography */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/55 to-black/30 md:bg-gradient-to-r md:from-black/90 md:via-black/65 md:to-black/20" />
-                <div className={`absolute inset-0 mix-blend-overlay opacity-30 ${
-                  mode === 'fishes' ? 'bg-blue-600' : 'bg-emerald-600'
-                }`} />
-
-                {/* Ambient Decorative Light Bubbles */}
-                <div className="absolute -right-10 -top-10 w-48 h-48 bg-white/15 rounded-full blur-3xl animate-float-slow pointer-events-none" />
-                <div className="absolute -left-10 -bottom-10 w-40 h-40 bg-white/15 rounded-full blur-2xl animate-float-reverse pointer-events-none" />
-
-                {/* Slide Content */}
-                <div className="relative z-20 h-full flex flex-col justify-center p-6 sm:p-8 md:p-10 max-w-2xl">
-                  {/* Badge */}
-                  {slide.badge && (
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-[11px] sm:text-xs font-bold text-white uppercase tracking-wider mb-2.5 sm:mb-3 w-fit shadow-xs animate-fade-in-up">
-                      <Sparkles className="h-3 w-3 text-amber-300 animate-pulse" />
-                      <span>{slide.badge}</span>
-                    </div>
-                  )}
-
-                  {/* Title (Single semantic H1 for primary slide, H2 for secondary slides) */}
-                  {index === 0 ? (
-                    <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-white leading-tight tracking-tight mb-2 sm:mb-3 drop-shadow-md animate-fade-in-up">
-                      {slide.title}
-                    </h1>
-                  ) : (
-                    <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-white leading-tight tracking-tight mb-2 sm:mb-3 drop-shadow-md animate-fade-in-up">
+                {/* Ambient Decorative Overlay for contrast if slide text exists */}
+                {slide.title && (
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent flex flex-col justify-end p-4 sm:p-6 md:p-8">
+                    {slide.badge && (
+                      <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-[10px] sm:text-xs font-bold text-white uppercase tracking-wider mb-1.5 w-fit shadow-xs">
+                        <Sparkles className="h-3 w-3 text-amber-300 animate-pulse" />
+                        <span>{slide.badge}</span>
+                      </div>
+                    )}
+                    <h2 className="text-lg sm:text-2xl md:text-3xl font-black text-white leading-tight tracking-tight drop-shadow-md">
                       {slide.title}
                     </h2>
-                  )}
-
-                  {/* Description */}
-                  {slide.description && (
-                    <p className="text-slate-100 text-xs sm:text-sm font-medium mb-5 max-w-lg leading-relaxed drop-shadow-xs line-clamp-2 sm:line-clamp-3 opacity-90 animate-fade-in-up">
-                      {slide.description}
-                    </p>
-                  )}
-
-                  {/* CTA Buttons (Multi-button support) */}
-                  {(() => {
-                    const slideButtons = Array.isArray(slide.buttons) && slide.buttons.length > 0
-                      ? slide.buttons
-                      : [{ id: 'default-btn', text: slide.buttonText || 'Shop Now', link: slide.buttonLink || '/products', variant: 'primary' as const }];
-
-                    return (
-                      <div className="animate-fade-in-up pt-1 flex flex-wrap items-center gap-2.5 sm:gap-3">
-                        {slideButtons.map((btn, bIdx) => {
-                          const isSecondary = btn.variant === 'secondary';
-                          const isGlass = btn.variant === 'glass';
-
-                          if (isSecondary) {
-                            return (
-                              <Link
-                                key={btn.id || bIdx}
-                                href={btn.link || '/products'}
-                                className="h-10 sm:h-11 px-5 sm:px-6 rounded-full text-xs sm:text-sm font-bold uppercase tracking-wider inline-flex items-center gap-2 bg-white text-slate-900 hover:bg-slate-100 shadow-md transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
-                              >
-                                <span>{btn.text}</span>
-                                <ArrowRight className="h-4 w-4" />
-                              </Link>
-                            );
-                          }
-
-                          if (isGlass) {
-                            return (
-                              <Link
-                                key={btn.id || bIdx}
-                                href={btn.link || '/products'}
-                                className="h-10 sm:h-11 px-5 sm:px-6 rounded-full text-xs sm:text-sm font-bold uppercase tracking-wider inline-flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white backdrop-blur-md border border-white/30 shadow-md transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
-                              >
-                                <span>{btn.text}</span>
-                                <ArrowRight className="h-4 w-4 text-white/80" />
-                              </Link>
-                            );
-                          }
-
-                          return (
-                            <Link
-                              key={btn.id || bIdx}
-                              href={btn.link || '/products'}
-                              className="h-10 sm:h-11 px-6 rounded-full text-xs sm:text-sm font-bold uppercase tracking-wider inline-flex items-center gap-2 shadow-lg transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer bg-white text-slate-900 hover:bg-slate-100"
-                            >
-                              <span>{btn.text}</span>
-                              <ArrowRight className="h-4 w-4" />
-                            </Link>
-                          );
-                        })}
-                      </div>
-                    );
-                  })()}
-                </div>
-              </div>
+                    {slide.description && (
+                      <p className="text-slate-200 text-[11px] sm:text-xs font-medium mt-1 max-w-lg line-clamp-1 sm:line-clamp-2 drop-shadow-xs">
+                        {slide.description}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </Link>
             );
           })}
 
@@ -563,8 +495,8 @@ export default function NeoBlueMobileOptimized({
             <>
               <button
                 type="button"
-                onClick={(e) => { e.stopPropagation(); handlePrevSlide(); }}
-                className="absolute left-3 top-1/2 -translate-y-1/2 z-30 h-9 w-9 sm:h-10 sm:w-10 rounded-full bg-black/40 hover:bg-black/70 border border-white/20 backdrop-blur-md text-white flex items-center justify-center transition-all opacity-80 sm:opacity-0 sm:group-hover:opacity-100 hover:scale-110 active:scale-90 cursor-pointer shadow-md"
+                onClick={(e) => { e.stopPropagation(); e.preventDefault(); handlePrevSlide(); }}
+                className="absolute left-3 top-1/2 -translate-y-1/2 z-30 h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-black/40 hover:bg-black/70 border border-white/20 backdrop-blur-md text-white flex items-center justify-center transition-all opacity-80 sm:opacity-0 sm:group-hover:opacity-100 hover:scale-110 active:scale-90 cursor-pointer shadow-md"
                 title="Previous Slide"
               >
                 <ChevronLeft className="h-5 w-5" />
@@ -572,8 +504,8 @@ export default function NeoBlueMobileOptimized({
 
               <button
                 type="button"
-                onClick={(e) => { e.stopPropagation(); handleNextSlide(); }}
-                className="absolute right-3 top-1/2 -translate-y-1/2 z-30 h-9 w-9 sm:h-10 sm:w-10 rounded-full bg-black/40 hover:bg-black/70 border border-white/20 backdrop-blur-md text-white flex items-center justify-center transition-all opacity-80 sm:opacity-0 sm:group-hover:opacity-100 hover:scale-110 active:scale-90 cursor-pointer shadow-md"
+                onClick={(e) => { e.stopPropagation(); e.preventDefault(); handleNextSlide(); }}
+                className="absolute right-3 top-1/2 -translate-y-1/2 z-30 h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-black/40 hover:bg-black/70 border border-white/20 backdrop-blur-md text-white flex items-center justify-center transition-all opacity-80 sm:opacity-0 sm:group-hover:opacity-100 hover:scale-110 active:scale-90 cursor-pointer shadow-md"
                 title="Next Slide"
               >
                 <ChevronRight className="h-5 w-5" />
@@ -583,16 +515,16 @@ export default function NeoBlueMobileOptimized({
 
           {/* Indicator Dot / Pill Navigation */}
           {activeSlides.length > 1 && (
-            <div className="absolute bottom-3.5 sm:bottom-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/40 backdrop-blur-md border border-white/15">
+            <div className="absolute bottom-2.5 sm:bottom-3.5 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/40 backdrop-blur-md border border-white/15">
               {activeSlides.map((_, idx) => (
                 <button
                   key={idx}
                   type="button"
-                  onClick={(e) => { e.stopPropagation(); setCurrentSlide(idx); }}
-                  className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
+                  onClick={(e) => { e.stopPropagation(); e.preventDefault(); setCurrentSlide(idx); }}
+                  className={`h-1.5 sm:h-2 rounded-full transition-all duration-300 cursor-pointer ${
                     idx === currentSlide
-                      ? 'w-6 bg-white shadow-xs'
-                      : 'w-2 bg-white/40 hover:bg-white/70'
+                      ? 'w-5 sm:w-6 bg-white shadow-xs'
+                      : 'w-1.5 sm:w-2 bg-white/40 hover:bg-white/70'
                   }`}
                   title={`Go to slide ${idx + 1}`}
                 />
@@ -690,7 +622,60 @@ export default function NeoBlueMobileOptimized({
         )}
       </MobileScrollSection>
 
-      {/* 6. FEATURED COMBOS */}
+      {/* 6. WHY NEOBLUE / WHY BUY FROM US SECTION */}
+      {/* <!-- WHY_NEOBLUE_START --> */}
+      <section className="px-4 py-8 bg-slate-50/70 border-y border-slate-100 my-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-6">
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-600 bg-blue-50 border border-blue-200/60 px-2.5 py-1 rounded-full">
+              Trust &amp; Quality
+            </span>
+            <h2 className="text-xl sm:text-2xl font-black text-slate-900 mt-2 tracking-tight">
+              Why Buy From NeoBlue?
+            </h2>
+            <p className="text-xs text-slate-500 max-w-md mx-auto mt-1 font-medium">
+              India's premier live aquatic marketplace built by hobbyists, for hobbyists.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+            <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs space-y-1.5 text-center flex flex-col items-center">
+              <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-lg mb-1">
+                🛡️
+              </div>
+              <h3 className="text-xs sm:text-sm font-black text-slate-900 leading-tight">100% Live Arrival</h3>
+              <p className="text-[10px] sm:text-[11px] text-slate-500 font-medium leading-relaxed">Full credit or replacement guarantee on all live specimens.</p>
+            </div>
+
+            <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs space-y-1.5 text-center flex flex-col items-center">
+              <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-lg mb-1">
+                🐟
+              </div>
+              <h3 className="text-xs sm:text-sm font-black text-slate-900 leading-tight">Verified Breeders</h3>
+              <p className="text-[10px] sm:text-[11px] text-slate-500 font-medium leading-relaxed">Direct from India&apos;s top-rated specialized fish &amp; plant farms.</p>
+            </div>
+
+            <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs space-y-1.5 text-center flex flex-col items-center">
+              <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-lg mb-1">
+                📦
+              </div>
+              <h3 className="text-xs sm:text-sm font-black text-slate-900 leading-tight">Insulated Transit</h3>
+              <p className="text-[10px] sm:text-[11px] text-slate-500 font-medium leading-relaxed">Oxygenated packaging with thermal styrofoam climate control.</p>
+            </div>
+
+            <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs space-y-1.5 text-center flex flex-col items-center">
+              <div className="w-10 h-10 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center font-bold text-lg mb-1">
+                🔬
+              </div>
+              <h3 className="text-xs sm:text-sm font-black text-slate-900 leading-tight">Health Certified</h3>
+              <p className="text-[10px] sm:text-[11px] text-slate-500 font-medium leading-relaxed">Strict biosecurity quarantine to ensure 100% disease-free stock.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+      {/* <!-- WHY_NEOBLUE_END --> */}
+
+      {/* 7. FEATURED COMBOS */}
       {featuredCombos.length > 0 && (
         <section className="px-4 py-6">
           <div className="flex items-center justify-between mb-4">

@@ -403,6 +403,8 @@ function CheckoutPageContent() {
 
   if (freeShippingInfo.isEligible) {
     shippingAmount = 0;
+  } else if (shippingAmount === 0 && items.length > 0) {
+    shippingAmount = 99;
   }
 
   const orderTotal = totalAmount + shippingAmount;
@@ -419,8 +421,7 @@ function CheckoutPageContent() {
     }
 
     if (shippingAmount <= 0 && !freeShippingInfo.isEligible) {
-      alert('Shipping charges are compulsory for every order. It seems the vendor has not configured shipping rates for your location.');
-      return;
+      shippingAmount = 99;
     }
 
     if (!address.street || !address.city || !address.state || !address.zipcode || !address.phone) {
@@ -433,7 +434,7 @@ function CheckoutPageContent() {
       return;
     }
 
-    const MIN_ORDER_AMOUNT = 599;
+    const MIN_ORDER_AMOUNT = 150;
     if (totalAmount < MIN_ORDER_AMOUNT) {
       alert(`Minimum order value is ₹${MIN_ORDER_AMOUNT} to place an order. Please add ₹${(MIN_ORDER_AMOUNT - totalAmount).toFixed(0)} more worth of items to your bag.`);
       return;
@@ -1168,17 +1169,17 @@ function CheckoutPageContent() {
                     </label>
                   </div>
 
-                  {totalAmount < 599 && (
-                    <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl flex items-start gap-3 text-amber-900 text-xs">
-                      <AlertCircle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+                  {totalAmount < 150 && (
+                    <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl flex items-start gap-3 text-rose-900 text-xs">
+                      <AlertCircle className="h-5 w-5 text-rose-600 shrink-0 mt-0.5" />
                       <div className="flex-1">
-                        <p className="font-extrabold text-sm text-amber-950">Minimum Order Value: ₹599</p>
-                        <p className="font-medium mt-0.5 text-amber-800">
-                          Your current subtotal is ₹{totalAmount.toFixed(2)}. Please add <strong>₹{(599 - totalAmount).toFixed(0)}</strong> more worth of items to place your order.
+                        <p className="font-extrabold text-sm text-rose-950">Minimum Order Value: ₹150</p>
+                        <p className="font-medium mt-0.5 text-rose-800">
+                          Your current subtotal is ₹{totalAmount.toFixed(2)}. Please add <strong>₹{(150 - totalAmount).toFixed(0)}</strong> more worth of items to place your order.
                         </p>
                         <Link
                           href="/products"
-                          className="inline-flex items-center gap-1 mt-2.5 font-bold text-amber-900 underline hover:text-amber-950"
+                          className="inline-flex items-center gap-1 mt-2.5 font-bold text-rose-900 underline hover:text-rose-950"
                         >
                           Browse More Products <ArrowRight className="h-3.5 w-3.5" />
                         </Link>
@@ -1188,7 +1189,7 @@ function CheckoutPageContent() {
 
                   <button
                     onClick={handlePayNow}
-                    disabled={isPaying || isFinalizing || items.length === 0 || isDeliveryBlocked || totalAmount < 599}
+                    disabled={isPaying || isFinalizing || items.length === 0 || isDeliveryBlocked || totalAmount < 150}
                     className={`w-full h-14 rounded-2xl ${bgTheme} text-white font-bold text-lg ${bgThemeHover} transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-md ${shadowTheme} active:scale-[0.98]`}
                   >
                     {isPaying || isFinalizing ? (
@@ -1197,7 +1198,7 @@ function CheckoutPageContent() {
                         {isSavingAddress ? 'Saving address...' : isFinalizing ? 'Verifying payment...' : 'Processing...'}
                       </span>
                     ) : (
-                      <>{totalAmount < 599 ? `Add ₹${(599 - totalAmount).toFixed(0)} More to Order` : 'Checkout Securely'} <ArrowRight className="h-5 w-5" /></>
+                      <>{totalAmount < 150 ? `Add ₹${(150 - totalAmount).toFixed(0)} More to Order (Min ₹150)` : 'Checkout Securely'} <ArrowRight className="h-5 w-5" /></>
                     )}
                   </button>
                   

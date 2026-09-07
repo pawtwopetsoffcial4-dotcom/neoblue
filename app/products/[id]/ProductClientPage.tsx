@@ -2,7 +2,8 @@
 
 import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { ShoppingBag, Star, Truck, Shield, Droplets, Thermometer, Info, MessageSquare, ChevronRight, ChevronLeft, ChevronDown, Store, CheckCircle2, Search, X, ShieldAlert, Sparkles, Scale, Heart, Package, Leaf, Ruler, User, Activity, Box, Home, Fish, Beaker, Sun, Wind, Smile, Bell, Check } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { ShoppingBag, Star, Truck, Shield, Droplets, Thermometer, Info, MessageSquare, ChevronRight, ChevronLeft, ChevronDown, Store, CheckCircle2, Search, X, ShieldAlert, Sparkles, Scale, Heart, Package, Leaf, Ruler, User, Activity, Box, Home, Fish, Beaker, Sun, Wind, Smile, Bell, Check, Zap } from 'lucide-react';
 import ReviewList from '@/app/components/ReviewList';
 import ReviewForm from '@/app/components/ReviewForm';
 import ReviewStars from '@/app/components/ReviewStars';
@@ -36,6 +37,7 @@ export default function ProductClientPage({
   const [activeTab, setActiveTab] = useState<'description' | 'specifications' | 'policies' | 'faq' | 'reviews'>('description');
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
+  const router = useRouter();
   const [showForm, setShowForm] = useState(false);
   const [isDescExpanded, setIsDescExpanded] = useState(false);
   const [isStockAlertOpen, setIsStockAlertOpen] = useState(false);
@@ -63,6 +65,18 @@ export default function ProductClientPage({
     });
     setIsJustAdded(true);
     setTimeout(() => setIsJustAdded(false), 2200);
+  };
+
+  const handleBuyNow = () => {
+    if (!product || !product.inStock) return;
+    const unitLabel = product.perPairPrice != null ? 'pair' : 'piece';
+    addToCart(product, quantity, false, {
+      packQty: 1,
+      unitLabel,
+      customPrice: product.price,
+      customOriginalPrice: product.price,
+    });
+    router.push('/checkout');
   };
 
   useEffect(() => {
@@ -493,6 +507,29 @@ export default function ProductClientPage({
                         ₹{calculatedTotalPrice.toLocaleString('en-IN')}
                       </span>
                     </button>
+                  </div>
+
+                  {/* BUY NOW (Instant Checkout) CTA & Free Shipping Animation */}
+                  <div className="pt-2 space-y-2">
+                    <button
+                      type="button"
+                      onClick={handleBuyNow}
+                      className="w-full h-11 sm:h-12 rounded-2xl bg-slate-900 hover:bg-slate-800 active:scale-[0.98] text-white font-black text-xs sm:text-sm tracking-wider uppercase transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      <Zap className="h-4 w-4 text-amber-400 fill-amber-400" />
+                      <span>Buy Now (Instant Checkout)</span>
+                    </button>
+
+                    {/* Animated Free Shipping Bar */}
+                    <div className="p-2.5 rounded-xl bg-amber-50/80 border border-amber-200/80 flex items-center justify-between text-xs text-amber-950 font-bold shadow-2xs">
+                      <span className="flex items-center gap-1.5 text-[11px] sm:text-xs">
+                        <Truck className="w-4 h-4 text-amber-600 animate-pulse shrink-0" />
+                        <span>FREE Shipping on orders of <strong>₹599+</strong></span>
+                      </span>
+                      <span className="text-[10px] font-black uppercase text-amber-900 bg-amber-200/70 px-2 py-0.5 rounded-md">
+                        Unlocked at ₹599
+                      </span>
+                    </div>
                   </div>
                 </div>
               ) : (

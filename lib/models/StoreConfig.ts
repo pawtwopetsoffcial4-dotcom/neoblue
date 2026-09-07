@@ -87,7 +87,7 @@ const StoreConfigSchema = new mongoose.Schema<IStoreConfig>(
     stat3Label: { type: String, default: 'Live Arrival Cover' },
     freeShippingEnabled: { type: Boolean, default: true },
     freeShippingMinAmount: { type: Number, default: 599 },
-    minOrderAmount: { type: Number, default: 599 },
+    minOrderAmount: { type: Number, default: 150 },
     marqueeText: { type: String, default: 'Next shipping on Monday! Order fast for fastest delivery.' },
     marqueeEnabled: { type: Boolean, default: true },
     marqueeLink: { type: String, default: '/products' },

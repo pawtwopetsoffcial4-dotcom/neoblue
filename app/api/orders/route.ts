@@ -358,6 +358,12 @@ export async function POST(request: NextRequest) {
       for (const vId of Object.keys(vendorGroups)) {
         vendorGroups[vId].shippingAmount = 0;
       }
+    } else if (shippingAmount === 0 && totalAmount < freeShippingMin) {
+      shippingAmount = 99;
+      const firstVendorKey = Object.keys(vendorGroups)[0];
+      if (firstVendorKey && vendorGroups[firstVendorKey]) {
+        vendorGroups[firstVendorKey].shippingAmount = 99;
+      }
     }
 
     // Verify cashfree payment if Cashfree is used

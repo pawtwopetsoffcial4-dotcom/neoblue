@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { 
@@ -86,7 +86,7 @@ export function calculateParcelCapacity(items: any[]) {
 }
 
 export default function CartDrawer() {
-  const { items, isCartOpen, closeCart, updateQuantity, removeFromCart, totalAmount, cartCount } = useCart();
+  const { items, isCartOpen, closeCart, updateQuantity, removeFromCart, addToCart, totalAmount, cartCount } = useCart();
   const { mode } = useMode();
   const isPlants = mode === 'plants';
   const drawerRef = useRef<HTMLDivElement>(null);
@@ -115,6 +115,59 @@ export default function CartDrawer() {
   }, [isCartOpen]);
 
   const capacity = useMemo(() => calculateParcelCapacity(items), [items]);
+
+  // Top Vendor Detection for Upsells
+  const topVendorId = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const item of items) {
+      if ((item as any).vendorId) {
+        const rawVendor = (item as any).vendorId;
+        const id = typeof rawVendor === 'object' && rawVendor !== null ? (rawVendor._id || rawVendor.id) : rawVendor;
+        if (id) counts[String(id)] = (counts[String(id)] || 0) + item.quantity;
+      }
+    }
+    let maxCount = 0;
+    let topId: string | null = null;
+    for (const [vId, c] of Object.entries(counts)) {
+      if (c > maxCount) {
+        maxCount = c;
+        topId = vId;
+      }
+    }
+    return topId;
+  }, [items]);
+
+  const [upsellProducts, setUpsellProducts] = useState<any[]>([]);
+  const [isUpsellLoading, setIsUpsellLoading] = useState(false);
+
+  useEffect(() => {
+    if (!isCartOpen || items.length === 0 || totalAmount >= 599) {
+      return;
+    }
+
+    const fetchUpsells = async () => {
+      try {
+        setIsUpsellLoading(true);
+        const url = topVendorId 
+          ? `/api/products?vendorId=${topVendorId}&limit=8` 
+          : `/api/products?limit=8`;
+        const res = await fetch(url);
+        if (res.ok) {
+          const data = await res.json();
+          const list = Array.isArray(data.products) ? data.products : (Array.isArray(data.data?.products) ? data.data.products : (Array.isArray(data) ? data : []));
+          const existingIds = new Set(items.map(i => String(i.productId)));
+          const filtered = list.filter((p: any) => !existingIds.has(String(p._id || p.id)) && p.inStock);
+          setUpsellProducts(filtered.slice(0, 5));
+        }
+      } catch (err) {
+        console.error('Failed to load upsells:', err);
+      } finally {
+        setIsUpsellLoading(false);
+      }
+    };
+
+    fetchUpsells();
+  }, [isCartOpen, topVendorId, items.length, totalAmount]);
 
   const theme = isPlants ? {
     accent: 'emerald',
@@ -335,6 +388,57 @@ export default function CartDrawer() {
 
 
 
+                {/* Vendor Upsell Recommendations (to bridge to ₹599 free shipping) */}
+                {totalAmount < 599 && upsellProducts.length > 0 && (
+                  <div className="pt-3.5 pb-1 border-t border-slate-100 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        <Sparkles className="w-3.5 h-3.5 text-amber-500 animate-pulse shrink-0" />
+                        <h4 className="text-[11px] font-black text-slate-900 tracking-tight uppercase">
+                          Add to Unlock 🔓 Free Shipping
+                        </h4>
+                      </div>
+                      <span className="text-[10px] font-bold text-amber-800 bg-amber-100/70 border border-amber-200 px-2 py-0.5 rounded-full">
+                        Add ₹{Math.max(0, 599 - totalAmount)} more
+                      </span>
+                    </div>
+
+                    <div className="flex gap-2.5 overflow-x-auto pb-1.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                      {upsellProducts.map((up) => (
+                        <div 
+                          key={up._id || up.id}
+                          className="w-32 sm:w-36 shrink-0 bg-slate-50 border border-slate-200/80 rounded-2xl p-2 flex flex-col justify-between transition-all hover:border-slate-300"
+                        >
+                          <div className="relative aspect-square w-full rounded-xl overflow-hidden bg-white mb-1.5 border border-slate-100">
+                            <img 
+                              src={up.images?.[0] || up.img || '/illustrations/placeholder.png'} 
+                              alt={up.title} 
+                              className="w-full h-full object-cover" 
+                            />
+                          </div>
+                          <p className="text-[10px] sm:text-[11px] font-bold text-slate-800 truncate leading-tight" title={up.title}>{up.title}</p>
+                          <div className="flex items-center justify-between mt-1.5 pt-1 border-t border-slate-200/60">
+                            <span className="text-[11px] sm:text-xs font-black text-slate-900">₹{up.price}</span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                addToCart(up, 1, true, {
+                                  packQty: 1,
+                                  unitLabel: up.perPairPrice != null ? 'pair' : 'piece',
+                                  customPrice: up.price,
+                                });
+                              }}
+                              className="px-2 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 active:scale-95 text-white text-[10px] font-extrabold cursor-pointer transition-all shadow-2xs"
+                            >
+                              + Add
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Trust Badges inside Scrollable Area */}
                 <div className="pt-4 pb-2 border-t border-slate-100 flex flex-col items-center gap-1.5 text-center">
                   <div className="flex items-center gap-3 text-[10px] font-black text-slate-500 uppercase tracking-wider">
@@ -375,10 +479,10 @@ export default function CartDrawer() {
               <div className="flex items-baseline justify-between">
                 <div>
                   <span className="text-[11px] sm:text-xs font-extrabold text-slate-500 uppercase tracking-wider">
-                    Estimated Total
+                    Cart Subtotal
                   </span>
                   <p className="text-[9px] sm:text-[10px] text-slate-400 font-medium">
-                    Taxes & shipping calculated at checkout
+                    {totalAmount >= 599 ? '🎉 Free Shipping included' : 'Standard Shipping ₹99 at checkout'}
                   </p>
                 </div>
                 <div className="text-right">
@@ -388,45 +492,60 @@ export default function CartDrawer() {
                 </div>
               </div>
 
-              {/* Minimum Order Value Progress Bar */}
+              {/* Order & Free Shipping Threshold Progress Bar */}
               {(() => {
-                const MIN_ORDER_AMOUNT = 599;
+                const MIN_ORDER_AMOUNT = 150;
+                const FREE_SHIPPING_AMOUNT = 599;
+
                 const isMinOrderMet = totalAmount >= MIN_ORDER_AMOUNT;
+                const isFreeShippingMet = totalAmount >= FREE_SHIPPING_AMOUNT;
                 const remainingForMinOrder = Math.max(0, MIN_ORDER_AMOUNT - totalAmount);
-                const minOrderPercentage = Math.min(100, Math.round((totalAmount / MIN_ORDER_AMOUNT) * 100));
+                const remainingForFreeShipping = Math.max(0, FREE_SHIPPING_AMOUNT - totalAmount);
+                const freeShippingPercentage = Math.min(100, Math.round((totalAmount / FREE_SHIPPING_AMOUNT) * 100));
 
                 return (
                   <>
                     <div className={`p-2.5 rounded-xl border text-xs ${
-                      isMinOrderMet 
-                        ? 'bg-emerald-50/80 border-emerald-200 text-emerald-900' 
+                      !isMinOrderMet
+                        ? 'bg-rose-50/80 border-rose-200 text-rose-900'
+                        : isFreeShippingMet
+                        ? 'bg-emerald-50/80 border-emerald-200 text-emerald-900'
                         : 'bg-amber-50/80 border-amber-200 text-amber-900'
                     }`}>
                       <div className="flex items-center justify-between font-bold mb-1 text-[10px] sm:text-[11px]">
                         <span className="flex items-center gap-1">
-                          {isMinOrderMet ? (
+                          {!isMinOrderMet ? (
                             <>
-                              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                              <span>Minimum Order Met (₹599)</span>
+                              <Sparkles className="w-3.5 h-3.5 text-rose-600 animate-pulse shrink-0" />
+                              <span>Min. Order Value: ₹150</span>
+                            </>
+                          ) : isFreeShippingMet ? (
+                            <>
+                              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                              <span>🎉 FREE Shipping Unlocked!</span>
                             </>
                           ) : (
                             <>
-                              <Sparkles className="w-3 h-3 text-amber-600 animate-pulse" />
-                              <span>Min. Order Value: ₹599</span>
+                              <Truck className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                              <span>Shipping ₹99 • Add ₹{remainingForFreeShipping} for <strong>FREE Shipping</strong></span>
                             </>
                           )}
                         </span>
-                        <span className="font-extrabold">
-                          {isMinOrderMet ? '✓ Ready' : `Add ₹${remainingForMinOrder} more`}
+                        <span className="font-extrabold shrink-0 ml-1">
+                          {!isMinOrderMet
+                            ? `Add ₹${remainingForMinOrder}`
+                            : isFreeShippingMet
+                            ? '✓ Free Delivery'
+                            : `Add ₹${remainingForFreeShipping}`}
                         </span>
                       </div>
                       {/* Progress Bar */}
                       <div className="w-full h-1.5 rounded-full bg-slate-200/80 overflow-hidden">
                         <div 
                           className={`h-full rounded-full transition-all duration-500 ${
-                            isMinOrderMet ? 'bg-emerald-500' : 'bg-amber-500'
+                            !isMinOrderMet ? 'bg-rose-500' : isFreeShippingMet ? 'bg-emerald-500' : 'bg-amber-500'
                           }`}
-                          style={{ width: `${minOrderPercentage}%` }}
+                          style={{ width: `${Math.max(6, freeShippingPercentage)}%` }}
                         />
                       </div>
                     </div>
@@ -447,9 +566,9 @@ export default function CartDrawer() {
                       <button
                         type="button"
                         onClick={closeCart}
-                        className="w-full h-11 sm:h-12 rounded-xl sm:rounded-2xl bg-amber-100/90 text-amber-900 border border-amber-300/80 font-black text-xs tracking-wider uppercase flex items-center justify-between px-4 sm:px-5 cursor-pointer hover:bg-amber-200 transition-all active:scale-[0.99]"
+                        className="w-full h-11 sm:h-12 rounded-xl sm:rounded-2xl bg-rose-100 text-rose-900 border border-rose-300 font-black text-xs tracking-wider uppercase flex items-center justify-between px-4 sm:px-5 cursor-pointer hover:bg-rose-200 transition-all active:scale-[0.99]"
                       >
-                        <span>Add ₹{remainingForMinOrder} more to Order</span>
+                        <span>Add ₹{remainingForMinOrder} more to Order (Min ₹150)</span>
                         <span className="flex items-center gap-1 font-bold">
                           Add Items <ArrowRight className="w-4 h-4" />
                         </span>
