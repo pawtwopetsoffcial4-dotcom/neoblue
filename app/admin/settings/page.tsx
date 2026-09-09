@@ -34,7 +34,7 @@ export default function AdminSettingsPage() {
     heroBgImage: '',
     facebookPixelId: '1689531238818724',
     googleAnalyticsId: '',
-    minOrderAmount: 599,
+    minOrderAmount: 149,
     categories: [] as string[],
     categoryImages: {} as Record<string, string>,
     stat1Value: '',
@@ -977,15 +977,15 @@ export default function AdminSettingsPage() {
             <input
               type="number"
               name="minOrderAmount"
-              value={config.minOrderAmount ?? 599}
+              value={config.minOrderAmount ?? 149}
               onChange={(e) => setConfig((prev) => ({ ...prev, minOrderAmount: Number(e.target.value) || 0 }))}
               className="w-full border border-slate-200 rounded-xl pl-8 pr-4 py-2.5 text-sm font-bold text-slate-800 outline-none focus:ring-2 focus:ring-blue-500 bg-white shadow-sm"
-              placeholder="599"
+              placeholder="149"
               min="0"
             />
           </div>
           <p className="text-xs text-slate-500 leading-relaxed">
-            Customers with a cart subtotal below this amount will see a progress bar in their cart drawer and will be prevented from checking out until reaching ₹{config.minOrderAmount ?? 599}.
+            Customers with a cart subtotal below this amount will see a progress bar in their cart drawer and will be prevented from checking out until reaching ₹{config.minOrderAmount ?? 149}.
           </p>
         </div>
       </div>

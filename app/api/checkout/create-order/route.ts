@@ -116,7 +116,7 @@ export async function POST(request: NextRequest) {
     });
 
     const storeConfig = await StoreConfig.findOne({}).lean();
-    const minOrderAmount = Number((storeConfig as any)?.minOrderAmount) || 150;
+    const minOrderAmount = Number((storeConfig as any)?.minOrderAmount) || 149;
 
     if (subtotal < minOrderAmount) {
       return createErrorResponse(
@@ -209,8 +209,9 @@ export async function POST(request: NextRequest) {
 
     const freeShippingEnabled = (storeConfig as any)?.freeShippingEnabled !== false;
     const freeShippingMin = Number((storeConfig as any)?.freeShippingMinAmount) || 599;
+    const isSingleVendor = Object.keys(vendorGroups).length <= 1;
 
-    if (freeShippingEnabled && subtotal >= freeShippingMin) {
+    if (freeShippingEnabled && subtotal >= freeShippingMin && isSingleVendor) {
       shippingAmount = 0;
       for (const vId of Object.keys(vendorGroups)) {
         vendorGroups[vId].shippingAmount = 0;

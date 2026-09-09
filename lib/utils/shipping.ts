@@ -196,22 +196,24 @@ export function isSingleVendorCart(
   let vendorName: string | null = null;
 
   for (const item of items) {
-    const product = productDetails[item.productId];
+    const rawId = String(item.productId || '');
+    const cleanId = rawId.includes('_pack_') ? rawId.split('_pack_')[0] : (rawId.includes('-pack-') ? rawId.split('-pack-')[0] : rawId);
+    const product = productDetails[item.productId] || productDetails[cleanId];
     if (!product) continue;
 
     const vendor = typeof product.vendorId === 'object' && product.vendorId !== null ? product.vendorId : null;
-    const vId = String(vendor?._id || product.vendorId || '');
+    const vId = String(vendor?._id || vendor?.id || product.vendorId || '');
     if (!vId) continue;
 
     if (uniqueVendorId === null) {
       uniqueVendorId = vId;
-      vendorName = vendor?.name || 'Seller';
+      vendorName = vendor?.name || vendor?.businessName || 'Seller';
     } else if (uniqueVendorId !== vId) {
       return { isSingleVendor: false, vendorId: null, vendorName: null };
     }
   }
 
-  return { isSingleVendor: uniqueVendorId !== null, vendorId: uniqueVendorId, vendorName };
+  return { isSingleVendor: uniqueVendorId !== null || items.length <= 1, vendorId: uniqueVendorId, vendorName };
 }
 
 export function checkFreeShippingEligibility(
@@ -232,7 +234,8 @@ export function checkFreeShippingEligibility(
 
   const { isSingleVendor, vendorName } = isSingleVendorCart(items, productDetails);
   const remainingAmount = Math.max(0, minAmount - subtotal);
-  const isEligible = enabled && subtotal >= minAmount;
+  // Free shipping on 599+ unlocked ONLY if all products in cart are from the same vendor
+  const isEligible = enabled && subtotal >= minAmount && isSingleVendor;
 
   return {
     isEligible,

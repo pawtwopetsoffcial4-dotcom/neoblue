@@ -434,7 +434,7 @@ function CheckoutPageContent() {
       return;
     }
 
-    const MIN_ORDER_AMOUNT = 150;
+    const MIN_ORDER_AMOUNT = 149;
     if (totalAmount < MIN_ORDER_AMOUNT) {
       alert(`Minimum order value is ₹${MIN_ORDER_AMOUNT} to place an order. Please add ₹${(MIN_ORDER_AMOUNT - totalAmount).toFixed(0)} more worth of items to your bag.`);
       return;
@@ -1092,25 +1092,41 @@ function CheckoutPageContent() {
                   <div className="space-y-3 font-medium text-gray-600 border-b border-gray-100 pb-6">
                     <div className="flex justify-between items-center">
                       <span>Subtotal ({items.reduce((a, b) => a + b.quantity, 0)} items)</span>
-                      <span className="text-gray-900">₹{totalAmount.toFixed(2)}</span>
+                      <span className="text-gray-900 font-bold">₹{totalAmount.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between items-center text-gray-700">
-                      <span>Shipping from products</span>
-                      <span>{freeShippingInfo.isEligible ? <strong className="text-emerald-600 font-extrabold uppercase">FREE</strong> : `₹${shippingAmount.toFixed(2)}`}</span>
+                      <span>Shipping Delivery</span>
+                      <span>
+                        {freeShippingInfo.isEligible ? (
+                          <strong className="text-emerald-600 font-extrabold uppercase">FREE (Single Seller)</strong>
+                        ) : (
+                          <span className="text-slate-900 font-bold">₹{shippingAmount.toFixed(2)}</span>
+                        )}
+                      </span>
                     </div>
 
-                    {freeShippingInfo.isEligible && (
+                    {freeShippingInfo.isEligible ? (
                       <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-2xl text-emerald-800 text-xs font-semibold flex items-center gap-2">
                         <span className="text-base">🎉</span>
-                        <span>Free Shipping Applied! (Orders over ₹{freeShippingInfo.minAmount})</span>
+                        <span>Free Shipping Applied! (Single-seller order over ₹{freeShippingInfo.minAmount})</span>
                       </div>
-                    )}
-
-                    {freeShippingInfo.enabled && !freeShippingInfo.isEligible && freeShippingInfo.remainingAmount > 0 && (
-                      <div className="p-3 bg-amber-50 border border-amber-200 rounded-2xl text-amber-900 text-xs font-semibold flex items-center gap-2">
-                        <span className="text-base">🚚</span>
-                        <span>Add <strong>₹{freeShippingInfo.remainingAmount.toFixed(0)}</strong> more items for FREE Shipping!</span>
-                      </div>
+                    ) : (
+                      <>
+                        {totalAmount >= 149 && totalAmount < 599 && (
+                          <div className="p-3 bg-blue-50 border border-blue-200 rounded-2xl text-blue-900 text-xs font-semibold flex items-center justify-between gap-2">
+                            <span className="flex items-center gap-1.5">
+                              <span className="text-base">🚚</span>
+                              <span>Standard Shipping ₹99 applied • Add <strong>₹{(599 - totalAmount).toFixed(0)}</strong> more from same seller for <strong>FREE Shipping</strong>!</span>
+                            </span>
+                          </div>
+                        )}
+                        {totalAmount >= 599 && !freeShippingInfo.isSingleVendor && (
+                          <div className="p-3 bg-amber-50 border border-amber-200 rounded-2xl text-amber-900 text-xs font-semibold flex items-center gap-2">
+                            <span className="text-base">📦</span>
+                            <span>Multi-seller Cart: Free shipping requires ₹599+ from the <em>same</em> vendor (orders ship in separate parcels).</span>
+                          </div>
+                        )}
+                      </>
                     )}
 
                   </div>
@@ -1169,13 +1185,13 @@ function CheckoutPageContent() {
                     </label>
                   </div>
 
-                  {totalAmount < 150 && (
+                  {totalAmount < 149 && (
                     <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl flex items-start gap-3 text-rose-900 text-xs">
                       <AlertCircle className="h-5 w-5 text-rose-600 shrink-0 mt-0.5" />
                       <div className="flex-1">
-                        <p className="font-extrabold text-sm text-rose-950">Minimum Order Value: ₹150</p>
+                        <p className="font-extrabold text-sm text-rose-950">Minimum Order Value: ₹149</p>
                         <p className="font-medium mt-0.5 text-rose-800">
-                          Your current subtotal is ₹{totalAmount.toFixed(2)}. Please add <strong>₹{(150 - totalAmount).toFixed(0)}</strong> more worth of items to place your order.
+                          Your current subtotal is ₹{totalAmount.toFixed(2)}. Please add <strong>₹{(149 - totalAmount).toFixed(0)}</strong> more worth of items to place your order.
                         </p>
                         <Link
                           href="/products"
@@ -1189,7 +1205,7 @@ function CheckoutPageContent() {
 
                   <button
                     onClick={handlePayNow}
-                    disabled={isPaying || isFinalizing || items.length === 0 || isDeliveryBlocked || totalAmount < 150}
+                    disabled={isPaying || isFinalizing || items.length === 0 || isDeliveryBlocked || totalAmount < 149}
                     className={`w-full h-14 rounded-2xl ${bgTheme} text-white font-bold text-lg ${bgThemeHover} transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-md ${shadowTheme} active:scale-[0.98]`}
                   >
                     {isPaying || isFinalizing ? (
@@ -1198,7 +1214,7 @@ function CheckoutPageContent() {
                         {isSavingAddress ? 'Saving address...' : isFinalizing ? 'Verifying payment...' : 'Processing...'}
                       </span>
                     ) : (
-                      <>{totalAmount < 150 ? `Add ₹${(150 - totalAmount).toFixed(0)} More to Order (Min ₹150)` : 'Checkout Securely'} <ArrowRight className="h-5 w-5" /></>
+                      <>{totalAmount < 149 ? `Add ₹${(149 - totalAmount).toFixed(0)} More to Order (Min ₹149)` : 'Checkout Securely'} <ArrowRight className="h-5 w-5" /></>
                     )}
                   </button>
                   

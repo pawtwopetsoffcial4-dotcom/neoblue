@@ -352,8 +352,9 @@ export async function POST(request: NextRequest) {
     const storeConfig = await StoreConfig.findOne({}).lean();
     const freeShippingEnabled = (storeConfig as any)?.freeShippingEnabled !== false;
     const freeShippingMin = Number((storeConfig as any)?.freeShippingMinAmount) || 599;
+    const isSingleVendor = Object.keys(vendorGroups).length <= 1;
 
-    if (freeShippingEnabled && totalAmount >= freeShippingMin) {
+    if (freeShippingEnabled && totalAmount >= freeShippingMin && isSingleVendor) {
       shippingAmount = 0;
       for (const vId of Object.keys(vendorGroups)) {
         vendorGroups[vId].shippingAmount = 0;

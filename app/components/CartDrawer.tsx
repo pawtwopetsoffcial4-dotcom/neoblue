@@ -482,7 +482,7 @@ export default function CartDrawer() {
                     Cart Subtotal
                   </span>
                   <p className="text-[9px] sm:text-[10px] text-slate-400 font-medium">
-                    {totalAmount >= 599 ? '🎉 Free Shipping included' : 'Standard Shipping ₹99 at checkout'}
+                    {totalAmount >= 599 ? '🎉 Free Shipping on single-seller orders' : 'Standard Shipping ₹99 at checkout'}
                   </p>
                 </div>
                 <div className="text-right">
@@ -494,7 +494,7 @@ export default function CartDrawer() {
 
               {/* Order & Free Shipping Threshold Progress Bar */}
               {(() => {
-                const MIN_ORDER_AMOUNT = 150;
+                const MIN_ORDER_AMOUNT = 149;
                 const FREE_SHIPPING_AMOUNT = 599;
 
                 const isMinOrderMet = totalAmount >= MIN_ORDER_AMOUNT;
@@ -517,7 +517,7 @@ export default function CartDrawer() {
                           {!isMinOrderMet ? (
                             <>
                               <Sparkles className="w-3.5 h-3.5 text-rose-600 animate-pulse shrink-0" />
-                              <span>Min. Order Value: ₹150</span>
+                              <span>Min. Order Value: ₹149</span>
                             </>
                           ) : isFreeShippingMet ? (
                             <>
@@ -542,7 +542,7 @@ export default function CartDrawer() {
                       {/* Progress Bar */}
                       <div className="w-full h-1.5 rounded-full bg-slate-200/80 overflow-hidden">
                         <div 
-                          className={`h-full rounded-full transition-all duration-500 ${
+                           className={`h-full rounded-full transition-all duration-500 ${
                             !isMinOrderMet ? 'bg-rose-500' : isFreeShippingMet ? 'bg-emerald-500' : 'bg-amber-500'
                           }`}
                           style={{ width: `${Math.max(6, freeShippingPercentage)}%` }}
@@ -568,7 +568,7 @@ export default function CartDrawer() {
                         onClick={closeCart}
                         className="w-full h-11 sm:h-12 rounded-xl sm:rounded-2xl bg-rose-100 text-rose-900 border border-rose-300 font-black text-xs tracking-wider uppercase flex items-center justify-between px-4 sm:px-5 cursor-pointer hover:bg-rose-200 transition-all active:scale-[0.99]"
                       >
-                        <span>Add ₹{remainingForMinOrder} more to Order (Min ₹150)</span>
+                        <span>Add ₹{remainingForMinOrder} more to Order (Min ₹149)</span>
                         <span className="flex items-center gap-1 font-bold">
                           Add Items <ArrowRight className="w-4 h-4" />
                         </span>
