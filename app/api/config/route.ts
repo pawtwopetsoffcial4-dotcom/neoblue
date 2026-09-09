@@ -13,7 +13,10 @@ export async function GET() {
     await connectDB();
     let config = await StoreConfig.findOne({});
     if (!config) {
-      config = await StoreConfig.create({});
+      config = await StoreConfig.create({ minOrderAmount: 149 });
+    } else if (!config.minOrderAmount || Number(config.minOrderAmount) > 149) {
+      config.minOrderAmount = 149;
+      await StoreConfig.updateOne({ _id: config._id }, { $set: { minOrderAmount: 149 } }).catch(() => {});
     }
 
     const payload = config.toObject ? config.toObject() : config;
@@ -26,7 +29,7 @@ export async function GET() {
       heroSlidesPlants: Array.isArray(payload.heroSlidesPlants) && payload.heroSlidesPlants.length > 0 ? payload.heroSlidesPlants : DEFAULT_PLANTS_HERO_SLIDES,
       facebookPixelId: payload.facebookPixelId || process.env.FACEBOOK_PIXEL_ID || process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID || '1689531238818724',
       googleAnalyticsId: payload.googleAnalyticsId || process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || process.env.GA_MEASUREMENT_ID || process.env.NEXT_PUBLIC_GA_ID || '',
-      minOrderAmount: payload.minOrderAmount ?? 149,
+      minOrderAmount: Math.min(149, Number(payload.minOrderAmount) || 149),
       categories: Array.isArray(payload.categories) && payload.categories.length ? payload.categories : PRODUCT_CATEGORIES,
       subcategories: payload.subcategories && Object.keys(payload.subcategories).length ? payload.subcategories : PRODUCT_CATALOG,
       marqueeText: payload.marqueeText ?? 'Next shipping on Monday! Order fast for fastest delivery.',

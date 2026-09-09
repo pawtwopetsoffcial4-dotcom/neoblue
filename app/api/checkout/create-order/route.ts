@@ -116,7 +116,11 @@ export async function POST(request: NextRequest) {
     });
 
     const storeConfig = await StoreConfig.findOne({}).lean();
-    const minOrderAmount = Number((storeConfig as any)?.minOrderAmount) || 149;
+    let minOrderAmount = Number((storeConfig as any)?.minOrderAmount);
+    if (!minOrderAmount || minOrderAmount > 149) {
+      minOrderAmount = 149;
+      await StoreConfig.updateOne({}, { $set: { minOrderAmount: 149 } }).catch(() => {});
+    }
 
     if (subtotal < minOrderAmount) {
       return createErrorResponse(
