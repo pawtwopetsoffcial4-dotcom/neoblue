@@ -401,9 +401,13 @@ function CheckoutPageContent() {
     shippingAmount += itemShipping;
   });
 
-  if (freeShippingInfo.isEligible) {
+  const isSingleVendor = freeShippingInfo.isSingleVendor;
+  const isFreeShippingEligible = freeShippingInfo.isEligible;
+
+  if (isFreeShippingEligible) {
     shippingAmount = 0;
-  } else if (shippingAmount === 0 && items.length > 0) {
+  } else if (totalAmount >= 599 && !isSingleVendor) {
+    // When order is above 599 but vendors are different, apply 99 charge
     shippingAmount = 99;
   }
 
@@ -420,7 +424,9 @@ function CheckoutPageContent() {
       return;
     }
 
-    if (shippingAmount <= 0 && !freeShippingInfo.isEligible) {
+    if (isFreeShippingEligible) {
+      shippingAmount = 0;
+    } else if (totalAmount >= 599 && !isSingleVendor) {
       shippingAmount = 99;
     }
 
@@ -1097,38 +1103,36 @@ function CheckoutPageContent() {
                     <div className="flex justify-between items-center text-gray-700">
                       <span>Shipping Delivery</span>
                       <span>
-                        {freeShippingInfo.isEligible ? (
+                        {isFreeShippingEligible ? (
                           <strong className="text-emerald-600 font-extrabold uppercase">FREE (Single Seller)</strong>
+                        ) : totalAmount >= 599 && !isSingleVendor ? (
+                          <span className="text-slate-900 font-bold">₹99.00 (Multi-Seller Flat Rate)</span>
                         ) : (
                           <span className="text-slate-900 font-bold">₹{shippingAmount.toFixed(2)}</span>
                         )}
                       </span>
                     </div>
 
-                    {freeShippingInfo.isEligible ? (
+                    {isFreeShippingEligible ? (
                       <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-2xl text-emerald-800 text-xs font-semibold flex items-center gap-2">
                         <span className="text-base">🎉</span>
                         <span>Free Shipping Applied! (Single-seller order over ₹{freeShippingInfo.minAmount})</span>
                       </div>
+                    ) : totalAmount >= 599 && !isSingleVendor ? (
+                      <div className="p-3 bg-amber-50 border border-amber-200 rounded-2xl text-amber-900 text-xs font-semibold flex items-center gap-2">
+                        <span className="text-base">📦</span>
+                        <span>Multi-seller order: Flat ₹99 shipping applied as items ship from different sellers. (Orders from a single seller over ₹599 get FREE delivery).</span>
+                      </div>
                     ) : (
-                      <>
-                        {totalAmount >= 149 && totalAmount < 599 && (
-                          <div className="p-3 bg-blue-50 border border-blue-200 rounded-2xl text-blue-900 text-xs font-semibold flex items-center justify-between gap-2">
-                            <span className="flex items-center gap-1.5">
-                              <span className="text-base">🚚</span>
-                              <span>Standard Shipping ₹99 applied • Add <strong>₹{(599 - totalAmount).toFixed(0)}</strong> more from same seller for <strong>FREE Shipping</strong>!</span>
-                            </span>
-                          </div>
-                        )}
-                        {totalAmount >= 599 && !freeShippingInfo.isSingleVendor && (
-                          <div className="p-3 bg-amber-50 border border-amber-200 rounded-2xl text-amber-900 text-xs font-semibold flex items-center gap-2">
-                            <span className="text-base">📦</span>
-                            <span>Multi-seller Cart: Free shipping requires ₹599+ from the <em>same</em> vendor (orders ship in separate parcels).</span>
-                          </div>
-                        )}
-                      </>
+                      totalAmount < 599 && (
+                        <div className="p-3 bg-blue-50 border border-blue-200 rounded-2xl text-blue-900 text-xs font-semibold flex items-center justify-between gap-2">
+                          <span className="flex items-center gap-1.5">
+                            <span className="text-base">🚚</span>
+                            <span>Add <strong>₹{(599 - totalAmount).toFixed(0)}</strong> more from the same seller for <strong>FREE Shipping</strong>!</span>
+                          </span>
+                        </div>
+                      )
                     )}
-
                   </div>
 
                   <div className="flex justify-between items-end py-2">

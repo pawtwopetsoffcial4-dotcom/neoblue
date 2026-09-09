@@ -220,12 +220,20 @@ export async function POST(request: NextRequest) {
       for (const vId of Object.keys(vendorGroups)) {
         vendorGroups[vId].shippingAmount = 0;
       }
-    } else if (shippingAmount === 0 && subtotal < freeShippingMin) {
+    } else if (subtotal >= freeShippingMin && !isSingleVendor) {
+      // User rule: apply 99 charge when order is above 599 but vendors are different
       shippingAmount = 99;
-      const firstVendorKey = Object.keys(vendorGroups)[0];
-      if (firstVendorKey && vendorGroups[firstVendorKey]) {
-        vendorGroups[firstVendorKey].shippingAmount = 99;
-      }
+      const vendorKeys = Object.keys(vendorGroups);
+      const splitAmount = Math.round((99 / vendorKeys.length) * 100) / 100;
+      let allocated = 0;
+      vendorKeys.forEach((vId, idx) => {
+        if (idx === vendorKeys.length - 1) {
+          vendorGroups[vId].shippingAmount = Math.round((99 - allocated) * 100) / 100;
+        } else {
+          vendorGroups[vId].shippingAmount = splitAmount;
+          allocated += splitAmount;
+        }
+      });
     }
 
     const amount = subtotal + shippingAmount;
