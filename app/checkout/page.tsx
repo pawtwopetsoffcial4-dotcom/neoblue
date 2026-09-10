@@ -8,8 +8,9 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useCart } from '@/lib/hooks/useCart';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { apiClient } from '@/lib/api-client';
-import { Trash2, Plus, Minus, MapPin, ShoppingBag, ArrowRight, ShieldCheck, ArrowLeft, CheckSquare, AlertCircle, Share2, Copy, Check, MessageCircle, X } from 'lucide-react';
+import type { MarketplaceProduct } from '@/lib/types/marketplace';
 import { getRegionFromState, checkFreeShippingEligibility } from '@/lib/utils/shipping';
+import { useMode } from '@/lib/hooks/useMode';
 import { decodeSharedCart, getShareableCartUrl, createShortShareCode, resolveSharedCartCode, buildShareableUrl, type SharedCartItem } from '@/lib/utils/cartShare';
 import { trackInitiateCheckout, trackPurchase } from '@/lib/fpixel';
 
