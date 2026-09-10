@@ -71,7 +71,9 @@ export default function FrequentlyBoughtTogether({
 
   const handleAddBundle = () => {
     selectedProducts.forEach((prod) => {
-      addToCart(prod);
+      if (prod.inStock !== false) {
+        addToCart(prod);
+      }
     });
     setIsAdded(true);
     setTimeout(() => setIsAdded(false), 2500);

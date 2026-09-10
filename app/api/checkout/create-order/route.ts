@@ -86,6 +86,9 @@ export async function POST(request: NextRequest) {
       if (!product) {
         throw new Error(`Product not found: ${item.productId}`);
       }
+      if (product.inStock === false) {
+        throw new Error(`Product "${product.title}" is currently out of stock.`);
+      }
 
       const packQty = Number(item.packQty) || (item.unitLabel?.startsWith('Pack of ') ? parseInt(item.unitLabel.replace('Pack of ', ''), 10) : 1);
       const unitLabel = item.unitLabel || (packQty > 1 ? `Pack of ${packQty}` : (product.perPairPrice != null ? 'pair' : 'piece'));

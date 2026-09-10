@@ -439,6 +439,18 @@ function CheckoutPageContent() {
       return;
     }
 
+    const outOfStockItem = items.find((item) => {
+      const rawId = String(item.productId || '');
+      const cleanId = rawId.includes('_pack_') ? rawId.split('_pack_')[0] : (rawId.includes('-pack-') ? rawId.split('-pack-')[0] : rawId);
+      const product = productDetails[item.productId] || productDetails[cleanId];
+      return product && product.inStock === false;
+    });
+
+    if (outOfStockItem) {
+      alert(`"${outOfStockItem.title}" is currently out of stock. Please remove it from your cart to proceed.`);
+      return;
+    }
+
     const MIN_ORDER_AMOUNT = 149;
     if (totalAmount < MIN_ORDER_AMOUNT) {
       alert(`Minimum order value is ₹${MIN_ORDER_AMOUNT} to place an order. Please add ₹${(MIN_ORDER_AMOUNT - totalAmount).toFixed(0)} more worth of items to your bag.`);

@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 
 function formatCartItem(item: any) {
   const prod = item.productId;
-  if (!prod) return null;
+  if (!prod || prod.inStock === false) return null;
   const packQty = item.packQty || (item.unitLabel?.startsWith('Pack of ') ? parseInt(item.unitLabel.replace('Pack of ', ''), 10) : 1);
   const isPair = item.unitLabel === 'pair' || prod.perPairPrice != null;
   const unitLabel = item.unitLabel || (packQty > 1 ? `Pack of ${packQty}` : (isPair ? 'pair' : 'piece'));

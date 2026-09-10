@@ -300,6 +300,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     openDrawer: boolean = true,
     packOptions?: PackOptions
   ) => {
+    if (!product || product.inStock === false) {
+      return;
+    }
+
     const newItem = createCartItemFromProduct(product, quantityToAdd, packOptions);
 
     setItems((prevItems) => {
@@ -349,6 +353,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     openDrawer: boolean = true,
     packOptions?: PackOptions
   ) => {
+    if (!product || product.inStock === false) {
+      return;
+    }
+
     // If not logged in, prompt user with modal to enter name, phone, email
     if (!user) {
       setPendingAuthItem({
@@ -366,6 +374,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const handleAuthSuccess = async (newToken: string, newUser: any) => {
     if (pendingAuthItem) {
       const { product, quantity, openDrawer, packOptions } = pendingAuthItem;
+      if (!product || product.inStock === false) {
+        setPendingAuthItem(null);
+        setSession(newToken, newUser);
+        return;
+      }
       const newItem = createCartItemFromProduct(product, quantity, packOptions);
 
       // Pre-update guest cart and user cart in localStorage so loadCart won't overwrite it

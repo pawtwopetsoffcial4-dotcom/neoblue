@@ -136,33 +136,46 @@ export default function ProductCard({ product, idx = 0, className = "" }: Produc
             )}
           </div>
 
-          <div 
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              const isPair = product.perPairPrice != null;
-              addToCart({
-                ...product,
-                _id: product._id || product.id,
-                title: product.title,
-                price: product.price,
-                images: product.images || [product.img || '/illustrations/placeholder.png'],
-                perPairPrice: product.perPairPrice ?? null,
-                category: product.category,
-                weightPerPiece: product.weightPerPiece,
-                vendorId: product.vendorId,
-              } as any, 1, true, {
-                packQty: 1,
-                unitLabel: isPair ? 'pair' : 'piece',
-                customPrice: product.price,
-              });
-            }}
-          >
-            <div className={`group/btn flex items-center justify-center gap-2 py-2 w-full rounded-lg sm:rounded-xl font-bold text-[11px] sm:text-xs text-white transition-all duration-300 shadow-xs active:scale-95 cursor-pointer ${theme.btnBg} ${theme.btnHover} ${theme.btnShadow}`}>
-              <ShoppingCart className="h-3.5 w-3.5 transition-transform duration-300 group-hover/btn:-rotate-12 group-hover/btn:scale-110" />
-              <span>Add to Cart</span>
+          {product.inStock ? (
+            <div 
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const isPair = product.perPairPrice != null;
+                addToCart({
+                  ...product,
+                  _id: product._id || product.id,
+                  title: product.title,
+                  price: product.price,
+                  images: product.images || [product.img || '/illustrations/placeholder.png'],
+                  perPairPrice: product.perPairPrice ?? null,
+                  category: product.category,
+                  weightPerPiece: product.weightPerPiece,
+                  vendorId: product.vendorId,
+                  inStock: true,
+                } as any, 1, true, {
+                  packQty: 1,
+                  unitLabel: isPair ? 'pair' : 'piece',
+                  customPrice: product.price,
+                });
+              }}
+            >
+              <div className={`group/btn flex items-center justify-center gap-2 py-2 w-full rounded-lg sm:rounded-xl font-bold text-[11px] sm:text-xs text-white transition-all duration-300 shadow-xs active:scale-95 cursor-pointer ${theme.btnBg} ${theme.btnHover} ${theme.btnShadow}`}>
+                <ShoppingCart className="h-3.5 w-3.5 transition-transform duration-300 group-hover/btn:-rotate-12 group-hover/btn:scale-110" />
+                <span>Add to Cart</span>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div 
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              className="flex items-center justify-center gap-1.5 py-2 w-full rounded-lg sm:rounded-xl font-bold text-[11px] sm:text-xs text-slate-400 bg-slate-100 border border-slate-200/60 cursor-not-allowed select-none"
+            >
+              <span>Out of Stock</span>
+            </div>
+          )}
         </div>
       </div>
     </Link>
