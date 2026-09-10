@@ -9,9 +9,7 @@ import { useCart } from '@/lib/hooks/useCart';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { apiClient } from '@/lib/api-client';
 import { Trash2, Plus, Minus, MapPin, ShoppingBag, ArrowRight, ShieldCheck, ArrowLeft, CheckSquare, AlertCircle, Share2, Copy, Check, MessageCircle, X } from 'lucide-react';
-import type { MarketplaceProduct } from '@/lib/types/marketplace';
-import { getRegionFromState, getProductShippingCharge, checkFreeShippingEligibility } from '@/lib/utils/shipping';
-import { useMode } from '@/lib/hooks/useMode';
+import { getRegionFromState, checkFreeShippingEligibility } from '@/lib/utils/shipping';
 import { decodeSharedCart, getShareableCartUrl, createShortShareCode, resolveSharedCartCode, buildShareableUrl, type SharedCartItem } from '@/lib/utils/cartShare';
 import { trackInitiateCheckout, trackPurchase } from '@/lib/fpixel';
 
@@ -394,21 +392,20 @@ function CheckoutPageContent() {
       isLocationServiceable = false;
       nonServiceableMessage = `Sorry, this product cannot be delivered to your location.`;
     }
-
-    const packMultiplier = item.packQty || (item.unitLabel?.startsWith('Pack of ') ? parseInt(item.unitLabel.replace('Pack of ', ''), 10) : (rawId.includes('_pack_') ? parseInt(rawId.split('_pack_')[1], 10) : 1));
-    const effectiveQty = item.quantity * packMultiplier;
-    const itemShipping = getProductShippingCharge(product, effectiveQty, address.state);
-    shippingAmount += itemShipping;
   });
 
   const isSingleVendor = freeShippingInfo.isSingleVendor;
-  const isFreeShippingEligible = freeShippingInfo.isEligible;
+  const isFreeShippingEligible = freeShippingInfo.isEligible; // totalAmount >= 599 && isSingleVendor
 
-  if (isFreeShippingEligible) {
+  // Above ₹149 mandatory shipping charge is ₹99 instead of vendor config rates (FREE if ₹599+ single vendor)
+  if (items.length > 0) {
+    if (isFreeShippingEligible) {
+      shippingAmount = 0;
+    } else {
+      shippingAmount = 99;
+    }
+  } else {
     shippingAmount = 0;
-  } else if (totalAmount >= 599 && !isSingleVendor) {
-    // When order is above 599 but vendors are different, apply 99 charge
-    shippingAmount = 99;
   }
 
   const orderTotal = totalAmount + shippingAmount;
@@ -426,7 +423,7 @@ function CheckoutPageContent() {
 
     if (isFreeShippingEligible) {
       shippingAmount = 0;
-    } else if (totalAmount >= 599 && !isSingleVendor) {
+    } else {
       shippingAmount = 99;
     }
 
@@ -824,19 +821,11 @@ function CheckoutPageContent() {
                             const unitText = item.unitLabel || (isPack ? `Pack of ${packMultiplier}` : (isPair ? 'pair' : 'piece'));
                             const singleItemWeight = product.weightPerPiece || (product.category === 'Plants' ? 80 : 100);
                             const itemWeightDisplay = singleItemWeight * packMultiplier;
-                            const itemShipping = getProductShippingCharge(
-                              product,
-                              effectiveQty,
-                              address.state
-                            );
 
                             return (
                               <div className="mt-1 space-y-0.5">
                                 <p className="text-xs text-gray-400 font-medium">
                                   Weight: {itemWeightDisplay} gm {isPack ? `(${unitText})` : `per ${unitText}`}
-                                </p>
-                                <p className="text-xs text-slate-500 font-bold">
-                                  Est. Shipping: ₹{itemShipping.toFixed(2)}
                                 </p>
                               </div>
                             );

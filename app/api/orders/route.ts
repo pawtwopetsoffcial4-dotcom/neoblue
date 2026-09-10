@@ -331,36 +331,39 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Now compute shipping per vendor group and get total shippingAmount
-    let shippingAmount = 0;
+    const storeConfig = await StoreConfig.findOne({}).lean();
+    let minOrderAmount = Number((storeConfig as any)?.minOrderAmount);
+    if (!minOrderAmount || minOrderAmount > 149) {
+      minOrderAmount = 149;
+      await StoreConfig.updateOne({}, { $set: { minOrderAmount: 149 } }).catch(() => {});
+    }
+
+    if (totalAmount < minOrderAmount) {
+      return createErrorResponse(
+        `Minimum order value is ₹${minOrderAmount} to place an order. Please add ₹${minOrderAmount - totalAmount} more worth of items to your bag.`,
+        400
+      );
+    }
+
+    // Check vendor group serviceability
     for (const [vId, group] of Object.entries(vendorGroups)) {
       if (!group.isServiceable) {
         return createErrorResponse(`Sorry, this product cannot be delivered to your location.`, 400);
       }
-
-      let groupShipping = 0;
-      for (const gp of group.products) {
-        const productDoc = dbProducts.find((p) => p._id.toString() === gp.productId);
-        const packMultiplier = (gp as any).packQty || ((gp as any).unitLabel?.startsWith('Pack of ') ? parseInt((gp as any).unitLabel.replace('Pack of ', ''), 10) : 1);
-        const effectiveQty = gp.quantity * packMultiplier;
-        groupShipping += getProductShippingCharge(productDoc, effectiveQty, stateName);
-      }
-      group.shippingAmount = groupShipping;
-      shippingAmount += groupShipping;
     }
 
-    const storeConfig = await StoreConfig.findOne({}).lean();
     const freeShippingEnabled = (storeConfig as any)?.freeShippingEnabled !== false;
     const freeShippingMin = Number((storeConfig as any)?.freeShippingMinAmount) || 599;
     const isSingleVendor = Object.keys(vendorGroups).length <= 1;
 
+    let shippingAmount = 0;
     if (freeShippingEnabled && totalAmount >= freeShippingMin && isSingleVendor) {
       shippingAmount = 0;
       for (const vId of Object.keys(vendorGroups)) {
         vendorGroups[vId].shippingAmount = 0;
       }
-    } else if (totalAmount >= freeShippingMin && !isSingleVendor) {
-      // User rule: apply 99 charge when order is above 599 but vendors are different
+    } else {
+      // Mandatory flat ₹99 shipping for all orders instead of vendor config rates
       shippingAmount = 99;
       const vendorKeys = Object.keys(vendorGroups);
       const splitAmount = Math.round((99 / vendorKeys.length) * 100) / 100;

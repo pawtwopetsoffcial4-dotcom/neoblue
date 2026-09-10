@@ -482,7 +482,7 @@ export default function CartDrawer() {
                     Cart Subtotal
                   </span>
                   <p className="text-[9px] sm:text-[10px] text-slate-400 font-medium">
-                    {totalAmount >= 599 ? '🎉 Free Shipping on single-seller orders' : 'Shipping calculated at checkout'}
+                    {totalAmount >= 599 ? '🎉 Free Shipping on single-seller orders' : 'Standard Shipping ₹99 at checkout'}
                   </p>
                 </div>
                 <div className="text-right">
