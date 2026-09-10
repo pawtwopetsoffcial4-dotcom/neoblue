@@ -162,6 +162,13 @@ export class APIClient {
     });
   }
 
+  async resetVendorPassword(id: string, newPassword: string) {
+    return this.request(`/vendors/${id}/reset-password`, {
+      method: 'POST',
+      body: JSON.stringify({ newPassword }),
+    });
+  }
+
   async bulkUpdateVendorShipping(bulkData: any) {
     return this.request('/admin/vendors/shipping/bulk', {
       method: 'POST',

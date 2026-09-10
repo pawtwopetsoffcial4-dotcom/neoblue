@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { apiClient } from '@/lib/api-client';
-import { X, Save, ShieldAlert, Truck, CheckSquare, Square, Settings, Percent, Copy, Sliders, CheckCircle2, Layers, Gift } from 'lucide-react';
+import { X, Save, ShieldAlert, Truck, CheckSquare, Square, Settings, Percent, Copy, Sliders, CheckCircle2, Layers, Gift, KeyRound, Eye, EyeOff, RefreshCw, Check } from 'lucide-react';
 
 type Vendor = {
   _id: string;
@@ -29,6 +29,13 @@ export default function AdminVendorsPage() {
   const [selectedVendorIds, setSelectedVendorIds] = useState<string[]>([]);
   const [isUpdating, setIsUpdating] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+
+  // Password Reset Modal State
+  const [resetVendor, setResetVendor] = useState<Vendor | null>(null);
+  const [newVendorPassword, setNewVendorPassword] = useState('');
+  const [showVendorPassword, setShowVendorPassword] = useState(true);
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
+  const [copiedPassword, setCopiedPassword] = useState(false);
 
   // Individual Shipping Modal State
   const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
@@ -119,6 +126,68 @@ export default function AdminVendorsPage() {
       setMessage('Failed to update vendor approval status');
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  // Password Reset Helpers
+  const generateRandomPasswordString = () => {
+    const chars = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789!@#$%&*';
+    let pwd = '';
+    const lower = 'abcdefghjkmnpqrstuvwxyz';
+    const upper = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+    const numbers = '23456789';
+    const special = '!@#$%&*';
+    pwd += lower[Math.floor(Math.random() * lower.length)];
+    pwd += upper[Math.floor(Math.random() * upper.length)];
+    pwd += numbers[Math.floor(Math.random() * numbers.length)];
+    pwd += special[Math.floor(Math.random() * special.length)];
+    for (let i = 0; i < 6; i++) {
+      pwd += chars[Math.floor(Math.random() * chars.length)];
+    }
+    return pwd.split('').sort(() => 0.5 - Math.random()).join('');
+  };
+
+  const openResetPasswordModal = (vendor: Vendor) => {
+    setResetVendor(vendor);
+    setShowVendorPassword(true);
+    setCopiedPassword(false);
+    setNewVendorPassword(generateRandomPasswordString());
+  };
+
+  const generateRandomPassword = () => {
+    setNewVendorPassword(generateRandomPasswordString());
+    setCopiedPassword(false);
+  };
+
+  const copyPasswordToClipboard = async () => {
+    if (!newVendorPassword) return;
+    try {
+      await navigator.clipboard.writeText(newVendorPassword);
+      setCopiedPassword(true);
+      setTimeout(() => setCopiedPassword(false), 2000);
+    } catch {
+      // ignore
+    }
+  };
+
+  const handleSaveVendorPassword = async () => {
+    if (!resetVendor) return;
+    if (!newVendorPassword || newVendorPassword.trim().length < 6) {
+      setMessage('Password must be at least 6 characters long');
+      return;
+    }
+
+    try {
+      setIsResettingPassword(true);
+      setMessage(null);
+      const res = (await apiClient.resetVendorPassword(resetVendor._id, newVendorPassword.trim())) as any;
+      setMessage(res?.message || `Password for ${resetVendor.name} (${resetVendor.email}) reset successfully!`);
+      setResetVendor(null);
+      setNewVendorPassword('');
+    } catch (err: any) {
+      setMessage(err?.message || 'Failed to reset vendor password');
+    } finally {
+      setIsResettingPassword(false);
     }
   };
 
@@ -400,13 +469,22 @@ export default function AdminVendorsPage() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                <div className="flex flex-wrap items-center gap-2 shrink-0 self-end sm:self-center">
                   <button
                     onClick={() => openShippingModal(vendor)}
                     className="h-8 px-3 rounded-lg border border-slate-200 bg-white text-slate-700 font-medium text-xs hover:bg-slate-50 transition-colors flex items-center gap-1.5 cursor-pointer"
                   >
                     <Settings className="h-3.5 w-3.5 text-slate-500" />
                     Configure Shipping
+                  </button>
+
+                  <button
+                    onClick={() => openResetPasswordModal(vendor)}
+                    className="h-8 px-3 rounded-lg border border-amber-200 bg-amber-50/60 text-amber-800 font-medium text-xs hover:bg-amber-100 transition-colors flex items-center gap-1.5 cursor-pointer"
+                    title="Reset vendor password"
+                  >
+                    <KeyRound className="h-3.5 w-3.5 text-amber-600" />
+                    Reset Password
                   </button>
 
                   <button
@@ -809,6 +887,134 @@ export default function AdminVendorsPage() {
               </button>
               <button onClick={saveShipping} disabled={isSavingShipping} className="h-9 px-5 rounded-lg bg-slate-900 text-white font-semibold text-xs hover:bg-slate-800 transition-colors disabled:opacity-50 cursor-pointer">
                 {isSavingShipping ? 'Saving...' : 'Save Settings'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 🔑 RESET PASSWORD MODAL */}
+      {resetVendor && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden border border-slate-200 animate-in fade-in zoom-in-95 duration-150">
+            {/* Modal Header */}
+            <div className="border-b border-slate-200 px-6 py-4 flex items-center justify-between bg-slate-50/60">
+              <div className="flex items-center gap-2.5">
+                <div className="h-8 w-8 rounded-lg bg-amber-100 flex items-center justify-center text-amber-700">
+                  <KeyRound className="h-4 w-4" />
+                </div>
+                <div>
+                  <h2 className="text-sm font-bold text-slate-900">Reset Vendor Password</h2>
+                  <p className="text-[11px] text-slate-500">Set a new login password for this vendor</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setResetVendor(null)}
+                className="h-8 w-8 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg flex items-center justify-center transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 space-y-4">
+              {/* Vendor Info card */}
+              <div className="bg-slate-50 rounded-xl p-3.5 border border-slate-200/80 space-y-1 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-slate-500 font-medium">Vendor:</span>
+                  <span className="text-slate-900 font-semibold">{resetVendor.name}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500 font-medium">Email / Login ID:</span>
+                  <span className="text-slate-900 font-mono font-medium">{resetVendor.email}</span>
+                </div>
+              </div>
+
+              {/* Password Input Field */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold text-slate-700">New Password</label>
+                  <button
+                    type="button"
+                    onClick={generateRandomPassword}
+                    className="text-[11px] font-medium text-blue-600 hover:text-blue-800 flex items-center gap-1 cursor-pointer"
+                  >
+                    <RefreshCw className="h-3 w-3" />
+                    Generate Strong
+                  </button>
+                </div>
+
+                <div className="relative">
+                  <input
+                    type={showVendorPassword ? "text" : "password"}
+                    value={newVendorPassword}
+                    onChange={(e) => setNewVendorPassword(e.target.value)}
+                    placeholder="Enter at least 6 characters"
+                    className="w-full h-10 px-3.5 pr-20 rounded-xl border border-slate-200 bg-white font-mono text-sm text-slate-900 outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-100 transition-all"
+                  />
+                  <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => setShowVendorPassword(!showVendorPassword)}
+                      className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+                      title={showVendorPassword ? "Hide password" : "Show password"}
+                    >
+                      {showVendorPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={copyPasswordToClipboard}
+                      className="p-1.5 text-slate-500 hover:text-slate-900 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+                      title="Copy to clipboard"
+                    >
+                      {copiedPassword ? (
+                        <Check className="h-3.5 w-3.5 text-emerald-600" />
+                      ) : (
+                        <Copy className="h-3.5 w-3.5" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {copiedPassword && (
+                  <p className="text-[11px] font-medium text-emerald-600 flex items-center gap-1 animate-in fade-in">
+                    <Check className="h-3 w-3" /> Copied password to clipboard!
+                  </p>
+                )}
+              </div>
+
+              {/* Warning Notice */}
+              <div className="bg-amber-50/70 border border-amber-200/80 rounded-xl p-3 text-[11px] text-amber-800 leading-relaxed">
+                <span className="font-semibold">Important:</span> This will overwrite the vendor's password immediately. Please make sure to copy and send this new password to the vendor.
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 border-t border-slate-200 bg-slate-50 flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setResetVendor(null)}
+                className="h-9 px-4 rounded-lg border border-slate-200 bg-white text-slate-700 font-medium text-xs hover:bg-slate-50 transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveVendorPassword}
+                disabled={isResettingPassword || !newVendorPassword || newVendorPassword.trim().length < 6}
+                className="h-9 px-5 rounded-lg bg-slate-900 text-white font-semibold text-xs hover:bg-slate-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer shadow-xs"
+              >
+                {isResettingPassword ? (
+                  <>
+                    <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                    Updating...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-3.5 w-3.5" />
+                    Set New Password
+                  </>
+                )}
               </button>
             </div>
           </div>
