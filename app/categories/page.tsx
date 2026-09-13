@@ -25,6 +25,9 @@ export default async function CategoriesPage() {
   await connectDB();
 
   const config = await StoreConfig.findOne({}).lean() as any;
+  const excludedList: string[] = Array.isArray(config?.excludedCategories) ? config.excludedCategories : [];
+  const excludedSet = new Set(excludedList.map((c: string) => String(c).toLowerCase()));
+
   const configuredCategories = Array.isArray(config?.categories) ? config.categories : [];
 
   const productCategories = await Product.distinct('category', {
@@ -38,7 +41,7 @@ export default async function CategoriesPage() {
       ...configuredCategories,
       ...productCategories,
     ].filter((category): category is string => typeof category === 'string' && category.trim().length > 0))
-  ).sort();
+  ).filter((category) => !excludedSet.has(category.toLowerCase())).sort();
 
   const products = await Product.find({
     approvalStatus: 'approved',

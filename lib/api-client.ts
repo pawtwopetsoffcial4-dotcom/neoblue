@@ -187,6 +187,12 @@ export class APIClient {
     });
   }
 
+  async deleteCategory(category: string) {
+    return this.request(`/categories?name=${encodeURIComponent(category)}`, {
+      method: 'DELETE',
+    });
+  }
+
   // Admin methods
   async getAdminOrders() {
     return this.request('/admin', { params: { type: 'orders' } });

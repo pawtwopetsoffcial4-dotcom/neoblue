@@ -20,6 +20,7 @@ export interface IStoreConfig {
   heroSlidesPlants?: IHeroSlide[];
   heroBgImage?: string;
   categories: string[];
+  excludedCategories?: string[];
   categoryImages?: Record<string, string>;
   subcategories?: Record<string, string[]>;
   stat1Value: string;
@@ -77,6 +78,7 @@ const StoreConfigSchema = new mongoose.Schema<IStoreConfig>(
     facebookPixelId: { type: String, default: () => process.env.FACEBOOK_PIXEL_ID || process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID || '1689531238818724' },
     googleAnalyticsId: { type: String, default: () => process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || process.env.GA_MEASUREMENT_ID || process.env.NEXT_PUBLIC_GA_ID || '' },
     categories: { type: [String], default: PRODUCT_CATEGORIES },
+    excludedCategories: { type: [String], default: [] },
     categoryImages: { type: mongoose.Schema.Types.Mixed, default: {} },
     subcategories: { type: mongoose.Schema.Types.Mixed, default: {} },
     stat1Value: { type: String, default: '500+' },

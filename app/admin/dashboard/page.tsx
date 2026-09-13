@@ -152,20 +152,48 @@ export default function AdminDashboardPage() {
     .reduce((sum, order) => sum + order.totalAmount, 0);
   const vendorCount = users.filter((user) => user.role === 'vendor').length;
 
-  const uniqueCategories = useMemo(() => Array.from(new Set([...categories, ...allCategories].map(normalizeCategory))).filter(Boolean).sort(), [categories, allCategories]);
+  const uniqueCategories = useMemo(() => Array.from(new Set(categories.map(normalizeCategory))).filter(Boolean).sort(), [categories]);
 
   const addCategory = () => {
     const nextCategory = normalizeCategory(categoryInput);
     if (!nextCategory) return;
 
     setCategories((current) => Array.from(new Set([...current, nextCategory])));
+    setAllCategories((current) => Array.from(new Set([...current, nextCategory])));
     setCategoryInput('');
-    setConfigMessage(null);
+    setConfigMessage(`Category "${nextCategory}" added. Click Save to persist.`);
   };
 
-  const removeCategory = (category: string) => {
-    setCategories((current) => current.filter((item) => item !== category));
-    setConfigMessage(null);
+  const removeCategory = async (category: string) => {
+    if (!confirm(`Are you sure you want to remove the "${category}" category from the store?`)) return;
+
+    try {
+      setConfigSaving(true);
+      setConfigMessage(null);
+
+      await apiClient.deleteCategory(category);
+
+      setCategories((current) => current.filter((item) => item !== category));
+      setAllCategories((current) => current.filter((item) => item !== category));
+      setCategoryImages((current) => {
+        const next = { ...current };
+        delete next[category];
+        return next;
+      });
+      setSubcategories((current) => {
+        const next = { ...current };
+        delete next[category];
+        return next;
+      });
+      if (selectedCategoryForVarieties === category) {
+        setSelectedCategoryForVarieties('');
+      }
+      setConfigMessage(`Category "${category}" removed successfully.`);
+    } catch (error: any) {
+      setConfigMessage(error?.message || `Failed to remove category "${category}".`);
+    } finally {
+      setConfigSaving(false);
+    }
   };
 
   const saveCategories = async () => {
@@ -178,9 +206,11 @@ export default function AdminDashboardPage() {
         body: JSON.stringify({ categories: categories, categoryImages: categoryImages }), // save custom categories and all images
       })) as AdminConfig;
 
-      setCategories(Array.isArray(data.categories) ? data.categories : categories);
+      const savedCats = Array.isArray(data.categories) ? data.categories : categories;
+      setCategories(savedCats);
+      setAllCategories(savedCats);
       setCategoryImages(data.categoryImages || categoryImages);
-      setConfigMessage('Categories saved.');
+      setConfigMessage('Categories saved successfully.');
     } catch (error: any) {
       setConfigMessage(error?.message || 'Unable to save categories.');
     } finally {

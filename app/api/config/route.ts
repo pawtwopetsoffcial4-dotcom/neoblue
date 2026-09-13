@@ -22,6 +22,11 @@ export async function GET() {
     const payload = config.toObject ? config.toObject() : config;
     const { shippingPerPiece, shippingPerWeight, ...rest } = payload as Record<string, any>;
 
+    const excludedList: string[] = Array.isArray(payload.excludedCategories) ? payload.excludedCategories : [];
+    const excludedSet = new Set(excludedList.map((c: string) => normalizeCategoryName(c).toLowerCase()));
+    const rawCategories: string[] = Array.isArray(payload.categories) && payload.categories.length ? payload.categories : PRODUCT_CATEGORIES;
+    const filteredCategories = rawCategories.filter((c: string) => !excludedSet.has(normalizeCategoryName(c).toLowerCase()));
+
     return NextResponse.json({
       ...rest,
       heroSlides: Array.isArray(payload.heroSlides) && payload.heroSlides.length > 0 ? payload.heroSlides : DEFAULT_HERO_SLIDES,
@@ -30,7 +35,8 @@ export async function GET() {
       facebookPixelId: payload.facebookPixelId || process.env.FACEBOOK_PIXEL_ID || process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID || '1689531238818724',
       googleAnalyticsId: payload.googleAnalyticsId || process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || process.env.GA_MEASUREMENT_ID || process.env.NEXT_PUBLIC_GA_ID || '',
       minOrderAmount: Math.min(149, Number(payload.minOrderAmount) || 149),
-      categories: Array.isArray(payload.categories) && payload.categories.length ? payload.categories : PRODUCT_CATEGORIES,
+      categories: filteredCategories,
+      excludedCategories: excludedList,
       subcategories: payload.subcategories && Object.keys(payload.subcategories).length ? payload.subcategories : PRODUCT_CATALOG,
       marqueeText: payload.marqueeText ?? 'Next shipping on Monday! Order fast for fastest delivery.',
       marqueeEnabled: payload.marqueeEnabled !== false,
@@ -51,6 +57,11 @@ export async function PUT(request: Request) {
     const data: any = { ...raw };
     delete data.shippingPerPiece;
     delete data.shippingPerWeight;
+
+    if (Array.isArray(raw?.excludedCategories)) {
+      data.excludedCategories = Array.from(new Set(raw.excludedCategories.map((c: string) => normalizeCategoryName(c)).filter(Boolean)));
+    }
+
     if (Array.isArray(raw?.categories)) {
       const uniqueCats = new Set<string>();
       for (const c of raw.categories) {
@@ -60,6 +71,11 @@ export async function PUT(request: Request) {
         }
       }
       data.categories = Array.from(uniqueCats);
+
+      if (Array.isArray(data.excludedCategories)) {
+        const addedSet = new Set(data.categories.map((c: string) => c.toLowerCase()));
+        data.excludedCategories = data.excludedCategories.filter((c: string) => !addedSet.has(c.toLowerCase()));
+      }
     }
 
     const config = await StoreConfig.findOneAndUpdate({}, { $set: data }, { new: true, upsert: true });

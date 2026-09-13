@@ -40,6 +40,8 @@ async function getCategoryData(slug: string) {
 
   // Fetch configurations for custom categories
   const config = await StoreConfig.findOne({}).lean() as any;
+  const excludedList: string[] = Array.isArray(config?.excludedCategories) ? config.excludedCategories : [];
+  const excludedSet = new Set(excludedList.map((c: string) => String(c).toLowerCase()));
   const configuredCategories = Array.isArray(config?.categories) ? config.categories : [];
 
   const availableCategories = Array.from(
@@ -47,7 +49,7 @@ async function getCategoryData(slug: string) {
       ...PRODUCT_CATEGORIES,
       ...configuredCategories,
     ].filter((category): category is string => typeof category === 'string' && category.trim().length > 0))
-  );
+  ).filter((category) => !excludedSet.has(category.toLowerCase()));
 
   const customCategory = availableCategories.find((category) => toSlug(category) === normalizedSlug);
   const inferredCategory = products.find((p) => toSlug(p.category) === normalizedSlug)?.category;

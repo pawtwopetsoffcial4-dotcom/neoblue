@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { CldUploadWidget } from 'next-cloudinary';
+import { apiClient } from '@/lib/api-client';
 import { 
   Save, Loader2, Sparkles, X, Plus, Trash2, ArrowUp, ArrowDown, 
   Image as ImageIcon, Eye, ExternalLink, Layers, Fish, Leaf, Link2, Palette,
@@ -36,6 +37,7 @@ export default function AdminSettingsPage() {
     googleAnalyticsId: '',
     minOrderAmount: 149,
     categories: [] as string[],
+    excludedCategories: [] as string[],
     categoryImages: {} as Record<string, string>,
     stat1Value: '',
     stat1Label: '',
@@ -114,6 +116,32 @@ export default function AdminSettingsPage() {
         ...prev,
         heroSlidesPlants: updater(prev.heroSlidesPlants || []),
       }));
+    }
+  };
+
+  const handleRemoveCategory = async (cat: string) => {
+    if (!confirm(`Are you sure you want to remove category "${cat}" from the store catalog?`)) return;
+
+    try {
+      await apiClient.deleteCategory(cat);
+      setConfig((prev: any) => {
+        const nextCats = (prev.categories || []).filter((c: string) => c !== cat);
+        const nextExcluded = Array.from(new Set([...(prev.excludedCategories || []), cat]));
+        const nextImages = { ...prev.categoryImages };
+        delete nextImages[cat];
+        const nextSubs = { ...prev.subcategories };
+        delete nextSubs[cat];
+        return {
+          ...prev,
+          categories: nextCats,
+          excludedCategories: nextExcluded,
+          categoryImages: nextImages,
+          subcategories: nextSubs,
+        };
+      });
+      setAllCategories((prev) => prev.filter((c) => c !== cat));
+    } catch (err: any) {
+      alert(err?.message || `Failed to remove category "${cat}".`);
     }
   };
 
@@ -1099,7 +1127,10 @@ export default function AdminSettingsPage() {
           <h3 className="text-lg font-bold text-gray-800 mb-4">Categories</h3>
 
           <div className="space-y-4">
-            {Array.from(new Set([...(config.categories || []), ...allCategories])).sort().map((cat) => (
+            {Array.from(new Set([...(config.categories || []), ...allCategories]))
+              .filter((cat) => !(config.excludedCategories || []).includes(cat))
+              .sort()
+              .map((cat) => (
               <div key={cat} className="flex flex-col gap-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
                 <div className="flex items-center gap-4">
                   <div className="w-20 h-12 bg-white rounded-md overflow-hidden border">
@@ -1113,15 +1144,25 @@ export default function AdminSettingsPage() {
                   <div className="flex-1">
                     <div className="font-semibold text-gray-800">{cat}</div>
                   </div>
-                  <div>
+                  <div className="flex items-center gap-2">
                     <CldUploadWidget uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'neoblue_products'} options={{ sources: ['local', 'camera', 'url'], multiple: false, resourceType: 'image' }} onSuccess={(result: any) => {
                       const secureUrl = result?.info?.secure_url;
                       if (secureUrl) {
                         setConfig((prev) => ({ ...(prev as any), categoryImages: { ...(prev as any).categoryImages, [cat]: String(secureUrl) } }));
                       }
                     }}>
-                      {({ open }) => <button type="button" onClick={() => open()} className="h-9 px-3 rounded-md border border-blue-200 text-blue-700 font-semibold hover:bg-blue-50">Upload</button>}
+                      {({ open }) => <button type="button" onClick={() => open()} className="h-9 px-3 rounded-md border border-blue-200 text-blue-700 font-semibold hover:bg-blue-50 cursor-pointer">Upload</button>}
                     </CldUploadWidget>
+
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveCategory(cat)}
+                      className="h-9 px-3 rounded-md border border-rose-200 text-rose-600 hover:bg-rose-50 font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                      title={`Remove ${cat} category`}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      <span>Remove</span>
+                    </button>
                   </div>
                 </div>
 
@@ -1140,7 +1181,7 @@ export default function AdminSettingsPage() {
                               return { ...prev, subcategories: newSubs };
                             });
                           }} 
-                          className="text-red-500 hover:text-red-700 transition-colors"
+                          className="text-red-500 hover:text-red-700 transition-colors cursor-pointer"
                         >
                           <X className="h-3 w-3" />
                         </button>
@@ -1202,7 +1243,8 @@ function AddCategoryRow({ config, setConfig }: { config: any; setConfig: any }) 
     const newCategories = [...existing, trimmed];
     const newImages = { ...(config.categoryImages || {}) };
     if (preview) newImages[trimmed] = preview;
-    setConfig((prev: any) => ({ ...prev, categories: newCategories, categoryImages: newImages }));
+    const newExcluded = (config.excludedCategories || []).filter((c: string) => c.toLowerCase() !== trimmed.toLowerCase());
+    setConfig((prev: any) => ({ ...prev, categories: newCategories, excludedCategories: newExcluded, categoryImages: newImages }));
     setName('');
     setPreview(null);
   };
@@ -1214,9 +1256,9 @@ function AddCategoryRow({ config, setConfig }: { config: any; setConfig: any }) 
         const url = res?.info?.secure_url;
         if (url) setPreview(String(url));
       }}>
-        {({ open }) => <button type="button" onClick={() => open()} className="h-9 px-3 rounded-md border border-blue-200 text-blue-700 font-semibold hover:bg-blue-50">Upload Image</button>}
+        {({ open }) => <button type="button" onClick={() => open()} className="h-9 px-3 rounded-md border border-blue-200 text-blue-700 font-semibold hover:bg-blue-50 cursor-pointer">Upload Image</button>}
       </CldUploadWidget>
-      <button type="button" onClick={addCategory} className="h-9 px-4 rounded-md bg-blue-600 text-white font-semibold">Add</button>
+      <button type="button" onClick={addCategory} className="h-9 px-4 rounded-md bg-blue-600 text-white font-semibold cursor-pointer">Add</button>
       {preview ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={preview} alt="preview" className="w-12 h-8 object-cover rounded-md border" />
