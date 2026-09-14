@@ -18,6 +18,7 @@ import { trackInitiateCheckout, trackPurchase } from '@/lib/fpixel';
 const PENDING_CASHFREE_CHECKOUT_KEY = 'pendingCashfreeCheckout';
 
 const cashfreeSdkSrc = 'https://sdk.cashfree.com/js/v3/cashfree.js';
+const razorpaySdkSrc = 'https://checkout.razorpay.com/v1/checkout.js';
 
 function CheckoutPageContent() {
   const router = useRouter();
@@ -489,10 +490,18 @@ function CheckoutPageContent() {
         price: item.price,
       }));
 
-      const cashfreeOrder = await apiClient.request<{
+      const orderData = await apiClient.request<{
+        gateway?: 'razorpay' | 'cashfree';
         orderId: string;
         amount: number;
+        amountInRupees?: number;
         currency: string;
+        keyId?: string;
+        customerDetails?: {
+          name?: string;
+          email?: string;
+          contact?: string;
+        };
         paymentSessionId?: string;
         paymentLink?: string;
         environment?: 'production' | 'sandbox';
@@ -501,26 +510,103 @@ function CheckoutPageContent() {
         body: JSON.stringify({ products, address }),
       });
 
-      if (!cashfreeOrder?.orderId) {
-        throw new Error('Failed to initialize Cashfree order');
+      if (!orderData?.orderId) {
+        throw new Error('Failed to initialize payment order');
       }
 
+      // --- Razorpay Payment Flow ---
+      if (orderData.gateway === 'razorpay') {
+        if (typeof window.Razorpay !== 'function') {
+          throw new Error('Razorpay checkout library is unavailable. Please refresh and try again.');
+        }
+
+        const options = {
+          key: orderData.keyId || '',
+          amount: orderData.amount, // in paise
+          currency: orderData.currency || 'INR',
+          name: 'NeoBlue Aquatic Marketplace',
+          description: `Order #${orderData.orderId}`,
+          order_id: orderData.orderId,
+          prefill: {
+            name: orderData.customerDetails?.name || user?.name || '',
+            email: orderData.customerDetails?.email || user?.email || '',
+            contact: orderData.customerDetails?.contact || address.phone || '',
+          },
+          theme: {
+            color: isPlants ? '#15803d' : '#2563eb',
+          },
+          handler: async function (response: {
+            razorpay_payment_id: string;
+            razorpay_order_id: string;
+            razorpay_signature: string;
+          }) {
+            try {
+              setIsFinalizing(true);
+              const verifyData = await apiClient.request<{
+                isPaid: boolean;
+                orderId: string;
+                paymentId: string;
+                message?: string;
+              }>('/checkout/verify-order', {
+                method: 'POST',
+                body: JSON.stringify({
+                  gateway: 'razorpay',
+                  razorpayOrderId: response.razorpay_order_id,
+                  razorpayPaymentId: response.razorpay_payment_id,
+                  razorpaySignature: response.razorpay_signature,
+                }),
+              });
+
+              if (verifyData?.isPaid) {
+                trackPurchase({
+                  orderId: response.razorpay_order_id,
+                  value: totalAmount,
+                  currency: 'INR',
+                  content_ids: items.map((i) => i.productId),
+                  num_items: items.reduce((sum, item) => sum + item.quantity, 0),
+                });
+                clearCart();
+                router.replace(`/orders?confirmed=true&order_id=${encodeURIComponent(response.razorpay_order_id)}`);
+              } else {
+                setPaymentErrorMessage('Payment verification failed. If your money was deducted, please check your orders page or contact support.');
+              }
+            } catch (err: any) {
+              console.error('Finalizing Razorpay payment error:', err);
+              setPaymentErrorMessage('Unable to verify Razorpay payment. If money was deducted, please check your My Orders page.');
+            } finally {
+              setIsFinalizing(false);
+              setIsPaying(false);
+            }
+          },
+          modal: {
+            ondismiss: function () {
+              setIsPaying(false);
+            },
+          },
+        };
+
+        const rzp = new window.Razorpay(options);
+        rzp.open();
+        return;
+      }
+
+      // --- Cashfree Payment Flow ---
       localStorage.setItem(
         PENDING_CASHFREE_CHECKOUT_KEY,
         JSON.stringify({
-          orderId: cashfreeOrder.orderId,
+          orderId: orderData.orderId,
           products,
           address,
         })
       );
 
       // Prefer hosted payment link when Cashfree returns one.
-      if (cashfreeOrder.paymentLink) {
-        window.location.href = cashfreeOrder.paymentLink;
+      if (orderData.paymentLink) {
+        window.location.href = orderData.paymentLink;
         return;
       }
 
-      if (!cashfreeOrder.paymentSessionId) {
+      if (!orderData.paymentSessionId) {
         throw new Error('Cashfree payment session is unavailable. Please contact support.');
       }
 
@@ -528,9 +614,9 @@ function CheckoutPageContent() {
         throw new Error('Cashfree checkout library is unavailable. Please refresh and try again.');
       }
 
-      const cashfree = window.Cashfree({ mode: cashfreeOrder.environment === 'production' ? 'production' : 'sandbox' });
+      const cashfree = window.Cashfree({ mode: orderData.environment === 'production' ? 'production' : 'sandbox' });
       await cashfree.checkout({
-        paymentSessionId: cashfreeOrder.paymentSessionId,
+        paymentSessionId: orderData.paymentSessionId,
         redirectTarget: '_self',
       });
     } catch (error) {
@@ -651,6 +737,7 @@ function CheckoutPageContent() {
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 pb-24 md:pb-32 font-sans">
       <Script src={cashfreeSdkSrc} strategy="afterInteractive" />
+      <Script src={razorpaySdkSrc} strategy="afterInteractive" />
       {/* Header section */}
       <div className="bg-white border-b border-gray-200 pt-8 pb-8 md:pt-12 md:pb-12 shadow-sm">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -1226,7 +1313,7 @@ function CheckoutPageContent() {
                   </button>
                   
                   <div className="flex items-center justify-center gap-2 text-xs font-semibold text-gray-400 mt-4 uppercase tracking-widest">
-                    <ShieldCheck className="h-4 w-4" /> 100% SECURE CASHFREE
+                    <ShieldCheck className="h-4 w-4" /> 100% SECURE {storeConfig?.paymentGateway === 'cashfree' ? 'CASHFREE' : 'RAZORPAY'}
                   </div>
                 </div>
               </div>

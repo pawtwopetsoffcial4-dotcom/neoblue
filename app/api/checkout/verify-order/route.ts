@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+import crypto from 'crypto';
 import { createErrorResponse, getTokenFromRequest, verifyToken } from '@/lib/utils/auth';
 import { connectDB } from '@/lib/db';
 import Order from '@/lib/models/Order';
+import StoreConfig from '@/lib/models/StoreConfig';
 import { decrementStockForOrder } from '@/lib/utils/stock';
 import { createNotification } from '@/lib/utils/notifications';
 
@@ -10,6 +12,91 @@ const secretKey = process.env.CASHFREE_SECRET_KEY;
 const cashfreeEnv = process.env.CASHFREE_ENV === 'production' ? 'production' : 'sandbox';
 
 const getCashfreeBaseUrl = () => (cashfreeEnv === 'production' ? 'https://api.cashfree.com' : 'https://sandbox.cashfree.com');
+
+export async function POST(request: NextRequest) {
+  try {
+    await connectDB();
+
+    const token = getTokenFromRequest(request);
+    if (!token) {
+      return createErrorResponse('Unauthorized', 401);
+    }
+
+    const payload = verifyToken(token);
+    if (!payload || payload.role !== 'user') {
+      return createErrorResponse('Only users can verify checkout orders', 403);
+    }
+
+    const body = await request.json();
+    const { gateway, razorpayOrderId, razorpayPaymentId, razorpaySignature } = body;
+
+    if (gateway === 'razorpay' || razorpayOrderId) {
+      if (!razorpayOrderId || !razorpayPaymentId || !razorpaySignature) {
+        return createErrorResponse('Missing Razorpay verification parameters', 400);
+      }
+
+      const storeConfig = await StoreConfig.findOne({}).lean();
+      const rzpKeySecret = (storeConfig as any)?.razorpayKeySecret || process.env.RAZORPAY_KEY_SECRET || '';
+
+      if (!rzpKeySecret) {
+        return createErrorResponse('Razorpay secret key is not configured. Please add it in Admin Settings.', 500);
+      }
+
+      const text = `${razorpayOrderId}|${razorpayPaymentId}`;
+      const generatedSignature = crypto
+        .createHmac('sha256', rzpKeySecret)
+        .update(text)
+        .digest('hex');
+
+      if (generatedSignature !== razorpaySignature) {
+        return createErrorResponse('Invalid Razorpay payment signature', 400);
+      }
+
+      const ordersToUpdate = await Order.find({ razorpayOrderId });
+      if (!ordersToUpdate || ordersToUpdate.length === 0) {
+        return createErrorResponse('No orders found for this Razorpay order ID', 404);
+      }
+
+      for (const order of ordersToUpdate) {
+        if (order.status !== 'placed') {
+          order.status = 'placed';
+          order.paymentId = razorpayPaymentId;
+          await order.save();
+          await decrementStockForOrder(order);
+
+          // Trigger notification for the buyer
+          await createNotification(
+            order.userId,
+            'Order Confirmed! 🎉',
+            `Your order #${order._id.toString().toUpperCase().slice(-6)} of ₹${order.totalAmount.toFixed(2)} has been placed successfully.`,
+            'order_status',
+            '/orders'
+          ).catch((e) => console.error('Notification buyer error:', e));
+
+          // Trigger notification for the vendor
+          await createNotification(
+            order.vendorId,
+            'New Order Received! 📦',
+            `You have received a new order #${order._id.toString().toUpperCase().slice(-6)} for ₹${order.totalAmount.toFixed(2)}.`,
+            'new_order',
+            '/vendor/orders'
+          ).catch((e) => console.error('Notification vendor error:', e));
+        }
+      }
+
+      return NextResponse.json({
+        isPaid: true,
+        orderId: razorpayOrderId,
+        paymentId: razorpayPaymentId,
+        message: 'Payment verified and orders placed successfully',
+      });
+    }
+
+    return createErrorResponse('Unsupported payment verification request', 400);
+  } catch (error: any) {
+    return createErrorResponse(error.message || 'Failed to verify payment', 500);
+  }
+}
 
 export async function GET(request: NextRequest) {
   try {

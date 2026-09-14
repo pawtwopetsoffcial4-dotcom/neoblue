@@ -32,6 +32,9 @@ export interface IStoreConfig {
   freeShippingEnabled?: boolean;
   freeShippingMinAmount?: number;
   minOrderAmount?: number;
+  paymentGateway?: 'razorpay' | 'cashfree';
+  razorpayKeyId?: string;
+  razorpayKeySecret?: string;
   facebookPixelId?: string;
   googleAnalyticsId?: string;
   marqueeText?: string;
@@ -90,6 +93,9 @@ const StoreConfigSchema = new mongoose.Schema<IStoreConfig>(
     freeShippingEnabled: { type: Boolean, default: true },
     freeShippingMinAmount: { type: Number, default: 599 },
     minOrderAmount: { type: Number, default: 149 },
+    paymentGateway: { type: String, enum: ['razorpay', 'cashfree'], default: 'razorpay' },
+    razorpayKeyId: { type: String, default: () => process.env.RAZORPAY_KEY_ID || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || '' },
+    razorpayKeySecret: { type: String, default: () => process.env.RAZORPAY_KEY_SECRET || '' },
     marqueeText: { type: String, default: 'Next shipping on Monday! Order fast for fastest delivery.' },
     marqueeEnabled: { type: Boolean, default: true },
     marqueeLink: { type: String, default: '/products' },

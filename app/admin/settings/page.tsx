@@ -6,7 +6,7 @@ import { apiClient } from '@/lib/api-client';
 import { 
   Save, Loader2, Sparkles, X, Plus, Trash2, ArrowUp, ArrowDown, 
   Image as ImageIcon, Eye, ExternalLink, Layers, Fish, Leaf, Link2, Palette,
-  Copy, Check, ShoppingBag, BarChart3, Truck, Megaphone
+  Copy, Check, ShoppingBag, BarChart3, Truck, Megaphone, CreditCard, Lock, KeyRound, ShieldCheck
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { 
@@ -22,6 +22,7 @@ export default function AdminSettingsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<'fishes' | 'plants'>('fishes');
+  const [showRazorpaySecret, setShowRazorpaySecret] = useState(false);
   
   const [config, setConfig] = useState({
     offerBadge: '',
@@ -36,6 +37,9 @@ export default function AdminSettingsPage() {
     facebookPixelId: '1689531238818724',
     googleAnalyticsId: '',
     minOrderAmount: 149,
+    paymentGateway: 'razorpay' as 'razorpay' | 'cashfree',
+    razorpayKeyId: '',
+    razorpayKeySecret: '',
     categories: [] as string[],
     excludedCategories: [] as string[],
     categoryImages: {} as Record<string, string>,
@@ -79,6 +83,9 @@ export default function AdminSettingsPage() {
             marqueeText: typeof data.marqueeText === 'string' ? data.marqueeText : DEFAULT_MARQUEE_TEXT,
             marqueeEnabled: typeof data.marqueeEnabled === 'boolean' ? data.marqueeEnabled : true,
             marqueeLink: typeof data.marqueeLink === 'string' ? data.marqueeLink : '/products',
+            paymentGateway: data.paymentGateway || 'razorpay',
+            razorpayKeyId: data.razorpayKeyId || '',
+            razorpayKeySecret: data.razorpayKeySecret || '',
           });
         }
 
@@ -1015,6 +1022,172 @@ export default function AdminSettingsPage() {
           <p className="text-xs text-slate-500 leading-relaxed">
             Customers with a cart subtotal below this amount will see a progress bar in their cart drawer and will be prevented from checking out until reaching ₹{config.minOrderAmount ?? 149}.
           </p>
+        </div>
+      </div>
+
+      {/* 4. PAYMENT GATEWAY CONFIGURATION (RAZORPAY & CASHFREE) */}
+      <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-5 sm:p-7 space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
+          <div>
+            <h2 className="text-lg sm:text-xl font-black text-slate-800 flex items-center gap-2">
+              <CreditCard className="h-5 w-5 text-blue-600" />
+              <span>Payment Gateway &amp; Checkout System</span>
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+              Switch seamlessly between Razorpay (Primary) and Cashfree for customer checkout, and manage payment keys.
+            </p>
+          </div>
+          <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black border ${
+            config.paymentGateway === 'razorpay'
+              ? 'bg-blue-50 text-blue-700 border-blue-200'
+              : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+          }`}>
+            <span className="h-2 w-2 rounded-full bg-current animate-pulse"></span>
+            Active Gateway: {config.paymentGateway === 'razorpay' ? 'Razorpay (Primary)' : 'Cashfree'}
+          </span>
+        </div>
+
+        {/* Gateway Selection Cards */}
+        <div className="space-y-3">
+          <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+            Active Payment Provider
+          </label>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Razorpay Option */}
+            <div
+              onClick={() => setConfig((prev) => ({ ...prev, paymentGateway: 'razorpay' }))}
+              className={`p-5 rounded-2xl border-2 transition-all cursor-pointer relative ${
+                config.paymentGateway === 'razorpay'
+                  ? 'border-blue-600 bg-blue-50/30 shadow-md shadow-blue-500/10'
+                  : 'border-slate-200 bg-slate-50/50 hover:border-slate-300'
+              }`}
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-3">
+                  <input
+                    type="radio"
+                    name="paymentGateway"
+                    value="razorpay"
+                    checked={config.paymentGateway === 'razorpay'}
+                    onChange={() => setConfig((prev) => ({ ...prev, paymentGateway: 'razorpay' }))}
+                    className="w-4 h-4 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                  />
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-black text-slate-900 text-base">Razorpay</span>
+                      <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-blue-600 text-white">
+                        Primary Default
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-500 font-medium mt-1">
+                      Fast popup modal checkout. Supports UPI (Google Pay, PhonePe, Paytm), Credit/Debit Cards, NetBanking, and Wallets.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Cashfree Option */}
+            <div
+              onClick={() => setConfig((prev) => ({ ...prev, paymentGateway: 'cashfree' }))}
+              className={`p-5 rounded-2xl border-2 transition-all cursor-pointer relative ${
+                config.paymentGateway === 'cashfree'
+                  ? 'border-emerald-600 bg-emerald-50/30 shadow-md shadow-emerald-500/10'
+                  : 'border-slate-200 bg-slate-50/50 hover:border-slate-300'
+              }`}
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-3">
+                  <input
+                    type="radio"
+                    name="paymentGateway"
+                    value="cashfree"
+                    checked={config.paymentGateway === 'cashfree'}
+                    onChange={() => setConfig((prev) => ({ ...prev, paymentGateway: 'cashfree' }))}
+                    className="w-4 h-4 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
+                  />
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-black text-slate-900 text-base">Cashfree</span>
+                      <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-slate-200 text-slate-700">
+                        Alternative Gateway
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-500 font-medium mt-1">
+                      Cashfree payment session &amp; drop-in checkout flow. Fallback payment processor.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Razorpay API Keys Configuration Box */}
+        <div className="bg-slate-50/70 rounded-2xl p-5 sm:p-6 border border-slate-200 space-y-4">
+          <div className="flex items-center gap-2 pb-2 border-b border-slate-200">
+            <KeyRound className="h-4 w-4 text-blue-600" />
+            <h3 className="text-sm font-black text-slate-800 uppercase tracking-wider">
+              Razorpay API Credentials
+            </h3>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                Razorpay Key ID
+              </label>
+              <input
+                type="text"
+                name="razorpayKeyId"
+                value={config.razorpayKeyId || ''}
+                onChange={handleChange}
+                placeholder="rzp_live_xxxxxxxxxxxxxx or rzp_test_..."
+                className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-mono font-bold text-slate-800 outline-none focus:ring-2 focus:ring-blue-500 bg-white shadow-xs"
+              />
+              <p className="text-[11px] text-slate-400 mt-1">
+                Your Razorpay public Key ID (passed to frontend checkout).
+              </p>
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                  Razorpay Key Secret
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setShowRazorpaySecret(!showRazorpaySecret)}
+                  className="text-[11px] font-bold text-blue-600 hover:text-blue-800 transition-colors cursor-pointer"
+                >
+                  {showRazorpaySecret ? 'Hide Secret' : 'Show Secret'}
+                </button>
+              </div>
+              <div className="relative">
+                <input
+                  type={showRazorpaySecret ? 'text' : 'password'}
+                  name="razorpayKeySecret"
+                  value={config.razorpayKeySecret || ''}
+                  onChange={handleChange}
+                  placeholder="Enter Razorpay Key Secret..."
+                  className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-mono font-bold text-slate-800 outline-none focus:ring-2 focus:ring-blue-500 bg-white shadow-xs pr-10"
+                />
+                <Lock className="absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              </div>
+              <p className="text-[11px] text-slate-400 mt-1">
+                Used securely on server to verify HMAC SHA-256 payment signatures.
+              </p>
+            </div>
+          </div>
+
+          <div className="p-3.5 rounded-xl bg-blue-50/50 border border-blue-100 text-xs text-slate-600 space-y-1">
+            <p className="font-bold text-blue-900 flex items-center gap-1.5">
+              <span>💡 Where to find your Razorpay Keys:</span>
+            </p>
+            <p className="leading-relaxed">
+              Login to your <strong>Razorpay Dashboard</strong> (<a href="https://dashboard.razorpay.com/app/keys" target="_blank" rel="noreferrer" className="text-blue-700 underline font-bold">dashboard.razorpay.com</a>) → <strong>Account &amp; Settings</strong> → <strong>API Keys</strong> → Generate Key. Paste the generated Key ID and Key Secret above, then click <strong>Save Settings</strong>.
+            </p>
+          </div>
         </div>
       </div>
 

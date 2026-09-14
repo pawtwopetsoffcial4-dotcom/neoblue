@@ -6,6 +6,7 @@ import Order from '@/lib/models/Order';
 import User from '@/lib/models/User';
 import StoreConfig from '@/lib/models/StoreConfig';
 import { getProductShippingCharge, getRegionFromState } from '@/lib/utils/shipping';
+import Razorpay from 'razorpay';
 
 const appId = process.env.CASHFREE_APP_ID;
 const secretKey = process.env.CASHFREE_SECRET_KEY;
@@ -44,10 +45,6 @@ const getAppUrl = (request: NextRequest) => {
 
 export async function POST(request: NextRequest) {
   try {
-    if (!appId || !secretKey) {
-      return createErrorResponse('Cashfree keys are not configured', 500);
-    }
-
     await connectDB();
 
     const token = getTokenFromRequest(request);
@@ -235,11 +232,6 @@ export async function POST(request: NextRequest) {
       return createErrorResponse('Invalid amount', 400);
     }
 
-    const appUrl = getAppUrl(request);
-    if (cashfreeEnv === 'production' && !appUrl.startsWith('https://')) {
-      return createErrorResponse('Set CASHFREE_RETURN_URL to your deployed https checkout URL for Cashfree production payments', 400);
-    }
-
     let customerPhone = String(address?.phone || '').trim();
     if (!customerPhone) {
       const user = await User.findById(payload.userId);
@@ -248,6 +240,72 @@ export async function POST(request: NextRequest) {
 
     if (!customerPhone || customerPhone === '9999999999' || !/^\+?[0-9]{10,15}$/.test(customerPhone)) {
       return createErrorResponse('A valid contact phone number (10-15 digits) is required to place an order. Please check your delivery details.', 400);
+    }
+
+    const activeGateway = (storeConfig as any)?.paymentGateway || 'razorpay';
+
+    if (activeGateway === 'razorpay') {
+      const rzpKeyId = (storeConfig as any)?.razorpayKeyId || process.env.RAZORPAY_KEY_ID || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || '';
+      const rzpKeySecret = (storeConfig as any)?.razorpayKeySecret || process.env.RAZORPAY_KEY_SECRET || '';
+
+      if (!rzpKeyId || !rzpKeySecret) {
+        return createErrorResponse('Razorpay API keys are not configured. Please add Razorpay Key ID and Secret in Admin Settings.', 500);
+      }
+
+      const razorpay = new Razorpay({
+        key_id: rzpKeyId,
+        key_secret: rzpKeySecret,
+      });
+
+      const amountInPaise = Math.round(amount * 100);
+      const razorpayOrder = await razorpay.orders.create({
+        amount: amountInPaise,
+        currency: 'INR',
+        receipt: `rcpt_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+        notes: {
+          userId: payload.userId,
+          customerEmail: payload.email || '',
+          customerPhone: customerPhone || '',
+        },
+      });
+
+      // Create pending orders in MongoDB
+      for (const [vId, group] of Object.entries(vendorGroups)) {
+        await Order.create({
+          userId: payload.userId,
+          vendorId: vId,
+          products: group.products,
+          totalAmount: group.subtotal + group.shippingAmount,
+          shippingAmount: group.shippingAmount,
+          address,
+          razorpayOrderId: razorpayOrder.id,
+          status: 'pending',
+        });
+      }
+
+      return NextResponse.json({
+        gateway: 'razorpay',
+        orderId: razorpayOrder.id,
+        amount: razorpayOrder.amount, // in paise
+        amountInRupees: amount,
+        currency: 'INR',
+        keyId: rzpKeyId,
+        customerDetails: {
+          name: address?.name || (payload as any)?.name || '',
+          email: payload.email || '',
+          contact: customerPhone,
+        },
+      });
+    }
+
+    // --- Cashfree Gateway Flow ---
+    if (!appId || !secretKey) {
+      return createErrorResponse('Cashfree keys are not configured', 500);
+    }
+
+    const appUrl = getAppUrl(request);
+    if (cashfreeEnv === 'production' && !appUrl.startsWith('https://')) {
+      return createErrorResponse('Set CASHFREE_RETURN_URL to your deployed https checkout URL for Cashfree production payments', 400);
     }
 
     const orderId = `neo_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
@@ -303,6 +361,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({
+      gateway: 'cashfree',
       orderId: order.order_id,
       amount,
       currency: 'INR',
@@ -311,6 +370,6 @@ export async function POST(request: NextRequest) {
       environment: cashfreeEnv,
     });
   } catch (error: any) {
-    return createErrorResponse(error.message || 'Failed to create Cashfree order', 500);
+    return createErrorResponse(error.message || 'Failed to create order', 500);
   }
 }

@@ -13,9 +13,13 @@ declare global {
         razorpay_payment_id: string;
         razorpay_order_id: string;
         razorpay_signature: string;
-      }) => void;
+      }) => void | Promise<void>;
       prefill?: { name?: string; email?: string; contact?: string };
       theme?: { color?: string };
-    }) => { open: () => void };
+      modal?: { ondismiss?: () => void };
+      notes?: Record<string, string>;
+    }) => { open: () => void; close?: () => void };
+    Cashfree?: any;
   }
 }
+
