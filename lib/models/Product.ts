@@ -331,7 +331,13 @@ productSchema.pre('findOneAndUpdate', function () {
   }
 });
 
-// Indexes for common queries
+// Optimized card projection fields for fast listing, catalog, search, and homepage queries
+export const PRODUCT_CARD_FIELDS = '_id title price sellerPrice initialVendorPrice originalPrice discountPercentage perPiecePrice perPairPrice weightPerPiece images category subcategory waterType tag rating reviewsCount inStock stockQuantity soldQuantity scientific size ageCategory phMin phMax tempMin tempMax temperament lightingRequirement co2Requirement growthRate placement careDifficulty approvalStatus vendorId createdAt';
+
+// Indexes for common high-frequency queries
+productSchema.index({ approvalStatus: 1, inStock: 1, createdAt: -1 });
+productSchema.index({ approvalStatus: 1, inStock: 1, category: 1 });
+productSchema.index({ approvalStatus: 1, inStock: 1, waterType: 1 });
 productSchema.index({ category: 1, inStock: 1, approvalStatus: 1 });
 productSchema.index({ vendorId: 1, approvalStatus: 1 });
 productSchema.index({ createdAt: -1 });

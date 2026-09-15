@@ -1,5 +1,5 @@
 import { connectDB, isDatabaseConnectivityError } from '@/lib/db';
-import Product from '@/lib/models/Product';
+import Product, { PRODUCT_CARD_FIELDS } from '@/lib/models/Product';
 import User from '@/lib/models/User';
 import FishDescription from '@/lib/models/FishDescription';
 import { createErrorResponse, createSuccessResponse, getTokenFromRequest, verifyToken } from '@/lib/utils/auth';
@@ -9,7 +9,7 @@ import { NextRequest } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 
-// GET all products
+// GET all products with optimized projection and chunked pagination
 export async function GET(request: NextRequest) {
   try {
     await connectDB();
@@ -22,8 +22,11 @@ export async function GET(request: NextRequest) {
     const co2Requirement = searchParams.get('co2Requirement');
     const placement = searchParams.get('placement');
     const careDifficulty = searchParams.get('careDifficulty');
-    const limit = parseInt(searchParams.get('limit') || '500'); // Increased limit to fetch all typical products
-    const page = parseInt(searchParams.get('page') || '1');
+    const full = searchParams.get('full') === 'true';
+    const rawLimit = parseInt(searchParams.get('limit') || '48', 10);
+    const limit = Math.min(Math.max(1, isNaN(rawLimit) ? 48 : rawLimit), 300);
+    const rawPage = parseInt(searchParams.get('page') || '1', 10);
+    const page = Math.max(1, isNaN(rawPage) ? 1 : rawPage);
 
     let query: any = {};
 
@@ -55,13 +58,20 @@ export async function GET(request: NextRequest) {
       query.approvalStatus = 'approved';
     }
 
-    const products = await Product.find(query)
+    let productsQuery = Product.find(query)
       .limit(limit)
       .skip((page - 1) * limit)
-      .populate('vendorId', 'name email')
+      .populate('vendorId', 'name email logo slug')
       .sort({ createdAt: -1 });
 
-    const total = await Product.countDocuments(query);
+    if (!full) {
+      productsQuery = productsQuery.select(PRODUCT_CARD_FIELDS) as any;
+    }
+
+    const [products, total] = await Promise.all([
+      productsQuery.lean(),
+      Product.countDocuments(query),
+    ]);
 
     return createSuccessResponse({
       products,

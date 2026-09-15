@@ -1,6 +1,6 @@
 import React from 'react';
 import { connectDB } from '@/lib/db';
-import Product from '@/lib/models/Product';
+import Product, { PRODUCT_CARD_FIELDS } from '@/lib/models/Product';
 import StoreConfig from '@/lib/models/StoreConfig';
 import { PRODUCT_CATEGORIES, getCategoryImage } from '@/lib/catalog';
 import { resolveOgImageUrl, buildCollectionPageJsonLd, buildBreadcrumbJsonLd } from '@/lib/utils/seo';
@@ -25,21 +25,15 @@ export async function generateStaticParams() {
   }
 }
 
-// Helper to resolve category title and filtered products
+// Helper to resolve category title and filtered products with targeted lean queries
 async function getCategoryData(slug: string) {
   await connectDB();
 
   const normalizedSlug = slug.toLowerCase();
   const isWaterFilter = normalizedSlug === 'freshwater' || normalizedSlug === 'saltwater';
 
-  // Fetch all approved, in-stock products
-  const products = await Product.find({
-    approvalStatus: 'approved',
-    inStock: true,
-  }).lean() as any[];
-
   // Fetch configurations for custom categories
-  const config = await StoreConfig.findOne({}).lean() as any;
+  const config = await StoreConfig.findOne({}).select('categories excludedCategories').lean() as any;
   const excludedList: string[] = Array.isArray(config?.excludedCategories) ? config.excludedCategories : [];
   const excludedSet = new Set(excludedList.map((c: string) => String(c).toLowerCase()));
   const configuredCategories = Array.isArray(config?.categories) ? config.categories : [];
@@ -51,28 +45,52 @@ async function getCategoryData(slug: string) {
     ].filter((category): category is string => typeof category === 'string' && category.trim().length > 0))
   ).filter((category) => !excludedSet.has(category.toLowerCase()));
 
-  const customCategory = availableCategories.find((category) => toSlug(category) === normalizedSlug);
-  const inferredCategory = products.find((p) => toSlug(p.category) === normalizedSlug)?.category;
-  const mappedCategory = customCategory ?? inferredCategory;
+  let customCategory = availableCategories.find((category) => toSlug(category) === normalizedSlug);
+  let mappedCategory = customCategory;
 
-  let filteredProducts: any[] = [];
-  if (isWaterFilter) {
-    filteredProducts = products.filter((product) => product.waterType && product.waterType.toLowerCase() === normalizedSlug);
-  } else if (mappedCategory || customCategory) {
-    filteredProducts = products.filter((product) => product.category === (mappedCategory || customCategory));
+  // If not in static/config list, find matching category name in DB via distinct
+  if (!isWaterFilter && !mappedCategory) {
+    const distinctCategories = await Product.distinct('category', { approvalStatus: 'approved', inStock: true });
+    mappedCategory = distinctCategories.find((c: string) => toSlug(c) === normalizedSlug);
   }
 
-  const subcategories = mappedCategory
-    ? Array.from(new Set(products.filter((p) => p.category === mappedCategory).map((p) => p.subcategory).filter(Boolean))) as string[]
-    : [];
+  let filterQuery: any = {
+    approvalStatus: 'approved',
+    inStock: true,
+  };
+
+  if (isWaterFilter) {
+    filterQuery.waterType = new RegExp(`^${normalizedSlug}$`, 'i');
+  } else if (mappedCategory) {
+    filterQuery.category = mappedCategory;
+  } else {
+    filterQuery.category = '__none__'; // No match
+  }
+
+  // Fetch only necessary product card fields with lean query and index
+  const products = await Product.find(filterQuery)
+    .select(PRODUCT_CARD_FIELDS)
+    .sort({ createdAt: -1 })
+    .lean() as any[];
+
+  // Fetch subcategories efficiently
+  let subcategories: string[] = [];
+  if (mappedCategory) {
+    subcategories = await Product.distinct('subcategory', {
+      category: mappedCategory,
+      approvalStatus: 'approved',
+      inStock: true,
+      subcategory: { $nin: [null, ''] },
+    }) as string[];
+  }
 
   const categoryTitle = isWaterFilter
     ? normalizedSlug.charAt(0).toUpperCase() + normalizedSlug.slice(1)
-    : mappedCategory ?? customCategory ?? 'Category';
+    : mappedCategory ?? 'Category';
 
   return {
     categoryTitle,
-    filteredProducts: JSON.parse(JSON.stringify(filteredProducts)),
+    filteredProducts: JSON.parse(JSON.stringify(products)),
     subcategories,
   };
 }

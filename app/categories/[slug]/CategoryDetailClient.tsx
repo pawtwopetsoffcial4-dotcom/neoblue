@@ -105,6 +105,10 @@ export default function CategoryDetailClient({
   // Under matching mode, apply dynamic theme styling
   const activeColor = mode === 'plants' ? 'green' : 'blue';
 
+  const CHUNK_SIZE = 24;
+  const [visibleCount, setVisibleCount] = React.useState(CHUNK_SIZE);
+  const visibleProducts = filteredProducts.slice(0, visibleCount);
+  const hasMore = visibleCount < filteredProducts.length;
 
   return (
     <div className={`min-h-screen bg-white text-slate-900 pb-24 md:pb-0 font-sans transition-colors duration-500 selection:bg-blue-500 selection:text-white`}>
@@ -148,11 +152,30 @@ export default function CategoryDetailClient({
         </div>
 
         {filteredProducts.length > 0 ? (
-          <section className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
-            {filteredProducts.map((product, idx) => (
-              <ProductCard key={product._id} product={product} idx={idx} />
-            ))}
-          </section>
+          <>
+            <section className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
+              {visibleProducts.map((product, idx) => (
+                <ProductCard key={product._id} product={product} idx={idx} />
+              ))}
+            </section>
+
+            {hasMore && (
+              <div className="mt-12 flex flex-col items-center justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setVisibleCount((prev) => Math.min(prev + CHUNK_SIZE, filteredProducts.length))}
+                  className={`px-8 py-3.5 rounded-2xl font-black text-sm text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] active:scale-98 cursor-pointer ${
+                    activeColor === 'green' ? 'bg-green-700 hover:bg-green-800 shadow-green-700/20' : 'bg-blue-600 hover:bg-blue-700 shadow-blue-600/20'
+                  }`}
+                >
+                  Load More Products ({filteredProducts.length - visibleCount} remaining)
+                </button>
+                <p className="text-xs text-slate-400 font-medium">
+                  Showing {visibleProducts.length} of {filteredProducts.length} items
+                </p>
+              </div>
+            )}
+          </>
         ) : (
           <div className={`text-center py-20 border-2 border-dashed rounded-3xl ${
             activeColor === 'green' ? 'border-green-100 text-green-600' : 'border-blue-100 text-blue-500'
