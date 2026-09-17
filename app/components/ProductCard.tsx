@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ShoppingCart, Heart } from 'lucide-react';
 import { useCart } from '@/lib/hooks/useCart';
 import { useWishlist } from '@/lib/hooks/useWishlist';
+import { getCategoryImage } from '@/lib/catalog';
 
 interface ProductCardProps {
   product: any;
@@ -16,6 +17,14 @@ export default function ProductCard({ product, idx = 0, className = "" }: Produc
   const { isInWishlist, toggleWishlist } = useWishlist();
   const productId = product._id || product.id;
   const isLiked = isInWishlist(productId);
+
+  const fallbackImg = getCategoryImage(product.category) || '/illustrations/placeholder.png';
+  const initialImg = product.images?.[0] ?? product.img ?? fallbackImg;
+  const [imgSrc, setImgSrc] = useState<string>(initialImg);
+
+  useEffect(() => {
+    setImgSrc(product.images?.[0] ?? product.img ?? fallbackImg);
+  }, [product.images, product.img, fallbackImg]);
 
   const isPairPrice = product.perPairPrice != null && typeof product.perPairPrice === 'number';
   const hasDiscount = product.discountPercentage != null && product.discountPercentage > 0;
@@ -51,11 +60,16 @@ export default function ProductCard({ product, idx = 0, className = "" }: Produc
       {/* Image Block */}
       <div className="relative aspect-square w-full overflow-hidden bg-slate-50">
         <Image
-          src={product.images?.[0] ?? product.img ?? '/illustrations/placeholder.png'}
+          src={imgSrc}
           alt={product.title}
           fill
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
           className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+          onError={() => {
+            if (imgSrc !== fallbackImg) {
+              setImgSrc(fallbackImg);
+            }
+          }}
         />
         
         <div className="absolute inset-0 bg-gradient-to-t from-slate-900/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />

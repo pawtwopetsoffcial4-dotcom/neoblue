@@ -14,6 +14,7 @@ import type { MarketplaceProduct } from '@/lib/types/marketplace';
 import { useCart } from '@/lib/hooks/useCart';
 import { useWishlist } from '@/lib/hooks/useWishlist';
 import { trackViewContent } from '@/lib/fpixel';
+import { getCategoryImage } from '@/lib/catalog';
 
 type Props = {
   productId: string;
@@ -252,6 +253,12 @@ export default function ProductClientPage({
                 src={activeMedia.url}
                 alt={`${product.title} ${product.scientific ? `(${product.scientific})` : ''} - Premium ${product.category} for sale online at NeoBlue`}
                 className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+                onError={(e) => {
+                  const fallback = getCategoryImage(product.category) || 'https://images.stockcake.com/public/1/9/4/194f4315-a8d9-422b-b237-18b1e224b7a1_large/colorful-tropical-fish-stockcake.jpg';
+                  if (e.currentTarget.src !== fallback) {
+                    e.currentTarget.src = fallback;
+                  }
+                }}
               />
             )}
             {/* gradient vignette */}
@@ -324,7 +331,17 @@ export default function ProductClientPage({
                       </div>
                     </>
                   ) : (
-                    <img src={item.url} alt={`${product.title} view ${i + 1}`} className="w-full h-full object-cover" />
+                    <img
+                      src={item.url}
+                      alt={`${product.title} view ${i + 1}`}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        const fallback = getCategoryImage(product.category) || 'https://images.stockcake.com/public/1/9/4/194f4315-a8d9-422b-b237-18b1e224b7a1_large/colorful-tropical-fish-stockcake.jpg';
+                        if (e.currentTarget.src !== fallback) {
+                          e.currentTarget.src = fallback;
+                        }
+                      }}
+                    />
                   )}
                 </button>
               ))}

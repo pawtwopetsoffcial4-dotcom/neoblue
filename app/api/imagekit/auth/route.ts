@@ -5,14 +5,14 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const publicKey = process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY || process.env.IMAGEKIT_PUBLIC_KEY || '';
-    const privateKey = process.env.IMAGEKIT_PRIVATE_KEY || '';
+    const publicKey = process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY || process.env.IMAGEKIT_PUBLIC_KEY || 'public_PpR/ru4+6djczlUeXQ+rpde5y70=';
+    const privateKey = process.env.IMAGEKIT_PRIVATE_KEY || 'private_K8VM3Nlmg88eG3RukH8AthQtmkw=';
     const urlEndpoint = process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT || process.env.IMAGEKIT_URL_ENDPOINT || 'https://ik.imagekit.io/dsh4kn2d6';
 
     if (!privateKey || !publicKey) {
       return NextResponse.json(
         { 
-          error: 'ImageKit keys are not fully configured. Please set NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY and IMAGEKIT_PRIVATE_KEY in your environment variables.',
+          error: 'ImageKit keys are not configured.',
           configured: false,
         },
         { status: 400 }

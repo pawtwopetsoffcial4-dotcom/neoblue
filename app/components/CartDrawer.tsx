@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { useCart } from '@/lib/hooks/useCart';
 import { useMode } from '@/lib/hooks/useMode';
+import { getCategoryImage } from '@/lib/catalog';
 
 /**
  * Calculates shipping parcel weight utilization and remaining capacity.
@@ -300,6 +301,12 @@ export default function CartDrawer() {
                           src={item.image || '/illustrations/placeholder.png'}
                           alt={item.title}
                           className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          onError={(e) => {
+                            const fallback = getCategoryImage(item.category || '') || '/illustrations/placeholder.png';
+                            if (e.currentTarget.src !== fallback) {
+                              e.currentTarget.src = fallback;
+                            }
+                          }}
                         />
                       </div>
 
