@@ -228,8 +228,6 @@ const extractProducts = (payload: unknown): MarketplaceProduct[] => {
   return [];
 };
 
-const CHUNK_SIZE = 24;
-
 function ProductsPageContent() {
   const router = useRouter();
   const { addToCart } = useCart();
@@ -237,7 +235,6 @@ function ProductsPageContent() {
   const [products, setProducts] = useState<MarketplaceProduct[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [visibleCount, setVisibleCount] = useState(CHUNK_SIZE);
   
   // Search State
   const [searchTerm, setSearchTerm] = useState('');
@@ -413,7 +410,7 @@ function ProductsPageContent() {
     try {
       setIsLoading(true);
       setLoadError(null);
-      const response = await fetch('/api/products?limit=250');
+      const response = await fetch('/api/products', { cache: 'no-store' });
       if (!response.ok) throw new Error('Failed to load products');
       const data = await response.json();
       setProducts(extractProducts(data));
@@ -432,7 +429,7 @@ function ProductsPageContent() {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch('/api/categories');
+        const response = await fetch('/api/categories', { cache: 'no-store' });
         if (!response.ok) return;
         const data = await response.json();
         setAvailableCategories(Array.isArray(data.categories) ? data.categories : []);
@@ -449,11 +446,6 @@ function ProductsPageContent() {
     setSubcategory('All');
   }, [mode]);
 
-  // Reset chunked visible count on filter/search/sort/mode change
-  useEffect(() => {
-    setVisibleCount(CHUNK_SIZE);
-  }, [searchTerm, category, subcategory, waterType, tag, inStockOnly, sortBy, mode, lightingRequirement, co2Requirement, placement, careDifficulty]);
-
   const clearFilters = () => {
     setSearchTerm('');
     setSortBy('featured');
@@ -466,7 +458,6 @@ function ProductsPageContent() {
     setCo2Requirement('All');
     setPlacement('All');
     setCareDifficulty('All');
-    setVisibleCount(CHUNK_SIZE);
   };
 
   const hasActiveFilters = Boolean(
@@ -1116,36 +1107,11 @@ function ProductsPageContent() {
         ) : (
           <>
             {/* Responsive Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6 lg:gap-8 mb-8">
-              {filteredProducts.slice(0, visibleCount).map((product, idx) => {
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6 lg:gap-8 mb-12">
+              {filteredProducts.map((product, idx) => {
                 return <ProductCard key={product._id} product={product} idx={idx} />;
               })}
             </div>
-
-            {/* Chunked Loading Pagination Control */}
-            {visibleCount < filteredProducts.length && (
-              <div className="flex flex-col items-center justify-center py-6 pb-12 gap-3 animate-fade-in">
-                <div className="w-full max-w-xs bg-slate-200/80 rounded-full h-1.5 overflow-hidden">
-                  <div 
-                    className={`h-full transition-all duration-500 rounded-full ${mode === 'fishes' ? 'bg-blue-600' : 'bg-emerald-600'}`}
-                    style={{ width: `${Math.min(100, Math.round((Math.min(visibleCount, filteredProducts.length) / filteredProducts.length) * 100))}%` }}
-                  />
-                </div>
-                <span className="text-xs font-bold text-slate-500">
-                  Showing {Math.min(visibleCount, filteredProducts.length)} of {filteredProducts.length} items
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setVisibleCount((prev) => Math.min(prev + CHUNK_SIZE, filteredProducts.length))}
-                  className={`mt-1 inline-flex items-center gap-2 px-7 py-3 rounded-full font-black text-xs tracking-wider uppercase shadow-md transition-all active:scale-95 cursor-pointer text-white ${
-                    mode === 'fishes' ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-500/20' : 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-500/20'
-                  }`}
-                >
-                  <span>Load Next {Math.min(CHUNK_SIZE, filteredProducts.length - visibleCount)} Items</span>
-                  <ArrowDown className="h-4 w-4 animate-bounce" />
-                </button>
-              </div>
-            )}
           </>
         )}
       </main>

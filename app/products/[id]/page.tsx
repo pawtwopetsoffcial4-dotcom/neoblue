@@ -5,7 +5,7 @@ import { Heart, Info } from 'lucide-react';
 import ShareButton from '@/app/components/ShareButton';
 import mongoose from 'mongoose';
 import { connectDB } from '@/lib/db';
-import Product, { PRODUCT_CARD_FIELDS } from '@/lib/models/Product';
+import Product from '@/lib/models/Product';
 import Review from '@/lib/models/Review';
 import type { Metadata } from 'next';
 import { getBestProductOgImage } from '@/lib/utils/seo';
@@ -143,11 +143,7 @@ export default async function ProductDetailPage({ params }: ProductDetailProps) 
         vendorId: rawVendorId,
         approvalStatus: 'approved',
         inStock: true
-      })
-        .select(PRODUCT_CARD_FIELDS)
-        .populate('vendorId', 'name email logo slug')
-        .limit(10)
-        .lean();
+      }).populate('vendorId', 'name email logo slug').limit(10).lean();
     }
     
     // If the vendor has no other active products, fallback to same category
@@ -157,11 +153,7 @@ export default async function ProductDetailPage({ params }: ProductDetailProps) 
         category: dbProduct.category,
         approvalStatus: 'approved',
         inStock: true
-      })
-        .select(PRODUCT_CARD_FIELDS)
-        .populate('vendorId', 'name email logo slug')
-        .limit(10)
-        .lean();
+      }).populate('vendorId', 'name email logo slug').limit(10).lean();
     }
     recommendations = JSON.parse(JSON.stringify(dbRecommendations));
 

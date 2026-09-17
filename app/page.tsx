@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import HomeClient from './HomeClient';
 import { buildOrganizationJsonLd, buildWebSiteJsonLd } from '@/lib/utils/seo';
 import { connectDB } from '@/lib/db';
-import Product, { PRODUCT_CARD_FIELDS } from '@/lib/models/Product';
+import Product from '@/lib/models/Product';
 import Combo from '@/lib/models/Combo';
 import StoreConfig from '@/lib/models/StoreConfig';
 import { PRODUCT_CATEGORIES, getCategoryImage } from '@/lib/catalog';
@@ -35,10 +35,9 @@ async function getHomepageData() {
 
     const [productsRaw, combosRaw, configRaw] = await Promise.all([
       Product.find({ approvalStatus: 'approved', inStock: true })
-        .select(PRODUCT_CARD_FIELDS)
         .populate('vendorId', 'name logo slug')
         .sort({ createdAt: -1 })
-        .limit(36)
+        .limit(200)
         .lean(),
       Combo.find({ isActive: true }).lean(),
       StoreConfig.findOne({}).lean(),

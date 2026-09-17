@@ -1,7 +1,7 @@
 import React from 'react';
 import { connectDB } from '@/lib/db';
 import User from '@/lib/models/User';
-import Product, { PRODUCT_CARD_FIELDS } from '@/lib/models/Product';
+import Product from '@/lib/models/Product';
 import VendorShopContent from './VendorShopContent';
 import Link from 'next/link';
 import { ArrowLeft, Fish } from 'lucide-react';
@@ -69,12 +69,12 @@ export default async function ShopPage({ params }: Props) {
   await connectDB();
 
   const { vendor: identifier } = await params;
-  let vendor: any = await User.findOne({ slug: identifier }).select('-password -resetPasswordToken -resetPasswordExpiry').lean();
+  let vendor: any = await User.findOne({ slug: identifier }).lean();
   if (!vendor) {
     try {
       const { Types } = await import('mongoose');
       if (Types.ObjectId.isValid(identifier)) {
-        vendor = await User.findById(identifier).select('-password -resetPasswordToken -resetPasswordExpiry').lean();
+        vendor = await User.findById(identifier).lean();
       }
     } catch {
       vendor = null;
@@ -105,14 +105,10 @@ export default async function ShopPage({ params }: Props) {
     );
   }
 
-  // Fetch approved products for this vendor using projected fields
+  // Fetch products for this vendor
   const products = await Product.find({ 
-    vendorId: vendor._id,
-    approvalStatus: 'approved',
-  })
-    .select(PRODUCT_CARD_FIELDS)
-    .sort({ inStock: -1, createdAt: -1 })
-    .lean();
+    vendorId: vendor._id
+  }).lean();
 
   // Safely serialize MongoDB documents to plain JSON for client component serialization compatibility
   const serializedVendor = JSON.parse(JSON.stringify(vendor));

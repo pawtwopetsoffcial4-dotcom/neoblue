@@ -211,7 +211,7 @@ export default function NeoBlueMobileOptimized({
         setIsLoading(true);
 
         const [productsResponse, categoriesResponse, combosResponse, configResponse] = await Promise.all([
-          fetch('/api/products?limit=36'),
+          fetch('/api/products?limit=200'),
           fetch('/api/categories'),
           fetch('/api/combos?featured=true'),
           fetch('/api/config'),

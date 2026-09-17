@@ -89,26 +89,11 @@ export default function VendorShopContent({ vendor, products }: Props) {
     return result;
   }, [products, searchQuery, selectedCategory, selectedWaterType, sortBy]);
 
-  const CHUNK_SIZE = 24;
-  const [visibleCount, setVisibleCount] = useState(CHUNK_SIZE);
-
-  // Reset chunk count when any filter changes
-  React.useEffect(() => {
-    setVisibleCount(CHUNK_SIZE);
-  }, [searchQuery, selectedCategory, selectedWaterType, sortBy]);
-
-  const visibleProducts = useMemo(() => {
-    return filteredProducts.slice(0, visibleCount);
-  }, [filteredProducts, visibleCount]);
-
-  const hasMore = visibleCount < filteredProducts.length;
-
   const resetFilters = () => {
     setSearchQuery('');
     setSelectedCategory('All');
     setSelectedWaterType('All');
     setSortBy('featured');
-    setVisibleCount(CHUNK_SIZE);
   };
 
   const formatPrice = (price: number) => {
@@ -293,28 +278,11 @@ export default function VendorShopContent({ vendor, products }: Props) {
           ) : (
             
             /* Products Grid */
-            <>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                {visibleProducts.map((product, idx) => {
-                  return <ProductCard key={product._id} product={product} idx={idx} />;
-                })}
-              </div>
-
-              {hasMore && (
-                <div className="mt-12 flex flex-col items-center justify-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setVisibleCount((prev) => Math.min(prev + CHUNK_SIZE, filteredProducts.length))}
-                    className="px-8 py-3.5 rounded-2xl font-black text-sm text-white bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-600/20 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] active:scale-98 cursor-pointer"
-                  >
-                    Load More Items ({filteredProducts.length - visibleCount} remaining)
-                  </button>
-                  <p className="text-xs text-slate-400 font-medium">
-                    Showing {visibleProducts.length} of {filteredProducts.length} items
-                  </p>
-                </div>
-              )}
-            </>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              {filteredProducts.map((product) => {
+                return <ProductCard key={product._id} product={product} />;
+              })}
+            </div>
           )}
 
         </div>
