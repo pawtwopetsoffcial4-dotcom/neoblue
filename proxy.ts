@@ -19,6 +19,9 @@ export async function proxy(request: NextRequest) {
   const isPublicCatalog = pathname.startsWith('/api/catalog') && method === 'GET';
   const isPublicBlogs = pathname.startsWith('/api/blogs') && method === 'GET';
   const isPublicCombos = pathname.startsWith('/api/combos') && method === 'GET';
+  const isPublicImageKit = pathname.startsWith('/api/imagekit/');
+  const isPublicStockAlerts = pathname === '/api/stock-alerts' && method === 'POST';
+
   if (
     isPublicAuthRoute ||
     isPublicProductsGet ||
@@ -28,7 +31,9 @@ export async function proxy(request: NextRequest) {
     isPublicReviews ||
     isPublicCatalog ||
     isPublicBlogs ||
-    isPublicCombos
+    isPublicCombos ||
+    isPublicImageKit ||
+    isPublicStockAlerts
   ) {
     return NextResponse.next();
   }
