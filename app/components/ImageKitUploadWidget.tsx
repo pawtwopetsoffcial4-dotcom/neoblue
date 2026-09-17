@@ -64,6 +64,21 @@ export default function ImageKitUploadWidget({
     setIsUploading(true);
     setErrorToast(null);
 
+    const maxAllowedSize = options?.maxFileSize || (resourceType === 'video' ? 50 * 1024 * 1024 : 15 * 1024 * 1024);
+
+    // Validate file sizes before uploading
+    for (const file of Array.from(files)) {
+      if (file.size > maxAllowedSize) {
+        const sizeMb = (maxAllowedSize / (1024 * 1024)).toFixed(0);
+        const err = `File "${file.name}" exceeds the maximum allowed size of ${sizeMb}MB.`;
+        setErrorToast(err);
+        setIsUploading(false);
+        if (onError) onError(new Error(err));
+        if (onClose) onClose();
+        return;
+      }
+    }
+
     try {
       // 1. Fetch Auth parameters from /api/imagekit/auth
       let authData: any = null;
@@ -87,8 +102,8 @@ export default function ImageKitUploadWidget({
         const file = fileList[i];
         setUploadProgress(
           fileList.length > 1 
-            ? `Uploading ${i + 1} of ${fileList.length}...` 
-            : 'Uploading to ImageKit...'
+            ? `Uploading ${i + 1} of ${fileList.length} (${file.name})...` 
+            : `Uploading ${file.name}...`
         );
 
         let uploadData: any = null;

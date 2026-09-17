@@ -20,6 +20,7 @@ import {
 import { useCart } from '@/lib/hooks/useCart';
 import { useMode } from '@/lib/hooks/useMode';
 import { getCategoryImage } from '@/lib/catalog';
+import { optimizeImage } from '@/lib/imagekit';
 
 /**
  * Calculates shipping parcel weight utilization and remaining capacity.
@@ -298,7 +299,7 @@ export default function CartDrawer() {
                       {/* Item Thumbnail */}
                       <div className="h-16 w-16 sm:h-18 sm:w-18 rounded-2xl overflow-hidden bg-slate-50 border border-slate-100 shrink-0 relative">
                         <img
-                          src={item.image || '/illustrations/placeholder.png'}
+                          src={optimizeImage(item.image, 160, 160) || '/illustrations/placeholder.png'}
                           alt={item.title}
                           className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                           onError={(e) => {

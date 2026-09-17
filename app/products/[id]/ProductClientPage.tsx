@@ -15,6 +15,7 @@ import { useCart } from '@/lib/hooks/useCart';
 import { useWishlist } from '@/lib/hooks/useWishlist';
 import { trackViewContent } from '@/lib/fpixel';
 import { getCategoryImage } from '@/lib/catalog';
+import { optimizeImage } from '@/lib/imagekit';
 
 type Props = {
   productId: string;
@@ -250,7 +251,7 @@ export default function ProductClientPage({
               />
             ) : (
               <img
-                src={activeMedia.url}
+                src={optimizeImage(activeMedia.url, 1000, 1000)}
                 alt={`${product.title} ${product.scientific ? `(${product.scientific})` : ''} - Premium ${product.category} for sale online at NeoBlue`}
                 className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
                 onError={(e) => {
@@ -332,7 +333,7 @@ export default function ProductClientPage({
                     </>
                   ) : (
                     <img
-                      src={item.url}
+                      src={optimizeImage(item.url, 160, 160)}
                       alt={`${product.title} view ${i + 1}`}
                       className="w-full h-full object-cover"
                       onError={(e) => {

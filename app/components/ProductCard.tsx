@@ -5,6 +5,7 @@ import { ShoppingCart, Heart } from 'lucide-react';
 import { useCart } from '@/lib/hooks/useCart';
 import { useWishlist } from '@/lib/hooks/useWishlist';
 import { getCategoryImage } from '@/lib/catalog';
+import { optimizeImage } from '@/lib/imagekit';
 
 interface ProductCardProps {
   product: any;
@@ -19,11 +20,13 @@ export default function ProductCard({ product, idx = 0, className = "" }: Produc
   const isLiked = isInWishlist(productId);
 
   const fallbackImg = getCategoryImage(product.category) || '/illustrations/placeholder.png';
-  const initialImg = product.images?.[0] ?? product.img ?? fallbackImg;
+  const rawImg = product.images?.[0] ?? product.img ?? fallbackImg;
+  const initialImg = rawImg.startsWith('/') ? rawImg : optimizeImage(rawImg, 500, 500);
   const [imgSrc, setImgSrc] = useState<string>(initialImg);
 
   useEffect(() => {
-    setImgSrc(product.images?.[0] ?? product.img ?? fallbackImg);
+    const raw = product.images?.[0] ?? product.img ?? fallbackImg;
+    setImgSrc(raw.startsWith('/') ? raw : optimizeImage(raw, 500, 500));
   }, [product.images, product.img, fallbackImg]);
 
   const isPairPrice = product.perPairPrice != null && typeof product.perPairPrice === 'number';
