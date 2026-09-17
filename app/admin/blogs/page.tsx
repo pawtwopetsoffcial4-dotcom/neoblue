@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { X, Plus, BookOpen } from 'lucide-react';
-import { CldUploadWidget } from 'next-cloudinary';
+import ImageKitUploadWidget from '@/app/components/ImageKitUploadWidget';
 import { apiClient } from '@/lib/api-client';
 
 type AdminBlog = {
@@ -263,9 +263,9 @@ export default function AdminBlogsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-3 rounded-2xl border border-blue-100 bg-blue-50/40 p-4">
             <p className="text-sm font-semibold text-slate-700">Cover Image</p>
-            <CldUploadWidget
-              uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'neoblue_products'}
-              options={{ sources: ['local', 'camera', 'url'], multiple: false, resourceType: 'image' }}
+            <ImageKitUploadWidget
+              folder="/blogs"
+              options={{ multiple: false, resourceType: 'image' }}
               onSuccess={(result: any) => {
                 const secureUrl = result?.info?.secure_url;
                 if (secureUrl) {
@@ -278,15 +278,15 @@ export default function AdminBlogsPage() {
                   Upload Cover
                 </button>
               )}
-            </CldUploadWidget>
+            </ImageKitUploadWidget>
             {createForm.coverImage && <img src={createForm.coverImage} alt="Cover preview" className="w-full h-48 object-cover rounded-2xl border border-blue-100" />}
           </div>
 
           <div className="space-y-3 rounded-2xl border border-blue-100 bg-blue-50/40 p-4">
             <p className="text-sm font-semibold text-slate-700">Gallery Images</p>
-            <CldUploadWidget
-              uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'neoblue_products'}
-              options={{ sources: ['local', 'camera', 'url'], multiple: false, resourceType: 'image' }}
+            <ImageKitUploadWidget
+              folder="/blogs"
+              options={{ multiple: true, resourceType: 'image' }}
               onSuccess={(result: any) => {
                 const secureUrl = result?.info?.secure_url;
                 if (secureUrl) {
@@ -299,7 +299,7 @@ export default function AdminBlogsPage() {
                   <Plus className="h-4 w-4" /> Add Gallery Image
                 </button>
               )}
-            </CldUploadWidget>
+            </ImageKitUploadWidget>
             <div className="grid grid-cols-2 gap-3">
               {createForm.galleryImages.map((image) => (
                 <img key={image} src={image} alt="Gallery preview" className="w-full h-28 object-cover rounded-xl border border-blue-100" />
@@ -396,27 +396,27 @@ export default function AdminBlogsPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-3 rounded-2xl border border-blue-100 bg-blue-50/40 p-4">
                   <p className="text-sm font-semibold text-slate-700">Cover Image</p>
-                  <CldUploadWidget uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'neoblue_products'} options={{ sources: ['local', 'camera', 'url'], multiple: false, resourceType: 'image' }} onSuccess={(result: any) => {
+                  <ImageKitUploadWidget folder="/blogs" options={{ multiple: false, resourceType: 'image' }} onSuccess={(result: any) => {
                     const secureUrl = result?.info?.secure_url;
                     if (secureUrl) {
                       setEditForm((current) => current ? { ...current, coverImage: String(secureUrl) } : current);
                     }
                   }}>
                     {({ open }) => <button type="button" onClick={() => open()} className="h-11 w-full sm:w-auto px-4 rounded-full border border-blue-200 text-blue-700 font-semibold hover:bg-blue-50">Replace Cover</button>}
-                  </CldUploadWidget>
+                  </ImageKitUploadWidget>
                   <img src={editForm.coverImage} alt="Cover preview" className="w-full h-48 object-cover rounded-2xl border border-blue-100" />
                 </div>
 
                 <div className="space-y-3 rounded-2xl border border-blue-100 bg-blue-50/40 p-4">
                   <p className="text-sm font-semibold text-slate-700">Gallery Images</p>
-                  <CldUploadWidget uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'neoblue_products'} options={{ sources: ['local', 'camera', 'url'], multiple: false, resourceType: 'image' }} onSuccess={(result: any) => {
+                  <ImageKitUploadWidget folder="/blogs" options={{ multiple: true, resourceType: 'image' }} onSuccess={(result: any) => {
                     const secureUrl = result?.info?.secure_url;
                     if (secureUrl) {
                       addEditGalleryImage(String(secureUrl));
                     }
                   }}>
                     {({ open }) => <button type="button" onClick={() => open()} className="h-11 w-full sm:w-auto px-4 rounded-full border border-blue-200 text-blue-700 font-semibold hover:bg-blue-50 inline-flex items-center justify-center gap-2"><Plus className="h-4 w-4" /> Add Gallery Image</button>}
-                  </CldUploadWidget>
+                  </ImageKitUploadWidget>
                   <div className="grid grid-cols-2 gap-3">
                     {editForm.galleryImages.map((image) => (
                       <div key={image} className="relative rounded-xl overflow-hidden border border-blue-100">

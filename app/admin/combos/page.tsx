@@ -5,7 +5,7 @@ import {
   Plus, Trash2, X, Search, Package, Star, ToggleLeft, ToggleRight,
   Edit3, Save, ChevronDown, ChevronUp, ImagePlus, Loader2, Check
 } from 'lucide-react';
-import { CldUploadWidget } from 'next-cloudinary';
+import ImageKitUploadWidget from '@/app/components/ImageKitUploadWidget';
 import { apiClient } from '@/lib/api-client';
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -635,8 +635,9 @@ export default function AdminCombosPage() {
                     </button>
                   </div>
                 ) : (
-                  <CldUploadWidget
-                    uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'neoblue'}
+                  <ImageKitUploadWidget
+                    folder="/combos"
+                    options={{ multiple: false, resourceType: 'image' }}
                     onSuccess={(result: any) => {
                       const url = result?.info?.secure_url;
                       if (url) updateForm('coverImage', url);
@@ -650,7 +651,7 @@ export default function AdminCombosPage() {
                         <ImagePlus className="h-4 w-4" /> Upload Cover Image
                       </button>
                     )}
-                  </CldUploadWidget>
+                  </ImageKitUploadWidget>
                 )}
               </div>
 
@@ -722,8 +723,9 @@ export default function AdminCombosPage() {
                           )}
 
                           {/* Upload Custom Image */}
-                          <CldUploadWidget
-                            uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'neoblue'}
+                          <ImageKitUploadWidget
+                            folder="/combos"
+                            options={{ multiple: false, resourceType: 'image' }}
                             onSuccess={(result: any) => {
                               const url = result?.info?.secure_url;
                               if (url) updateProductCustomImage(product._id, url);
@@ -738,7 +740,7 @@ export default function AdminCombosPage() {
                                 <ImagePlus className="h-3 w-3 text-blue-600" /> Custom Upload
                               </button>
                             )}
-                          </CldUploadWidget>
+                          </ImageKitUploadWidget>
 
                           {/* Reset to Default */}
                           {customImage && (

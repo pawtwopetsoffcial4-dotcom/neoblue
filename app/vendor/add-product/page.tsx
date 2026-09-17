@@ -4,7 +4,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowRight, Fish, Gauge, Sparkles, X, Info, Plus, Trash2, ChevronRight, ChevronLeft, Upload, Check, AlertCircle, Leaf, Coins, Users, HelpCircle, ClipboardList, Package } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
-import { CldUploadWidget } from 'next-cloudinary';
+import ImageKitUploadWidget from '@/app/components/ImageKitUploadWidget';
 import { apiClient } from '@/lib/api-client';
 import { FISH_NAMES, getSubcategoriesForCategory, PRODUCT_CATEGORIES, normalizeCategoryName } from '@/lib/catalog';
 
@@ -891,15 +891,11 @@ export default function VendorAddProductPage() {
                 ))}
 
                 {images.length < 5 && (
-                  <CldUploadWidget
-                    uploadPreset={uploadPreset}
+                  <ImageKitUploadWidget
+                    folder="/products"
                     options={{
-                      sources: ['local', 'camera', 'url'],
                       multiple: true,
                       resourceType: 'image',
-                      cropping: true,
-                      croppingAspectRatio: 1,
-                      showSkipCropButton: true,
                     }}
                     onOpen={() => setUploadError('')}
                     onClose={() => setIsUploading(false)}
@@ -907,9 +903,6 @@ export default function VendorAddProductPage() {
                       const info = result?.info;
                       if (info && typeof info === 'object' && 'secure_url' in info) {
                         let url = String(info.secure_url);
-                        if (url.includes('/upload/')) {
-                          url = url.replace('/upload/', '/upload/c_crop,g_custom/');
-                        }
                         setImages((prev) => [...prev, url]);
                         setUploadError('');
                       } else {
@@ -918,7 +911,7 @@ export default function VendorAddProductPage() {
                       setIsUploading(false);
                     }}
                     onError={() => {
-                      setUploadError('Image upload failed. Please verify Cloudinary configuration.');
+                      setUploadError('Image upload failed. Please verify ImageKit configuration.');
                       setIsUploading(false);
                     }}
                   >
@@ -935,7 +928,7 @@ export default function VendorAddProductPage() {
                         <span className="text-xs font-bold text-slate-500">Add Picture</span>
                       </button>
                     )}
-                  </CldUploadWidget>
+                  </ImageKitUploadWidget>
                 )}
               </div>
             </div>
@@ -958,10 +951,9 @@ export default function VendorAddProductPage() {
                 ))}
 
                 {videos.length < 2 && (
-                  <CldUploadWidget
-                    uploadPreset={uploadPreset}
+                  <ImageKitUploadWidget
+                    folder="/products"
                     options={{
-                      sources: ['local', 'url'],
                       multiple: false,
                       resourceType: 'video',
                     }}
@@ -979,7 +971,7 @@ export default function VendorAddProductPage() {
                       setIsUploading(false);
                     }}
                     onError={() => {
-                      setUploadError('Video upload failed. Please verify Cloudinary configuration.');
+                      setUploadError('Video upload failed. Please verify ImageKit configuration.');
                       setIsUploading(false);
                     }}
                   >
@@ -996,7 +988,7 @@ export default function VendorAddProductPage() {
                         <span className="text-xs font-bold text-slate-500">Add Video</span>
                       </button>
                     )}
-                  </CldUploadWidget>
+                  </ImageKitUploadWidget>
                 )}
               </div>
             </div>

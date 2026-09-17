@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { apiClient } from '@/lib/api-client';
 import { Plus, Loader2, Trash2, BookOpen, FolderTree, Tags, MessageSquare, Star, Sparkles, Search, Users, ShoppingBag, DollarSign, TrendingUp, ImageIcon, ShoppingCart } from 'lucide-react';
-import { CldUploadWidget } from 'next-cloudinary';
+import ImageKitUploadWidget from '@/app/components/ImageKitUploadWidget';
 
 type AdminOrder = { _id: string; totalAmount: number; status: string };
 type AdminUser = { _id: string; role: 'user' | 'vendor' | 'admin' };
@@ -487,9 +487,9 @@ export default function AdminDashboardPage() {
                       </div>
 
                       <div className="flex items-center gap-2 shrink-0">
-                        <CldUploadWidget 
-                          uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'neoblue_products'} 
-                          options={{ sources: ['local', 'camera', 'url'], multiple: false, resourceType: 'image' }} 
+                        <ImageKitUploadWidget 
+                          folder="/categories"
+                          options={{ multiple: false, resourceType: 'image' }} 
                           onSuccess={(result: any) => {
                             const secureUrl = result?.info?.secure_url;
                             if (secureUrl) {
@@ -507,7 +507,7 @@ export default function AdminDashboardPage() {
                               Upload
                             </button>
                           )}
-                        </CldUploadWidget>
+                        </ImageKitUploadWidget>
 
                         <button
                           type="button"

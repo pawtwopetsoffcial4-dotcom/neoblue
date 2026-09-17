@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { ArrowRight, PackageSearch, PlusCircle, X, Trash2, Plus, Info, Tag, Settings, Image as ImageIcon, Save, Loader2, Wand2, Sparkles } from 'lucide-react';
-import { CldUploadWidget } from 'next-cloudinary';
+import ImageKitUploadWidget from '@/app/components/ImageKitUploadWidget';
 import { apiClient } from '@/lib/api-client';
 import { FISH_NAMES, PRODUCT_CATEGORIES, getSubcategoriesForCategory, normalizeCategoryName } from '@/lib/catalog';
 import type { MarketplaceProduct } from '@/lib/types/marketplace';
@@ -985,23 +985,16 @@ export default function VendorProductsPage() {
                       ))}
                       
                       {editForm.images.length < 5 && (
-                        <CldUploadWidget
-                          uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'neoblue_products'}
+                        <ImageKitUploadWidget
+                          folder="/products"
                           options={{
-                            sources: ['local', 'camera', 'url'],
                             multiple: true,
                             resourceType: 'image',
-                            cropping: true,
-                            croppingAspectRatio: 1,
-                            showSkipCropButton: true,
                           }}
                           onSuccess={(result: any) => {
                             const info = result?.info;
                             if (info && typeof info === 'object' && 'secure_url' in info) {
                               let url = String(info.secure_url);
-                              if (url.includes('/upload/')) {
-                                url = url.replace('/upload/', '/upload/c_crop,g_custom/');
-                              }
                               setEditForm((curr) => curr ? { ...curr, images: [...curr.images, url] } : null);
                             }
                           }}
@@ -1018,7 +1011,7 @@ export default function VendorProductsPage() {
                               <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Add Image</span>
                             </button>
                           )}
-                        </CldUploadWidget>
+                        </ImageKitUploadWidget>
                       )}
                     </div>
                   </div>
@@ -1046,11 +1039,10 @@ export default function VendorProductsPage() {
                       ))}
                       
                       {editForm.videos.length < 2 && (
-                        <CldUploadWidget
-                          uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'neoblue_products'}
+                        <ImageKitUploadWidget
+                          folder="/products"
                           options={{
-                            sources: ['local', 'camera', 'url'],
-                            multiple: true,
+                            multiple: false,
                             resourceType: 'video',
                           }}
                           onSuccess={(result: any) => {
@@ -1072,7 +1064,7 @@ export default function VendorProductsPage() {
                               <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Add Video</span>
                             </button>
                           )}
-                        </CldUploadWidget>
+                        </ImageKitUploadWidget>
                       )}
                     </div>
                   </div>

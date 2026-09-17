@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { apiClient } from '@/lib/api-client';
 import { useAuth } from '@/lib/hooks/useAuth';
-import { CldUploadWidget } from 'next-cloudinary';
+import ImageKitUploadWidget from '@/app/components/ImageKitUploadWidget';
 import { Shield, ShieldCheck, ShieldAlert, FileVideo, UploadCloud, CheckCircle2, AlertCircle, Loader2, X, ShoppingBag, ArrowRight } from 'lucide-react';
 
 type UserOrder = {
@@ -471,10 +471,9 @@ function OrdersPageContent() {
               <div>
                 <h3 className="font-extrabold text-sm text-slate-900 mb-3 uppercase tracking-wider">2. Upload Mandatory Proof (Unboxing Video)</h3>
                 <div className="space-y-3">
-                  <CldUploadWidget
-                    uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'neoblue_products'}
+                  <ImageKitUploadWidget
+                    folder="/claims"
                     options={{
-                      sources: ['local', 'camera', 'url'],
                       multiple: false,
                       resourceType: 'video',
                     }}
@@ -528,7 +527,7 @@ function OrdersPageContent() {
                         )}
                       </button>
                     )}
-                  </CldUploadWidget>
+                  </ImageKitUploadWidget>
 
                   {uploadedUrls.map((url, i) => (
                     <div key={i} className="flex items-center gap-2 p-3 bg-emerald-50 border border-emerald-100 rounded-2xl text-emerald-700 text-xs font-semibold">

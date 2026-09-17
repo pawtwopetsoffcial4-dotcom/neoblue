@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { CldUploadWidget } from 'next-cloudinary';
+import ImageKitUploadWidget from '@/app/components/ImageKitUploadWidget';
 import { apiClient } from '@/lib/api-client';
 import { 
   Save, Loader2, Sparkles, X, Plus, Trash2, ArrowUp, ArrowDown, 
@@ -648,9 +648,9 @@ export default function AdminSettingsPage() {
                     </div>
 
                     <div className="flex gap-2 pt-1">
-                      <CldUploadWidget
-                        uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'neoblue_products'}
-                        options={{ sources: ['local', 'camera', 'url'], multiple: false, resourceType: 'image' }}
+                      <ImageKitUploadWidget
+                        folder="/banners"
+                        options={{ multiple: false, resourceType: 'image' }}
                         onSuccess={(result: any) => {
                           const secureUrl = result?.info?.secure_url;
                           if (secureUrl) {
@@ -668,7 +668,7 @@ export default function AdminSettingsPage() {
                             <span>Upload Image</span>
                           </button>
                         )}
-                      </CldUploadWidget>
+                      </ImageKitUploadWidget>
 
                       {slide.bgImage && (
                         <button
@@ -1318,14 +1318,14 @@ export default function AdminSettingsPage() {
                     <div className="font-semibold text-gray-800">{cat}</div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <CldUploadWidget uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'neoblue_products'} options={{ sources: ['local', 'camera', 'url'], multiple: false, resourceType: 'image' }} onSuccess={(result: any) => {
+                    <ImageKitUploadWidget folder="/categories" options={{ multiple: false, resourceType: 'image' }} onSuccess={(result: any) => {
                       const secureUrl = result?.info?.secure_url;
                       if (secureUrl) {
                         setConfig((prev) => ({ ...(prev as any), categoryImages: { ...(prev as any).categoryImages, [cat]: String(secureUrl) } }));
                       }
                     }}>
                       {({ open }) => <button type="button" onClick={() => open()} className="h-9 px-3 rounded-md border border-blue-200 text-blue-700 font-semibold hover:bg-blue-50 cursor-pointer">Upload</button>}
-                    </CldUploadWidget>
+                    </ImageKitUploadWidget>
 
                     <button
                       type="button"
@@ -1425,12 +1425,12 @@ function AddCategoryRow({ config, setConfig }: { config: any; setConfig: any }) 
   return (
     <div className="flex gap-3 items-center">
       <input value={name} onChange={(e) => setName(e.target.value)} placeholder="New category name" className="px-3 py-2 border rounded-lg w-72" />
-      <CldUploadWidget uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'neoblue_products'} options={{ sources: ['local', 'camera', 'url'], multiple: false, resourceType: 'image' }} onSuccess={(res: any) => {
+      <ImageKitUploadWidget folder="/categories" options={{ multiple: false, resourceType: 'image' }} onSuccess={(res: any) => {
         const url = res?.info?.secure_url;
         if (url) setPreview(String(url));
       }}>
         {({ open }) => <button type="button" onClick={() => open()} className="h-9 px-3 rounded-md border border-blue-200 text-blue-700 font-semibold hover:bg-blue-50 cursor-pointer">Upload Image</button>}
-      </CldUploadWidget>
+      </ImageKitUploadWidget>
       <button type="button" onClick={addCategory} className="h-9 px-4 rounded-md bg-blue-600 text-white font-semibold cursor-pointer">Add</button>
       {preview ? (
         // eslint-disable-next-line @next/next/no-img-element

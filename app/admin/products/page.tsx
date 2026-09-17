@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { X, Plus, Trash2, Search, Wand2, Loader2, HelpCircle } from 'lucide-react';
-import { CldUploadWidget } from 'next-cloudinary';
+import ImageKitUploadWidget from '@/app/components/ImageKitUploadWidget';
 import { apiClient } from '@/lib/api-client';
 
 type AdminProduct = {
@@ -991,14 +991,13 @@ export default function AdminProductsPage() {
                 <div className="flex items-center justify-between gap-3 flex-wrap">
                   <div>
                     <p className="font-bold text-slate-900">Product Images</p>
-                    <p className="text-sm text-slate-500">Add, remove, or replace images with Cloudinary.</p>
+                    <p className="text-sm text-slate-500">Add, remove, or replace images with ImageKit.</p>
                   </div>
 
-                  <CldUploadWidget
-                    uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'neoblue_products'}
+                  <ImageKitUploadWidget
+                    folder="/products"
                     options={{
-                      sources: ['local', 'camera', 'url'],
-                      multiple: false,
+                      multiple: true,
                       resourceType: 'image',
                     }}
                     onSuccess={(result: any) => {
@@ -1017,7 +1016,7 @@ export default function AdminProductsPage() {
                         Add Image
                       </button>
                     )}
-                  </CldUploadWidget>
+                  </ImageKitUploadWidget>
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
