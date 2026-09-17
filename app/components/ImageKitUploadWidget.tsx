@@ -66,21 +66,20 @@ export default function ImageKitUploadWidget({
 
     try {
       // 1. Fetch Auth parameters from /api/imagekit/auth
-      const authRes = await fetch('/api/imagekit/auth');
-      if (!authRes.ok) {
-        const authErrData = await authRes.json().catch(() => ({}));
-        throw new Error(
-          authErrData?.error || 'Failed to authenticate with ImageKit. Please check your environment keys.'
-        );
-      }
-      const authData = await authRes.json();
-      const { token, expire, signature, publicKey } = authData;
-
-      if (!signature || !token || !publicKey) {
-        throw new Error('ImageKit authorization payload is incomplete.');
+      let authData: any = null;
+      try {
+        const authRes = await fetch('/api/imagekit/auth');
+        if (authRes.ok) {
+          authData = await authRes.json();
+        }
+      } catch (e) {
+        console.warn('Could not fetch ImageKit auth params, will use server-side upload fallback:', e);
       }
 
-      // 2. Upload file(s) sequentially or in parallel
+      const { token, expire, signature, publicKey } = authData || {};
+      const hasClientAuth = Boolean(signature && token && publicKey);
+
+      // 2. Upload file(s) sequentially
       const fileList = Array.from(files);
       const targetFolder = folder.startsWith('/') ? folder : `/${folder}`;
 
@@ -92,28 +91,58 @@ export default function ImageKitUploadWidget({
             : 'Uploading to ImageKit...'
         );
 
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('fileName', file.name.replace(/[^a-zA-Z0-9._-]/g, '_'));
-        formData.append('publicKey', publicKey);
-        formData.append('signature', signature);
-        formData.append('expire', String(expire));
-        formData.append('token', token);
-        formData.append('folder', targetFolder);
-        formData.append('useUniqueFileName', 'true');
+        let uploadData: any = null;
 
-        const uploadRes = await fetch('https://upload.imagekit.io/api/v1/files/upload', {
-          method: 'POST',
-          body: formData,
-        });
+        // Try direct client-side upload if client auth params are available
+        if (hasClientAuth) {
+          try {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('fileName', file.name.replace(/[^a-zA-Z0-9._-]/g, '_'));
+            formData.append('publicKey', publicKey);
+            formData.append('signature', signature);
+            formData.append('expire', String(expire));
+            formData.append('token', token);
+            formData.append('folder', targetFolder);
+            formData.append('useUniqueFileName', 'true');
 
-        if (!uploadRes.ok) {
-          const uploadErr = await uploadRes.json().catch(() => ({}));
-          throw new Error(uploadErr?.message || uploadErr?.help || 'ImageKit upload failed.');
+            const uploadRes = await fetch('https://upload.imagekit.io/api/v1/files/upload', {
+              method: 'POST',
+              body: formData,
+            });
+
+            if (uploadRes.ok) {
+              uploadData = await uploadRes.json();
+            } else {
+              const directErrText = await uploadRes.text().catch(() => '');
+              console.warn('Direct ImageKit client upload rejected:', directErrText, 'Falling back to server upload...');
+            }
+          } catch (directErr) {
+            console.warn('Direct ImageKit upload network error, falling back to server upload:', directErr);
+          }
         }
 
-        const uploadData = await uploadRes.json();
-        const secureUrl = uploadData.url;
+        // Resilient Fallback: Upload via server-side endpoint (/api/imagekit/upload)
+        if (!uploadData) {
+          const serverFormData = new FormData();
+          serverFormData.append('file', file);
+          serverFormData.append('fileName', file.name.replace(/[^a-zA-Z0-9._-]/g, '_'));
+          serverFormData.append('folder', targetFolder);
+
+          const serverRes = await fetch('/api/imagekit/upload', {
+            method: 'POST',
+            body: serverFormData,
+          });
+
+          if (!serverRes.ok) {
+            const serverErr = await serverRes.json().catch(() => ({}));
+            throw new Error(serverErr?.error || serverErr?.message || 'ImageKit upload failed.');
+          }
+
+          uploadData = await serverRes.json();
+        }
+
+        const secureUrl = uploadData.url || uploadData.secure_url;
 
         if (onSuccess) {
           onSuccess({
