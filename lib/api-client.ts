@@ -222,14 +222,14 @@ export class APIClient {
     return this.request('/admin/employees');
   }
 
-  async createEmployee(payload: { username: string; password: string }) {
+  async createEmployee(payload: { email: string; password: string }) {
     return this.request('/admin/employees', {
       method: 'POST',
       body: JSON.stringify(payload),
     });
   }
 
-  async updateEmployee(id: string, payload: { username?: string; password?: string; isActive?: boolean }) {
+  async updateEmployee(id: string, payload: { email?: string; password?: string; isActive?: boolean }) {
     return this.request(`/admin/employees/${id}`, {
       method: 'PATCH',
       body: JSON.stringify(payload),

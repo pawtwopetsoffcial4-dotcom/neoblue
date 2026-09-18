@@ -2,7 +2,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 import bcrypt from 'bcryptjs';
 
 export interface IEmployee extends Document {
-  username: string;
+  email: string;
   password: string;
   isActive: boolean;
   createdAt: Date;
@@ -12,12 +12,13 @@ export interface IEmployee extends Document {
 
 const employeeSchema = new Schema<IEmployee>(
   {
-    username: {
+    email: {
       type: String,
-      required: [true, 'Please provide a username'],
+      required: [true, 'Please provide an email'],
       unique: true,
       lowercase: true,
       trim: true,
+      match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, 'Please provide a valid email'],
     },
     password: {
       type: String,

@@ -20,26 +20,26 @@ export async function POST(request: NextRequest) {
   try {
     await connectDB();
 
-    const { username, password } = await request.json();
+    const { email, password } = await request.json();
 
-    if (!username || !username.trim()) {
-      return createErrorResponse('Please provide a username', 400);
+    if (!email || !email.trim()) {
+      return createErrorResponse('Please provide an email', 400);
     }
     if (!password || password.length < 6) {
       return createErrorResponse('Password must be at least 6 characters', 400);
     }
 
-    const existing = await Employee.findOne({ username: username.trim().toLowerCase() });
+    const existing = await Employee.findOne({ email: email.trim().toLowerCase() });
     if (existing) {
-      return createErrorResponse('An employee with this username already exists', 409);
+      return createErrorResponse('An employee with this email already exists', 409);
     }
 
-    const employee = await Employee.create({ username: username.trim(), password });
+    const employee = await Employee.create({ email: email.trim(), password });
 
     return createSuccessResponse(
       {
         message: 'Employee created successfully',
-        employee: { _id: employee._id, username: employee.username, isActive: employee.isActive, createdAt: employee.createdAt },
+        employee: { _id: employee._id, email: employee.email, isActive: employee.isActive, createdAt: employee.createdAt },
       },
       201
     );

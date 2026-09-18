@@ -6,21 +6,21 @@ import { Eye, EyeOff, Pencil, Power, Trash2, X, UserPlus } from 'lucide-react';
 
 type Employee = {
   _id: string;
-  username: string;
+  email: string;
   isActive: boolean;
   createdAt: string;
 };
 
 export default function AdminEmployeesPage() {
   const [employees, setEmployees] = useState<Employee[]>([]);
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isBusy, setIsBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
-  const [editUsername, setEditUsername] = useState('');
+  const [editEmail, setEditEmail] = useState('');
   const [editPassword, setEditPassword] = useState('');
   const [showEditPassword, setShowEditPassword] = useState(false);
 
@@ -39,14 +39,14 @@ export default function AdminEmployeesPage() {
 
   const addEmployee = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!username.trim() || !password) return;
+    if (!email.trim() || !password) return;
 
     try {
       setIsBusy(true);
       setMessage(null);
-      await apiClient.createEmployee({ username: username.trim(), password });
+      await apiClient.createEmployee({ email: email.trim(), password });
       setMessage('Employee added successfully');
-      setUsername('');
+      setEmail('');
       setPassword('');
       await loadEmployees();
     } catch (error) {
@@ -70,7 +70,7 @@ export default function AdminEmployeesPage() {
   };
 
   const deleteEmployee = async (employee: Employee) => {
-    const confirmed = window.confirm(`Delete employee "${employee.username}"? This cannot be undone.`);
+    const confirmed = window.confirm(`Delete employee "${employee.email}"? This cannot be undone.`);
     if (!confirmed) return;
 
     try {
@@ -87,7 +87,7 @@ export default function AdminEmployeesPage() {
 
   const openEditModal = (employee: Employee) => {
     setEditingEmployee(employee);
-    setEditUsername(employee.username);
+    setEditEmail(employee.email);
     setEditPassword('');
     setShowEditPassword(false);
   };
@@ -99,7 +99,7 @@ export default function AdminEmployeesPage() {
     try {
       setIsBusy(true);
       setMessage(null);
-      const payload: { username?: string; password?: string } = { username: editUsername.trim() };
+      const payload: { email?: string; password?: string } = { email: editEmail.trim() };
       if (editPassword) payload.password = editPassword;
       await apiClient.updateEmployee(editingEmployee._id, payload);
       setMessage('Employee updated successfully');
@@ -126,10 +126,10 @@ export default function AdminEmployeesPage() {
         </p>
         <form onSubmit={addEmployee} className="flex flex-col sm:flex-row gap-3">
           <input
-            type="text"
-            placeholder="Username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             className="flex-1 h-11 px-4 rounded-xl border border-blue-200 bg-white text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
@@ -166,7 +166,7 @@ export default function AdminEmployeesPage() {
         <table className="w-full text-sm">
           <thead className="bg-blue-50 text-slate-600">
             <tr>
-              <th className="text-left px-5 py-3">Username</th>
+              <th className="text-left px-5 py-3">Email</th>
               <th className="text-left px-5 py-3">Status</th>
               <th className="text-left px-5 py-3">Added</th>
               <th className="text-right px-5 py-3">Actions</th>
@@ -175,7 +175,7 @@ export default function AdminEmployeesPage() {
           <tbody>
             {employees.map((employee) => (
               <tr key={employee._id} className="border-t border-blue-100">
-                <td className="px-5 py-4 font-semibold text-slate-900">{employee.username}</td>
+                <td className="px-5 py-4 font-semibold text-slate-900">{employee.email}</td>
                 <td className="px-5 py-4">
                   <span
                     className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
@@ -237,7 +237,7 @@ export default function AdminEmployeesPage() {
             <div className="border-b border-slate-200 px-6 py-4 flex items-center justify-between bg-slate-50/60">
               <div>
                 <h2 className="text-sm font-bold text-slate-900">Edit Employee</h2>
-                <p className="text-[11px] text-slate-500">Update username or reset password</p>
+                <p className="text-[11px] text-slate-500">Update email or reset password</p>
               </div>
               <button
                 onClick={() => setEditingEmployee(null)}
@@ -249,11 +249,11 @@ export default function AdminEmployeesPage() {
 
             <form onSubmit={saveEdit} className="p-6 space-y-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-700">Username</label>
+                <label className="text-xs font-semibold text-slate-700">Email</label>
                 <input
-                  type="text"
-                  value={editUsername}
-                  onChange={(e) => setEditUsername(e.target.value)}
+                  type="email"
+                  value={editEmail}
+                  onChange={(e) => setEditEmail(e.target.value)}
                   className="w-full h-10 px-3.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-900 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
                   required
                 />

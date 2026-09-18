@@ -4,7 +4,7 @@ import Employee from '@/lib/models/Employee';
 import { createErrorResponse, createSuccessResponse } from '@/lib/utils/auth';
 import { NextRequest } from 'next/server';
 
-// PATCH update employee (username, password, isActive) — admin only
+// PATCH update employee (email, password, isActive) — admin only
 export async function PATCH(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
     await connectDB();
@@ -14,23 +14,23 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
       return createErrorResponse('Invalid employee ID', 400);
     }
 
-    const { username, password, isActive } = await request.json();
+    const { email, password, isActive } = await request.json();
 
     const employee = await Employee.findById(id);
     if (!employee) {
       return createErrorResponse('Employee not found', 404);
     }
 
-    if (username !== undefined) {
-      const trimmed = String(username).trim();
+    if (email !== undefined) {
+      const trimmed = String(email).trim();
       if (!trimmed) {
-        return createErrorResponse('Username cannot be empty', 400);
+        return createErrorResponse('Email cannot be empty', 400);
       }
-      const existing = await Employee.findOne({ username: trimmed.toLowerCase(), _id: { $ne: id } });
+      const existing = await Employee.findOne({ email: trimmed.toLowerCase(), _id: { $ne: id } });
       if (existing) {
-        return createErrorResponse('An employee with this username already exists', 409);
+        return createErrorResponse('An employee with this email already exists', 409);
       }
-      employee.username = trimmed;
+      employee.email = trimmed;
     }
 
     if (password) {
@@ -48,7 +48,7 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
 
     return createSuccessResponse({
       message: 'Employee updated successfully',
-      employee: { _id: employee._id, username: employee.username, isActive: employee.isActive, createdAt: employee.createdAt },
+      employee: { _id: employee._id, email: employee.email, isActive: employee.isActive, createdAt: employee.createdAt },
     });
   } catch (error) {
     console.error('Update employee error:', error);
