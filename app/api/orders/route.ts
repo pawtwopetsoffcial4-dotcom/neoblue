@@ -6,6 +6,7 @@ import { createErrorResponse, createSuccessResponse, getTokenFromRequest, verify
 import { getProductShippingCharge, getRegionFromState } from '@/lib/utils/shipping';
 import { decrementStockForOrder } from '@/lib/utils/stock';
 import { createNotification } from '@/lib/utils/notifications';
+import { syncOrderToShiprocket } from '@/lib/utils/shiprocketSync';
 import { NextRequest } from 'next/server';
 
 const appId = process.env.CASHFREE_APP_ID;
@@ -79,6 +80,7 @@ export async function GET(request: NextRequest) {
                   order.status = 'placed';
                   order.paymentId = cfPaymentId || cfId;
                   await decrementStockForOrder(order);
+                  await syncOrderToShiprocket(order);
                 }
               }
             }
@@ -175,6 +177,7 @@ export async function POST(request: NextRequest) {
               order.paymentId = orderData.order_id;
             }
             await order.save();
+            await syncOrderToShiprocket(order);
 
             // Trigger notification for the buyer
             await createNotification(
@@ -434,6 +437,7 @@ export async function POST(request: NextRequest) {
         status: 'placed',
       });
       await decrementStockForOrder(order);
+      await syncOrderToShiprocket(order);
       createdOrders.push(order);
 
       // Trigger notification for the buyer

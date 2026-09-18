@@ -28,6 +28,10 @@ export interface IOrder extends Document {
   carrier?: string;
   trackingNumber?: string;
   trackingLink?: string;
+  shiprocketOrderId?: string;
+  shiprocketShipmentId?: string;
+  shiprocketSyncStatus?: 'synced' | 'failed';
+  shiprocketError?: string;
   completedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -102,6 +106,13 @@ const orderSchema = new Schema<IOrder>(
     carrier: String,
     trackingNumber: String,
     trackingLink: String,
+    shiprocketOrderId: String,
+    shiprocketShipmentId: String,
+    shiprocketSyncStatus: {
+      type: String,
+      enum: ['synced', 'failed'],
+    },
+    shiprocketError: String,
     completedAt: Date,
   },
   { timestamps: true }
