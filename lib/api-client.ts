@@ -217,6 +217,31 @@ export class APIClient {
     return this.promoteUserToAdmin({ ...payload, action: 'demote' });
   }
 
+  // Employee methods
+  async getEmployees() {
+    return this.request('/admin/employees');
+  }
+
+  async createEmployee(payload: { username: string; password: string }) {
+    return this.request('/admin/employees', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async updateEmployee(id: string, payload: { username?: string; password?: string; isActive?: boolean }) {
+    return this.request(`/admin/employees/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async deleteEmployee(id: string) {
+    return this.request(`/admin/employees/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
   // Blog methods
   async getBlogs(filters?: Record<string, any>) {
     return this.request('/blogs', { params: filters });

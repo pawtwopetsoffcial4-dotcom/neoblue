@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, Users, ClipboardList, LogOut, BookOpen, Menu, X, Package, FileText, Settings, ShoppingCart } from 'lucide-react';
+import { LayoutDashboard, Users, ClipboardList, LogOut, BookOpen, Menu, X, Package, FileText, Settings, ShoppingCart, UserCog } from 'lucide-react';
 import { useAuth } from '@/lib/hooks/useAuth';
 
 const navItems = [
@@ -17,6 +17,7 @@ const navItems = [
   { href: '/admin/orders', label: 'Orders', icon: ClipboardList },
   { href: '/admin/carts', label: 'Carts & Leads', icon: ShoppingCart },
   { href: '/admin/users', label: 'Users', icon: Users },
+  { href: '/admin/employees', label: 'Employees', icon: UserCog },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
