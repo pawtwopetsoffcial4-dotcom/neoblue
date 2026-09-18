@@ -193,6 +193,13 @@ export class APIClient {
     });
   }
 
+  async addCategory(payload: { name: string; image?: string }) {
+    return this.request('/categories', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
   // Admin methods
   async getAdminOrders() {
     return this.request('/admin', { params: { type: 'orders' } });

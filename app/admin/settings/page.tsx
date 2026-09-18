@@ -1404,22 +1404,32 @@ export default function AdminSettingsPage() {
 function AddCategoryRow({ config, setConfig }: { config: any; setConfig: any }) {
   const [name, setName] = useState('');
   const [preview, setPreview] = useState<string | null>(null);
+  const [isAdding, setIsAdding] = useState(false);
 
-  const addCategory = () => {
+  const addCategory = async () => {
     const trimmed = String(name || '').trim();
-    if (!trimmed) return;
-    const existing = Array.isArray(config.categories) ? config.categories : [];
-    if (existing.includes(trimmed)) {
+    if (!trimmed || isAdding) return;
+
+    try {
+      setIsAdding(true);
+      const response = (await apiClient.addCategory({ name: trimmed, image: preview || undefined })) as {
+        categories: string[];
+        excludedCategories: string[];
+        categoryImages: Record<string, string>;
+      };
+      setConfig((prev: any) => ({
+        ...prev,
+        categories: response.categories,
+        excludedCategories: response.excludedCategories,
+        categoryImages: response.categoryImages,
+      }));
       setName('');
-      return;
+      setPreview(null);
+    } catch (err: any) {
+      alert(err?.message || `Failed to add category "${trimmed}".`);
+    } finally {
+      setIsAdding(false);
     }
-    const newCategories = [...existing, trimmed];
-    const newImages = { ...(config.categoryImages || {}) };
-    if (preview) newImages[trimmed] = preview;
-    const newExcluded = (config.excludedCategories || []).filter((c: string) => c.toLowerCase() !== trimmed.toLowerCase());
-    setConfig((prev: any) => ({ ...prev, categories: newCategories, excludedCategories: newExcluded, categoryImages: newImages }));
-    setName('');
-    setPreview(null);
   };
 
   return (
@@ -1431,7 +1441,9 @@ function AddCategoryRow({ config, setConfig }: { config: any; setConfig: any }) 
       }}>
         {({ open }) => <button type="button" onClick={() => open()} className="h-9 px-3 rounded-md border border-blue-200 text-blue-700 font-semibold hover:bg-blue-50 cursor-pointer">Upload Image</button>}
       </ImageKitUploadWidget>
-      <button type="button" onClick={addCategory} className="h-9 px-4 rounded-md bg-blue-600 text-white font-semibold cursor-pointer">Add</button>
+      <button type="button" onClick={addCategory} disabled={isAdding} className="h-9 px-4 rounded-md bg-blue-600 text-white font-semibold cursor-pointer disabled:opacity-60">
+        {isAdding ? 'Adding...' : 'Add'}
+      </button>
       {preview ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={preview} alt="preview" className="w-12 h-8 object-cover rounded-md border" />

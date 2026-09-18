@@ -63,6 +63,74 @@ export async function GET(_request: NextRequest) {
   }
 }
 
+// POST add category (admin only)
+export async function POST(request: NextRequest) {
+  try {
+    await connectDB();
+
+    const token = getTokenFromRequest(request);
+    if (!token) {
+      return createErrorResponse('Unauthorized', 401);
+    }
+
+    const payload = verifyToken(token);
+    if (!payload || payload.role !== 'admin') {
+      return createErrorResponse('Forbidden: Admin access required', 403);
+    }
+
+    const { name, image } = await request.json();
+
+    if (!name || typeof name !== 'string' || !name.trim()) {
+      return createErrorResponse('Category name is required', 400);
+    }
+
+    const normalizedName = normalizeCategoryName(name.trim());
+    const lowerName = normalizedName.toLowerCase();
+
+    let config = await StoreConfig.findOne({});
+    if (!config) {
+      config = await StoreConfig.create({});
+    }
+
+    const currentCategories: string[] = Array.isArray(config.categories) && config.categories.length > 0
+      ? config.categories
+      : [...PRODUCT_CATEGORIES];
+
+    const alreadyExists = currentCategories.some((c: string) => normalizeCategoryName(c).toLowerCase() === lowerName);
+    const newCategories = alreadyExists ? currentCategories : [...currentCategories, normalizedName];
+
+    const currentExcluded: string[] = Array.isArray(config.excludedCategories) ? config.excludedCategories : [];
+    const newExcluded = currentExcluded.filter((c: string) => normalizeCategoryName(c).toLowerCase() !== lowerName);
+
+    const newCategoryImages = { ...(config.categoryImages || {}) };
+    if (image && typeof image === 'string') {
+      newCategoryImages[normalizedName] = image;
+    }
+
+    config.categories = newCategories;
+    config.excludedCategories = newExcluded;
+    config.categoryImages = newCategoryImages;
+    config.markModified('categories');
+    config.markModified('excludedCategories');
+    config.markModified('categoryImages');
+
+    await config.save();
+
+    return createSuccessResponse(
+      {
+        message: `Category "${normalizedName}" added successfully`,
+        categories: newCategories,
+        excludedCategories: newExcluded,
+        categoryImages: newCategoryImages,
+      },
+      201
+    );
+  } catch (error) {
+    console.error('Add category error:', error);
+    return createErrorResponse(error instanceof Error ? error.message : 'Failed to add category', 500);
+  }
+}
+
 // DELETE category (admin only)
 export async function DELETE(request: NextRequest) {
   try {
