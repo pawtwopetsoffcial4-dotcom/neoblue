@@ -17,7 +17,7 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
     }
 
     const payload = verifyToken(token);
-    if (!payload || payload.role !== 'admin') {
+    if (!payload || (payload.role !== 'admin' && payload.role !== 'employee')) {
       return createErrorResponse('Forbidden: Admin access required', 403);
     }
 

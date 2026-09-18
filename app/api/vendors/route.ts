@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
     }
 
     const payload = verifyToken(token);
-    if (!payload || payload.role !== 'admin') {
+    if (!payload || (payload.role !== 'admin' && payload.role !== 'employee')) {
       return createErrorResponse('Forbidden', 403);
     }
 

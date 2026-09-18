@@ -20,8 +20,8 @@ export default function SignupPage() {
   const { signup, loginWithSocial, isLoading, error, clearError } = useAuth();
   const [isSocialLoading, setIsSocialLoading] = useState(false);
 
-  const getRedirectPath = (role: 'user' | 'vendor' | 'admin') => {
-    if (role === 'admin') return '/admin/dashboard';
+  const getRedirectPath = (role: 'user' | 'vendor' | 'admin' | 'employee') => {
+    if (role === 'admin' || role === 'employee') return '/admin/dashboard';
     if (role === 'vendor') return '/vendor/dashboard';
     return '/';
   };

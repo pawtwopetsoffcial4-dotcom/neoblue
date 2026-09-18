@@ -7,7 +7,7 @@ export interface User {
   name: string;
   email: string;
   phone?: string;
-  role: 'user' | 'vendor' | 'admin';
+  role: 'user' | 'vendor' | 'admin' | 'employee';
   isApproved: boolean;
 }
 

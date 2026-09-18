@@ -55,10 +55,15 @@ export async function proxy(request: NextRequest) {
 
   if (
     (pathname === '/api/products' && method !== 'GET') ||
-    (pathname.startsWith('/api/products/') && method !== 'GET') ||
-    (pathname.startsWith('/api/orders/') && method === 'PATCH')
+    (pathname.startsWith('/api/products/') && method !== 'GET')
   ) {
     if (payload.role !== 'vendor' && payload.role !== 'admin') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+  }
+
+  if (pathname.startsWith('/api/orders/') && method === 'PATCH') {
+    if (payload.role !== 'vendor' && payload.role !== 'admin' && payload.role !== 'employee') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
   }
@@ -71,8 +76,18 @@ export async function proxy(request: NextRequest) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
-  if ((pathname.startsWith('/api/admin') || pathname.startsWith('/api/vendors')) && payload.role !== 'admin') {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  if (pathname.startsWith('/api/vendors')) {
+    if (payload.role !== 'admin' && payload.role !== 'employee') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+  } else if (pathname.startsWith('/api/admin')) {
+    const isCartsRoute = pathname === '/api/admin/carts';
+    const isOrdersOverview = pathname === '/api/admin' && request.nextUrl.searchParams.get('type') === 'orders';
+    const isEmployeeAllowed = isCartsRoute || isOrdersOverview;
+
+    if (payload.role !== 'admin' && !(payload.role === 'employee' && isEmployeeAllowed)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
   }
 
   return NextResponse.next({

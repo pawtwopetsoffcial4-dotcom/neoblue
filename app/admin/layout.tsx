@@ -7,24 +7,29 @@ import { LayoutDashboard, Users, ClipboardList, LogOut, BookOpen, Menu, X, Packa
 import { useAuth } from '@/lib/hooks/useAuth';
 
 const navItems = [
-  { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/admin/settings', label: 'Homepage & Carousel', icon: Settings },
-  { href: '/admin/products', label: 'Products', icon: ClipboardList },
-  { href: '/admin/combos', label: 'Combos', icon: Package },
-  { href: '/admin/blogs', label: 'Blogs', icon: BookOpen },
-  { href: '/admin/fish-descriptions', label: 'Descriptions', icon: FileText },
-  { href: '/admin/vendors', label: 'Vendors & Shipping', icon: Users },
-  { href: '/admin/orders', label: 'Orders', icon: ClipboardList },
-  { href: '/admin/carts', label: 'Carts & Leads', icon: ShoppingCart },
-  { href: '/admin/users', label: 'Users', icon: Users },
-  { href: '/admin/employees', label: 'Employees', icon: UserCog },
+  { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard, employeeAllowed: false },
+  { href: '/admin/settings', label: 'Homepage & Carousel', icon: Settings, employeeAllowed: false },
+  { href: '/admin/products', label: 'Products', icon: ClipboardList, employeeAllowed: false },
+  { href: '/admin/combos', label: 'Combos', icon: Package, employeeAllowed: false },
+  { href: '/admin/blogs', label: 'Blogs', icon: BookOpen, employeeAllowed: false },
+  { href: '/admin/fish-descriptions', label: 'Descriptions', icon: FileText, employeeAllowed: false },
+  { href: '/admin/vendors', label: 'Vendors & Shipping', icon: Users, employeeAllowed: true },
+  { href: '/admin/orders', label: 'Orders', icon: ClipboardList, employeeAllowed: true },
+  { href: '/admin/carts', label: 'Carts & Leads', icon: ShoppingCart, employeeAllowed: true },
+  { href: '/admin/users', label: 'Users', icon: Users, employeeAllowed: false },
+  { href: '/admin/employees', label: 'Employees', icon: UserCog, employeeAllowed: false },
 ];
+
+const EMPLOYEE_DEFAULT_ROUTE = '/admin/orders';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user, isAuthenticated, isLoading, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const isEmployee = user?.role === 'employee';
+  const isAdmin = user?.role === 'admin';
 
   useEffect(() => {
     if (isLoading) return;
@@ -34,14 +39,25 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       return;
     }
 
-    if (user && user.role !== 'admin') {
+    if (user && !isAdmin && !isEmployee) {
       router.replace('/');
+      return;
     }
-  }, [isAuthenticated, user, isLoading, router]);
 
-  if (isLoading || !isAuthenticated || (user && user.role !== 'admin')) {
+    if (isEmployee) {
+      const allowedPaths = navItems.filter((item) => item.employeeAllowed).map((item) => item.href);
+      if (!allowedPaths.includes(pathname)) {
+        router.replace(EMPLOYEE_DEFAULT_ROUTE);
+      }
+    }
+  }, [isAuthenticated, user, isLoading, isAdmin, isEmployee, pathname, router]);
+
+  if (isLoading || !isAuthenticated || (user && !isAdmin && !isEmployee)) {
     return null;
   }
+
+  const visibleNavItems = isEmployee ? navItems.filter((item) => item.employeeAllowed) : navItems;
+  const loginRoute = isEmployee ? '/employee/login' : '/auth/login';
 
   return (
     <div className="min-h-screen bg-slate-50/70 text-slate-900">
@@ -63,7 +79,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {/* Mobile Dropdown */}
         {mobileMenuOpen && (
           <nav className="mt-3 space-y-1 border-t border-slate-100 pt-3">
-            {navItems.map((item) => {
+            {visibleNavItems.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
               return (
@@ -83,7 +99,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <button
               onClick={() => {
                 logout();
-                router.push('/auth/login');
+                router.push(loginRoute);
               }}
               className="mt-3 w-full flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-lg border border-slate-200 text-rose-600 font-semibold text-xs hover:bg-rose-50 transition-colors"
             >
@@ -103,7 +119,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
 
           <nav className="flex-1 overflow-y-auto space-y-1 pr-1 py-2 scrollbar-thin">
-            {navItems.map((item) => {
+            {visibleNavItems.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
               return (
@@ -127,7 +143,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <button
               onClick={() => {
                 logout();
-                router.push('/auth/login');
+                router.push(loginRoute);
               }}
               className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border border-slate-200 text-rose-600 font-semibold text-xs hover:bg-rose-50 transition-colors cursor-pointer"
             >

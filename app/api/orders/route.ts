@@ -99,7 +99,7 @@ export async function GET(request: NextRequest) {
     } else if (payload.role === 'vendor') {
       query.vendorId = payload.userId;
       query.status = { $ne: 'pending' };
-    } else if (payload.role === 'admin') {
+    } else if (payload.role === 'admin' || payload.role === 'employee') {
       query.status = { $ne: 'pending' };
     }
 

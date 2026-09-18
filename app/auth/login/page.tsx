@@ -16,8 +16,8 @@ export default function LoginPage() {
   const { login, loginWithSocial, isLoading, error, clearError } = useAuth();
   const [isSocialLoading, setIsSocialLoading] = useState(false);
 
-  const getRedirectPath = (role: 'user' | 'vendor' | 'admin') => {
-    if (role === 'admin') return '/admin/dashboard';
+  const getRedirectPath = (role: 'user' | 'vendor' | 'admin' | 'employee') => {
+    if (role === 'admin' || role === 'employee') return '/admin/dashboard';
     if (role === 'vendor') return '/vendor/dashboard';
     return '/';
   };
@@ -172,6 +172,12 @@ export default function LoginPage() {
               Vendor access?{' '}
               <Link href="/auth/vendor-login" className="text-blue-700 font-bold hover:text-blue-800">
                 Vendor Login
+              </Link>
+            </p>
+            <p className="text-center text-slate-600 text-sm mt-2">
+              Employee access?{' '}
+              <Link href="/employee/login" className="text-blue-700 font-bold hover:text-blue-800">
+                Employee Login
               </Link>
             </p>
           </div>

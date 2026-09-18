@@ -66,7 +66,7 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
     }
 
     const payload = verifyToken(token);
-    if (!payload || (payload.role !== 'vendor' && payload.role !== 'admin')) {
+    if (!payload || (payload.role !== 'vendor' && payload.role !== 'admin' && payload.role !== 'employee')) {
       return createErrorResponse('Only vendors and admins can update order status', 403);
     }
 

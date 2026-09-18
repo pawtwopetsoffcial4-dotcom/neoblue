@@ -15,12 +15,15 @@ export async function GET(request: NextRequest) {
     }
 
     const payload = verifyToken(token);
-    if (!payload || payload.role !== 'admin') {
-      return createErrorResponse('Forbidden', 403);
-    }
-
     const { searchParams } = new URL(request.url);
     const type = searchParams.get('type') || 'all';
+
+    const isAdmin = payload?.role === 'admin';
+    const isEmployeeViewingOrders = payload?.role === 'employee' && type === 'orders';
+
+    if (!payload || (!isAdmin && !isEmployeeViewingOrders)) {
+      return createErrorResponse('Forbidden', 403);
+    }
 
     if (type === 'orders') {
       const orders = await Order.find({ status: { $ne: 'pending' } })

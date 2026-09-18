@@ -73,7 +73,7 @@ export async function verifyFirebaseIdToken(token: string): Promise<{ email: str
 export interface TokenPayload {
   userId: string;
   email: string;
-  role: 'user' | 'vendor' | 'admin';
+  role: 'user' | 'vendor' | 'admin' | 'employee';
 }
 
 export function generateToken(payload: TokenPayload): string {
