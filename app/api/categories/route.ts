@@ -107,14 +107,17 @@ export async function POST(request: NextRequest) {
       newCategoryImages[normalizedName] = image;
     }
 
-    config.categories = newCategories;
-    config.excludedCategories = newExcluded;
-    config.categoryImages = newCategoryImages;
-    config.markModified('categories');
-    config.markModified('excludedCategories');
-    config.markModified('categoryImages');
-
-    await config.save();
+    await StoreConfig.findOneAndUpdate(
+      {},
+      {
+        $set: {
+          categories: newCategories,
+          excludedCategories: newExcluded,
+          categoryImages: newCategoryImages,
+        },
+      },
+      { upsert: true, new: true }
+    );
 
     return createSuccessResponse(
       {
