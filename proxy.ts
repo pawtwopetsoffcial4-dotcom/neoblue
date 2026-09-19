@@ -20,6 +20,7 @@ export async function proxy(request: NextRequest) {
   const isPublicBlogs = pathname.startsWith('/api/blogs') && method === 'GET';
   const isPublicCombos = pathname.startsWith('/api/combos') && method === 'GET';
   const isPublicImageKit = pathname.startsWith('/api/imagekit/');
+  const isPublicStorage = pathname.startsWith('/api/storage/');
   const isPublicStockAlerts = pathname === '/api/stock-alerts' && method === 'POST';
 
   if (
@@ -33,6 +34,7 @@ export async function proxy(request: NextRequest) {
     isPublicBlogs ||
     isPublicCombos ||
     isPublicImageKit ||
+    isPublicStorage ||
     isPublicStockAlerts
   ) {
     return NextResponse.next();

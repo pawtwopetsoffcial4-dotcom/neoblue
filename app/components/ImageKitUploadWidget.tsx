@@ -5,7 +5,7 @@ import { Loader2, AlertCircle } from 'lucide-react';
 
 export interface ImageKitUploadWidgetProps {
   children: (props: { open: () => void; isUploading: boolean }) => React.ReactNode;
-  onSuccess?: (result: { info: { secure_url: string; url: string; fileId?: string; name?: string } }) => void;
+  onSuccess?: (result: { info: { secure_url: string; url: string; fileId?: string; name?: string; key?: string; path?: string } }) => void;
   onError?: (error: any) => void;
   onOpen?: () => void;
   onClose?: () => void;
@@ -158,10 +158,13 @@ export default function ImageKitUploadWidget({
         }
 
         const secureUrl = uploadData.url || uploadData.secure_url;
+        const key = uploadData.key || uploadData.filePath?.replace(/^\/+/, '') || '';
 
         if (onSuccess) {
           onSuccess({
             info: {
+              key: key || secureUrl,
+              path: key || secureUrl,
               secure_url: secureUrl,
               url: secureUrl,
               fileId: uploadData.fileId,
