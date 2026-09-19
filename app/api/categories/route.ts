@@ -185,16 +185,18 @@ export async function DELETE(request: NextRequest) {
     delete newSubcategories[normalizedName];
     delete newSubcategories[categoryName];
 
-    config.categories = newCategories;
-    config.excludedCategories = newExcluded;
-    config.categoryImages = newCategoryImages;
-    config.subcategories = newSubcategories;
-    config.markModified('categories');
-    config.markModified('excludedCategories');
-    config.markModified('categoryImages');
-    config.markModified('subcategories');
-
-    await config.save();
+    await StoreConfig.findOneAndUpdate(
+      {},
+      {
+        $set: {
+          categories: newCategories,
+          excludedCategories: newExcluded,
+          categoryImages: newCategoryImages,
+          subcategories: newSubcategories,
+        },
+      },
+      { upsert: true, new: true }
+    );
 
     return createSuccessResponse({
       message: `Category "${normalizedName}" removed successfully`,

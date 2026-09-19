@@ -45,8 +45,8 @@ export interface IStoreConfig {
 const HeroButtonSchema = new mongoose.Schema(
   {
     id: { type: String },
-    text: { type: String, required: true },
-    link: { type: String, required: true },
+    text: { type: String, default: 'Shop Now' },
+    link: { type: String, default: '/products' },
     variant: { type: String, enum: ['primary', 'secondary', 'glass'], default: 'primary' },
   },
   { _id: false }
@@ -56,7 +56,7 @@ const HeroSlideSchema = new mongoose.Schema(
   {
     id: { type: String },
     badge: { type: String, default: 'Special Offer' },
-    title: { type: String, required: true },
+    title: { type: String, default: '' },
     description: { type: String, default: '' },
     buttonText: { type: String, default: 'Shop Now' },
     buttonLink: { type: String, default: '/products' },
