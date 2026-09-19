@@ -225,7 +225,11 @@ export async function POST(request: NextRequest) {
       return id.includes('_pack_') ? id.split('_pack_')[0] : (id.includes('-pack-') ? id.split('-pack-')[0] : id);
     });
     const uniqueProductIds = Array.from(new Set(productIds));
-    const dbProducts = await Product.find({ _id: { $in: uniqueProductIds } }).populate('vendorId');
+    // Only the fields the serviceability check below reads — add here if that check grows.
+    const dbProducts = await Product.find({ _id: { $in: uniqueProductIds } }).populate(
+      'vendorId',
+      'nonServiceableStates deliverNorth deliverSouth'
+    );
 
     if (dbProducts.length !== uniqueProductIds.length) {
       return createErrorResponse('Some products not found', 404);

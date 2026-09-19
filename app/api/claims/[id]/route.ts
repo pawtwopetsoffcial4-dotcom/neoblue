@@ -26,11 +26,13 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
       return createErrorResponse('Invalid claim ID', 400);
     }
 
+    // Field lists below are trimmed to what the vendor/user claim-detail UI reads.
+    // Add a field here if that UI starts reading something new from claim.orderId / claim.products.productId.
     const claim = await Claim.findById(id)
-      .populate('orderId')
+      .populate('orderId', 'totalAmount')
       .populate('userId', 'name email')
       .populate('vendorId', 'name email')
-      .populate('products.productId');
+      .populate('products.productId', 'title price');
 
     if (!claim) {
       return createErrorResponse('Claim not found', 404);

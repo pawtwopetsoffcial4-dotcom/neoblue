@@ -5,6 +5,11 @@ import { createErrorResponse, createSuccessResponse } from '@/lib/utils/auth';
 
 export const dynamic = 'force-dynamic';
 
+// Single source of truth for the product fields formatCartItem() below reads.
+// Add a field here whenever formatCartItem() starts reading a new prod.<field> — otherwise it silently comes back undefined.
+const CART_PRODUCT_FIELDS =
+  'title price images category waterType scientific perPairPrice weightPerPiece originalPrice discountPercentage inStock';
+
 function formatCartItem(item: any) {
   const prod = item.productId;
   if (!prod || prod.inStock === false) return null;
@@ -55,7 +60,7 @@ export async function GET(request: NextRequest) {
       return createErrorResponse('Unauthorized', 401);
     }
 
-    const cart = await Cart.findOne({ userId }).populate('items.productId');
+    const cart = await Cart.findOne({ userId }).populate('items.productId', CART_PRODUCT_FIELDS);
 
     if (!cart) {
       return createSuccessResponse({ items: [] });
@@ -106,7 +111,7 @@ export async function POST(request: NextRequest) {
       { userId },
       { items: sanitizedItems },
       { new: true, upsert: true }
-    ).populate('items.productId');
+    ).populate('items.productId', CART_PRODUCT_FIELDS);
 
     const formattedItems = cart.items
       .map(formatCartItem)
