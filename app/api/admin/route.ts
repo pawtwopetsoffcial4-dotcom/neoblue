@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
       const orders = await Order.find({ status: { $ne: 'pending' } })
         .populate('userId', 'name email role')
         .populate('vendorId', 'name email')
-        .populate('products.productId', 'title price')
+        .populate('products.productId', 'title price images')
         .sort({ createdAt: -1 });
 
       return createSuccessResponse({ orders });
