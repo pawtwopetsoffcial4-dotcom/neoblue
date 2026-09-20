@@ -16,9 +16,36 @@ export async function POST(request: NextRequest) {
     }
 
     // Find user and include password field
-    const user = await User.findOne({ email: normalizedEmail }).select('+password');
+    let user = await User.findOne({ email: normalizedEmail }).select('+password');
     
     if (!user) {
+      // Fallback: Check Employee model
+      const Employee = (await import('@/lib/models/Employee')).default;
+      const employee = await Employee.findOne({ email: normalizedEmail }).select('+password');
+      if (employee) {
+        const isEmployeePasswordValid = await employee.comparePassword(password);
+        if (isEmployeePasswordValid && employee.isActive) {
+          const token = generateToken({
+            userId: employee._id.toString(),
+            email: employee.email,
+            role: 'employee',
+          });
+          return createSuccessResponse(
+            {
+              message: 'Login successful',
+              token,
+              user: {
+                id: employee._id,
+                name: employee.email.split('@')[0],
+                email: employee.email,
+                role: 'employee',
+                isApproved: true,
+              },
+            },
+            200
+          );
+        }
+      }
       return createErrorResponse('Invalid credentials', 401);
     }
 

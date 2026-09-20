@@ -2,22 +2,27 @@
 
 import React, { useEffect, useState, useMemo } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
 import { 
   ShoppingCart, 
   Search, 
   RefreshCw, 
-  User, 
   Phone, 
   Mail, 
-  ExternalLink, 
   MessageCircle, 
-  Calendar, 
   Package, 
   IndianRupee, 
   TrendingUp,
   Clock,
-  Sparkles
+  Sparkles,
+  Send,
+  Copy,
+  Check,
+  X,
+  ExternalLink,
+  Flame,
+  ShieldCheck,
+  HelpCircle,
+  Link2
 } from 'lucide-react';
 import { useAuth } from '@/lib/hooks/useAuth';
 
@@ -50,12 +55,68 @@ type CustomerCart = {
   createdAt: string;
 };
 
+type RetentionTemplate = {
+  id: string;
+  title: string;
+  badge: string;
+  icon: any;
+  generateText: (cart: CustomerCart, checkoutUrl: string) => string;
+};
+
+const RETENTION_TEMPLATES: RetentionTemplate[] = [
+  {
+    id: 'reminder_stock',
+    title: 'Limited Stock Reservation',
+    badge: 'Popular',
+    icon: Flame,
+    generateText: (cart, url) => {
+      const itemsList = cart.items.map(i => `${i.quantity}x ${i.title} (${i.unitLabel || 'pcs'})`).join(', ');
+      return `Hi ${cart.user.name || 'there'}! 👋\n\nWe noticed you left ${itemsList} in your NeoBlue aquatic cart (Total: ₹${cart.totalCartValue.toLocaleString('en-IN')}).\n\nAquatic live stocks are limited! Would you like us to reserve and pack your order for today's live express dispatch?\n\n🛒 Complete your checkout here: ${url}\n\nLive Arrival Guarantee included! 🐠✨`;
+    },
+  },
+  {
+    id: 'express_care',
+    title: 'Priority Packaging & LAG Guarantee',
+    badge: 'High Trust',
+    icon: ShieldCheck,
+    generateText: (cart, url) => {
+      const itemsList = cart.items.map(i => `${i.quantity}x ${i.title}`).join(', ');
+      return `Hi ${cart.user.name || 'there'}, your selected aquatic varieties (${itemsList}) are ready in our live holding tanks.\n\nComplete your NeoBlue order today and our team will provide priority oxygenated packaging with our 100% Live Arrival Guarantee (LAG).\n\n👉 Fast Checkout: ${url}\n\nLet us know if you need any help!`;
+    },
+  },
+  {
+    id: 'expert_help',
+    title: 'Water Care & Tank Setup Assistance',
+    badge: 'Support',
+    icon: HelpCircle,
+    generateText: (cart, url) => {
+      const itemsList = cart.items.map(i => i.title).join(', ');
+      return `Hi ${cart.user.name || 'there'}, this is from NeoBlue Aquatic Care team.\n\nWe noticed you're interested in ${itemsList}. Do you have any questions regarding water parameters (pH, temperature, hardness), tank mates, or acclimation before placing your order?\n\nWe're here to help! When ready, you can checkout here: ${url}`;
+    },
+  },
+  {
+    id: 'quick_followup',
+    title: 'Quick Checkout Assistance',
+    badge: 'Direct',
+    icon: Sparkles,
+    generateText: (cart, url) => {
+      return `Hi ${cart.user.name || 'there'}, did you face any payment or delivery issues while checking out your NeoBlue cart (₹${cart.totalCartValue.toLocaleString('en-IN')})?\n\nReply to this message and we will assist you immediately, or complete your order here: ${url}`;
+    },
+  },
+];
+
 export default function AdminCartsPage() {
   const { token } = useAuth();
   const [carts, setCarts] = useState<CustomerCart[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Retaining Modal State
+  const [activeRetainingCart, setActiveRetainingCart] = useState<CustomerCart | null>(null);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>('reminder_stock');
+  const [customMessage, setCustomMessage] = useState<string>('');
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
   const loadCarts = async () => {
     try {
@@ -132,20 +193,45 @@ export default function AdminCartsPage() {
     }
   };
 
+  const openRetainingModal = (cart: CustomerCart) => {
+    setActiveRetainingCart(cart);
+    setSelectedTemplateId('reminder_stock');
+    const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://neoblue.in';
+    const checkoutUrl = `${baseUrl}/cart`;
+    const template = RETENTION_TEMPLATES.find(t => t.id === 'reminder_stock') || RETENTION_TEMPLATES[0];
+    setCustomMessage(template.generateText(cart, checkoutUrl));
+  };
+
+  const handleSelectTemplate = (templateId: string) => {
+    if (!activeRetainingCart) return;
+    setSelectedTemplateId(templateId);
+    const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://neoblue.in';
+    const checkoutUrl = `${baseUrl}/cart`;
+    const template = RETENTION_TEMPLATES.find(t => t.id === templateId) || RETENTION_TEMPLATES[0];
+    setCustomMessage(template.generateText(activeRetainingCart, checkoutUrl));
+  };
+
+  const handleCopy = (text: string, key: string) => {
+    if (!text) return;
+    navigator.clipboard.writeText(text);
+    setCopiedKey(key);
+    setTimeout(() => setCopiedKey(null), 2000);
+  };
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue-600 mb-1">
-            Real-Time Leads & Intent
+            Real-Time Leads &amp; Recovery
           </p>
           <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
             <ShoppingCart className="w-7 h-7 text-blue-600" />
-            Customer Carts & Added Products
+            Abandoned Carts &amp; Retaining Station
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
-            Track customer identities and live products added to cart for instant follow-up & recovery.
+            Employees and administrators can track customer carts and issue instant retaining messages via WhatsApp and Email.
           </p>
         </div>
 
@@ -170,18 +256,18 @@ export default function AdminCartsPage() {
           <p className="text-xl sm:text-2xl font-black text-slate-900 mt-2">
             {stats.totalCarts}
           </p>
-          <p className="text-[10px] font-medium text-slate-400 mt-0.5">Customers with products</p>
+          <p className="text-[10px] font-medium text-slate-400 mt-0.5">Prospective buyers</p>
         </div>
 
         <div className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-2xs">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Total Cart Value</span>
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Recoverable Revenue</span>
             <IndianRupee className="w-4 h-4 text-emerald-600" />
           </div>
           <p className="text-xl sm:text-2xl font-black text-slate-900 mt-2">
             ₹{stats.totalPotentialValue.toLocaleString('en-IN')}
           </p>
-          <p className="text-[10px] font-medium text-slate-400 mt-0.5">Potential pipeline revenue</p>
+          <p className="text-[10px] font-medium text-slate-400 mt-0.5">Potential pipeline</p>
         </div>
 
         <div className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-2xs">
@@ -192,7 +278,7 @@ export default function AdminCartsPage() {
           <p className="text-xl sm:text-2xl font-black text-slate-900 mt-2">
             ₹{stats.avgValue.toLocaleString('en-IN')}
           </p>
-          <p className="text-[10px] font-medium text-slate-400 mt-0.5">Per prospective buyer</p>
+          <p className="text-[10px] font-medium text-slate-400 mt-0.5">Per abandoned bag</p>
         </div>
 
         <div className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-2xs">
@@ -216,7 +302,7 @@ export default function AdminCartsPage() {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search by customer name, phone, email, or product added..."
-            className="w-full h-10 pl-10 pr-4 text-xs sm:text-sm bg-slate-50 border border-slate-200/80 rounded-xl text-slate-900 placeholder:text-slate-400 font-medium focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600 transition-all"
+            className="w-full h-10 pl-10 pr-4 text-xs sm:text-sm bg-slate-50 border border-slate-200/80 rounded-xl text-slate-900 placeholder:text-slate-400 font-bold focus:outline-none focus:bg-white focus:border-blue-500 transition-all"
           />
         </div>
       </div>
@@ -234,34 +320,30 @@ export default function AdminCartsPage() {
           </div>
           <h3 className="text-base font-bold text-slate-900">No active customer carts found</h3>
           <p className="text-xs text-slate-500 max-w-sm mx-auto mt-1">
-            {searchTerm ? 'No results matched your search criteria.' : 'When customers add products to their bag, their contact details and selected products will appear here.'}
+            {searchTerm ? 'No results matched your search criteria.' : 'When customers add products to their bag, their contact details and selected products will appear here for follow-up.'}
           </p>
         </div>
       ) : (
         <div className="space-y-4">
           {filteredCarts.map((cart) => {
             const cleanPhone = cart.user.phone.replace(/[^0-9]/g, '').slice(-10);
-            const waText = encodeURIComponent(
-              `Hi ${cart.user.name}, we noticed you added ${cart.items.map(i => `${i.quantity}x ${i.title} (${i.unitLabel})`).join(', ')} to your NeoBlue cart. Can we help you complete your order?`
-            );
-            const waUrl = cleanPhone ? `https://wa.me/91${cleanPhone}?text=${waText}` : '';
 
             return (
               <div 
                 key={cart.cartId}
-                className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-2xs hover:shadow-xs transition-all"
+                className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/80 p-5 sm:p-6 shadow-2xs hover:shadow-xs transition-all"
               >
                 {/* Top Row: Customer Info & Timestamp */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 gap-3">
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between pb-4 border-b border-slate-100 gap-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white font-black text-sm flex items-center justify-center shadow-xs shrink-0">
+                    <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white font-black text-sm flex items-center justify-center shadow-xs shrink-0">
                       {cart.user.name.charAt(0).toUpperCase() || 'U'}
                     </div>
                     <div>
-                      <h3 className="text-sm sm:text-base font-black text-slate-900 leading-snug flex items-center gap-2">
+                      <h3 className="text-sm sm:text-base font-black text-slate-900 leading-snug flex items-center gap-2 flex-wrap">
                         {cart.user.name}
                         <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-100">
-                          {cart.items.length} product{cart.items.length > 1 ? 's' : ''}
+                          {cart.items.length} variety{cart.items.length > 1 ? 'ies' : ''} ({cart.totalItemsCount} items)
                         </span>
                       </h3>
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-xs text-slate-500 font-medium">
@@ -277,23 +359,31 @@ export default function AdminCartsPage() {
                             {cart.user.email}
                           </span>
                         )}
+                        <span className="inline-flex items-center gap-1 text-slate-400">
+                          <Clock className="w-3 h-3" />
+                          {formatRelativeTime(cart.updatedAt)}
+                        </span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Actions & Timestamp */}
-                  <div className="flex items-center gap-2 self-start sm:self-auto">
-                    <div className="flex items-center gap-1 text-xs font-semibold text-slate-400 mr-1">
-                      <Clock className="w-3.5 h-3.5" />
-                      <span>{formatRelativeTime(cart.updatedAt)}</span>
-                    </div>
+                  {/* Actions Bar */}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <button
+                      type="button"
+                      onClick={() => openRetainingModal(cart)}
+                      className="inline-flex items-center gap-1.5 h-9 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-black text-xs transition-colors shadow-2xs cursor-pointer"
+                    >
+                      <MessageCircle className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>Send Retaining Message</span>
+                    </button>
 
-                    {waUrl && (
+                    {cleanPhone && (
                       <a
-                        href={waUrl}
+                        href={`https://wa.me/91${cleanPhone}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 font-bold text-xs transition-colors cursor-pointer shadow-2xs"
+                        className="inline-flex items-center gap-1.5 h-9 px-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 font-bold text-xs transition-colors cursor-pointer"
                       >
                         <MessageCircle className="w-3.5 h-3.5 fill-emerald-600 text-emerald-600" />
                         <span>WhatsApp</span>
@@ -303,9 +393,9 @@ export default function AdminCartsPage() {
                     {cart.user.phone && (
                       <a
                         href={`tel:${cleanPhone}`}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100 font-bold text-xs transition-colors cursor-pointer"
+                        className="inline-flex items-center gap-1 h-9 px-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100 font-bold text-xs transition-colors cursor-pointer"
                       >
-                        <Phone className="w-3.5 h-3.5" />
+                        <Phone className="w-3.5 h-3.5 text-slate-500" />
                         <span>Call</span>
                       </a>
                     )}
@@ -375,6 +465,180 @@ export default function AdminCartsPage() {
           })}
         </div>
       )}
+
+      {/* ── Retaining & Recovery Modal ── */}
+      {activeRetainingCart && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto animate-in fade-in duration-150">
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-xl w-full overflow-hidden flex flex-col my-8">
+            {/* Modal Header */}
+            <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/60">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                  <MessageCircle className="w-5 h-5 fill-emerald-600" />
+                </div>
+                <div>
+                  <h3 className="font-black text-base text-slate-900">
+                    Send Retaining Message
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Customer: <strong className="text-slate-800">{activeRetainingCart.user.name}</strong> • ₹{activeRetainingCart.totalCartValue.toLocaleString('en-IN')} Cart Value
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setActiveRetainingCart(null)}
+                className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-5 space-y-4">
+              {/* Template Selectors */}
+              <div>
+                <label className="block text-xs font-black uppercase tracking-wider text-slate-500 mb-2">
+                  1. Choose Retention Strategy
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {RETENTION_TEMPLATES.map((tmpl) => {
+                    const Icon = tmpl.icon;
+                    const isSelected = selectedTemplateId === tmpl.id;
+                    return (
+                      <button
+                        type="button"
+                        key={tmpl.id}
+                        onClick={() => handleSelectTemplate(tmpl.id)}
+                        className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                          isSelected
+                            ? 'bg-blue-50/80 border-blue-500 ring-2 ring-blue-500/20 shadow-2xs'
+                            : 'bg-slate-50/60 border-slate-200 hover:bg-slate-100/80'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <Icon className={`w-4 h-4 ${isSelected ? 'text-blue-600' : 'text-slate-500'}`} />
+                          <span className={`text-[10px] font-black px-1.5 py-0.2 rounded ${isSelected ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-600'}`}>
+                            {tmpl.badge}
+                          </span>
+                        </div>
+                        <p className={`text-xs font-bold leading-tight ${isSelected ? 'text-blue-950' : 'text-slate-800'}`}>
+                          {tmpl.title}
+                        </p>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Message Content Area */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-black uppercase tracking-wider text-slate-500">
+                    2. Customize Message Content
+                  </label>
+                  <button
+                    onClick={() => handleCopy(customMessage, 'msg-modal')}
+                    className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 hover:text-blue-700 cursor-pointer"
+                  >
+                    {copiedKey === 'msg-modal' ? (
+                      <>
+                        <Check className="w-3 h-3 text-emerald-600" /> Copied Text
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3 h-3" /> Copy Message
+                      </>
+                    )}
+                  </button>
+                </div>
+                <textarea
+                  value={customMessage}
+                  onChange={(e) => setCustomMessage(e.target.value)}
+                  rows={6}
+                  className="w-full p-3.5 rounded-2xl border border-slate-200 bg-slate-50 text-xs font-medium text-slate-800 leading-relaxed outline-none focus:bg-white focus:border-blue-500 transition-all resize-y"
+                  placeholder="Type or customize your message here..."
+                />
+              </div>
+
+              {/* Customer Direct Contact Info */}
+              <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200/80 text-xs flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-3">
+                  <span className="font-bold text-slate-700">Phone: {activeRetainingCart.user.phone || 'N/A'}</span>
+                  {activeRetainingCart.user.email && (
+                    <span className="text-slate-500">• {activeRetainingCart.user.email}</span>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://neoblue.in';
+                    handleCopy(`${baseUrl}/cart`, 'cart-link');
+                  }}
+                  className="inline-flex items-center gap-1 font-bold text-[11px] text-blue-600 hover:text-blue-700 cursor-pointer"
+                >
+                  {copiedKey === 'cart-link' ? (
+                    <>
+                      <Check className="w-3 h-3 text-emerald-600" /> Copied Checkout Link
+                    </>
+                  ) : (
+                    <>
+                      <Link2 className="w-3 h-3" /> Copy Checkout URL
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Footer Actions */}
+            <div className="p-5 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2.5 bg-slate-50/50">
+              <button
+                type="button"
+                onClick={() => setActiveRetainingCart(null)}
+                className="h-10 px-4 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors"
+              >
+                Close
+              </button>
+
+              <div className="flex items-center gap-2">
+                {activeRetainingCart.user.email && (
+                  <a
+                    href={`mailto:${activeRetainingCart.user.email}?subject=${encodeURIComponent('Special Offer on your NeoBlue Aquatic Cart')}&body=${encodeURIComponent(customMessage)}`}
+                    className="inline-flex items-center gap-1.5 h-10 px-4 rounded-xl border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-black transition-colors cursor-pointer"
+                  >
+                    <Mail className="w-3.5 h-3.5" />
+                    <span>Send via Email</span>
+                  </a>
+                )}
+
+                {(() => {
+                  const cleanPhone = activeRetainingCart.user.phone.replace(/[^0-9]/g, '').slice(-10);
+                  const waUrl = cleanPhone ? `https://wa.me/91${cleanPhone}?text=${encodeURIComponent(customMessage)}` : '';
+
+                  return waUrl ? (
+                    <a
+                      href={waUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 h-10 px-5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black transition-colors shadow-2xs cursor-pointer"
+                    >
+                      <MessageCircle className="w-4 h-4 fill-white" />
+                      <span>Send on WhatsApp</span>
+                    </a>
+                  ) : (
+                    <button
+                      disabled
+                      className="inline-flex items-center gap-1.5 h-10 px-4 rounded-xl bg-slate-200 text-slate-400 text-xs font-bold"
+                    >
+                      No Phone Number
+                    </button>
+                  );
+                })()}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+

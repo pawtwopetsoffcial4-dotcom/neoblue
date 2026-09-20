@@ -1,5 +1,6 @@
 import { connectDB } from '@/lib/db';
 import Employee from '@/lib/models/Employee';
+import User from '@/lib/models/User';
 import { createErrorResponse, createSuccessResponse } from '@/lib/utils/auth';
 import { NextRequest } from 'next/server';
 
@@ -7,38 +8,93 @@ import { NextRequest } from 'next/server';
 export async function GET() {
   try {
     await connectDB();
-    const employees = await Employee.find({}).sort({ createdAt: -1 });
-    return createSuccessResponse({ employees });
+    const [employees, userEmployees] = await Promise.all([
+      Employee.find({}).sort({ createdAt: -1 }),
+      User.find({ role: 'employee' }).select('email createdAt').sort({ createdAt: -1 }),
+    ]);
+
+    const employeeMap = new Map<string, any>();
+
+    employees.forEach((emp) => {
+      employeeMap.set(emp.email.toLowerCase(), {
+        _id: emp._id.toString(),
+        email: emp.email,
+        isActive: emp.isActive,
+        createdAt: emp.createdAt,
+      });
+    });
+
+    userEmployees.forEach((u) => {
+      const emailLower = u.email.toLowerCase();
+      if (!employeeMap.has(emailLower)) {
+        employeeMap.set(emailLower, {
+          _id: u._id.toString(),
+          email: u.email,
+          isActive: true,
+          createdAt: u.createdAt,
+        });
+      }
+    });
+
+    return createSuccessResponse({ employees: Array.from(employeeMap.values()) });
   } catch (error) {
     console.error('Get employees error:', error);
     return createErrorResponse(error instanceof Error ? error.message : 'Failed to fetch employees', 500);
   }
 }
 
-// POST create a new employee
+// POST create or assign a new employee
 export async function POST(request: NextRequest) {
   try {
     await connectDB();
 
     const { email, password } = await request.json();
+    const normalizedEmail = String(email || '').trim().toLowerCase();
 
-    if (!email || !email.trim()) {
+    if (!normalizedEmail) {
       return createErrorResponse('Please provide an email', 400);
     }
-    if (!password || password.length < 6) {
-      return createErrorResponse('Password must be at least 6 characters', 400);
+
+    const empPassword = password && password.length >= 6 ? password : 'Employee@123';
+
+    // 1. Upsert in Employee model
+    let employee = await Employee.findOne({ email: normalizedEmail });
+    if (employee) {
+      employee.isActive = true;
+      if (password && password.length >= 6) {
+        employee.password = password;
+      }
+      await employee.save();
+    } else {
+      employee = await Employee.create({
+        email: normalizedEmail,
+        password: empPassword,
+        isActive: true,
+      });
     }
 
-    const existing = await Employee.findOne({ email: email.trim().toLowerCase() });
-    if (existing) {
-      return createErrorResponse('An employee with this email already exists', 409);
+    // 2. Sync with User model
+    let user = await User.findOne({ email: normalizedEmail });
+    if (user) {
+      user.role = 'employee';
+      user.isApproved = true;
+      if (password && password.length >= 6) {
+        user.password = password;
+      }
+      await user.save();
+    } else {
+      user = await User.create({
+        name: normalizedEmail.split('@')[0],
+        email: normalizedEmail,
+        password: empPassword,
+        role: 'employee',
+        isApproved: true,
+      });
     }
-
-    const employee = await Employee.create({ email: email.trim(), password });
 
     return createSuccessResponse(
       {
-        message: 'Employee created successfully',
+        message: 'Employee assigned successfully',
         employee: { _id: employee._id, email: employee.email, isActive: employee.isActive, createdAt: employee.createdAt },
       },
       201

@@ -213,11 +213,16 @@ export class APIClient {
     return this.request('/admin', { params: { type: 'all' } });
   }
 
-  async promoteUserToAdmin(payload: { email?: string; userId?: string; action?: 'promote' | 'demote' }) {
+  async promoteUserToAdmin(payload: { email?: string; userId?: string; action?: 'promote' | 'demote' | 'make_employee' | 'remove_employee' | 'make_admin' | 'make_user'; password?: string }) {
     return this.request('/admin/promote', {
       method: 'POST',
       body: JSON.stringify(payload),
     });
+  }
+
+  async setUserRole(payload: { email?: string; userId?: string; role: 'admin' | 'employee' | 'user'; password?: string }) {
+    const action = payload.role === 'admin' ? 'promote' : payload.role === 'employee' ? 'make_employee' : 'demote';
+    return this.promoteUserToAdmin({ email: payload.email, userId: payload.userId, action, password: payload.password });
   }
 
   async removeAdminRole(payload: { email?: string; userId?: string }) {

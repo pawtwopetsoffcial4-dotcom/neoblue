@@ -39,13 +39,13 @@ export default function AdminEmployeesPage() {
 
   const addEmployee = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.trim() || !password) return;
+    if (!email.trim()) return;
 
     try {
       setIsBusy(true);
       setMessage(null);
-      await apiClient.createEmployee({ email: email.trim(), password });
-      setMessage('Employee added successfully');
+      await apiClient.createEmployee({ email: email.trim(), password: password || 'Employee@123' });
+      setMessage('Employee assigned successfully');
       setEmail('');
       setPassword('');
       await loadEmployees();
@@ -70,7 +70,7 @@ export default function AdminEmployeesPage() {
   };
 
   const deleteEmployee = async (employee: Employee) => {
-    const confirmed = window.confirm(`Delete employee "${employee.email}"? This cannot be undone.`);
+    const confirmed = window.confirm(`Remove employee access for "${employee.email}"?`);
     if (!confirmed) return;
 
     try {
@@ -79,7 +79,7 @@ export default function AdminEmployeesPage() {
       await apiClient.deleteEmployee(employee._id);
       await loadEmployees();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Failed to delete employee');
+      setMessage(error instanceof Error ? error.message : 'Failed to remove employee');
     } finally {
       setIsBusy(false);
     }
@@ -115,38 +115,43 @@ export default function AdminEmployeesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue-600 mb-2">Team</p>
-        <h1 className="text-3xl md:text-4xl font-black tracking-tight">Employees</h1>
+        <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue-600 mb-1">Team &amp; Roles</p>
+        <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">Employees</h1>
+        <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+          Assign team members for order tracking, fulfillment, and abandoned cart customer retention.
+        </p>
       </div>
 
-      <section className="rounded-2xl bg-white border border-blue-100 p-5">
-        <p className="font-bold text-slate-900 mb-3 flex items-center gap-2">
+      <section className="rounded-2xl sm:rounded-3xl bg-white border border-slate-200/80 p-5 sm:p-6 shadow-xs">
+        <p className="font-bold text-sm text-slate-900 mb-1 flex items-center gap-2">
           <UserPlus className="h-4 w-4 text-blue-600" />
-          Add Employee
+          Assign Employee by Email
+        </p>
+        <p className="text-xs text-slate-500 mb-4">
+          Enter any email address. If no password is provided, default password is <code className="bg-slate-100 px-1.5 py-0.5 rounded font-mono font-bold">Employee@123</code>.
         </p>
         <form onSubmit={addEmployee} className="flex flex-col sm:flex-row gap-3">
           <input
             type="email"
-            placeholder="Email"
+            placeholder="employee@neoblue.in"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="flex-1 h-11 px-4 rounded-xl border border-blue-200 bg-white text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex-1 h-11 px-4 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 text-xs font-bold placeholder:text-slate-400 outline-none focus:bg-white focus:border-blue-500 transition-all"
             required
           />
           <div className="relative flex-1">
             <input
               type={showPassword ? 'text' : 'password'}
-              placeholder="Password (min 6 characters)"
+              placeholder="Password (optional, default: Employee@123)"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full h-11 px-4 pr-10 rounded-xl border border-blue-200 bg-white text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full h-11 px-4 pr-10 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 text-xs font-bold placeholder:text-slate-400 outline-none focus:bg-white focus:border-blue-500 transition-all"
               minLength={6}
-              required
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100"
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 cursor-pointer"
             >
               {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
@@ -154,12 +159,12 @@ export default function AdminEmployeesPage() {
           <button
             type="submit"
             disabled={isBusy}
-            className="h-11 px-6 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors disabled:opacity-60"
+            className="h-11 px-6 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-black text-xs transition-colors shadow-xs disabled:opacity-60 cursor-pointer shrink-0"
           >
-            {isBusy ? 'Adding...' : 'Add Employee'}
+            {isBusy ? 'Assigning...' : 'Assign Employee'}
           </button>
         </form>
-        {message && <p className="mt-3 text-sm text-blue-700">{message}</p>}
+        {message && <p className="mt-3 text-xs font-bold text-blue-700 bg-blue-50 p-2.5 rounded-xl border border-blue-100">{message}</p>}
       </section>
 
       <div className="rounded-2xl bg-white border border-blue-100 overflow-hidden">

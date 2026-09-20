@@ -14,9 +14,36 @@ export async function POST(request: NextRequest) {
       return createErrorResponse('Please provide email and password', 400);
     }
 
-    const employee = await Employee.findOne({ email: normalizedEmail }).select('+password');
+    let employee = await Employee.findOne({ email: normalizedEmail }).select('+password');
 
     if (!employee) {
+      // Fallback: Check User model where role === 'employee'
+      const User = (await import('@/lib/models/User')).default;
+      const user = await User.findOne({ email: normalizedEmail, role: 'employee' }).select('+password');
+      if (user) {
+        const isUserPasswordValid = await user.comparePassword(password);
+        if (isUserPasswordValid) {
+          const token = generateToken({
+            userId: user._id.toString(),
+            email: user.email,
+            role: 'employee',
+          });
+          return createSuccessResponse(
+            {
+              message: 'Login successful',
+              token,
+              user: {
+                id: user._id,
+                name: user.name || user.email.split('@')[0],
+                email: user.email,
+                role: 'employee',
+                isApproved: true,
+              },
+            },
+            200
+          );
+        }
+      }
       return createErrorResponse('Invalid credentials', 401);
     }
 
