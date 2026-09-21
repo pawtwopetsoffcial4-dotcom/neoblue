@@ -1,6 +1,11 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import OneSignal from 'react-onesignal';
+
+const linkOneSignalUser = (userId: string) => {
+  OneSignal.login(userId).catch((error) => console.error('OneSignal login failed:', error));
+};
 
 export interface User {
   id: string;
@@ -118,9 +123,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(data.user);
       localStorage.setItem('authToken', data.token);
       localStorage.setItem('authUser', JSON.stringify(data.user));
+      linkOneSignalUser(data.user.id);
       return data.user as User;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Something went wrong';
+      setError(message);
       throw err;
     } finally {
       setIsLoading(false);
@@ -147,9 +154,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(data.user);
       localStorage.setItem('authToken', data.token);
       localStorage.setItem('authUser', JSON.stringify(data.user));
+      linkOneSignalUser(data.user.id);
       return data.user as User;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Something went wrong';
+      setError(message);
       throw err;
     } finally {
       setIsLoading(false);
@@ -176,9 +185,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(data.user);
       localStorage.setItem('authToken', data.token);
       localStorage.setItem('authUser', JSON.stringify(data.user));
+      linkOneSignalUser(data.user.id);
       return data.user as User;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Something went wrong';
+      setError(message);
       throw err;
     } finally {
       setIsLoading(false);
@@ -190,6 +201,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(newUser);
     localStorage.setItem('authToken', newToken);
     localStorage.setItem('authUser', JSON.stringify(newUser));
+    linkOneSignalUser(newUser.id);
   };
 
   const logout = () => {
@@ -197,6 +209,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setToken(null);
     localStorage.removeItem('authToken');
     localStorage.removeItem('authUser');
+    OneSignal.logout().catch((error) => console.error('OneSignal logout failed:', error));
   };
 
   const clearError = () => setError(null);
