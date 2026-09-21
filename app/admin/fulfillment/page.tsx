@@ -305,28 +305,28 @@ export default function AdminFulfillmentPage() {
       </div>
 
       {/* ── KPI Stat Cards ── */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3.5 lg:gap-4">
         {/* Card 1: Not Packed (Urgent) */}
         <div
           onClick={() => setActiveTab('not_packed')}
-          className={`p-4 rounded-2xl border transition-all duration-200 cursor-pointer relative overflow-hidden ${
+          className={`p-3.5 sm:p-4 rounded-2xl border transition-all duration-200 cursor-pointer relative overflow-hidden ${
             activeTab === 'not_packed'
               ? 'bg-amber-500 border-amber-500 text-white shadow-md ring-2 ring-amber-500/20'
               : 'bg-white border-slate-200/80 hover:border-amber-300 hover:shadow-xs'
           }`}
         >
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center justify-between mb-1.5 sm:mb-2">
             <span className={`text-[10px] font-black uppercase tracking-wider ${activeTab === 'not_packed' ? 'text-amber-100' : 'text-slate-400'}`}>
               Not Packed
             </span>
-            <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${activeTab === 'not_packed' ? 'bg-white/20 text-white' : 'bg-amber-50 text-amber-600'}`}>
-              <Box className="w-3.5 h-3.5" />
+            <div className={`w-6 h-6 sm:w-7 sm:h-7 rounded-lg flex items-center justify-center ${activeTab === 'not_packed' ? 'bg-white/20 text-white' : 'bg-amber-50 text-amber-600'}`}>
+              <Box className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
             </div>
           </div>
-          <p className={`text-2xl font-black ${activeTab === 'not_packed' ? 'text-white' : 'text-slate-900'}`}>
+          <p className={`text-xl sm:text-2xl font-black ${activeTab === 'not_packed' ? 'text-white' : 'text-slate-900'}`}>
             {stats.notPackedCount}
           </p>
-          <p className={`text-[11px] font-semibold mt-0.5 ${activeTab === 'not_packed' ? 'text-amber-100' : 'text-amber-600'}`}>
+          <p className={`text-[10px] sm:text-[11px] font-semibold mt-0.5 truncate ${activeTab === 'not_packed' ? 'text-amber-100' : 'text-amber-600'}`}>
             Awaiting Packing
           </p>
         </div>
@@ -334,24 +334,24 @@ export default function AdminFulfillmentPage() {
         {/* Card 2: Packed & Ready */}
         <div
           onClick={() => setActiveTab('packed')}
-          className={`p-4 rounded-2xl border transition-all duration-200 cursor-pointer relative overflow-hidden ${
+          className={`p-3.5 sm:p-4 rounded-2xl border transition-all duration-200 cursor-pointer relative overflow-hidden ${
             activeTab === 'packed'
               ? 'bg-indigo-600 border-indigo-600 text-white shadow-md ring-2 ring-indigo-600/20'
               : 'bg-white border-slate-200/80 hover:border-indigo-300 hover:shadow-xs'
           }`}
         >
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center justify-between mb-1.5 sm:mb-2">
             <span className={`text-[10px] font-black uppercase tracking-wider ${activeTab === 'packed' ? 'text-indigo-100' : 'text-slate-400'}`}>
               Packed &amp; Ready
             </span>
-            <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${activeTab === 'packed' ? 'bg-white/20 text-white' : 'bg-indigo-50 text-indigo-600'}`}>
-              <PackageCheck className="w-3.5 h-3.5" />
+            <div className={`w-6 h-6 sm:w-7 sm:h-7 rounded-lg flex items-center justify-center ${activeTab === 'packed' ? 'bg-white/20 text-white' : 'bg-indigo-50 text-indigo-600'}`}>
+              <PackageCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
             </div>
           </div>
-          <p className={`text-2xl font-black ${activeTab === 'packed' ? 'text-white' : 'text-slate-900'}`}>
+          <p className={`text-xl sm:text-2xl font-black ${activeTab === 'packed' ? 'text-white' : 'text-slate-900'}`}>
             {stats.packedCount}
           </p>
-          <p className={`text-[11px] font-semibold mt-0.5 ${activeTab === 'packed' ? 'text-indigo-100' : 'text-indigo-600'}`}>
+          <p className={`text-[10px] sm:text-[11px] font-semibold mt-0.5 truncate ${activeTab === 'packed' ? 'text-indigo-100' : 'text-indigo-600'}`}>
             Ready for Dispatch
           </p>
         </div>
@@ -359,24 +359,24 @@ export default function AdminFulfillmentPage() {
         {/* Card 3: Shipped / In Transit */}
         <div
           onClick={() => setActiveTab('shipped')}
-          className={`p-4 rounded-2xl border transition-all duration-200 cursor-pointer relative overflow-hidden ${
+          className={`p-3.5 sm:p-4 rounded-2xl border transition-all duration-200 cursor-pointer relative overflow-hidden ${
             activeTab === 'shipped'
               ? 'bg-sky-600 border-sky-600 text-white shadow-md ring-2 ring-sky-600/20'
               : 'bg-white border-slate-200/80 hover:border-sky-300 hover:shadow-xs'
           }`}
         >
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center justify-between mb-1.5 sm:mb-2">
             <span className={`text-[10px] font-black uppercase tracking-wider ${activeTab === 'shipped' ? 'text-sky-100' : 'text-slate-400'}`}>
               Shipped
             </span>
-            <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${activeTab === 'shipped' ? 'bg-white/20 text-white' : 'bg-sky-50 text-sky-600'}`}>
-              <Truck className="w-3.5 h-3.5" />
+            <div className={`w-6 h-6 sm:w-7 sm:h-7 rounded-lg flex items-center justify-center ${activeTab === 'shipped' ? 'bg-white/20 text-white' : 'bg-sky-50 text-sky-600'}`}>
+              <Truck className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
             </div>
           </div>
-          <p className={`text-2xl font-black ${activeTab === 'shipped' ? 'text-white' : 'text-slate-900'}`}>
+          <p className={`text-xl sm:text-2xl font-black ${activeTab === 'shipped' ? 'text-white' : 'text-slate-900'}`}>
             {stats.shippedCount}
           </p>
-          <p className={`text-[11px] font-semibold mt-0.5 ${activeTab === 'shipped' ? 'text-sky-100' : 'text-sky-600'}`}>
+          <p className={`text-[10px] sm:text-[11px] font-semibold mt-0.5 truncate ${activeTab === 'shipped' ? 'text-sky-100' : 'text-sky-600'}`}>
             In Transit / Courier
           </p>
         </div>
@@ -384,24 +384,24 @@ export default function AdminFulfillmentPage() {
         {/* Card 4: Delivered */}
         <div
           onClick={() => setActiveTab('completed')}
-          className={`p-4 rounded-2xl border transition-all duration-200 cursor-pointer relative overflow-hidden ${
+          className={`p-3.5 sm:p-4 rounded-2xl border transition-all duration-200 cursor-pointer relative overflow-hidden ${
             activeTab === 'completed'
               ? 'bg-emerald-600 border-emerald-600 text-white shadow-md ring-2 ring-emerald-600/20'
               : 'bg-white border-slate-200/80 hover:border-emerald-300 hover:shadow-xs'
           }`}
         >
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center justify-between mb-1.5 sm:mb-2">
             <span className={`text-[10px] font-black uppercase tracking-wider ${activeTab === 'completed' ? 'text-emerald-100' : 'text-slate-400'}`}>
               Delivered
             </span>
-            <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${activeTab === 'completed' ? 'bg-white/20 text-white' : 'bg-emerald-50 text-emerald-600'}`}>
-              <CheckCircle2 className="w-3.5 h-3.5" />
+            <div className={`w-6 h-6 sm:w-7 sm:h-7 rounded-lg flex items-center justify-center ${activeTab === 'completed' ? 'bg-white/20 text-white' : 'bg-emerald-50 text-emerald-600'}`}>
+              <CheckCircle2 className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
             </div>
           </div>
-          <p className={`text-2xl font-black ${activeTab === 'completed' ? 'text-white' : 'text-slate-900'}`}>
+          <p className={`text-xl sm:text-2xl font-black ${activeTab === 'completed' ? 'text-white' : 'text-slate-900'}`}>
             {stats.completedCount}
           </p>
-          <p className={`text-[11px] font-semibold mt-0.5 ${activeTab === 'completed' ? 'text-emerald-100' : 'text-emerald-600'}`}>
+          <p className={`text-[10px] sm:text-[11px] font-semibold mt-0.5 truncate ${activeTab === 'completed' ? 'text-emerald-100' : 'text-emerald-600'}`}>
             Completed Orders
           </p>
         </div>
@@ -409,24 +409,24 @@ export default function AdminFulfillmentPage() {
         {/* Card 5: All Active */}
         <div
           onClick={() => setActiveTab('all')}
-          className={`p-4 rounded-2xl border transition-all duration-200 cursor-pointer relative overflow-hidden col-span-2 lg:col-span-1 ${
+          className={`p-3.5 sm:p-4 rounded-2xl border transition-all duration-200 cursor-pointer relative overflow-hidden col-span-2 sm:col-span-2 lg:col-span-1 ${
             activeTab === 'all'
               ? 'bg-slate-900 border-slate-900 text-white shadow-md ring-2 ring-slate-900/20'
               : 'bg-white border-slate-200/80 hover:border-slate-400 hover:shadow-xs'
           }`}
         >
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center justify-between mb-1.5 sm:mb-2">
             <span className={`text-[10px] font-black uppercase tracking-wider ${activeTab === 'all' ? 'text-slate-300' : 'text-slate-400'}`}>
               All Active
             </span>
-            <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${activeTab === 'all' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'}`}>
-              <ShoppingBag className="w-3.5 h-3.5" />
+            <div className={`w-6 h-6 sm:w-7 sm:h-7 rounded-lg flex items-center justify-center ${activeTab === 'all' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'}`}>
+              <ShoppingBag className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
             </div>
           </div>
-          <p className={`text-2xl font-black ${activeTab === 'all' ? 'text-white' : 'text-slate-900'}`}>
+          <p className={`text-xl sm:text-2xl font-black ${activeTab === 'all' ? 'text-white' : 'text-slate-900'}`}>
             {stats.totalApproved}
           </p>
-          <p className={`text-[11px] font-semibold mt-0.5 ${activeTab === 'all' ? 'text-slate-300' : 'text-slate-500'}`}>
+          <p className={`text-[10px] sm:text-[11px] font-semibold mt-0.5 truncate ${activeTab === 'all' ? 'text-slate-300' : 'text-slate-500'}`}>
             Approved Pipeline
           </p>
         </div>
@@ -734,18 +734,18 @@ export default function AdminFulfillmentPage() {
 
               {/* Shipping / Tracking Details Card (If entered) */}
               {(order.carrier || order.trackingNumber || isShipped || isCompleted) && (
-                <div className="mt-3 p-3.5 rounded-2xl bg-sky-50/60 border border-sky-200/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-                  <div className="flex items-start sm:items-center gap-2.5">
+                <div className="mt-3 p-3 sm:p-3.5 rounded-2xl bg-sky-50/60 border border-sky-200/70 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 text-xs">
+                  <div className="flex items-start sm:items-center gap-2.5 min-w-0">
                     <div className="w-8 h-8 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center shrink-0">
                       <Truck className="w-4 h-4" />
                     </div>
-                    <div>
+                    <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-black text-slate-900">
+                        <span className="font-black text-slate-900 truncate">
                           {order.carrier || 'Courier Partner Not Specified'}
                         </span>
                         {order.trackingNumber && (
-                          <span className="font-mono font-bold bg-white px-2 py-0.5 rounded border border-sky-200 text-sky-900">
+                          <span className="font-mono font-bold bg-white px-2 py-0.5 rounded border border-sky-200 text-sky-900 break-all text-[11px]">
                             AWB: {order.trackingNumber}
                           </span>
                         )}
@@ -769,20 +769,20 @@ export default function AdminFulfillmentPage() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 self-end sm:self-center">
+                  <div className="flex items-center gap-2 self-stretch sm:self-center flex-wrap sm:flex-nowrap">
                     {order.trackingLink && (
                       <a
                         href={order.trackingLink}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex items-center gap-1 h-8 px-3 rounded-lg bg-sky-600 text-white font-bold text-xs hover:bg-sky-700 transition-colors shadow-2xs"
+                        className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1 h-8 px-3 rounded-lg bg-sky-600 text-white font-bold text-xs hover:bg-sky-700 transition-colors shadow-2xs"
                       >
                         <ExternalLink className="w-3 h-3" /> Track Shipment
                       </a>
                     )}
                     <button
                       onClick={() => openTrackingModal(order, 'keep')}
-                      className="inline-flex items-center gap-1 h-8 px-3 rounded-lg bg-white border border-sky-200 text-sky-800 font-bold text-xs hover:bg-sky-50 transition-colors cursor-pointer"
+                      className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1 h-8 px-3 rounded-lg bg-white border border-sky-200 text-sky-800 font-bold text-xs hover:bg-sky-50 transition-colors cursor-pointer"
                     >
                       <Edit3 className="w-3 h-3" /> Edit Tracking
                     </button>
@@ -793,15 +793,15 @@ export default function AdminFulfillmentPage() {
               {/* Order Action Controls Footer */}
               <div className="mt-4 pt-3 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
                 {/* Left: Quick Status Switcher */}
-                <div className="flex items-center gap-2">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 shrink-0">
                     Stage:
                   </span>
                   <select
                     value={order.status}
                     disabled={isUpdating === order._id}
                     onChange={(e) => handleUpdateStatus(order._id, e.target.value as any)}
-                    className="h-9 px-3 rounded-xl border border-slate-200 bg-slate-50 text-xs font-bold text-slate-800 outline-none focus:bg-white focus:border-blue-500 cursor-pointer transition-all"
+                    className="w-full sm:w-auto h-9 px-3 rounded-xl border border-slate-200 bg-slate-50 text-xs font-bold text-slate-800 outline-none focus:bg-white focus:border-blue-500 cursor-pointer transition-all"
                   >
                     <option value="placed">Not Packed (Placed)</option>
                     <option value="accepted">Not Packed (Accepted)</option>
@@ -813,14 +813,14 @@ export default function AdminFulfillmentPage() {
                 </div>
 
                 {/* Right: Stage-Specific Action Buttons */}
-                <div className="flex flex-wrap items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
                   {/* If Not Packed */}
                   {isNotPacked && (
                     <>
                       <button
                         onClick={() => handleUpdateStatus(order._id, 'preparing')}
                         disabled={isUpdating === order._id}
-                        className="inline-flex items-center gap-1.5 h-10 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black transition-colors shadow-2xs cursor-pointer disabled:opacity-50"
+                        className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 h-10 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black transition-colors shadow-2xs cursor-pointer disabled:opacity-50"
                       >
                         <PackageCheck className="w-4 h-4" />
                         <span>{isUpdating === order._id ? 'Updating...' : 'Mark as Packed & Ready'}</span>
@@ -828,7 +828,7 @@ export default function AdminFulfillmentPage() {
 
                       <button
                         onClick={() => openTrackingModal(order, 'shipped')}
-                        className="inline-flex items-center gap-1.5 h-10 px-3.5 rounded-xl border border-sky-200 bg-sky-50 hover:bg-sky-100 text-sky-800 text-xs font-bold transition-colors cursor-pointer"
+                        className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 h-10 px-3.5 rounded-xl border border-sky-200 bg-sky-50 hover:bg-sky-100 text-sky-800 text-xs font-bold transition-colors cursor-pointer"
                       >
                         <Truck className="w-3.5 h-3.5" />
                         <span>Ship &amp; Add Tracking</span>
@@ -841,7 +841,7 @@ export default function AdminFulfillmentPage() {
                     <>
                       <button
                         onClick={() => openTrackingModal(order, 'shipped')}
-                        className="inline-flex items-center gap-1.5 h-10 px-4 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-black transition-colors shadow-2xs cursor-pointer"
+                        className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 h-10 px-4 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-black transition-colors shadow-2xs cursor-pointer"
                       >
                         <Truck className="w-4 h-4" />
                         <span>Ship Order (Add Tracking)</span>
@@ -850,7 +850,7 @@ export default function AdminFulfillmentPage() {
                       <button
                         onClick={() => handleUpdateStatus(order._id, 'accepted')}
                         disabled={isUpdating === order._id}
-                        className="inline-flex items-center gap-1.5 h-10 px-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 text-xs font-bold transition-colors cursor-pointer"
+                        className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 h-10 px-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 text-xs font-bold transition-colors cursor-pointer"
                       >
                         <RotateCcw className="w-3.5 h-3.5 text-slate-400" />
                         <span>Revert to Not Packed</span>
@@ -864,7 +864,7 @@ export default function AdminFulfillmentPage() {
                       <button
                         onClick={() => handleUpdateStatus(order._id, 'completed')}
                         disabled={isUpdating === order._id}
-                        className="inline-flex items-center gap-1.5 h-10 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black transition-colors shadow-2xs cursor-pointer disabled:opacity-50"
+                        className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 h-10 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black transition-colors shadow-2xs cursor-pointer disabled:opacity-50"
                       >
                         <CheckCircle2 className="w-4 h-4" />
                         <span>{isUpdating === order._id ? 'Updating...' : 'Mark as Delivered'}</span>
@@ -872,7 +872,7 @@ export default function AdminFulfillmentPage() {
 
                       <button
                         onClick={() => openTrackingModal(order, 'shipped')}
-                        className="inline-flex items-center gap-1.5 h-10 px-3.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-colors cursor-pointer"
+                        className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 h-10 px-3.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-colors cursor-pointer"
                       >
                         <Edit3 className="w-3.5 h-3.5 text-slate-500" />
                         <span>Update Tracking Info</span>
@@ -882,7 +882,7 @@ export default function AdminFulfillmentPage() {
 
                   {/* If Delivered */}
                   {isCompleted && (
-                    <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-100 flex items-center gap-1.5">
+                    <span className="w-full sm:w-auto text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-2 rounded-xl border border-emerald-100 flex items-center justify-center gap-1.5">
                       <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                       Order Delivered &amp; Completed
                     </span>
@@ -894,7 +894,7 @@ export default function AdminFulfillmentPage() {
         })}
 
         {filteredOrders.length === 0 && !loading && (
-          <div className="rounded-3xl bg-white border border-slate-200/80 p-12 text-center text-slate-600 space-y-3 shadow-xs">
+          <div className="rounded-3xl bg-white border border-slate-200/80 p-8 sm:p-12 text-center text-slate-600 space-y-3 shadow-xs">
             <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
               <PackageCheck className="w-6 h-6" />
             </div>
@@ -921,33 +921,33 @@ export default function AdminFulfillmentPage() {
 
       {/* ── Tracking & Dispatch Modal ── */}
       {trackingModalOrder && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto animate-in fade-in duration-150">
-          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-lg w-full overflow-hidden flex flex-col my-8">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto animate-in fade-in duration-150">
+          <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto flex flex-col my-auto">
             {/* Modal Header */}
-            <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center">
+            <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 shrink-0">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-9 h-9 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center shrink-0">
                   <Truck className="w-4 h-4" />
                 </div>
-                <div>
-                  <h3 className="font-black text-base text-slate-900">
+                <div className="min-w-0">
+                  <h3 className="font-black text-sm sm:text-base text-slate-900 truncate">
                     Dispatch &amp; Tracking Information
                   </h3>
-                  <p className="text-xs text-slate-500 font-mono">
+                  <p className="text-xs text-slate-500 font-mono truncate">
                     Order #{trackingModalOrder._id.slice(-6).toUpperCase()} • {trackingModalOrder.userId?.name || 'Customer'}
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setTrackingModalOrder(null)}
-                className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-700 transition-colors"
+                className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-700 transition-colors shrink-0 ml-2"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             {/* Modal Form */}
-            <form onSubmit={handleSaveTracking} className="p-5 space-y-4">
+            <form onSubmit={handleSaveTracking} className="p-4 sm:p-5 space-y-4 flex-1">
               {/* Courier Presets */}
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">
@@ -1028,18 +1028,18 @@ export default function AdminFulfillmentPage() {
               </div>
 
               {/* Modal Buttons */}
-              <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2.5">
+              <div className="pt-3 border-t border-slate-100 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-2.5">
                 <button
                   type="button"
                   onClick={() => setTrackingModalOrder(null)}
-                  className="h-10 px-4 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors"
+                  className="w-full sm:w-auto h-10 px-4 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSavingTracking}
-                  className="h-10 px-5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-black transition-colors shadow-2xs flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
+                  className="w-full sm:w-auto h-10 px-5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-black transition-colors shadow-2xs flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer"
                 >
                   <Send className="w-3.5 h-3.5 text-sky-400" />
                   <span>{isSavingTracking ? 'Saving...' : 'Save & Update Customer'}</span>

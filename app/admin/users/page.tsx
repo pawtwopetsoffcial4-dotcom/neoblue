@@ -97,7 +97,7 @@ export default function AdminUsersPage() {
       </div>
 
       {/* Set Role by Email Card */}
-      <section className="rounded-2xl sm:rounded-3xl bg-white border border-slate-200/80 p-5 sm:p-6 shadow-xs">
+      <section className="rounded-2xl sm:rounded-3xl bg-white border border-slate-200/80 p-4 sm:p-6 shadow-xs">
         <h2 className="font-bold text-sm text-slate-900 mb-1 flex items-center gap-2">
           <UserCog className="h-4 w-4 text-blue-600" />
           Assign Role to Any Email
@@ -106,19 +106,19 @@ export default function AdminUsersPage() {
           Enter any existing user email or new address to grant Employee or Admin access.
         </p>
 
-        <form onSubmit={handleSetRoleByEmail} className="flex flex-col sm:flex-row gap-3">
+        <form onSubmit={handleSetRoleByEmail} className="flex flex-col sm:flex-row gap-2.5 sm:gap-3">
           <input
             type="email"
             placeholder="e.g. employee@neoblue.in or customer@gmail.com"
             value={targetEmail}
             onChange={(e) => setTargetEmail(e.target.value)}
-            className="flex-1 h-11 px-4 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 text-xs font-bold placeholder:text-slate-400 outline-none focus:bg-white focus:border-blue-500 transition-all"
+            className="flex-1 w-full h-11 px-4 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 text-xs font-bold placeholder:text-slate-400 outline-none focus:bg-white focus:border-blue-500 transition-all"
             required
           />
           <select
             value={targetRole}
             onChange={(e) => setTargetRole(e.target.value as any)}
-            className="h-11 px-4 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 text-xs font-bold outline-none focus:bg-white focus:border-blue-500 cursor-pointer"
+            className="w-full sm:w-auto h-11 px-4 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 text-xs font-bold outline-none focus:bg-white focus:border-blue-500 cursor-pointer"
           >
             <option value="employee">Role: Employee (Orders &amp; Carts)</option>
             <option value="admin">Role: Admin (Full Access)</option>
@@ -127,7 +127,7 @@ export default function AdminUsersPage() {
           <button
             type="submit"
             disabled={isBusy}
-            className="h-11 px-6 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-black text-xs transition-colors shadow-xs disabled:opacity-60 cursor-pointer shrink-0"
+            className="w-full sm:w-auto h-11 px-6 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-black text-xs transition-colors shadow-xs disabled:opacity-60 cursor-pointer shrink-0"
           >
             {isBusy ? 'Assigning...' : 'Assign Role'}
           </button>
@@ -141,7 +141,7 @@ export default function AdminUsersPage() {
       </section>
 
       {/* Search Bar */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 p-3 shadow-2xs">
+      <div className="bg-white rounded-2xl border border-slate-200/80 p-2.5 sm:p-3 shadow-2xs">
         <div className="relative">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
@@ -157,24 +157,24 @@ export default function AdminUsersPage() {
       {/* Users Table */}
       <div className="rounded-2xl sm:rounded-3xl bg-white border border-slate-200/80 overflow-hidden shadow-xs">
         <div className="overflow-x-auto">
-          <table className="w-full text-xs">
+          <table className="w-full text-xs min-w-[620px]">
             <thead className="bg-slate-50/80 text-slate-500 border-b border-slate-100">
               <tr>
-                <th className="text-left px-5 py-3.5 font-black uppercase tracking-wider text-[10px]">Name &amp; Email</th>
-                <th className="text-left px-5 py-3.5 font-black uppercase tracking-wider text-[10px]">Role</th>
-                <th className="text-left px-5 py-3.5 font-black uppercase tracking-wider text-[10px]">Vendor Status</th>
-                <th className="text-left px-5 py-3.5 font-black uppercase tracking-wider text-[10px]">Joined</th>
-                <th className="text-right px-5 py-3.5 font-black uppercase tracking-wider text-[10px]">Actions</th>
+                <th className="text-left px-4 sm:px-5 py-3.5 font-black uppercase tracking-wider text-[10px]">Name &amp; Email</th>
+                <th className="text-left px-4 sm:px-5 py-3.5 font-black uppercase tracking-wider text-[10px]">Role</th>
+                <th className="text-left px-4 sm:px-5 py-3.5 font-black uppercase tracking-wider text-[10px]">Vendor Status</th>
+                <th className="text-left px-4 sm:px-5 py-3.5 font-black uppercase tracking-wider text-[10px]">Joined</th>
+                <th className="text-right px-4 sm:px-5 py-3.5 font-black uppercase tracking-wider text-[10px]">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filteredUsers.map((u) => (
                 <tr key={u._id} className="hover:bg-slate-50/50 transition-colors">
-                  <td className="px-5 py-4">
+                  <td className="px-4 sm:px-5 py-4">
                     <p className="font-bold text-slate-900 text-sm">{u.name}</p>
                     <p className="text-slate-400 text-xs font-mono">{u.email}</p>
                   </td>
-                  <td className="px-5 py-4">
+                  <td className="px-4 sm:px-5 py-4">
                     {u.role === 'admin' ? (
                       <span className="inline-flex items-center gap-1 text-[11px] font-black px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
                         <ShieldCheck className="w-3 h-3" /> Admin
@@ -193,13 +193,13 @@ export default function AdminUsersPage() {
                       </span>
                     )}
                   </td>
-                  <td className="px-5 py-4 text-slate-600 font-semibold">
+                  <td className="px-4 sm:px-5 py-4 text-slate-600 font-semibold">
                     {u.role === 'vendor' ? (u.isApproved ? 'Approved' : 'Pending') : '—'}
                   </td>
-                  <td className="px-5 py-4 text-slate-400 font-medium">
+                  <td className="px-4 sm:px-5 py-4 text-slate-400 font-medium">
                     {new Date(u.createdAt).toLocaleDateString()}
                   </td>
-                  <td className="px-5 py-4 text-right">
+                  <td className="px-4 sm:px-5 py-4 text-right">
                     <div className="flex items-center justify-end gap-1.5 flex-wrap">
                       {u.role !== 'employee' && (
                         <button

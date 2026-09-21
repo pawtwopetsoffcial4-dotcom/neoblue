@@ -247,54 +247,54 @@ export default function AdminCartsPage() {
       </div>
 
       {/* KPI Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <div className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-2xs">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5 lg:gap-4">
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-3.5 sm:p-4 shadow-2xs">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Active Carts</span>
+            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-500">Active Carts</span>
             <ShoppingCart className="w-4 h-4 text-blue-600" />
           </div>
-          <p className="text-xl sm:text-2xl font-black text-slate-900 mt-2">
+          <p className="text-xl sm:text-2xl font-black text-slate-900 mt-1.5 sm:mt-2">
             {stats.totalCarts}
           </p>
-          <p className="text-[10px] font-medium text-slate-400 mt-0.5">Prospective buyers</p>
+          <p className="text-[10px] font-medium text-slate-400 mt-0.5 truncate">Prospective buyers</p>
         </div>
 
-        <div className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-2xs">
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-3.5 sm:p-4 shadow-2xs">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Recoverable Revenue</span>
+            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-500">Recoverable Revenue</span>
             <IndianRupee className="w-4 h-4 text-emerald-600" />
           </div>
-          <p className="text-xl sm:text-2xl font-black text-slate-900 mt-2">
+          <p className="text-xl sm:text-2xl font-black text-slate-900 mt-1.5 sm:mt-2">
             ₹{stats.totalPotentialValue.toLocaleString('en-IN')}
           </p>
-          <p className="text-[10px] font-medium text-slate-400 mt-0.5">Potential pipeline</p>
+          <p className="text-[10px] font-medium text-slate-400 mt-0.5 truncate">Potential pipeline</p>
         </div>
 
-        <div className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-2xs">
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-3.5 sm:p-4 shadow-2xs">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Avg. Cart Value</span>
+            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-500">Avg. Cart Value</span>
             <TrendingUp className="w-4 h-4 text-indigo-600" />
           </div>
-          <p className="text-xl sm:text-2xl font-black text-slate-900 mt-2">
+          <p className="text-xl sm:text-2xl font-black text-slate-900 mt-1.5 sm:mt-2">
             ₹{stats.avgValue.toLocaleString('en-IN')}
           </p>
-          <p className="text-[10px] font-medium text-slate-400 mt-0.5">Per abandoned bag</p>
+          <p className="text-[10px] font-medium text-slate-400 mt-0.5 truncate">Per abandoned bag</p>
         </div>
 
-        <div className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-2xs">
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-3.5 sm:p-4 shadow-2xs">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Total Items</span>
+            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-500">Total Items</span>
             <Package className="w-4 h-4 text-amber-600" />
           </div>
-          <p className="text-xl sm:text-2xl font-black text-slate-900 mt-2">
+          <p className="text-xl sm:text-2xl font-black text-slate-900 mt-1.5 sm:mt-2">
             {stats.totalProducts}
           </p>
-          <p className="text-[10px] font-medium text-slate-400 mt-0.5">Units in customer bags</p>
+          <p className="text-[10px] font-medium text-slate-400 mt-0.5 truncate">Units in customer bags</p>
         </div>
       </div>
 
       {/* Search Bar */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 p-3 shadow-2xs">
+      <div className="bg-white rounded-2xl border border-slate-200/80 p-2.5 sm:p-3 shadow-2xs">
         <div className="relative">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
@@ -309,12 +309,12 @@ export default function AdminCartsPage() {
 
       {/* Customer Carts List */}
       {isLoading ? (
-        <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center">
+        <div className="bg-white rounded-2xl border border-slate-200 p-8 sm:p-12 text-center">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-600 border-t-transparent mb-3" />
           <p className="text-sm font-bold text-slate-700">Loading customer carts...</p>
         </div>
       ) : filteredCarts.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-slate-200/80 p-12 text-center shadow-2xs">
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-8 sm:p-12 text-center shadow-2xs">
           <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-3">
             <ShoppingCart className="w-6 h-6" />
           </div>
@@ -331,36 +331,36 @@ export default function AdminCartsPage() {
             return (
               <div 
                 key={cart.cartId}
-                className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/80 p-5 sm:p-6 shadow-2xs hover:shadow-xs transition-all"
+                className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/80 p-4 sm:p-6 shadow-2xs hover:shadow-xs transition-all"
               >
                 {/* Top Row: Customer Info & Timestamp */}
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between pb-4 border-b border-slate-100 gap-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white font-black text-sm flex items-center justify-center shadow-xs shrink-0">
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between pb-4 border-b border-slate-100 gap-3 sm:gap-4">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white font-black text-sm flex items-center justify-center shadow-xs shrink-0">
                       {cart.user.name.charAt(0).toUpperCase() || 'U'}
                     </div>
-                    <div>
+                    <div className="min-w-0 flex-1">
                       <h3 className="text-sm sm:text-base font-black text-slate-900 leading-snug flex items-center gap-2 flex-wrap">
-                        {cart.user.name}
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-100">
+                        <span className="truncate">{cart.user.name}</span>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-100 shrink-0">
                           {cart.items.length} variety{cart.items.length > 1 ? 'ies' : ''} ({cart.totalItemsCount} items)
                         </span>
                       </h3>
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-xs text-slate-500 font-medium">
                         {cart.user.phone && (
                           <span className="inline-flex items-center gap-1 font-bold text-slate-700">
-                            <Phone className="w-3 h-3 text-slate-400" />
+                            <Phone className="w-3 h-3 text-slate-400 shrink-0" />
                             +91 {cart.user.phone}
                           </span>
                         )}
                         {cart.user.email && (
-                          <span className="inline-flex items-center gap-1 text-slate-600">
-                            <Mail className="w-3 h-3 text-slate-400" />
-                            {cart.user.email}
+                          <span className="inline-flex items-center gap-1 text-slate-600 truncate max-w-[200px]">
+                            <Mail className="w-3 h-3 text-slate-400 shrink-0" />
+                            <span className="truncate">{cart.user.email}</span>
                           </span>
                         )}
                         <span className="inline-flex items-center gap-1 text-slate-400">
-                          <Clock className="w-3 h-3" />
+                          <Clock className="w-3 h-3 shrink-0" />
                           {formatRelativeTime(cart.updatedAt)}
                         </span>
                       </div>
@@ -368,13 +368,13 @@ export default function AdminCartsPage() {
                   </div>
 
                   {/* Actions Bar */}
-                  <div className="flex items-center gap-2 flex-wrap">
+                  <div className="flex items-center gap-2 flex-wrap w-full lg:w-auto">
                     <button
                       type="button"
                       onClick={() => openRetainingModal(cart)}
-                      className="inline-flex items-center gap-1.5 h-9 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-black text-xs transition-colors shadow-2xs cursor-pointer"
+                      className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 h-9 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-black text-xs transition-colors shadow-2xs cursor-pointer"
                     >
-                      <MessageCircle className="w-3.5 h-3.5 text-emerald-400" />
+                      <MessageCircle className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                       <span>Send Retaining Message</span>
                     </button>
 
@@ -383,9 +383,9 @@ export default function AdminCartsPage() {
                         href={`https://wa.me/91${cleanPhone}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 h-9 px-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 font-bold text-xs transition-colors cursor-pointer"
+                        className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 h-9 px-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 font-bold text-xs transition-colors cursor-pointer"
                       >
-                        <MessageCircle className="w-3.5 h-3.5 fill-emerald-600 text-emerald-600" />
+                        <MessageCircle className="w-3.5 h-3.5 fill-emerald-600 text-emerald-600 shrink-0" />
                         <span>WhatsApp</span>
                       </a>
                     )}
@@ -393,9 +393,9 @@ export default function AdminCartsPage() {
                     {cart.user.phone && (
                       <a
                         href={`tel:${cleanPhone}`}
-                        className="inline-flex items-center gap-1 h-9 px-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100 font-bold text-xs transition-colors cursor-pointer"
+                        className="inline-flex items-center justify-center gap-1 h-9 px-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100 font-bold text-xs transition-colors cursor-pointer"
                       >
-                        <Phone className="w-3.5 h-3.5 text-slate-500" />
+                        <Phone className="w-3.5 h-3.5 text-slate-500 shrink-0" />
                         <span>Call</span>
                       </a>
                     )}
@@ -408,13 +408,13 @@ export default function AdminCartsPage() {
                     Products Added to Cart:
                   </p>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-2.5">
                     {cart.items.map((item, idx) => (
                       <div 
                         key={`${item.productId}-${idx}`}
-                        className="flex items-center gap-3 p-2.5 rounded-xl bg-slate-50 border border-slate-100/90 hover:border-slate-200 transition-all"
+                        className="flex items-center gap-2.5 sm:gap-3 p-2.5 rounded-xl bg-slate-50 border border-slate-100/90 hover:border-slate-200 transition-all min-w-0"
                       >
-                        <div className="relative w-12 h-12 rounded-lg bg-white overflow-hidden shrink-0 border border-slate-200/80">
+                        <div className="relative w-11 h-11 sm:w-12 sm:h-12 rounded-lg bg-white overflow-hidden shrink-0 border border-slate-200/80">
                           <Image
                             src={item.image}
                             alt={item.title}
@@ -449,7 +449,7 @@ export default function AdminCartsPage() {
                 </div>
 
                 {/* Bottom Row: Total & Summary */}
-                <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
                   <span className="text-slate-500 font-medium">
                     Total in Cart: <strong className="text-slate-800 font-bold">{cart.totalItemsCount} item{cart.totalItemsCount > 1 ? 's' : ''}</strong>
                   </span>
@@ -468,33 +468,33 @@ export default function AdminCartsPage() {
 
       {/* ── Retaining & Recovery Modal ── */}
       {activeRetainingCart && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto animate-in fade-in duration-150">
-          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-xl w-full overflow-hidden flex flex-col my-8">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto animate-in fade-in duration-150">
+          <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl max-w-xl w-full max-h-[90vh] overflow-y-auto flex flex-col my-auto">
             {/* Modal Header */}
-            <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/60">
-              <div className="flex items-center gap-2.5">
+            <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/60 shrink-0">
+              <div className="flex items-center gap-2.5 min-w-0">
                 <div className="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
                   <MessageCircle className="w-5 h-5 fill-emerald-600" />
                 </div>
-                <div>
-                  <h3 className="font-black text-base text-slate-900">
+                <div className="min-w-0">
+                  <h3 className="font-black text-sm sm:text-base text-slate-900 truncate">
                     Send Retaining Message
                   </h3>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-slate-500 truncate">
                     Customer: <strong className="text-slate-800">{activeRetainingCart.user.name}</strong> • ₹{activeRetainingCart.totalCartValue.toLocaleString('en-IN')} Cart Value
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setActiveRetainingCart(null)}
-                className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
+                className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-700 transition-colors cursor-pointer shrink-0 ml-2"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             {/* Modal Body */}
-            <div className="p-5 space-y-4">
+            <div className="p-4 sm:p-5 space-y-4 flex-1">
               {/* Template Selectors */}
               <div>
                 <label className="block text-xs font-black uppercase tracking-wider text-slate-500 mb-2">
@@ -509,7 +509,7 @@ export default function AdminCartsPage() {
                         type="button"
                         key={tmpl.id}
                         onClick={() => handleSelectTemplate(tmpl.id)}
-                        className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                        className={`p-2.5 sm:p-3 rounded-xl border text-left transition-all cursor-pointer ${
                           isSelected
                             ? 'bg-blue-50/80 border-blue-500 ring-2 ring-blue-500/20 shadow-2xs'
                             : 'bg-slate-50/60 border-slate-200 hover:bg-slate-100/80'
@@ -590,20 +590,20 @@ export default function AdminCartsPage() {
             </div>
 
             {/* Modal Footer Actions */}
-            <div className="p-5 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2.5 bg-slate-50/50">
+            <div className="p-4 sm:p-5 border-t border-slate-100 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-2.5 bg-slate-50/50">
               <button
                 type="button"
                 onClick={() => setActiveRetainingCart(null)}
-                className="h-10 px-4 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors"
+                className="w-full sm:w-auto h-10 px-4 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors"
               >
                 Close
               </button>
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
                 {activeRetainingCart.user.email && (
                   <a
                     href={`mailto:${activeRetainingCart.user.email}?subject=${encodeURIComponent('Special Offer on your NeoBlue Aquatic Cart')}&body=${encodeURIComponent(customMessage)}`}
-                    className="inline-flex items-center gap-1.5 h-10 px-4 rounded-xl border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-black transition-colors cursor-pointer"
+                    className="inline-flex items-center justify-center gap-1.5 h-10 px-4 rounded-xl border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-black transition-colors cursor-pointer"
                   >
                     <Mail className="w-3.5 h-3.5" />
                     <span>Send via Email</span>
@@ -619,7 +619,7 @@ export default function AdminCartsPage() {
                       href={waUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 h-10 px-5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black transition-colors shadow-2xs cursor-pointer"
+                      className="inline-flex items-center justify-center gap-1.5 h-10 px-5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black transition-colors shadow-2xs cursor-pointer"
                     >
                       <MessageCircle className="w-4 h-4 fill-white" />
                       <span>Send on WhatsApp</span>
@@ -627,7 +627,7 @@ export default function AdminCartsPage() {
                   ) : (
                     <button
                       disabled
-                      className="inline-flex items-center gap-1.5 h-10 px-4 rounded-xl bg-slate-200 text-slate-400 text-xs font-bold"
+                      className="inline-flex items-center justify-center gap-1.5 h-10 px-4 rounded-xl bg-slate-200 text-slate-400 text-xs font-bold"
                     >
                       No Phone Number
                     </button>

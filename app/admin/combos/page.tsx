@@ -482,10 +482,10 @@ export default function AdminCombosPage() {
 
       {/* ═══ Modal ═══════════════════════════════════════════════════════════ */}
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 backdrop-blur-sm p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl my-8">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] my-auto flex flex-col overflow-hidden">
             {/* Modal header */}
-            <div className="flex items-center justify-between p-6 border-b border-slate-100">
+            <div className="flex items-center justify-between px-5 sm:px-6 py-4 border-b border-slate-100 shrink-0">
               <h2 className="text-lg font-black text-slate-900">
                 {editingComboId ? 'Edit Combo' : 'Create New Combo'}
               </h2>
@@ -494,7 +494,7 @@ export default function AdminCombosPage() {
               </button>
             </div>
 
-            <div className="p-6 space-y-5 overflow-y-auto max-h-[75vh]">
+            <div className="p-4 sm:p-6 space-y-4 sm:space-y-5 overflow-y-auto flex-1">
               {/* Modal Message */}
               {message && (
                 <div
@@ -537,7 +537,7 @@ export default function AdminCombosPage() {
               </div>
 
               {/* Price row */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wider">
                     Combo Price (₹) *
@@ -567,7 +567,7 @@ export default function AdminCombosPage() {
               </div>
 
               {/* Shipping + Tag row */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wider">
                     Shipping Charge (₹)
@@ -797,17 +797,17 @@ export default function AdminCombosPage() {
               </div>
             </div>
             {/* Modal footer */}
-            <div className="flex items-center justify-end gap-3 p-6 border-t border-slate-100">
+            <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5 sm:gap-3 p-4 sm:p-6 border-t border-slate-100 shrink-0">
               <button
                 onClick={closeModal}
-                className="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-colors"
+                className="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-slate-200 text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSave}
                 disabled={isSaving}
-                className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors flex items-center gap-2 disabled:opacity-60"
+                className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors flex items-center justify-center gap-2 disabled:opacity-60"
               >
                 {isSaving ? (
                   <><Loader2 className="h-4 w-4 animate-spin" /> Saving…</>

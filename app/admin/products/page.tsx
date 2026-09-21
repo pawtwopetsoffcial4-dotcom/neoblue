@@ -628,23 +628,23 @@ export default function AdminProductsPage() {
       </div>
 
       {editingProduct && editForm && (
-        <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-slate-950/60 px-4 py-6">
-          <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl bg-white shadow-2xl border border-blue-100">
-            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-blue-100 bg-white px-6 py-4">
+        <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-slate-950/60 p-3 sm:p-4 md:p-6 overflow-y-auto">
+          <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl sm:rounded-3xl bg-white shadow-2xl border border-blue-100 my-auto">
+            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-blue-100 bg-white px-4 sm:px-6 py-3.5 sm:py-4">
               <div>
                 <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue-600 mb-1">Edit Product</p>
-                <h2 className="text-2xl font-black tracking-tight">{editingProduct.title}</h2>
+                <h2 className="text-xl sm:text-2xl font-black tracking-tight">{editingProduct.title}</h2>
               </div>
               <button
                 type="button"
                 onClick={closeEditProduct}
-                className="h-10 w-10 rounded-full border border-slate-200 text-slate-600 hover:bg-slate-100 flex items-center justify-center"
+                className="h-9 w-9 sm:h-10 sm:w-10 rounded-full border border-slate-200 text-slate-600 hover:bg-slate-100 flex items-center justify-center"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
-            <div className="p-6 space-y-6">
+            <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <input
                   className="h-11 px-4 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500"
@@ -1039,11 +1039,11 @@ export default function AdminProductsPage() {
                 )}
               </div>
 
-              <div className="flex flex-wrap justify-end gap-3 pt-2">
+              <div className="flex flex-col-reverse sm:flex-row justify-end gap-2.5 sm:gap-3 pt-2">
                 <button
                   type="button"
                   onClick={closeEditProduct}
-                  className="h-11 px-5 rounded-full border border-slate-200 text-slate-700 font-semibold hover:bg-slate-50"
+                  className="h-11 px-5 rounded-full border border-slate-200 text-slate-700 font-semibold hover:bg-slate-50 w-full sm:w-auto"
                 >
                   Cancel
                 </button>
@@ -1051,7 +1051,7 @@ export default function AdminProductsPage() {
                   type="button"
                   onClick={saveEditedProduct}
                   disabled={isSavingEdit}
-                  className="h-11 px-5 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-700 disabled:opacity-60"
+                  className="h-11 px-5 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-700 disabled:opacity-60 w-full sm:w-auto"
                 >
                   {isSavingEdit ? 'Saving...' : 'Save Changes'}
                 </button>
@@ -1062,14 +1062,14 @@ export default function AdminProductsPage() {
       )}
 
       {quickEditingPrice && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 px-4">
-          <div className="w-full max-w-sm rounded-2xl bg-white shadow-2xl border border-blue-100">
-            <div className="border-b border-blue-100 px-6 py-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-3 sm:p-4 overflow-y-auto">
+          <div className="w-full max-w-sm rounded-2xl bg-white shadow-2xl border border-blue-100 my-auto">
+            <div className="border-b border-blue-100 px-5 sm:px-6 py-4">
               <h2 className="text-xl font-bold text-slate-900">Edit Price</h2>
               <p className="text-sm text-slate-500 mt-1">Update the product price</p>
             </div>
 
-            <div className="p-6 space-y-4">
+            <div className="p-5 sm:p-6 space-y-4">
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Marketplace Selling Price (₹)</label>
                 <input
@@ -1097,11 +1097,11 @@ export default function AdminProductsPage() {
                 <p className="text-[10px] text-slate-400 font-medium mt-1">This is the original price set by the vendor.</p>
               </div>
 
-              <div className="flex gap-3 justify-end pt-2">
+              <div className="flex flex-col-reverse sm:flex-row gap-2.5 sm:gap-3 justify-end pt-2">
                 <button
                   type="button"
                   onClick={closeQuickEditPrice}
-                  className="h-10 px-4 rounded-full border border-slate-200 text-slate-700 font-semibold hover:bg-slate-50"
+                  className="h-10 px-4 rounded-full border border-slate-200 text-slate-700 font-semibold hover:bg-slate-50 w-full sm:w-auto"
                 >
                   Cancel
                 </button>
@@ -1109,7 +1109,7 @@ export default function AdminProductsPage() {
                   type="button"
                   onClick={saveQuickPrice}
                   disabled={isSavingPrice}
-                  className="h-10 px-6 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-700 disabled:opacity-60"
+                  className="h-10 px-6 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-700 disabled:opacity-60 w-full sm:w-auto"
                 >
                   {isSavingPrice ? 'Saving...' : 'Save'}
                 </button>
