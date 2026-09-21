@@ -77,6 +77,10 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
     setIsProfileOpen(false);
   };
 
+  const handleLogoClick = () => {
+    fetch('/api/notifications/test', { method: 'POST' }).catch(() => {});
+  };
+
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
@@ -123,11 +127,11 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
         
         {/* Brand Logo & Name */}
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-          <Link href="/" className="flex items-center gap-1.5 sm:gap-2 group">
+          <Link href="/" onClick={handleLogoClick} className="flex items-center gap-1.5 sm:gap-2 group">
             <div className="p-0.5 rounded-lg bg-white/10 border border-white/10 group-hover:bg-white/15 transition-all">
-              <Image 
-                src="/logo.png" 
-                alt="NEOBLUE Logo" 
+              <Image
+                src="/logo.png"
+                alt="NEOBLUE Logo"
                 width={36} 
                 height={36} 
                 className="h-7 w-auto sm:h-8 sm:w-auto object-contain transition-transform duration-500 group-hover:scale-105"
