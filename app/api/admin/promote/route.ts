@@ -2,13 +2,14 @@ import { NextRequest } from 'next/server';
 import mongoose from 'mongoose';
 import { connectDB } from '@/lib/db';
 import User from '@/lib/models/User';
-import Employee from '@/lib/models/Employee';
+import Employee, { dropLegacyEmployeeIndexes } from '@/lib/models/Employee';
 import { createErrorResponse, createSuccessResponse, getTokenFromRequest, verifyToken } from '@/lib/utils/auth';
 
 // POST promote, demote, or set role (admin | employee | user) by email or userId
 export async function POST(request: NextRequest) {
   try {
     await connectDB();
+    await dropLegacyEmployeeIndexes().catch(() => {});
 
     const token = getTokenFromRequest(request);
     if (!token) {
@@ -47,23 +48,55 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Helper to safely upsert employee
+    const upsertEmployeeSafely = async (targetEmail: string, pass: string) => {
+      try {
+        let emp = await Employee.findOne({ email: targetEmail });
+        if (emp) {
+          emp.isActive = true;
+          emp.username = targetEmail;
+          if (password) emp.password = pass;
+          await emp.save();
+        } else {
+          try {
+            await Employee.create({
+              email: targetEmail,
+              username: targetEmail,
+              password: pass,
+              isActive: true,
+            });
+          } catch (err: any) {
+            if (err?.code === 11000 || String(err?.message || '').includes('E11000')) {
+              await dropLegacyEmployeeIndexes().catch(() => {});
+              await Employee.findOneAndUpdate(
+                { email: targetEmail },
+                {
+                  $set: {
+                    email: targetEmail,
+                    username: targetEmail,
+                    password: pass,
+                    isActive: true,
+                  },
+                },
+                { upsert: true, new: true, setDefaultsOnInsert: true }
+              );
+            } else {
+              throw err;
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('Upsert employee warning:', e);
+      }
+    };
+
     // If user does not exist in User collection, but action is make_employee and email is provided:
     if (!user && (action === 'make_employee' || action === 'promote' || action === 'make_admin') && normalizedEmail) {
-      // Create user account or employee credential
       const empPassword = password || 'Employee@123';
       
-      // Upsert in Employee model
-      let employee = await Employee.findOne({ email: normalizedEmail });
-      if (employee) {
-        employee.isActive = true;
-        if (password) employee.password = password;
-        await employee.save();
-      } else {
-        employee = await Employee.create({
-          email: normalizedEmail,
-          password: empPassword,
-          isActive: true,
-        });
+      // Upsert in Employee model if making employee
+      if (action === 'make_employee') {
+        await upsertEmployeeSafely(normalizedEmail, empPassword);
       }
 
       // Also create matching User account so they can log in anywhere
@@ -102,18 +135,7 @@ export async function POST(request: NextRequest) {
 
       // Sync with Employee model
       const empPassword = password || 'Employee@123';
-      const existingEmp = await Employee.findOne({ email: user.email.toLowerCase() });
-      if (existingEmp) {
-        existingEmp.isActive = true;
-        if (password) existingEmp.password = password;
-        await existingEmp.save();
-      } else {
-        await Employee.create({
-          email: user.email.toLowerCase(),
-          password: empPassword,
-          isActive: true,
-        });
-      }
+      await upsertEmployeeSafely(user.email.toLowerCase(), empPassword);
 
       return createSuccessResponse({
         message: `${user.email} is now an Employee`,

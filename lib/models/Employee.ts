@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 
 export interface IEmployee extends Document {
   email: string;
+  username?: string;
   password: string;
   isActive: boolean;
   createdAt: Date;
@@ -20,6 +21,12 @@ const employeeSchema = new Schema<IEmployee>(
       trim: true,
       match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, 'Please provide a valid email'],
     },
+    username: {
+      type: String,
+      sparse: true,
+      trim: true,
+      lowercase: true,
+    },
     password: {
       type: String,
       required: [true, 'Please provide a password'],
@@ -34,7 +41,30 @@ const employeeSchema = new Schema<IEmployee>(
   { timestamps: true }
 );
 
+// Drop any legacy non-sparse username index from MongoDB if present
+export async function dropLegacyEmployeeIndexes() {
+  try {
+    if (mongoose.connection && mongoose.connection.readyState === 1) {
+      const collection = mongoose.connection.collection('employees');
+      const indexes = await collection.indexes();
+      for (const idx of indexes) {
+        const indexName = idx.name || (idx.key && 'username' in idx.key ? 'username_1' : '');
+        if (indexName && (indexName === 'username_1' || (idx.key && 'username' in idx.key))) {
+          console.log(`[Employee Model] Dropping legacy index: ${indexName}`);
+          await collection.dropIndex(indexName).catch(() => {});
+        }
+      }
+    }
+  } catch {
+    // Suppress if collection doesn't exist yet
+  }
+}
+
 employeeSchema.pre('save', async function (next) {
+  if (!this.username && this.email) {
+    this.username = this.email.toLowerCase();
+  }
+
   if (!this.isModified('password')) {
     return next();
   }
@@ -53,3 +83,4 @@ employeeSchema.methods.comparePassword = async function (password: string) {
 };
 
 export default mongoose.models.Employee || mongoose.model<IEmployee>('Employee', employeeSchema);
+

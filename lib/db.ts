@@ -8,6 +8,7 @@ import './models/BlogTag';
 import './models/BlogComment';
 import './models/BlogAnalytics';
 import './models/Review';
+import { dropLegacyEmployeeIndexes } from './models/Employee';
 
 const MONGODB_URI = process.env.MONGODB_URI;
 const MONGODB_URI_DIRECT = process.env.MONGODB_URI_DIRECT;
@@ -96,6 +97,10 @@ export async function connectDB() {
   try {
     cached.conn = await cached.promise;
     connectivityState.nextRetryAt = 0;
+    if (!global.employeeIndexesCleaned) {
+      global.employeeIndexesCleaned = true;
+      dropLegacyEmployeeIndexes().catch(() => {});
+    }
   } catch (e) {
     cached.promise = null;
 
@@ -117,4 +122,6 @@ declare global {
   var mongoConnectivityState: {
     nextRetryAt: number;
   };
+  var employeeIndexesCleaned: boolean | undefined;
 }
+
