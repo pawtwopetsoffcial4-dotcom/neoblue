@@ -31,7 +31,7 @@ export default function ContactPage() {
       "@type": "LocalBusiness",
       "name": "NeoBlue",
       "image": "https://neoblue.in/logo.png",
-      "telephone": "+91-9876543210",
+      "telephone": "+91-9535872394",
       "email": "support@neoblue.in",
       "url": "https://neoblue.in",
       "priceRange": "₹₹",
@@ -80,19 +80,28 @@ export default function ContactPage() {
               <div className="h-11 w-11 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-4">
                 <MessageSquare className="h-5 w-5" />
               </div>
-              <h2 className="text-base font-bold text-slate-900">WhatsApp Live Support</h2>
+              <h2 className="text-base font-bold text-slate-900">WhatsApp &amp; Phone Support</h2>
               <p className="text-xs text-slate-500 mt-1 leading-relaxed font-medium">
-                Instant assistance for species compatibility, water parameters & transit tracking.
+                Instant assistance for species compatibility, water parameters &amp; transit tracking.
               </p>
-              <a
-                href="https://wa.me/919876543210?text=Hi%20NeoBlue%20Team%2C%20I%20have%20an%20inquiry"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-4 inline-flex items-center gap-2 text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors"
-              >
-                <span>Chat on WhatsApp</span>
-                <ArrowRight className="h-3.5 w-3.5" />
-              </a>
+              <div className="mt-4 flex flex-col gap-2.5">
+                <a
+                  href="https://wa.me/919535872394?text=Hi%20NeoBlue%20Team%2C%20I%20have%20an%20inquiry"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors"
+                >
+                  <span>Chat on WhatsApp (+91 95358 72394)</span>
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </a>
+                <a
+                  href="tel:+919535872394"
+                  className="inline-flex items-center gap-2 text-xs font-bold text-blue-600 hover:text-blue-700 transition-colors"
+                >
+                  <Phone className="h-3.5 w-3.5" />
+                  <span>Call: +91 95358 72394</span>
+                </a>
+              </div>
             </div>
 
             {/* Email Support */}

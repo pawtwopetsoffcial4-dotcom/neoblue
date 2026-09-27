@@ -8,23 +8,21 @@ export const dynamic = 'force-dynamic';
 // Single source of truth for the product fields formatCartItem() below reads.
 // Add a field here whenever formatCartItem() starts reading a new prod.<field> — otherwise it silently comes back undefined.
 const CART_PRODUCT_FIELDS =
-  'title price images category waterType scientific perPairPrice weightPerPiece originalPrice discountPercentage inStock';
+  'title price images category waterType scientific perPairPrice weightPerPiece originalPrice discountPercentage inStock vendorId';
 
 function formatCartItem(item: any) {
   const prod = item.productId;
   if (!prod || prod.inStock === false) return null;
-  const packQty = item.packQty || (item.unitLabel?.startsWith('Pack of ') ? parseInt(item.unitLabel.replace('Pack of ', ''), 10) : 1);
+  const packQty = Number(item.packQty) || (item.unitLabel?.startsWith('Pack of ') ? parseInt(item.unitLabel.replace('Pack of ', ''), 10) : 1);
   const isPair = item.unitLabel === 'pair' || prod.perPairPrice != null;
   const unitLabel = item.unitLabel || (packQty > 1 ? `Pack of ${packQty}` : (isPair ? 'pair' : 'piece'));
   
-  let itemPrice = Number(item.price) || 0;
-  if (!itemPrice || itemPrice <= 0) {
-    if (packQty > 1) {
-      const discount = packQty === 6 ? 0.10 : packQty === 3 ? 0.05 : 0;
-      itemPrice = Math.round(prod.price * packQty * (1 - discount));
-    } else {
-      itemPrice = prod.price;
-    }
+  // Calculate price dynamically from live product in DB
+  const basePrice = Number(prod.price) || 0;
+  let itemPrice = basePrice;
+  if (packQty > 1) {
+    const discount = packQty === 6 ? 0.10 : packQty === 3 ? 0.05 : 0;
+    itemPrice = Math.round(basePrice * packQty * (1 - discount));
   }
 
   const baseWeight = prod.weightPerPiece && prod.weightPerPiece > 0
@@ -32,6 +30,10 @@ function formatCartItem(item: any) {
     : (prod.category === 'Plants' ? 80 : 100);
   const weightPerPiece = baseWeight * packQty;
   const itemKey = packQty > 1 ? `${prod._id.toString()}_pack_${packQty}` : prod._id.toString();
+
+  const vendorId = typeof prod.vendorId === 'object' && prod.vendorId !== null
+    ? prod.vendorId._id?.toString() || prod.vendorId.toString()
+    : prod.vendorId?.toString();
 
   return {
     productId: itemKey,
@@ -46,8 +48,9 @@ function formatCartItem(item: any) {
     category: prod.category,
     waterType: prod.waterType,
     scientific: prod.scientific,
-    originalPrice: prod.originalPrice ? prod.originalPrice * packQty : prod.price * packQty,
-    discountPercentage: packQty === 6 ? 10 : packQty === 3 ? 5 : prod.discountPercentage,
+    originalPrice: prod.originalPrice ? prod.originalPrice * packQty : basePrice * packQty,
+    discountPercentage: packQty === 6 ? 10 : packQty === 3 ? 5 : (prod.discountPercentage || 0),
+    vendorId,
   };
 }
 

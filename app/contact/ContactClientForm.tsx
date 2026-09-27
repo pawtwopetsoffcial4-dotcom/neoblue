@@ -66,7 +66,7 @@ export default function ContactClientForm() {
           </label>
           <input
             type="tel"
-            placeholder="+91 98765 43210"
+            placeholder="+91 95358 72394"
             className="w-full h-11 px-4 rounded-xl border border-slate-200 text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 bg-slate-50/50"
           />
         </div>

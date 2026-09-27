@@ -41,14 +41,11 @@ export async function GET(request: NextRequest) {
             const packQty = Number(item.packQty) || (item.unitLabel?.startsWith('Pack of ') ? parseInt(item.unitLabel.replace('Pack of ', ''), 10) : 1);
             const unitLabel = item.unitLabel || (packQty > 1 ? `Pack of ${packQty}` : (prod.perPairPrice != null ? 'pair' : 'piece'));
             
-            let itemPrice = Number(item.price) || 0;
-            if (!itemPrice || itemPrice <= 0) {
-              if (packQty > 1) {
-                const discount = packQty === 6 ? 0.10 : packQty === 3 ? 0.05 : 0;
-                itemPrice = Math.round(prod.price * packQty * (1 - discount));
-              } else {
-                itemPrice = prod.price;
-              }
+            const basePrice = Number(prod.price) || 0;
+            let itemPrice = basePrice;
+            if (packQty > 1) {
+              const discount = packQty === 6 ? 0.10 : packQty === 3 ? 0.05 : 0;
+              itemPrice = Math.round(basePrice * packQty * (1 - discount));
             }
 
             return {

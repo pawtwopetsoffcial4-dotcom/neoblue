@@ -113,6 +113,11 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
     return name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
   };
 
+  // Hide consumer store header on admin, vendor and employee management workstations
+  if (pathname.startsWith('/admin') || pathname.startsWith('/vendor') || pathname.startsWith('/employee')) {
+    return null;
+  }
+
   // Outer header theme matches user requested colors: blue for neoblue, green for plants
   const headerBgClass = isFishes ? 'bg-blue-600 border-blue-500' : 'bg-green-700 border-green-600';
   const headerTextMuted = isFishes ? 'text-blue-100' : 'text-green-100';

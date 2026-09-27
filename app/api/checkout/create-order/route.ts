@@ -94,12 +94,11 @@ export async function POST(request: NextRequest) {
       const packQty = Number(item.packQty) || (item.unitLabel?.startsWith('Pack of ') ? parseInt(item.unitLabel.replace('Pack of ', ''), 10) : 1);
       const unitLabel = item.unitLabel || (packQty > 1 ? `Pack of ${packQty}` : (product.perPairPrice != null ? 'pair' : 'piece'));
 
-      let itemPrice = Number(product.price);
-      if (item.price != null && Number(item.price) > 0) {
-        itemPrice = Number(item.price);
-      } else if (packQty > 1) {
+      const basePrice = Number(product.price) || 0;
+      let itemPrice = basePrice;
+      if (packQty > 1) {
         const discount = packQty === 6 ? 0.10 : packQty === 3 ? 0.05 : 0;
-        itemPrice = Math.round(product.price * packQty * (1 - discount));
+        itemPrice = Math.round(basePrice * packQty * (1 - discount));
       }
 
       const itemSubtotal = itemPrice * Number(item.quantity || 0);

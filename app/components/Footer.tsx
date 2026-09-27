@@ -4,11 +4,17 @@ import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useMode } from '@/lib/hooks/useMode';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 
 export default function Footer() {
   const { mode, setMode } = useMode();
   const router = useRouter();
+  const pathname = usePathname();
+
+  // Hide consumer footer on admin, vendor and employee management portals
+  if (pathname.startsWith('/admin') || pathname.startsWith('/vendor') || pathname.startsWith('/employee')) {
+    return null;
+  }
 
   const isPlants = mode === 'plants';
   const accentColorClass = isPlants ? 'text-green-200/70' : 'text-blue-200/70';
@@ -114,7 +120,7 @@ export default function Footer() {
                 </svg>
               </a>
               {/* WhatsApp */}
-              <a href="https://wa.me/919876543210" target="_blank" rel="noopener noreferrer" className="w-7 h-7 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full flex items-center justify-center text-white transition-colors" aria-label="WhatsApp">
+              <a href="https://wa.me/919535872394" target="_blank" rel="noopener noreferrer" className="w-7 h-7 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full flex items-center justify-center text-white transition-colors" aria-label="WhatsApp">
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                   <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" />
                 </svg>
@@ -154,6 +160,7 @@ export default function Footer() {
                 <li><Link href="/about" className="hover:text-white transition-colors">About Us</Link></li>
                 <li><Link href="/blog" className="hover:text-white transition-colors">Aquatic Blog</Link></li>
                 <li><Link href="/contact" className="hover:text-white transition-colors">Contact Support</Link></li>
+                <li><a href="tel:+919535872394" className="hover:text-white transition-colors">+91 95358 72394</a></li>
                 <li><a href="mailto:support@neoblue.in" className="hover:text-white transition-colors">support@neoblue.in</a></li>
               </ul>
             </div>

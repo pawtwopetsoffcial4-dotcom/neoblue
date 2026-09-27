@@ -12,6 +12,11 @@ export default function MobileDock() {
   const { mode } = useMode();
   const { openCart, cartCount } = useCart();
 
+  // Hide mobile dock on admin, vendor and employee management portals
+  if (pathname.startsWith('/admin') || pathname.startsWith('/vendor') || pathname.startsWith('/employee')) {
+    return null;
+  }
+
   const isPlants = mode === 'plants';
   const activeBg = isPlants ? 'bg-green-50' : 'bg-blue-50';
   const activeText = isPlants ? 'text-green-700' : 'text-blue-600';

@@ -119,6 +119,7 @@ type CartContextType = {
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
   loadSharedCart: (sharedItems: CartItem[], action: 'merge' | 'replace') => void;
+  refreshCartPrices: () => Promise<void>;
   cartCount: number;
   totalAmount: number;
   isCartOpen: boolean;
@@ -146,7 +147,64 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     packOptions?: PackOptions;
   } | null>(null);
 
-  const openCart = () => setIsCartOpen(true);
+  const refreshCartPrices = async () => {
+    if (user) {
+      try {
+        const token = localStorage.getItem('authToken') || '';
+        if (!token) return;
+        const response = await fetch('/api/cart', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          if (Array.isArray(data.items)) {
+            const sanitized = sanitizeCartItems(data.items);
+            setItems(sanitized);
+            localStorage.setItem(`neoblue-cart-${user.id}`, JSON.stringify(sanitized));
+          }
+        }
+      } catch (err) {
+        console.error('Failed to refresh user cart:', err);
+      }
+    } else {
+      const rawGuestCart = localStorage.getItem('neoblue-cart-guest');
+      let currentGuest: CartItem[] = [];
+      if (rawGuestCart) {
+        try {
+          currentGuest = JSON.parse(rawGuestCart);
+        } catch {}
+      }
+      const targetItems = currentGuest.length > 0 ? currentGuest : items;
+      if (!targetItems || targetItems.length === 0) return;
+
+      try {
+        const response = await fetch('/api/cart/refresh', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ items: targetItems }),
+        });
+        if (response.ok) {
+          const data = await response.json();
+          if (Array.isArray(data.items)) {
+            const sanitized = sanitizeCartItems(data.items);
+            setItems(sanitized);
+            localStorage.setItem('neoblue-cart-guest', JSON.stringify(sanitized));
+          }
+        }
+      } catch (err) {
+        console.error('Failed to refresh guest cart:', err);
+      }
+    }
+  };
+
+  const openCart = () => {
+    setIsCartOpen(true);
+    refreshCartPrices().catch(() => {});
+  };
   const closeCart = () => setIsCartOpen(false);
   const toggleCart = () => setIsCartOpen((prev) => !prev);
 
@@ -248,7 +306,29 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           setItems(sanitizeCartItems(merged));
         }
       } else {
-        setItems(sanitizeCartItems(guestItems));
+        const sanitized = sanitizeCartItems(guestItems);
+        if (sanitized.length > 0) {
+          try {
+            const res = await fetch('/api/cart/refresh', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ items: sanitized }),
+            });
+            if (res.ok) {
+              const data = await res.json();
+              if (Array.isArray(data.items)) {
+                const refreshed = sanitizeCartItems(data.items);
+                setItems(refreshed);
+                localStorage.setItem('neoblue-cart-guest', JSON.stringify(refreshed));
+                setIsLoaded(true);
+                return;
+              }
+            }
+          } catch (e) {
+            console.error('Failed to refresh guest cart on load:', e);
+          }
+        }
+        setItems(sanitized);
       }
       setIsLoaded(true);
     };
@@ -502,6 +582,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         updateQuantity,
         clearCart,
         loadSharedCart,
+        refreshCartPrices,
         cartCount,
         totalAmount,
         isCartOpen,
