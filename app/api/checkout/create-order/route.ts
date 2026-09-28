@@ -40,7 +40,7 @@ const getAppUrl = (request: NextRequest) => {
     return `https://${process.env.VERCEL_URL}`;
   }
 
-  return 'https://neoblue.in';
+  return 'https://www.neoblue.in';
 };
 
 export async function POST(request: NextRequest) {

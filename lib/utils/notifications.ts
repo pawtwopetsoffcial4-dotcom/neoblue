@@ -7,7 +7,7 @@ async function sendPushNotification(userId: string, title: string, message: stri
   if (!appId || !restApiKey) return;
 
   try {
-    const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://neoblue.in';
+    const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.neoblue.in';
 
     const payload: Record<string, unknown> = {
       app_id: appId,

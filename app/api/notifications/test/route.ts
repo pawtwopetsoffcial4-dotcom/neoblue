@@ -21,7 +21,7 @@ export async function POST() {
         target_channel: 'push',
         headings: { en: 'NeoBlue Test Notification' },
         contents: { en: 'This is a test push notification from clicking the logo — it works!' },
-        url: process.env.NEXT_PUBLIC_APP_URL || 'https://neoblue.in',
+        url: process.env.NEXT_PUBLIC_APP_URL || 'https://www.neoblue.in',
       }),
     });
 
