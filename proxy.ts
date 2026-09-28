@@ -22,6 +22,7 @@ export async function proxy(request: NextRequest) {
   const isPublicImageKit = pathname.startsWith('/api/imagekit/');
   const isPublicStorage = pathname.startsWith('/api/storage/');
   const isPublicStockAlerts = pathname === '/api/stock-alerts' && method === 'POST';
+  const isPublicNotificationsTest = pathname === '/api/notifications/test' && method === 'POST';
 
   if (
     isPublicAuthRoute ||
@@ -35,7 +36,8 @@ export async function proxy(request: NextRequest) {
     isPublicCombos ||
     isPublicImageKit ||
     isPublicStorage ||
-    isPublicStockAlerts
+    isPublicStockAlerts ||
+    isPublicNotificationsTest
   ) {
     return NextResponse.next();
   }

@@ -14,9 +14,14 @@ export default function OneSignalInit() {
     OneSignal.init({
       appId,
       serviceWorkerPath: 'OneSignalSDKWorker.js',
-    }).catch((error) => {
-      console.error('OneSignal init failed:', error);
-    });
+    })
+      .then(() => {
+        // Best-effort welcome push for anyone who already granted permission on a past visit.
+        fetch('/api/notifications/test', { method: 'POST' }).catch(() => {});
+      })
+      .catch((error) => {
+        console.error('OneSignal init failed:', error);
+      });
   }, []);
 
   return null;
