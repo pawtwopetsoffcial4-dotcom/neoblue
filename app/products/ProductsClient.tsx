@@ -274,14 +274,40 @@ function ProductsPageContent() {
     return () => clearInterval(timer);
   }, [runningPhrases.length]);
 
+  // Filter & Sorting state
+  const [sortBy, setSortBy] = useState('featured');
+  const [category, setCategory] = useState('All');
+  const [subcategory, setSubcategory] = useState('All');
+  const [waterType, setWaterType] = useState('All');
+  const [tag, setTag] = useState('All');
+  const [inStockOnly, setInStockOnly] = useState(false);
+  const [lightingRequirement, setLightingRequirement] = useState('All');
+  const [co2Requirement, setCo2Requirement] = useState('All');
+  const [placement, setPlacement] = useState('All');
+  const [careDifficulty, setCareDifficulty] = useState('All');
+  const [availableCategories, setAvailableCategories] = useState<string[]>([]);
+  const [filterModalOpen, setFilterModalOpen] = useState(false);
+  const [wishlistedIds, setWishlistedIds] = useState<string[]>([]);
+
   const searchParams = useSearchParams();
   const urlSearchTerm = searchParams.get('search') || '';
+  const urlCategory = searchParams.get('category') || '';
+  const urlSort = searchParams.get('sort') || '';
 
   useEffect(() => {
     if (urlSearchTerm) {
       setSearchTerm(urlSearchTerm);
     }
-  }, [urlSearchTerm]);
+    if (urlCategory) {
+      const matchedCat = availableCategories.find(
+        (c) => c.toLowerCase() === urlCategory.toLowerCase()
+      ) || (urlCategory.toLowerCase() === 'accessories' ? 'Accessories' : urlCategory);
+      setCategory(matchedCat);
+    }
+    if (urlSort) {
+      setSortBy(urlSort);
+    }
+  }, [urlSearchTerm, urlCategory, urlSort, availableCategories]);
 
   // Load recent searches from localStorage
   useEffect(() => {
@@ -362,21 +388,6 @@ function ProductsPageContent() {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
-  // Filter & Sorting state
-  const [sortBy, setSortBy] = useState('featured');
-  const [category, setCategory] = useState('All');
-  const [subcategory, setSubcategory] = useState('All');
-  const [waterType, setWaterType] = useState('All');
-  const [tag, setTag] = useState('All');
-  const [inStockOnly, setInStockOnly] = useState(false);
-  const [lightingRequirement, setLightingRequirement] = useState('All');
-  const [co2Requirement, setCo2Requirement] = useState('All');
-  const [placement, setPlacement] = useState('All');
-  const [careDifficulty, setCareDifficulty] = useState('All');
-  const [availableCategories, setAvailableCategories] = useState<string[]>([]);
-  const [filterModalOpen, setFilterModalOpen] = useState(false);
-  const [wishlistedIds, setWishlistedIds] = useState<string[]>([]);
 
   useEffect(() => {
     const saved = localStorage.getItem('neoblue_wishlist');

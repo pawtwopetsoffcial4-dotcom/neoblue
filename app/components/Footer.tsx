@@ -88,7 +88,7 @@ export default function Footer() {
             {/* Social Media Links */}
             <div className="flex flex-wrap gap-2.5 mt-2">
               {/* Instagram */}
-              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="w-7 h-7 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full flex items-center justify-center text-white transition-colors" aria-label="Instagram">
+              <a href="https://www.instagram.com/neoblue.in/" target="_blank" rel="noopener noreferrer" className="w-7 h-7 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full flex items-center justify-center text-white transition-colors" aria-label="Instagram">
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                   <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
                   <path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37zM17.5 6.5h.01" />
