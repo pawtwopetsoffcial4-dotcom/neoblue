@@ -9,5 +9,7 @@
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS"
-  }
+  },
+  // Cloudflare deployment trigger
+  "vars": {}
 }
