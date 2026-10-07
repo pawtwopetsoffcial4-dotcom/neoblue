@@ -10,6 +10,11 @@
     "directory": ".open-next/assets",
     "binding": "ASSETS"
   },
-  // Cloudflare deployment trigger
+  "observability": {
+    "logs": {
+      "enabled": true,
+      "invocation_logs": true
+    }
+  },
   "vars": {}
 }
