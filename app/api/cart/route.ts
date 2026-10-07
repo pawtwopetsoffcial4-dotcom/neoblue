@@ -58,7 +58,16 @@ export async function GET(request: NextRequest) {
   try {
     await connectDB();
 
-    const userId = request.headers.get('x-user-id');
+    let userId = request.headers.get('x-user-id');
+    if (!userId) {
+      const token = getTokenFromRequest(request);
+      if (token) {
+        const payload = verifyToken(token);
+        if (payload?.userId) {
+          userId = payload.userId;
+        }
+      }
+    }
     if (!userId) {
       return createErrorResponse('Unauthorized', 401);
     }
@@ -84,7 +93,16 @@ export async function POST(request: NextRequest) {
   try {
     await connectDB();
 
-    const userId = request.headers.get('x-user-id');
+    let userId = request.headers.get('x-user-id');
+    if (!userId) {
+      const token = getTokenFromRequest(request);
+      if (token) {
+        const payload = verifyToken(token);
+        if (payload?.userId) {
+          userId = payload.userId;
+        }
+      }
+    }
     if (!userId) {
       return createErrorResponse('Unauthorized', 401);
     }
