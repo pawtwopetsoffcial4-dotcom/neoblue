@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useMode } from '@/lib/hooks/useMode';
@@ -10,11 +10,45 @@ export default function Footer() {
   const { mode, setMode } = useMode();
   const router = useRouter();
   const pathname = usePathname();
+  const [newsletterEmail, setNewsletterEmail] = useState('');
+  const [isSubscribing, setIsSubscribing] = useState(false);
+  const [subscribeMessage, setSubscribeMessage] = useState<{ text: string; isError: boolean } | null>(null);
 
   // Hide consumer footer on admin, vendor and employee management portals
   if (pathname.startsWith('/admin') || pathname.startsWith('/vendor') || pathname.startsWith('/employee')) {
     return null;
   }
+
+  const handleNewsletterSubscribe = async () => {
+    const trimmed = newsletterEmail.trim();
+    if (!trimmed || isSubscribing) return;
+
+    try {
+      setIsSubscribing(true);
+      setSubscribeMessage(null);
+      const res = await fetch('/api/newsletter/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: trimmed }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to subscribe');
+      }
+
+      setSubscribeMessage({ text: 'Subscribed! Check your inbox.', isError: false });
+      setNewsletterEmail('');
+    } catch (error) {
+      setSubscribeMessage({
+        text: error instanceof Error ? error.message : 'Failed to subscribe',
+        isError: true,
+      });
+    } finally {
+      setIsSubscribing(false);
+    }
+  };
+
 
   const isPlants = mode === 'plants';
   const accentColorClass = isPlants ? 'text-green-200/70' : 'text-blue-200/70';
@@ -46,19 +80,31 @@ export default function Footer() {
             </p>
             
             <div className="flex gap-2 mt-4">
-              <input 
-                type="email" 
-                placeholder="Enter your email..." 
-                className="flex-1 min-w-0 h-9 px-4 rounded-xl bg-white text-slate-900 text-xs focus:outline-none placeholder-slate-400 font-semibold"
+              <input
+                type="email"
+                placeholder="Enter your email..."
+                value={newsletterEmail}
+                onChange={(e) => setNewsletterEmail(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleNewsletterSubscribe()}
+                disabled={isSubscribing}
+                className="flex-1 min-w-0 h-9 px-4 rounded-xl bg-white text-slate-900 text-xs focus:outline-none placeholder-slate-400 font-semibold disabled:opacity-70"
               />
-              <button className={`h-9 px-4.5 text-white font-extrabold text-[10px] uppercase tracking-wider rounded-xl shadow-md transition-all duration-300 shrink-0 ${
-                isPlants 
-                  ? 'bg-green-700 hover:bg-green-600 shadow-green-950/20' 
+              <button
+                onClick={handleNewsletterSubscribe}
+                disabled={isSubscribing}
+                className={`h-9 px-4.5 text-white font-extrabold text-[10px] uppercase tracking-wider rounded-xl shadow-md transition-all duration-300 shrink-0 disabled:opacity-60 ${
+                isPlants
+                  ? 'bg-green-700 hover:bg-green-600 shadow-green-950/20'
                   : 'bg-[#005AE0] hover:bg-blue-600 shadow-blue-950/20'
               }`}>
-                Subscribe
+                {isSubscribing ? 'Subscribing...' : 'Subscribe'}
               </button>
             </div>
+            {subscribeMessage && (
+              <p className={`text-[9.5px] mt-2 font-bold ${subscribeMessage.isError ? 'text-rose-300' : 'text-emerald-300'}`}>
+                {subscribeMessage.text}
+              </p>
+            )}
           </div>
 
           <hr className="border-white/10 my-6" />
