@@ -26,10 +26,23 @@ export async function POST(request: NextRequest) {
     const loginTask = async () => {
       await connectDB();
 
-      // Find user and include password field with a max query execution time
-      let user = await User.findOne({ email: normalizedEmail })
-        .select('+password')
-        .maxTimeMS(4000);
+      // Find user with single-retry guard against frozen/stale sockets
+      let user: any = null;
+      try {
+        user = await User.findOne({ email: normalizedEmail })
+          .select('+password')
+          .maxTimeMS(4000);
+      } catch (queryErr: any) {
+        if (isDatabaseConnectivityError(queryErr) || String(queryErr?.message || '').includes('topology') || String(queryErr?.message || '').includes('closed')) {
+          console.warn('[loginTask] Stale socket detected, reconnecting and retrying query...');
+          await connectDB();
+          user = await User.findOne({ email: normalizedEmail })
+            .select('+password')
+            .maxTimeMS(4000);
+        } else {
+          throw queryErr;
+        }
+      }
 
       if (!user) {
         // Fallback: Check Employee model

@@ -98,7 +98,35 @@ async function doConnect(uri: string, opts: mongoose.ConnectOptions, timeoutMs =
 
 export async function connectDB() {
   if (cached.conn && mongoose.connection.readyState === 1) {
-    return cached.conn;
+    // In Cloudflare Worker isolates, TCP sockets can be silently suspended/closed between invocations.
+    // Verify connection is actively responsive before returning cached connection.
+    let isAlive = false;
+    try {
+      let pingTimer: any;
+      const pingPromise = Promise.race([
+        mongoose.connection.db?.command({ ping: 1 }),
+        new Promise<never>((_, reject) => {
+          pingTimer = setTimeout(() => reject(new Error('PING_TIMEOUT')), 1200);
+        }),
+      ]).finally(() => {
+        if (pingTimer) clearTimeout(pingTimer);
+      });
+      await pingPromise;
+      isAlive = true;
+    } catch {
+      isAlive = false;
+    }
+
+    if (isAlive) {
+      return cached.conn;
+    }
+
+    // Cached socket was dead or frozen; clean up and reconnect cleanly
+    try {
+      await mongoose.connection.close(false);
+    } catch {}
+    cached.conn = null;
+    cached.promise = null;
   }
 
   if (cached.conn && mongoose.connection.readyState !== 1) {
@@ -111,21 +139,21 @@ export async function connectDB() {
 
     const opts: mongoose.ConnectOptions = {
       bufferCommands: false,
-      serverSelectionTimeoutMS: 12000,
-      connectTimeoutMS: 12000,
-      socketTimeoutMS: 20000,
+      serverSelectionTimeoutMS: 8000,
+      connectTimeoutMS: 8000,
+      socketTimeoutMS: 8000,
       maxPoolSize: 1,
       minPoolSize: 0,
-      maxIdleTimeMS: 10000,
+      maxIdleTimeMS: 8000,
     };
 
     cached.promise = (async () => {
       try {
-        return await doConnect(primary, opts, 14000);
+        return await doConnect(primary, opts, 10000);
       } catch (primaryError: any) {
         if (fallback && fallback !== primary) {
           console.warn('Primary MongoDB URI failed, attempting fallback URI...', primaryError.message);
-          return await doConnect(fallback, opts, 8000);
+          return await doConnect(fallback, opts, 6000);
         }
         throw primaryError;
       }
