@@ -25,6 +25,9 @@ export const isDatabaseConnectivityError = (error: any) =>
   error?.code === 'ECONNREFUSED' ||
   String(error?.message || '').includes('querySrv') ||
   String(error?.message || '').includes('timed out') ||
+  String(error?.message || '').includes('connection pool') ||
+  String(error?.message || '').includes('topology') ||
+  String(error?.message || '').includes('closed') ||
   String(error?.message || '').includes('MongoDB SRV lookup failed');
 
 function getEnv(key: string): string | undefined {
@@ -106,14 +109,19 @@ export async function disconnectDB() {
   } catch {}
 }
 
-export async function connectDB() {
-  if (cached.conn && mongoose.connection.readyState === 1) {
+export async function connectDB(forceFresh = false) {
+  if (!forceFresh && cached.conn && mongoose.connection.readyState === 1 && mongoose.connection.db) {
     return cached.conn;
   }
 
-  if (cached.conn && mongoose.connection.readyState !== 1) {
+  if (forceFresh || (cached.conn && mongoose.connection.readyState !== 1)) {
     cached.conn = null;
     cached.promise = null;
+    try {
+      if (mongoose.connection.readyState !== 0) {
+        await mongoose.disconnect();
+      }
+    } catch {}
   }
 
   if (!cached.promise) {
@@ -121,18 +129,18 @@ export async function connectDB() {
 
     const opts: mongoose.ConnectOptions = {
       bufferCommands: false,
-      serverSelectionTimeoutMS: 8000,
-      connectTimeoutMS: 8000,
-      socketTimeoutMS: 8000,
-      waitQueueTimeoutMS: 3000,
+      serverSelectionTimeoutMS: 6000,
+      connectTimeoutMS: 6000,
+      socketTimeoutMS: 6000,
+      waitQueueTimeoutMS: 2000,
       maxPoolSize: 10,
       minPoolSize: 0,
-      maxIdleTimeMS: 10000,
+      maxIdleTimeMS: 8000,
     };
 
     cached.promise = (async () => {
       try {
-        return await doConnect(primary, opts, 10000);
+        return await doConnect(primary, opts, 8000);
       } catch (primaryError: any) {
         if (fallback && fallback !== primary) {
           console.warn('Primary MongoDB URI failed, attempting fallback URI...', primaryError.message);

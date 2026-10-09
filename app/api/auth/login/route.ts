@@ -25,19 +25,42 @@ export async function POST(request: NextRequest) {
 
     const loginTask = async () => {
       await connectDB();
-      const db = mongoose.connection.db;
+      let db = mongoose.connection.db;
       if (!db) {
         throw new Error('Database connection is not ready');
       }
 
-      // Query native collection directly (avoids Mongoose model buffering in edge runtime)
-      const usersCol = db.collection('users');
-      let user = await usersCol.findOne({ email: normalizedEmail });
+      // Query native collection directly with automatic retry on stale connection pool
+      let user: any = null;
+      try {
+        user = await db.collection('users').findOne({ email: normalizedEmail });
+      } catch (err: any) {
+        if (isDatabaseConnectivityError(err)) {
+          console.warn('[loginTask] Stale connection pool, forcing fresh reconnect...', err.message);
+          await connectDB(true);
+          db = mongoose.connection.db;
+          if (!db) throw err;
+          user = await db.collection('users').findOne({ email: normalizedEmail });
+        } else {
+          throw err;
+        }
+      }
 
       if (!user) {
         // Fallback: Check Employee collection
-        const employeesCol = db.collection('employees');
-        const employee = await employeesCol.findOne({ email: normalizedEmail });
+        let employee: any = null;
+        try {
+          employee = await db.collection('employees').findOne({ email: normalizedEmail });
+        } catch (err: any) {
+          if (isDatabaseConnectivityError(err)) {
+            await connectDB(true);
+            db = mongoose.connection.db;
+            if (!db) throw err;
+            employee = await db.collection('employees').findOne({ email: normalizedEmail });
+          } else {
+            throw err;
+          }
+        }
 
         if (employee) {
           const isEmployeePasswordValid = await verifyPassword(password, employee.password, employee.email);
@@ -45,7 +68,7 @@ export async function POST(request: NextRequest) {
             if (employee.password && !employee.password.startsWith('sha256:')) {
               try {
                 const modernHash = await hashPassword(password);
-                await employeesCol.updateOne({ _id: employee._id }, { $set: { password: modernHash } });
+                await db.collection('employees').updateOne({ _id: employee._id }, { $set: { password: modernHash } });
               } catch {}
             }
 
@@ -83,7 +106,7 @@ export async function POST(request: NextRequest) {
       if (user.password && !user.password.startsWith('sha256:')) {
         try {
           const modernHash = await hashPassword(password);
-          await usersCol.updateOne({ _id: user._id }, { $set: { password: modernHash } });
+          await db.collection('users').updateOne({ _id: user._id }, { $set: { password: modernHash } });
         } catch {}
       }
 
