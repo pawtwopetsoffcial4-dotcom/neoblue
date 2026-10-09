@@ -36,7 +36,5 @@ export async function GET() {
       },
       { status: 503 }
     );
-  } finally {
-    await disconnectDB();
   }
 }

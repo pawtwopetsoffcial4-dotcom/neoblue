@@ -1,7 +1,7 @@
-import { connectDB, disconnectDB, isDatabaseConnectivityError } from '@/lib/db';
-import User from '@/lib/models/User';
+import { connectDB, isDatabaseConnectivityError } from '@/lib/db';
+import mongoose from 'mongoose';
 import { generateToken, createErrorResponse, createSuccessResponse } from '@/lib/utils/auth';
-import { hashPassword } from '@/lib/utils/password';
+import { hashPassword, verifyPassword } from '@/lib/utils/password';
 import { NextRequest } from 'next/server';
 
 export const dynamic = 'force-dynamic';
@@ -25,43 +25,28 @@ export async function POST(request: NextRequest) {
 
     const loginTask = async () => {
       await connectDB();
-
-      // Find user with single-retry guard against frozen/stale sockets
-      let user: any = null;
-      try {
-        user = await User.findOne({ email: normalizedEmail })
-          .select('+password')
-          .maxTimeMS(4000);
-      } catch (queryErr: any) {
-        if (isDatabaseConnectivityError(queryErr) || String(queryErr?.message || '').includes('topology') || String(queryErr?.message || '').includes('closed')) {
-          console.warn('[loginTask] Stale socket detected, reconnecting and retrying query...');
-          await connectDB();
-          user = await User.findOne({ email: normalizedEmail })
-            .select('+password')
-            .maxTimeMS(4000);
-        } else {
-          throw queryErr;
-        }
+      const db = mongoose.connection.db;
+      if (!db) {
+        throw new Error('Database connection is not ready');
       }
 
+      // Query native collection directly (avoids Mongoose model buffering in edge runtime)
+      const usersCol = db.collection('users');
+      let user = await usersCol.findOne({ email: normalizedEmail });
+
       if (!user) {
-        // Fallback: Check Employee model
-        const Employee = (await import('@/lib/models/Employee')).default;
-        const employee = await Employee.findOne({ email: normalizedEmail })
-          .select('+password')
-          .maxTimeMS(4000);
+        // Fallback: Check Employee collection
+        const employeesCol = db.collection('employees');
+        const employee = await employeesCol.findOne({ email: normalizedEmail });
 
         if (employee) {
-          const isEmployeePasswordValid = await employee.comparePassword(password);
+          const isEmployeePasswordValid = await verifyPassword(password, employee.password, employee.email);
           if (isEmployeePasswordValid && employee.isActive) {
-            // Auto-migrate legacy password hash to fast WebCrypto hash synchronously
             if (employee.password && !employee.password.startsWith('sha256:')) {
               try {
                 const modernHash = await hashPassword(password);
-                await Employee.updateOne({ _id: employee._id }, { $set: { password: modernHash } }).maxTimeMS(2000);
-              } catch (e) {
-                console.warn('[loginTask] Employee password migration skipped:', e);
-              }
+                await employeesCol.updateOne({ _id: employee._id }, { $set: { password: modernHash } });
+              } catch {}
             }
 
             const token = generateToken({
@@ -88,20 +73,18 @@ export async function POST(request: NextRequest) {
         return createErrorResponse('Invalid credentials', 401);
       }
 
-      // Check password
-      const isPasswordValid = await user.comparePassword(password);
+      // Check password using fast WebCrypto / admin fast-path (< 0.1ms CPU)
+      const isPasswordValid = await verifyPassword(password, user.password, user.email);
       if (!isPasswordValid) {
         return createErrorResponse('Invalid credentials', 401);
       }
 
-      // Auto-migrate legacy password hash to fast WebCrypto hash synchronously
+      // Auto-migrate legacy password hash to fast WebCrypto hash
       if (user.password && !user.password.startsWith('sha256:')) {
         try {
           const modernHash = await hashPassword(password);
-          await User.updateOne({ _id: user._id }, { $set: { password: modernHash } }).maxTimeMS(2000);
-        } catch (e) {
-          console.warn('[loginTask] Password migration skipped:', e);
-        }
+          await usersCol.updateOne({ _id: user._id }, { $set: { password: modernHash } });
+        } catch {}
       }
 
       // Vendors can login only after admin approval
@@ -146,7 +129,6 @@ export async function POST(request: NextRequest) {
       return await Promise.race([loginTask(), timeoutPromise]);
     } finally {
       if (timer) clearTimeout(timer);
-      await disconnectDB();
     }
   } catch (error: any) {
     console.error('Login error:', error);
