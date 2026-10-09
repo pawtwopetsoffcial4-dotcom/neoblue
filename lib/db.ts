@@ -124,9 +124,10 @@ export async function connectDB() {
       serverSelectionTimeoutMS: 8000,
       connectTimeoutMS: 8000,
       socketTimeoutMS: 8000,
-      maxPoolSize: 1,
+      waitQueueTimeoutMS: 3000,
+      maxPoolSize: 10,
       minPoolSize: 0,
-      maxIdleTimeMS: 8000,
+      maxIdleTimeMS: 10000,
     };
 
     cached.promise = (async () => {
