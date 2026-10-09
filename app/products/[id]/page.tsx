@@ -118,12 +118,18 @@ export default async function ProductDetailPage({ params }: ProductDetailProps) 
   let recommendations: any[] = [];
   let allProducts: any[] = [];
 
-  await connectDB();
+  try {
+    await connectDB();
+  } catch (err) {
+    console.warn('[ProductDetailPage] connectDB fallback:', err);
+  }
 
   // 1. Fetch Product
   const dbProduct = (await Product.findById(id)
     .populate('vendorId', 'name email logo slug')
-    .lean()) as any;
+    .lean()
+    .maxTimeMS(3000)
+    .catch(() => null)) as any;
 
   if (!dbProduct) {
     notFound();
@@ -137,7 +143,7 @@ export default async function ProductDetailPage({ params }: ProductDetailProps) 
   const rawVendorId = dbProduct.vendorId?._id || dbProduct.vendorId;
 
   const [reviewsRes, recsRes, allProdsRes] = await Promise.allSettled([
-    Review.find({ productId: id }).sort({ createdAt: -1 }).limit(20).lean(),
+    Review.find({ productId: id }).sort({ createdAt: -1 }).limit(20).lean().maxTimeMS(2000),
     rawVendorId
       ? Product.find({
           _id: { $ne: id },
@@ -148,6 +154,7 @@ export default async function ProductDetailPage({ params }: ProductDetailProps) 
           .populate('vendorId', 'name email logo slug')
           .limit(10)
           .lean()
+          .maxTimeMS(2000)
       : Product.find({
           _id: { $ne: id },
           category: dbProduct.category,
@@ -156,11 +163,13 @@ export default async function ProductDetailPage({ params }: ProductDetailProps) 
         })
           .populate('vendorId', 'name email logo slug')
           .limit(10)
-          .lean(),
+          .lean()
+          .maxTimeMS(2000),
     Product.find({ approvalStatus: 'approved', inStock: true })
       .select('title scientific category temperament')
-      .limit(150)
-      .lean(),
+      .limit(60)
+      .lean()
+      .maxTimeMS(2000),
   ]);
 
   if (reviewsRes.status === 'fulfilled' && reviewsRes.value) {

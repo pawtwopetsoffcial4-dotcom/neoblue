@@ -1,7 +1,6 @@
 import React, { cache } from 'react';
 import { connectDB } from '@/lib/db';
 import Product from '@/lib/models/Product';
-import StoreConfig from '@/lib/models/StoreConfig';
 import { PRODUCT_CATEGORIES, getCategoryImage, getSubcategoriesForCategory } from '@/lib/catalog';
 import { resolveOgImageUrl, buildCollectionPageJsonLd, buildBreadcrumbJsonLd } from '@/lib/utils/seo';
 import type { Metadata } from 'next';
@@ -11,96 +10,66 @@ type CategoryPageProps = {
   params: Promise<{ slug: string }>;
 };
 
+// ISR: Incremental Static Regeneration edge cache for 1 hour
 export const revalidate = 3600;
 
 const toSlug = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 
+// Pre-render all primary catalog categories at build time (SSG)
 export async function generateStaticParams() {
-  const staticSlugs = PRODUCT_CATEGORIES.map((cat) => ({ slug: toSlug(cat) }));
-  try {
-    const fetchSlugs = async () => {
-      await connectDB();
-      const categories = await Product.distinct('category', { approvalStatus: 'approved' });
-      return categories.map((cat: string) => ({ slug: toSlug(cat) }));
-    };
-    const timeoutPromise = new Promise<{ slug: string }[]>((resolve) => setTimeout(() => resolve([]), 2000));
-    const dynamicSlugs = await Promise.race([fetchSlugs(), timeoutPromise]);
-    const all = Array.from(new Set([...staticSlugs.map((s) => s.slug), ...dynamicSlugs.map((s) => s.slug)]));
-    return all.map((slug) => ({ slug }));
-  } catch {
-    return staticSlugs;
-  }
+  return PRODUCT_CATEGORIES.map((cat) => ({ slug: toSlug(cat) }));
 }
 
 // Deduplicated and fast timeout-protected data loader
 const getCategoryData = cache(async (slug: string) => {
   let products: any[] = [];
-  let config: any = null;
+  const normalizedSlug = slug.toLowerCase();
+  const isWaterFilter = normalizedSlug === 'freshwater' || normalizedSlug === 'saltwater';
+
+  // Identify matching catalog category
+  const staticCategory = PRODUCT_CATEGORIES.find((cat) => toSlug(cat) === normalizedSlug);
+  const targetCategory = staticCategory || (slug.charAt(0).toUpperCase() + slug.slice(1).replace(/-/g, ' '));
 
   try {
     const fetchDb = async () => {
       await connectDB();
-      const [dbProducts, dbConfig] = await Promise.all([
-        Product.find({
-          approvalStatus: 'approved',
-          inStock: true,
-        })
-          .select('title category subcategory waterType scientific rating reviewsCount price images perPairPrice perPiecePrice inStock')
-          .lean(),
-        StoreConfig.findOne({}).lean(),
-      ]);
-      return { products: dbProducts, config: dbConfig };
+      const filter: any = { approvalStatus: 'approved', inStock: true };
+      if (isWaterFilter) {
+        filter.waterType = normalizedSlug;
+      } else {
+        filter.$or = [
+          { category: targetCategory },
+          { category: { $regex: new RegExp(`^${normalizedSlug.replace(/-/g, ' ')}$`, 'i') } },
+        ];
+      }
+
+      return await Product.find(filter)
+        .select('title category subcategory waterType scientific rating reviewsCount price images perPairPrice perPiecePrice inStock')
+        .limit(48)
+        .lean()
+        .maxTimeMS(2000);
     };
 
-    const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 2500));
+    const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 2000));
     const result = await Promise.race([fetchDb(), timeoutPromise]);
     if (result) {
-      products = (result.products as any[]) || [];
-      config = result.config;
+      products = (result as any[]) || [];
     }
   } catch (error) {
     console.warn('Failed to load category products from database, using static catalog:', error);
   }
 
-  const normalizedSlug = slug.toLowerCase();
-  const isWaterFilter = normalizedSlug === 'freshwater' || normalizedSlug === 'saltwater';
-
-  // Fetch configurations for custom categories
-  const excludedList: string[] = Array.isArray(config?.excludedCategories) ? config.excludedCategories : [];
-  const excludedSet = new Set(excludedList.map((c: string) => String(c).toLowerCase()));
-  const configuredCategories = Array.isArray(config?.categories) ? config.categories : [];
-
-  const availableCategories = Array.from(
-    new Set([
-      ...PRODUCT_CATEGORIES,
-      ...configuredCategories,
-    ].filter((category): category is string => typeof category === 'string' && category.trim().length > 0))
-  ).filter((category) => !excludedSet.has(category.toLowerCase()));
-
-  const customCategory = availableCategories.find((category) => toSlug(category) === normalizedSlug);
-  const inferredCategory = products.find((p) => toSlug(p.category) === normalizedSlug)?.category;
-  const mappedCategory = customCategory ?? inferredCategory;
-
-  let filteredProducts: any[] = [];
-  if (isWaterFilter) {
-    filteredProducts = products.filter((product) => product.waterType && product.waterType.toLowerCase() === normalizedSlug);
-  } else if (mappedCategory || customCategory) {
-    filteredProducts = products.filter((product) => product.category === (mappedCategory || customCategory));
-  }
-
-  const staticSubcategories = mappedCategory ? (getSubcategoriesForCategory(mappedCategory) as string[]) : [];
-  const dynamicSubcategories = mappedCategory
-    ? (Array.from(new Set(products.filter((p) => p.category === mappedCategory).map((p) => p.subcategory).filter(Boolean))) as string[])
-    : [];
+  const staticSubcategories = staticCategory ? (getSubcategoriesForCategory(staticCategory) as string[]) : [];
+  const dynamicSubcategories = Array.from(new Set(products.map((p) => p.subcategory).filter(Boolean))) as string[];
   const subcategories = Array.from(new Set([...staticSubcategories, ...dynamicSubcategories]));
 
   const categoryTitle = isWaterFilter
     ? normalizedSlug.charAt(0).toUpperCase() + normalizedSlug.slice(1)
-    : (mappedCategory ?? customCategory ?? (slug.charAt(0).toUpperCase() + slug.slice(1).replace(/-/g, ' ')));
+    : targetCategory;
 
   return {
     categoryTitle,
-    filteredProducts: JSON.parse(JSON.stringify(filteredProducts)),
+    filteredProducts: JSON.parse(JSON.stringify(products)),
     subcategories,
   };
 });
