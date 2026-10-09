@@ -17,5 +17,15 @@
       "invocation_logs": true
     }
   },
+  "routes": [
+    {
+      "pattern": "www.neoblue.in",
+      "custom_domain": true
+    },
+    {
+      "pattern": "neoblue.in",
+      "custom_domain": true
+    }
+  ],
   "vars": {}
 }
