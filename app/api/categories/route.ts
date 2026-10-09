@@ -9,18 +9,28 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(_request: NextRequest) {
   try {
-    await connectDB();
+    const fetchDb = async () => {
+      await connectDB();
+      const [config, productCategories] = await Promise.all([
+        StoreConfig.findOne({}).lean(),
+        Product.distinct('category', {
+          approvalStatus: 'approved',
+          inStock: true,
+        }),
+      ]);
+      return { config, productCategories };
+    };
 
-    const config = await StoreConfig.findOne({});
+    const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 2500));
+    const result = await Promise.race([fetchDb(), timeoutPromise]);
+
+    const config = result?.config as any;
+    const productCategories = (result?.productCategories as string[]) || [];
+
     const excludedList: string[] = Array.isArray(config?.excludedCategories) ? config.excludedCategories : [];
     const excludedSet = new Set(excludedList.map((c: string) => normalizeCategoryName(c).toLowerCase()));
 
     const configuredCategories = Array.isArray(config?.categories) ? config.categories : [];
-
-    const productCategories = await Product.distinct('category', {
-      approvalStatus: 'approved',
-      inStock: true,
-    });
 
     const rawCategories = [
       ...PRODUCT_CATEGORIES,

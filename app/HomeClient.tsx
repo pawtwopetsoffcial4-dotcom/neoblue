@@ -210,35 +210,35 @@ export default function NeoBlueMobileOptimized({
       try {
         setIsLoading(true);
 
-        const [productsResponse, categoriesResponse, combosResponse, configResponse] = await Promise.all([
+        const [productsResult, categoriesResult, combosResult, configResult] = await Promise.allSettled([
           fetch('/api/products?limit=200'),
           fetch('/api/categories'),
           fetch('/api/combos?featured=true'),
           fetch('/api/config'),
         ]);
 
-        if (productsResponse.ok) {
-          const productsData = await productsResponse.json();
-          const liveProducts = extractProducts(productsData).filter((product) => {
+        if (productsResult.status === 'fulfilled' && productsResult.value.ok) {
+          const productsData = await productsResult.value.json();
+          const liveProducts = extractProducts(productsData).filter((product: any) => {
             const isApproved = (product.approvalStatus ?? 'approved') === 'approved';
             return isApproved && product.inStock;
           });
           setProducts(liveProducts);
         }
 
-        if (categoriesResponse.ok) {
-          const categoriesData = await categoriesResponse.json();
+        if (categoriesResult.status === 'fulfilled' && categoriesResult.value.ok) {
+          const categoriesData = await categoriesResult.value.json();
           const dbCategories = Array.isArray(categoriesData?.categoriesWithImages) ? categoriesData.categoriesWithImages : [];
           setCategoriesFromDb(dbCategories);
         }
 
-        if (combosResponse.ok) {
-          const combosData = await combosResponse.json();
+        if (combosResult.status === 'fulfilled' && combosResult.value.ok) {
+          const combosData = await combosResult.value.json();
           setFeaturedCombos(combosData.combos ?? []);
         }
 
-        if (configResponse.ok) {
-          const configData = await configResponse.json();
+        if (configResult.status === 'fulfilled' && configResult.value.ok) {
+          const configData = await configResult.value.json();
           if (Array.isArray(configData?.heroSlidesFishes) && configData.heroSlidesFishes.length > 0) {
             setHeroSlidesFishes(configData.heroSlidesFishes);
           }

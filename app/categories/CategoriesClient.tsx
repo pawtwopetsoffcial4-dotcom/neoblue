@@ -16,9 +16,11 @@ interface CategoryItem {
 
 export default function CategoriesClient({ categories }: { categories: CategoryItem[] }) {
   const { mode } = useMode();
+  const safeCategories = Array.isArray(categories) ? categories : [];
 
   // Filter categories: in fishes mode hide plants; in plants mode only show plants.
-  const filteredCategories = categories.filter((category) => {
+  const filteredCategories = safeCategories.filter((category) => {
+    if (!category || typeof category.slug !== 'string') return false;
     if (mode === 'fishes') {
       return category.slug !== 'plants';
     } else {

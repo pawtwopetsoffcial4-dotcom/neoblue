@@ -54,21 +54,26 @@ function getMongoUris() {
   return { primary, fallback };
 }
 
-async function doConnect(uri: string, opts: mongoose.ConnectOptions) {
+async function doConnect(uri: string, opts: mongoose.ConnectOptions, timeoutMs = 3500) {
   let timer: any;
   const timeoutPromise = new Promise<never>((_, reject) => {
     timer = setTimeout(() => {
       const err = new Error(
-        'MongoDB connection timed out after 6000ms. In Cloudflare Workers, SRV lookup (mongodb+srv://) is not supported; set MONGODB_URI_DIRECT in Cloudflare Settings > Variables and Secrets, and verify MongoDB Atlas Network Access allows 0.0.0.0/0.'
+        `MongoDB connection timed out after ${timeoutMs}ms. In Cloudflare Workers, SRV lookup (mongodb+srv://) is not supported; set MONGODB_URI_DIRECT in Cloudflare Settings > Variables and Secrets, and verify MongoDB Atlas Network Access allows 0.0.0.0/0.`
       ) as Error & { code?: string };
       err.code = 'DB_CONNECTIVITY_TIMEOUT';
       reject(err);
-    }, 6000);
-    if (typeof timer?.unref === 'function') timer.unref();
+    }, timeoutMs);
+  });
+
+  const connectPromise = mongoose.connect(uri, opts);
+  // Prevent unhandled promise rejection in Cloudflare Workers isolate if timeout fires first
+  connectPromise.catch((err) => {
+    console.warn('[connectDB background]', err?.message || err);
   });
 
   try {
-    return await Promise.race([mongoose.connect(uri, opts), timeoutPromise]);
+    return await Promise.race([connectPromise, timeoutPromise]);
   } finally {
     if (timer) clearTimeout(timer);
   }
@@ -89,9 +94,9 @@ export async function connectDB() {
 
     const opts: mongoose.ConnectOptions = {
       bufferCommands: false,
-      serverSelectionTimeoutMS: 5000,
-      connectTimeoutMS: 5000,
-      socketTimeoutMS: 10000,
+      serverSelectionTimeoutMS: 3000,
+      connectTimeoutMS: 3000,
+      socketTimeoutMS: 8000,
       maxPoolSize: 1,
       minPoolSize: 0,
       maxIdleTimeMS: 10000,
@@ -99,11 +104,11 @@ export async function connectDB() {
 
     cached.promise = (async () => {
       try {
-        return await doConnect(primary, opts);
+        return await doConnect(primary, opts, 3000);
       } catch (primaryError: any) {
         if (fallback && fallback !== primary) {
           console.warn('Primary MongoDB URI failed, attempting fallback URI...', primaryError.message);
-          return await doConnect(fallback, opts);
+          return await doConnect(fallback, opts, 2500);
         }
         throw primaryError;
       }
@@ -112,10 +117,6 @@ export async function connectDB() {
 
   try {
     cached.conn = await cached.promise;
-    if (!global.employeeIndexesCleaned) {
-      global.employeeIndexesCleaned = true;
-      await dropLegacyEmployeeIndexes().catch(() => {});
-    }
   } catch (e) {
     cached.promise = null;
     cached.conn = null;

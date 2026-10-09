@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { cache } from 'react';
 import { connectDB } from '@/lib/db';
 import Product from '@/lib/models/Product';
 import StoreConfig from '@/lib/models/StoreConfig';
@@ -16,27 +16,48 @@ export const revalidate = 3600;
 const toSlug = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 
 export async function generateStaticParams() {
+  const staticSlugs = PRODUCT_CATEGORIES.map((cat) => ({ slug: toSlug(cat) }));
   try {
-    await connectDB();
-    const categories = await Product.distinct('category', { approvalStatus: 'approved' });
-    return categories.map((cat: string) => ({ slug: toSlug(cat) }));
+    const fetchSlugs = async () => {
+      await connectDB();
+      const categories = await Product.distinct('category', { approvalStatus: 'approved' });
+      return categories.map((cat: string) => ({ slug: toSlug(cat) }));
+    };
+    const timeoutPromise = new Promise<{ slug: string }[]>((resolve) => setTimeout(() => resolve([]), 2000));
+    const dynamicSlugs = await Promise.race([fetchSlugs(), timeoutPromise]);
+    const all = Array.from(new Set([...staticSlugs.map((s) => s.slug), ...dynamicSlugs.map((s) => s.slug)]));
+    return all.map((slug) => ({ slug }));
   } catch {
-    return [];
+    return staticSlugs;
   }
 }
 
-// Helper to resolve category title and filtered products
-async function getCategoryData(slug: string) {
+// Deduplicated and fast timeout-protected data loader
+const getCategoryData = cache(async (slug: string) => {
   let products: any[] = [];
   let config: any = null;
 
   try {
-    await connectDB();
-    products = (await Product.find({
-      approvalStatus: 'approved',
-      inStock: true,
-    }).lean()) as any[];
-    config = (await StoreConfig.findOne({}).lean()) as any;
+    const fetchDb = async () => {
+      await connectDB();
+      const [dbProducts, dbConfig] = await Promise.all([
+        Product.find({
+          approvalStatus: 'approved',
+          inStock: true,
+        })
+          .select('title category subcategory waterType scientific rating reviewsCount price images perPairPrice perPiecePrice inStock')
+          .lean(),
+        StoreConfig.findOne({}).lean(),
+      ]);
+      return { products: dbProducts, config: dbConfig };
+    };
+
+    const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 2500));
+    const result = await Promise.race([fetchDb(), timeoutPromise]);
+    if (result) {
+      products = (result.products as any[]) || [];
+      config = result.config;
+    }
   } catch (error) {
     console.warn('Failed to load category products from database, using static catalog:', error);
   }
@@ -82,7 +103,7 @@ async function getCategoryData(slug: string) {
     filteredProducts: JSON.parse(JSON.stringify(filteredProducts)),
     subcategories,
   };
-}
+});
 
 export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {
   const { slug } = await params;

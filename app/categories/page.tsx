@@ -1,14 +1,14 @@
 import React from 'react';
-import Link from 'next/link';
-import { ArrowUpRight } from 'lucide-react';
 import { connectDB } from '@/lib/db';
 import Product from '@/lib/models/Product';
 import StoreConfig from '@/lib/models/StoreConfig';
-import { PRODUCT_CATEGORIES, getCategoryImage } from '@/lib/catalog';
+import { PRODUCT_CATEGORIES, getCategoryImage, getSubcategoriesForCategory } from '@/lib/catalog';
 import type { Metadata } from 'next';
 import CategoriesClient from './CategoriesClient';
 
-export const dynamic = 'force-dynamic';
+// Enable Incremental Static Regeneration so Cloudflare edge caches the rendered page
+// and delivers sub-50ms responses without re-hitting MongoDB on every single request.
+export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: 'Aquarium Fish & Plant Categories - Browse Species | NeoBlue',
@@ -27,25 +27,39 @@ export default async function CategoriesPage() {
   let products: any[] = [];
 
   try {
-    await connectDB();
-    config = (await StoreConfig.findOne({}).lean()) as any;
-    productCategories = await Product.distinct('category', {
-      approvalStatus: 'approved',
-      inStock: true,
-    });
-    products = (await Product.find({
-      approvalStatus: 'approved',
-      inStock: true,
-    })
-      .select('category subcategory images')
-      .lean()) as any[];
+    const fetchDb = async () => {
+      await connectDB();
+      const [dbConfig, dbProductCategories, dbProducts] = await Promise.all([
+        StoreConfig.findOne({}).lean(),
+        Product.distinct('category', {
+          approvalStatus: 'approved',
+          inStock: true,
+        }),
+        Product.find({
+          approvalStatus: 'approved',
+          inStock: true,
+        })
+          .select('category subcategory images')
+          .lean(),
+      ]);
+      return { config: dbConfig, productCategories: dbProductCategories, products: dbProducts };
+    };
+
+    // Strict 2000ms timeout prevents Cloudflare Worker from hanging or throwing 1101 on cold starts
+    const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 2000));
+    const result = await Promise.race([fetchDb(), timeoutPromise]);
+
+    if (result) {
+      config = result.config;
+      productCategories = (result.productCategories as string[]) || [];
+      products = (result.products as any[]) || [];
+    }
   } catch (error) {
-    console.warn('Failed to fetch dynamic categories from database, using catalog fallback:', error);
+    console.warn('CategoriesPage fallback to catalog:', error);
   }
 
   const excludedList: string[] = Array.isArray(config?.excludedCategories) ? config.excludedCategories : [];
   const excludedSet = new Set(excludedList.map((c: string) => String(c).toLowerCase()));
-
   const configuredCategories = Array.isArray(config?.categories) ? config.categories : [];
 
   const categoryNames = Array.from(
@@ -63,9 +77,17 @@ export default async function CategoriesPage() {
       const slug = toSlug(cleaned);
       if (seenSlugs.has(slug)) return null;
       seenSlugs.add(slug);
+
       const categoryProducts = products.filter((p) => p.category === cleaned);
-      const subcategories = Array.from(new Set(categoryProducts.map((p) => p.subcategory).filter(Boolean))) as string[];
-      const image = config?.categoryImages?.[cleaned] || getCategoryImage(cleaned) || categoryProducts.find((p) => Array.isArray(p.images) && p.images.length > 0)?.images?.[0] || 'https://img.freepik.com/free-photo/beautiful-fish-undersea_23-2150737797.jpg?w=800';
+      const staticSubcategories = (getSubcategoriesForCategory(cleaned) as string[]) || [];
+      const dynamicSubcategories = categoryProducts.map((p) => p.subcategory).filter(Boolean);
+      const subcategories = Array.from(new Set([...staticSubcategories, ...dynamicSubcategories]));
+
+      const image =
+        config?.categoryImages?.[cleaned] ||
+        getCategoryImage(cleaned) ||
+        categoryProducts.find((p) => Array.isArray(p.images) && p.images.length > 0)?.images?.[0] ||
+        '/fishes_cat_cover/Guppies.jpeg';
 
       return {
         slug,
