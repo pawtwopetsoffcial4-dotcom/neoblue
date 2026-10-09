@@ -98,35 +98,7 @@ async function doConnect(uri: string, opts: mongoose.ConnectOptions, timeoutMs =
 
 export async function connectDB() {
   if (cached.conn && mongoose.connection.readyState === 1) {
-    // In Cloudflare Worker isolates, TCP sockets can be silently suspended/closed between invocations.
-    // Verify connection is actively responsive before returning cached connection.
-    let isAlive = false;
-    try {
-      let pingTimer: any;
-      const pingPromise = Promise.race([
-        mongoose.connection.db?.command({ ping: 1 }),
-        new Promise<never>((_, reject) => {
-          pingTimer = setTimeout(() => reject(new Error('PING_TIMEOUT')), 1200);
-        }),
-      ]).finally(() => {
-        if (pingTimer) clearTimeout(pingTimer);
-      });
-      await pingPromise;
-      isAlive = true;
-    } catch {
-      isAlive = false;
-    }
-
-    if (isAlive) {
-      return cached.conn;
-    }
-
-    // Cached socket was dead or frozen; clean up and reconnect cleanly
-    try {
-      await mongoose.disconnect();
-    } catch {}
-    cached.conn = null;
-    cached.promise = null;
+    return cached.conn;
   }
 
   if (cached.conn && mongoose.connection.readyState !== 1) {
