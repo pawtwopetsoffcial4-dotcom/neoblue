@@ -27,19 +27,24 @@ export async function generateStaticParams() {
 
 // Helper to resolve category title and filtered products
 async function getCategoryData(slug: string) {
-  await connectDB();
+  let products: any[] = [];
+  let config: any = null;
+
+  try {
+    await connectDB();
+    products = (await Product.find({
+      approvalStatus: 'approved',
+      inStock: true,
+    }).lean()) as any[];
+    config = (await StoreConfig.findOne({}).lean()) as any;
+  } catch (error) {
+    console.warn('Failed to load category products from database, using static catalog:', error);
+  }
 
   const normalizedSlug = slug.toLowerCase();
   const isWaterFilter = normalizedSlug === 'freshwater' || normalizedSlug === 'saltwater';
 
-  // Fetch all approved, in-stock products
-  const products = await Product.find({
-    approvalStatus: 'approved',
-    inStock: true,
-  }).lean() as any[];
-
   // Fetch configurations for custom categories
-  const config = await StoreConfig.findOne({}).lean() as any;
   const excludedList: string[] = Array.isArray(config?.excludedCategories) ? config.excludedCategories : [];
   const excludedSet = new Set(excludedList.map((c: string) => String(c).toLowerCase()));
   const configuredCategories = Array.isArray(config?.categories) ? config.categories : [];
@@ -62,13 +67,15 @@ async function getCategoryData(slug: string) {
     filteredProducts = products.filter((product) => product.category === (mappedCategory || customCategory));
   }
 
-  const subcategories = mappedCategory
-    ? Array.from(new Set(products.filter((p) => p.category === mappedCategory).map((p) => p.subcategory).filter(Boolean))) as string[]
+  const staticSubcategories = mappedCategory ? (getSubcategoriesForCategory(mappedCategory) as string[]) : [];
+  const dynamicSubcategories = mappedCategory
+    ? (Array.from(new Set(products.filter((p) => p.category === mappedCategory).map((p) => p.subcategory).filter(Boolean))) as string[])
     : [];
+  const subcategories = Array.from(new Set([...staticSubcategories, ...dynamicSubcategories]));
 
   const categoryTitle = isWaterFilter
     ? normalizedSlug.charAt(0).toUpperCase() + normalizedSlug.slice(1)
-    : mappedCategory ?? customCategory ?? 'Category';
+    : (mappedCategory ?? customCategory ?? (slug.charAt(0).toUpperCase() + slug.slice(1).replace(/-/g, ' ')));
 
   return {
     categoryTitle,

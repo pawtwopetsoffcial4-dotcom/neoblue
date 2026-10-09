@@ -25,8 +25,8 @@ export async function GET(request: NextRequest) {
 
     return createSuccessResponse({ notifications });
   } catch (error: any) {
-    console.error('Fetch notifications error:', error);
-    return createErrorResponse(error.message || 'Failed to fetch notifications', 500);
+    console.warn('Fetch notifications error (returning empty array):', error?.message);
+    return createSuccessResponse({ notifications: [] });
   }
 }
 

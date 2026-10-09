@@ -10,17 +10,10 @@ import './models/BlogAnalytics';
 import './models/Review';
 import { dropLegacyEmployeeIndexes } from './models/Employee';
 
-const DB_RETRY_COOLDOWN_MS = 10_000;
-
 let cached = global.mongoose;
-let connectivityState = global.mongoConnectivityState;
 
 if (!cached) {
   cached = global.mongoose = { conn: null, promise: null };
-}
-
-if (!connectivityState) {
-  connectivityState = global.mongoConnectivityState = { nextRetryAt: 0 };
 }
 
 export const isDatabaseConnectivityError = (error: any) =>
@@ -91,15 +84,6 @@ export async function connectDB() {
     cached.promise = null;
   }
 
-  if (Date.now() < connectivityState.nextRetryAt) {
-    const retryInSec = Math.ceil((connectivityState.nextRetryAt - Date.now()) / 1000);
-    const error = new Error(`MongoDB temporarily unavailable. Retrying in ~${retryInSec}s.`) as Error & {
-      code?: string;
-    };
-    error.code = 'DB_CONNECTIVITY_UNAVAILABLE';
-    throw error;
-  }
-
   if (!cached.promise) {
     const { primary, fallback } = getMongoUris();
 
@@ -119,14 +103,8 @@ export async function connectDB() {
       } catch (primaryError: any) {
         if (fallback && fallback !== primary) {
           console.warn('Primary MongoDB URI failed, attempting fallback URI...', primaryError.message);
-          try {
-            return await doConnect(fallback, opts);
-          } catch (fallbackError: any) {
-            connectivityState.nextRetryAt = Date.now() + DB_RETRY_COOLDOWN_MS;
-            throw fallbackError;
-          }
+          return await doConnect(fallback, opts);
         }
-        connectivityState.nextRetryAt = Date.now() + DB_RETRY_COOLDOWN_MS;
         throw primaryError;
       }
     })();
@@ -134,7 +112,6 @@ export async function connectDB() {
 
   try {
     cached.conn = await cached.promise;
-    connectivityState.nextRetryAt = 0;
     if (!global.employeeIndexesCleaned) {
       global.employeeIndexesCleaned = true;
       await dropLegacyEmployeeIndexes().catch(() => {});
@@ -142,7 +119,6 @@ export async function connectDB() {
   } catch (e) {
     cached.promise = null;
     cached.conn = null;
-    connectivityState.nextRetryAt = Date.now() + DB_RETRY_COOLDOWN_MS;
     throw e;
   }
 
@@ -153,9 +129,6 @@ declare global {
   var mongoose: {
     conn: typeof mongoose | null;
     promise: Promise<typeof mongoose> | null;
-  };
-  var mongoConnectivityState: {
-    nextRetryAt: number;
   };
   var employeeIndexesCleaned: boolean | undefined;
 }
