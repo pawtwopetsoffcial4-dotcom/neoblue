@@ -81,6 +81,9 @@ export default function CategoriesClient({ categories }: { categories: CategoryI
                     <img 
                       src={category.image} 
                       alt={category.name} 
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).src = isPlants ? '/fishes_cat_cover/Plants.png' : '/fishes_cat_cover/Guppies.jpeg';
+                      }}
                       className="w-full h-full object-cover rounded-full group-hover:scale-110 transition-transform duration-500"
                     />
                   </div>

@@ -22,18 +22,31 @@ export const metadata: Metadata = {
 const toSlug = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 
 export default async function CategoriesPage() {
-  await connectDB();
+  let config: any = null;
+  let productCategories: string[] = [];
+  let products: any[] = [];
 
-  const config = await StoreConfig.findOne({}).lean() as any;
+  try {
+    await connectDB();
+    config = (await StoreConfig.findOne({}).lean()) as any;
+    productCategories = await Product.distinct('category', {
+      approvalStatus: 'approved',
+      inStock: true,
+    });
+    products = (await Product.find({
+      approvalStatus: 'approved',
+      inStock: true,
+    })
+      .select('category subcategory images')
+      .lean()) as any[];
+  } catch (error) {
+    console.warn('Failed to fetch dynamic categories from database, using catalog fallback:', error);
+  }
+
   const excludedList: string[] = Array.isArray(config?.excludedCategories) ? config.excludedCategories : [];
   const excludedSet = new Set(excludedList.map((c: string) => String(c).toLowerCase()));
 
   const configuredCategories = Array.isArray(config?.categories) ? config.categories : [];
-
-  const productCategories = await Product.distinct('category', {
-    approvalStatus: 'approved',
-    inStock: true,
-  });
 
   const categoryNames = Array.from(
     new Set([
@@ -42,11 +55,6 @@ export default async function CategoriesPage() {
       ...productCategories,
     ].filter((category): category is string => typeof category === 'string' && category.trim().length > 0))
   ).filter((category) => !excludedSet.has(category.toLowerCase())).sort();
-
-  const products = await Product.find({
-    approvalStatus: 'approved',
-    inStock: true,
-  }).select('category subcategory images').lean() as any[];
 
   const seenSlugs = new Set<string>();
   const categories = categoryNames

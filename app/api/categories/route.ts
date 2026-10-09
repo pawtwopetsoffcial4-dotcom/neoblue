@@ -51,15 +51,17 @@ export async function GET(_request: NextRequest) {
       categoriesWithImages,
     });
   } catch (error: any) {
-    if (isDatabaseConnectivityError(error)) {
-      console.warn('Get categories warning:', error?.message || 'Database connection is temporarily unavailable.');
+    console.warn('Get categories fallback to static catalog:', error?.message);
+    const categories = [...PRODUCT_CATEGORIES].sort();
+    const categoriesWithImages = categories.map((name) => ({
+      name,
+      image: getCategoryImage(name),
+    }));
 
-      return createSuccessResponse({ categories: [] });
-    }
-
-    console.error('Get categories error:', error);
-
-    return createErrorResponse(error.message || 'Failed to fetch categories', 500);
+    return createSuccessResponse({
+      categories,
+      categoriesWithImages,
+    });
   }
 }
 
