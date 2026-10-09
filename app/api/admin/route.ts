@@ -1,14 +1,14 @@
 import { NextRequest } from 'next/server';
-import { connectDB } from '@/lib/db';
+import { connectDB, isDatabaseConnectivityError } from '@/lib/db';
 import User from '@/lib/models/User';
 import Order from '@/lib/models/Order';
 import { createErrorResponse, createSuccessResponse, getTokenFromRequest, verifyToken } from '@/lib/utils/auth';
 
+export const dynamic = 'force-dynamic';
+
 // GET admin data: ?type=orders | users | all
 export async function GET(request: NextRequest) {
   try {
-    await connectDB();
-
     const token = getTokenFromRequest(request);
     if (!token) {
       return createErrorResponse('Unauthorized', 401);
@@ -25,18 +25,27 @@ export async function GET(request: NextRequest) {
       return createErrorResponse('Forbidden', 403);
     }
 
+    await connectDB();
+
     if (type === 'orders') {
       const orders = await Order.find({ status: { $ne: 'pending' } })
         .populate('userId', 'name email role')
         .populate('vendorId', 'name email')
         .populate('products.productId', 'title price images')
-        .sort({ createdAt: -1 });
+        .sort({ createdAt: -1 })
+        .lean()
+        .maxTimeMS(4000);
 
       return createSuccessResponse({ orders });
     }
 
     if (type === 'users') {
-      const users = await User.find({}).select('-password').sort({ createdAt: -1 });
+      const users = await User.find({})
+        .select('-password')
+        .sort({ createdAt: -1 })
+        .lean()
+        .maxTimeMS(4000);
+
       return createSuccessResponse({ users });
     }
 
@@ -44,12 +53,22 @@ export async function GET(request: NextRequest) {
       Order.find({ status: { $ne: 'pending' } })
         .populate('userId', 'name email role')
         .populate('vendorId', 'name email')
-        .sort({ createdAt: -1 }),
-      User.find({}).select('-password').sort({ createdAt: -1 }),
+        .sort({ createdAt: -1 })
+        .lean()
+        .maxTimeMS(4000),
+      User.find({})
+        .select('-password')
+        .sort({ createdAt: -1 })
+        .lean()
+        .maxTimeMS(4000),
     ]);
 
     return createSuccessResponse({ orders, users });
   } catch (error: any) {
-    return createErrorResponse(error.message || 'Failed to fetch admin data', 500);
+    const isConn =
+      error?.code === 'DB_CONNECTIVITY_UNAVAILABLE' ||
+      error?.code === 'DB_CONNECTIVITY_TIMEOUT' ||
+      isDatabaseConnectivityError(error);
+    return createErrorResponse(error.message || 'Failed to fetch admin data', isConn ? 503 : 500);
   }
 }

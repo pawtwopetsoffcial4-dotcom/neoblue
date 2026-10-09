@@ -105,7 +105,7 @@ export async function POST(request: NextRequest) {
         const err = new Error('Database operation timed out. Please try again.') as any;
         err.code = 'DB_CONNECTIVITY_TIMEOUT';
         reject(err);
-      }, 6500);
+      }, 7500);
     });
 
     try {

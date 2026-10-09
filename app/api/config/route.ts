@@ -7,20 +7,56 @@ import StoreConfig, {
   DEFAULT_PLANTS_HERO_SLIDES 
 } from '@/lib/models/StoreConfig';
 
-// Single, clean GET/PUT implementation for /api/config
+export const dynamic = 'force-dynamic';
+
+const DEFAULT_CONFIG_RESPONSE = {
+  heroSlides: DEFAULT_HERO_SLIDES,
+  heroSlidesFishes: DEFAULT_FISHES_HERO_SLIDES,
+  heroSlidesPlants: DEFAULT_PLANTS_HERO_SLIDES,
+  facebookPixelId: process.env.FACEBOOK_PIXEL_ID || process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID || '1689531238818724',
+  googleAnalyticsId: process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || process.env.GA_MEASUREMENT_ID || process.env.NEXT_PUBLIC_GA_ID || '',
+  minOrderAmount: 149,
+  paymentGateway: 'razorpay',
+  razorpayKeyId: process.env.RAZORPAY_KEY_ID || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || '',
+  razorpayKeySecret: process.env.RAZORPAY_KEY_SECRET || '',
+  categories: PRODUCT_CATEGORIES,
+  excludedCategories: [],
+  subcategories: PRODUCT_CATALOG,
+  marqueeText: 'Next shipping on Monday! Order fast for fastest delivery.',
+  marqueeEnabled: true,
+  marqueeLink: '/products',
+  offerBadge: 'Limited Time Offer',
+  offerTitle: 'Save Up To 35% On\nPremium Aquatic Stock',
+  offerDescription: 'Weekend special: handpicked marine and freshwater species, overnight transit care, and live-arrival protection included.',
+  offerButtonText: 'Shop The Offer',
+  offerButtonLink: '/products',
+  stat1Value: '500+',
+  stat1Label: 'Species Curated',
+  stat2Value: '24h',
+  stat2Label: 'Priority Dispatch',
+  stat3Value: '100%',
+  stat3Label: 'Live Arrival Cover',
+  freeShippingEnabled: true,
+  freeShippingMinAmount: 599,
+};
+
+// Resilient GET implementation: always returns 200 with valid config data
 export async function GET() {
   try {
-    await connectDB();
-    let config = await StoreConfig.findOne({});
+    const fetchDbConfig = async () => {
+      await connectDB();
+      return await StoreConfig.findOne({}).lean().maxTimeMS(2500);
+    };
+
+    const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 2500));
+    const config = await Promise.race([fetchDbConfig(), timeoutPromise]);
+
     if (!config) {
-      config = await StoreConfig.create({ minOrderAmount: 149 });
-    } else if (!config.minOrderAmount || Number(config.minOrderAmount) > 149) {
-      config.minOrderAmount = 149;
-      await StoreConfig.updateOne({ _id: config._id }, { $set: { minOrderAmount: 149 } }).catch(() => {});
+      return NextResponse.json(DEFAULT_CONFIG_RESPONSE);
     }
 
-    const payload = config.toObject ? config.toObject() : config;
-    const { shippingPerPiece, shippingPerWeight, ...rest } = payload as Record<string, any>;
+    const payload = config as Record<string, any>;
+    const { shippingPerPiece, shippingPerWeight, ...rest } = payload;
 
     const excludedList: string[] = Array.isArray(payload.excludedCategories) ? payload.excludedCategories : [];
     const excludedSet = new Set(excludedList.map((c: string) => normalizeCategoryName(c).toLowerCase()));
@@ -28,6 +64,7 @@ export async function GET() {
     const filteredCategories = rawCategories.filter((c: string) => !excludedSet.has(normalizeCategoryName(c).toLowerCase()));
 
     return NextResponse.json({
+      ...DEFAULT_CONFIG_RESPONSE,
       ...rest,
       heroSlides: Array.isArray(payload.heroSlides) && payload.heroSlides.length > 0 ? payload.heroSlides : DEFAULT_HERO_SLIDES,
       heroSlidesFishes: Array.isArray(payload.heroSlidesFishes) && payload.heroSlidesFishes.length > 0 ? payload.heroSlidesFishes : DEFAULT_FISHES_HERO_SLIDES,
@@ -46,37 +83,8 @@ export async function GET() {
       marqueeLink: payload.marqueeLink ?? '/products',
     });
   } catch (error) {
-    console.error('Config GET error (falling back to defaults):', error);
-    return NextResponse.json({
-      heroSlides: DEFAULT_HERO_SLIDES,
-      heroSlidesFishes: DEFAULT_FISHES_HERO_SLIDES,
-      heroSlidesPlants: DEFAULT_PLANTS_HERO_SLIDES,
-      facebookPixelId: process.env.FACEBOOK_PIXEL_ID || process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID || '1689531238818724',
-      googleAnalyticsId: process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || process.env.GA_MEASUREMENT_ID || process.env.NEXT_PUBLIC_GA_ID || '',
-      minOrderAmount: 149,
-      paymentGateway: 'razorpay',
-      razorpayKeyId: process.env.RAZORPAY_KEY_ID || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || '',
-      razorpayKeySecret: process.env.RAZORPAY_KEY_SECRET || '',
-      categories: PRODUCT_CATEGORIES,
-      excludedCategories: [],
-      subcategories: PRODUCT_CATALOG,
-      marqueeText: 'Next shipping on Monday! Order fast for fastest delivery.',
-      marqueeEnabled: true,
-      marqueeLink: '/products',
-      offerBadge: 'Limited Time Offer',
-      offerTitle: 'Save Up To 35% On\nPremium Aquatic Stock',
-      offerDescription: 'Weekend special: handpicked marine and freshwater species, overnight transit care, and live-arrival protection included.',
-      offerButtonText: 'Shop The Offer',
-      offerButtonLink: '/products',
-      stat1Value: '500+',
-      stat1Label: 'Species Curated',
-      stat2Value: '24h',
-      stat2Label: 'Priority Dispatch',
-      stat3Value: '100%',
-      stat3Label: 'Live Arrival Cover',
-      freeShippingEnabled: true,
-      freeShippingMinAmount: 599,
-    });
+    console.warn('Config GET fallback to defaults:', error);
+    return NextResponse.json(DEFAULT_CONFIG_RESPONSE);
   }
 }
 
