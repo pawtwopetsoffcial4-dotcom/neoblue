@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { connectDB } from '@/lib/db';
+import { connectDB, disconnectDB } from '@/lib/db';
 import mongoose from 'mongoose';
 
 export const dynamic = 'force-dynamic';
@@ -36,5 +36,7 @@ export async function GET() {
       },
       { status: 503 }
     );
+  } finally {
+    await disconnectDB();
   }
 }

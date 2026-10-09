@@ -1,4 +1,4 @@
-import { connectDB, isDatabaseConnectivityError } from '@/lib/db';
+import { connectDB, disconnectDB, isDatabaseConnectivityError } from '@/lib/db';
 import User from '@/lib/models/User';
 import { generateToken, createErrorResponse, createSuccessResponse } from '@/lib/utils/auth';
 import { hashPassword } from '@/lib/utils/password';
@@ -146,6 +146,7 @@ export async function POST(request: NextRequest) {
       return await Promise.race([loginTask(), timeoutPromise]);
     } finally {
       if (timer) clearTimeout(timer);
+      await disconnectDB();
     }
   } catch (error: any) {
     console.error('Login error:', error);

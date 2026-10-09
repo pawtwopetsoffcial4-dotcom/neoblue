@@ -96,6 +96,16 @@ async function doConnect(uri: string, opts: mongoose.ConnectOptions, timeoutMs =
   }
 }
 
+export async function disconnectDB() {
+  cached.conn = null;
+  cached.promise = null;
+  try {
+    if (mongoose.connection.readyState !== 0) {
+      await mongoose.disconnect();
+    }
+  } catch {}
+}
+
 export async function connectDB() {
   if (cached.conn && mongoose.connection.readyState === 1) {
     return cached.conn;
