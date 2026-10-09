@@ -8,7 +8,7 @@ import Combo from '@/lib/models/Combo';
 import StoreConfig from '@/lib/models/StoreConfig';
 import { PRODUCT_CATEGORIES, getCategoryImage } from '@/lib/catalog';
 
-export const revalidate = 60; // Revalidate every 60 seconds (Instant server cache)
+export const revalidate = 300; // 5 minutes edge cache
 
 export const metadata: Metadata = {
   title: "NeoBlue: Buy Aquarium Fish & Live Plants Online India",
@@ -29,22 +29,47 @@ export const metadata: Metadata = {
   },
 };
 
+const EMPTY_FALLBACK = {
+  initialProducts: [],
+  initialCombos: [],
+  initialCategories: PRODUCT_CATEGORIES.map((name) => ({
+    name,
+    image: getCategoryImage(name),
+  })),
+  initialHeroSlides: [],
+  initialHeroSlidesFishes: [],
+  initialHeroSlidesPlants: [],
+  initialConfig: null,
+};
+
 async function getHomepageData() {
   try {
-    await connectDB();
+    const fetchDb = async () => {
+      await connectDB();
+      const [productsRaw, combosRaw, configRaw] = await Promise.all([
+        Product.find({ approvalStatus: 'approved', inStock: true })
+          .select('title category subcategory images price perPairPrice perPiecePrice inStock')
+          .sort({ createdAt: -1 })
+          .limit(24)
+          .lean()
+          .maxTimeMS(2000),
+        Combo.find({ isActive: true }).limit(8).lean().maxTimeMS(2000),
+        StoreConfig.findOne({}).lean().maxTimeMS(2000),
+      ]);
+      return { productsRaw, combosRaw, configRaw };
+    };
 
-    const [productsRaw, combosRaw, configRaw] = await Promise.all([
-      Product.find({ approvalStatus: 'approved', inStock: true })
-        .populate('vendorId', 'name logo slug')
-        .sort({ createdAt: -1 })
-        .limit(200)
-        .lean(),
-      Combo.find({ isActive: true }).lean(),
-      StoreConfig.findOne({}).lean(),
-    ]);
+    // Strict 2000ms timeout prevents Cloudflare Worker from hanging or exceeding 10ms CPU
+    const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 2000));
+    const result = await Promise.race([fetchDb(), timeoutPromise]);
 
-    const initialProducts = JSON.parse(JSON.stringify(productsRaw));
-    const initialCombos = JSON.parse(JSON.stringify(combosRaw));
+    if (!result) {
+      return EMPTY_FALLBACK;
+    }
+
+    const { productsRaw, combosRaw, configRaw } = result;
+    const initialProducts = JSON.parse(JSON.stringify(productsRaw || []));
+    const initialCombos = JSON.parse(JSON.stringify(combosRaw || []));
     const config = JSON.parse(JSON.stringify(configRaw || {}));
 
     const configuredCategories = Array.isArray(config?.categories) && config.categories.length > 0
@@ -78,16 +103,8 @@ async function getHomepageData() {
       initialConfig: config 
     };
   } catch (error) {
-    console.error('Failed to pre-fetch homepage data:', error);
-    return { 
-      initialProducts: [], 
-      initialCombos: [], 
-      initialCategories: [], 
-      initialHeroSlides: [], 
-      initialHeroSlidesFishes: [], 
-      initialHeroSlidesPlants: [], 
-      initialConfig: null 
-    };
+    console.warn('Failed to pre-fetch homepage data, using static fallback:', error);
+    return EMPTY_FALLBACK;
   }
 }
 
@@ -98,9 +115,9 @@ export default async function HomePage() {
     initialProducts, 
     initialCombos, 
     initialCategories, 
-    initialHeroSlides,
-    initialHeroSlidesFishes,
-    initialHeroSlidesPlants,
+    initialHeroSlides, 
+    initialHeroSlidesFishes, 
+    initialHeroSlidesPlants, 
     initialConfig 
   } = await getHomepageData();
 
@@ -114,8 +131,8 @@ export default async function HomePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(webSiteJsonLd) }}
       />
-      <HomeClient 
-        initialProducts={initialProducts} 
+      <HomeClient
+        initialProducts={initialProducts}
         initialCombos={initialCombos}
         initialCategories={initialCategories}
         initialHeroSlides={initialHeroSlides}
@@ -126,4 +143,3 @@ export default async function HomePage() {
     </>
   );
 }
-

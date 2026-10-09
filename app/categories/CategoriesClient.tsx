@@ -14,8 +14,48 @@ interface CategoryItem {
   subcategories: string[];
 }
 
-export default function CategoriesClient({ categories }: { categories: CategoryItem[] }) {
+export default function CategoriesClient({
+  categories: propCategories,
+  initialCategories,
+}: {
+  categories?: CategoryItem[];
+  initialCategories?: CategoryItem[];
+}) {
   const { mode } = useMode();
+  const [categories, setCategories] = React.useState<CategoryItem[]>(
+    propCategories || initialCategories || []
+  );
+
+  React.useEffect(() => {
+    fetch('/api/categories')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (Array.isArray(data?.categoriesWithImages) && data.categoriesWithImages.length > 0) {
+          setCategories((prev) => {
+            const map = new Map(prev.map((c) => [c.name.toLowerCase(), { ...c }]));
+            for (const item of data.categoriesWithImages) {
+              const lower = (item.name || '').toLowerCase();
+              if (!lower) continue;
+              const existing = map.get(lower);
+              if (existing) {
+                if (item.image) existing.image = item.image;
+              } else {
+                map.set(lower, {
+                  slug: lower.replace(/[^a-z0-9]+/g, '-'),
+                  name: item.name,
+                  description: `Browse premium ${item.name.toLowerCase()} products.`,
+                  image: item.image || '/fishes_cat_cover/Guppies.jpeg',
+                  subcategories: [],
+                });
+              }
+            }
+            return Array.from(map.values());
+          });
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   const safeCategories = Array.isArray(categories) ? categories : [];
 
   // Filter categories: in fishes mode hide plants; in plants mode only show plants.
