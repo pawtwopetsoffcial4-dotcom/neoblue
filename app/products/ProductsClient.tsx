@@ -417,18 +417,31 @@ function ProductsPageContent() {
     document.title = mode === 'fishes' ? "Fishes & Live Stock | NeoBlue" : "Aquarium Plants & Moss | NeoBlue";
   }, [mode]);
 
-  const fetchProducts = async () => {
+  const fetchProducts = async (retryCount = 0) => {
     try {
-      setIsLoading(true);
-      setLoadError(null);
+      if (retryCount === 0) {
+        setIsLoading(true);
+        setLoadError(null);
+      }
       const response = await fetch('/api/products', { cache: 'no-store' });
       if (!response.ok) throw new Error('Failed to load products');
       const data = await response.json();
-      setProducts(extractProducts(data));
+      const extracted = extractProducts(data);
+      if (extracted.length === 0 && retryCount < 2) {
+        // If initial load returned empty (e.g. database warm-up), auto-retry seamlessly
+        setTimeout(() => fetchProducts(retryCount + 1), 1000);
+        return;
+      }
+      setProducts(extracted);
+      setLoadError(null);
+      setIsLoading(false);
     } catch {
+      if (retryCount < 2) {
+        setTimeout(() => fetchProducts(retryCount + 1), 1200);
+        return;
+      }
       setProducts([]);
       setLoadError(mode === 'fishes' ? 'Unable to load fishes right now. Please try again.' : 'Unable to load plants right now. Please try again.');
-    } finally {
       setIsLoading(false);
     }
   };

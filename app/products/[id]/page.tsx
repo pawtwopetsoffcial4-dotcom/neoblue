@@ -118,51 +118,77 @@ export default async function ProductDetailPage({ params }: ProductDetailProps) 
   let recommendations: any[] = [];
   let allProducts: any[] = [];
 
-  try {
-    await connectDB();
+  await connectDB();
 
-    // 1. Fetch Product
-    const dbProduct = await Product.findById(id).populate('vendorId', 'name email logo slug').lean() as any;
-    if (!dbProduct) {
-      notFound();
-    }
-    
-    // Normalize ObjectID fields to string to avoid serialization warnings
-    product = JSON.parse(JSON.stringify(dbProduct));
+  // 1. Fetch Product
+  const dbProduct = (await Product.findById(id)
+    .populate('vendorId', 'name email logo slug')
+    .lean()) as any;
 
-    // 2. Fetch Reviews from MongoDB
-    const dbReviews = await Review.find({ productId: id }).sort({ createdAt: -1 }).lean();
-    reviews = JSON.parse(JSON.stringify(dbReviews));
+  if (!dbProduct) {
+    notFound();
+  }
 
-    // 3. Fetch Recommendations (from the same vendor)
-    const rawVendorId = dbProduct.vendorId?._id || dbProduct.vendorId;
-    let dbRecommendations: any[] = [];
-    if (rawVendorId) {
-      dbRecommendations = await Product.find({ 
-        _id: { $ne: id },
-        vendorId: rawVendorId,
-        approvalStatus: 'approved',
-        inStock: true
-      }).populate('vendorId', 'name email logo slug').limit(10).lean();
-    }
-    
-    // If the vendor has no other active products, fallback to same category
-    if (dbRecommendations.length === 0) {
-      dbRecommendations = await Product.find({ 
+  // Normalize ObjectID fields to plain JSON
+  product = JSON.parse(JSON.stringify(dbProduct));
+
+  // 2. Fetch Reviews, Recommendations, and Compatibility Candidates in parallel
+  // Secondary queries are isolated so a failure in any of them will NEVER cause a 404 or page crash.
+  const rawVendorId = dbProduct.vendorId?._id || dbProduct.vendorId;
+
+  const [reviewsRes, recsRes, allProdsRes] = await Promise.allSettled([
+    Review.find({ productId: id }).sort({ createdAt: -1 }).limit(20).lean(),
+    rawVendorId
+      ? Product.find({
+          _id: { $ne: id },
+          vendorId: rawVendorId,
+          approvalStatus: 'approved',
+          inStock: true,
+        })
+          .populate('vendorId', 'name email logo slug')
+          .limit(10)
+          .lean()
+      : Product.find({
+          _id: { $ne: id },
+          category: dbProduct.category,
+          approvalStatus: 'approved',
+          inStock: true,
+        })
+          .populate('vendorId', 'name email logo slug')
+          .limit(10)
+          .lean(),
+    Product.find({ approvalStatus: 'approved', inStock: true })
+      .select('title scientific category temperament')
+      .limit(150)
+      .lean(),
+  ]);
+
+  if (reviewsRes.status === 'fulfilled' && reviewsRes.value) {
+    reviews = JSON.parse(JSON.stringify(reviewsRes.value));
+  }
+
+  if (recsRes.status === 'fulfilled' && recsRes.value) {
+    const rawRecs = recsRes.value as any[];
+    if (rawRecs.length > 0) {
+      recommendations = JSON.parse(JSON.stringify(rawRecs));
+    } else {
+      // If vendor has no other active products, try same category as fallback
+      const catRecs = await Product.find({
         _id: { $ne: id },
         category: dbProduct.category,
         approvalStatus: 'approved',
-        inStock: true
-      }).populate('vendorId', 'name email logo slug').limit(10).lean();
+        inStock: true,
+      })
+        .populate('vendorId', 'name email logo slug')
+        .limit(10)
+        .lean()
+        .catch(() => []);
+      recommendations = JSON.parse(JSON.stringify(catRecs));
     }
-    recommendations = JSON.parse(JSON.stringify(dbRecommendations));
+  }
 
-    // 4. Fetch All Products (compact fields only for compatibility checker species search)
-    const dbAllProducts = await Product.find({ approvalStatus: 'approved', inStock: true }).select('title scientific category temperament').lean();
-    allProducts = JSON.parse(JSON.stringify(dbAllProducts));
-
-  } catch {
-    notFound();
+  if (allProdsRes.status === 'fulfilled' && allProdsRes.value) {
+    allProducts = JSON.parse(JSON.stringify(allProdsRes.value));
   }
 
   // Format reviews for schema
