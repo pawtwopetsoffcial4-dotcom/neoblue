@@ -84,6 +84,7 @@ export async function POST(request: NextRequest) {
     );
   } catch (error: any) {
     console.error('Login error:', error);
-    return createErrorResponse(error.message || 'Login failed', 500);
+    const status = error.code === 'DB_CONNECTIVITY_UNAVAILABLE' || error.code === 'DB_CONNECTIVITY_TIMEOUT' ? 503 : 500;
+    return createErrorResponse(error.message || 'Login failed', status);
   }
 }
