@@ -127,8 +127,8 @@ export async function connectDB() {
 
 declare global {
   var mongoose: {
-    conn: typeof mongoose | null;
-    promise: Promise<typeof mongoose> | null;
+    conn: any;
+    promise: Promise<any> | null;
   };
   var employeeIndexesCleaned: boolean | undefined;
 }

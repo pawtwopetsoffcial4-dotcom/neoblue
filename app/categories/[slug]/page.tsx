@@ -2,7 +2,7 @@ import React from 'react';
 import { connectDB } from '@/lib/db';
 import Product from '@/lib/models/Product';
 import StoreConfig from '@/lib/models/StoreConfig';
-import { PRODUCT_CATEGORIES, getCategoryImage } from '@/lib/catalog';
+import { PRODUCT_CATEGORIES, getCategoryImage, getSubcategoriesForCategory } from '@/lib/catalog';
 import { resolveOgImageUrl, buildCollectionPageJsonLd, buildBreadcrumbJsonLd } from '@/lib/utils/seo';
 import type { Metadata } from 'next';
 import CategoryDetailClient from './CategoryDetailClient';
