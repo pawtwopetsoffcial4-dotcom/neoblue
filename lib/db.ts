@@ -31,9 +31,19 @@ export const isDatabaseConnectivityError = (error: any) =>
   String(error?.message || '').includes('timed out') ||
   String(error?.message || '').includes('MongoDB SRV lookup failed');
 
+function getEnv(key: string): string | undefined {
+  if (process.env[key]) return process.env[key];
+  try {
+    const { getCloudflareContext } = require('@opennextjs/cloudflare');
+    const ctx = getCloudflareContext();
+    if (ctx?.env && ctx.env[key]) return String(ctx.env[key]);
+  } catch {}
+  return undefined;
+}
+
 function getMongoUris() {
-  const direct = process.env.MONGODB_URI_DIRECT?.trim();
-  const srv = process.env.MONGODB_URI?.trim();
+  const direct = getEnv('MONGODB_URI_DIRECT')?.trim();
+  const srv = getEnv('MONGODB_URI')?.trim();
 
   if (!direct && !srv) {
     const error = new Error(
@@ -127,7 +137,7 @@ export async function connectDB() {
     connectivityState.nextRetryAt = 0;
     if (!global.employeeIndexesCleaned) {
       global.employeeIndexesCleaned = true;
-      dropLegacyEmployeeIndexes().catch(() => {});
+      await dropLegacyEmployeeIndexes().catch(() => {});
     }
   } catch (e) {
     cached.promise = null;

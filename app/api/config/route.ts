@@ -46,9 +46,37 @@ export async function GET() {
       marqueeLink: payload.marqueeLink ?? '/products',
     });
   } catch (error) {
-    console.error('Config GET error:', error);
-    const message = error instanceof Error ? error.message : 'Error fetching config';
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error('Config GET error (falling back to defaults):', error);
+    return NextResponse.json({
+      heroSlides: DEFAULT_HERO_SLIDES,
+      heroSlidesFishes: DEFAULT_FISHES_HERO_SLIDES,
+      heroSlidesPlants: DEFAULT_PLANTS_HERO_SLIDES,
+      facebookPixelId: process.env.FACEBOOK_PIXEL_ID || process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID || '1689531238818724',
+      googleAnalyticsId: process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || process.env.GA_MEASUREMENT_ID || process.env.NEXT_PUBLIC_GA_ID || '',
+      minOrderAmount: 149,
+      paymentGateway: 'razorpay',
+      razorpayKeyId: process.env.RAZORPAY_KEY_ID || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || '',
+      razorpayKeySecret: process.env.RAZORPAY_KEY_SECRET || '',
+      categories: PRODUCT_CATEGORIES,
+      excludedCategories: [],
+      subcategories: PRODUCT_CATALOG,
+      marqueeText: 'Next shipping on Monday! Order fast for fastest delivery.',
+      marqueeEnabled: true,
+      marqueeLink: '/products',
+      offerBadge: 'Limited Time Offer',
+      offerTitle: 'Save Up To 35% On\nPremium Aquatic Stock',
+      offerDescription: 'Weekend special: handpicked marine and freshwater species, overnight transit care, and live-arrival protection included.',
+      offerButtonText: 'Shop The Offer',
+      offerButtonLink: '/products',
+      stat1Value: '500+',
+      stat1Label: 'Species Curated',
+      stat2Value: '24h',
+      stat2Label: 'Priority Dispatch',
+      stat3Value: '100%',
+      stat3Label: 'Live Arrival Cover',
+      freeShippingEnabled: true,
+      freeShippingMinAmount: 599,
+    });
   }
 }
 
