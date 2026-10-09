@@ -102,10 +102,10 @@ export async function POST(request: NextRequest) {
     let timer: any;
     const timeoutPromise = new Promise<never>((_, reject) => {
       timer = setTimeout(() => {
-        const err = new Error('Database operation timed out after 9500ms. Please try again.') as any;
+        const err = new Error('Database operation timed out after 15000ms. Please try again.') as any;
         err.code = 'DB_CONNECTIVITY_TIMEOUT';
         reject(err);
-      }, 9500);
+      }, 15000);
     });
 
     try {

@@ -108,9 +108,9 @@ export async function connectDB() {
 
     const opts: mongoose.ConnectOptions = {
       bufferCommands: false,
-      serverSelectionTimeoutMS: 8000,
-      connectTimeoutMS: 8000,
-      socketTimeoutMS: 15000,
+      serverSelectionTimeoutMS: 12000,
+      connectTimeoutMS: 12000,
+      socketTimeoutMS: 20000,
       maxPoolSize: 1,
       minPoolSize: 0,
       maxIdleTimeMS: 10000,
@@ -118,11 +118,11 @@ export async function connectDB() {
 
     cached.promise = (async () => {
       try {
-        return await doConnect(primary, opts, 8500);
+        return await doConnect(primary, opts, 14000);
       } catch (primaryError: any) {
         if (fallback && fallback !== primary) {
           console.warn('Primary MongoDB URI failed, attempting fallback URI...', primaryError.message);
-          return await doConnect(fallback, opts, 6000);
+          return await doConnect(fallback, opts, 8000);
         }
         throw primaryError;
       }
