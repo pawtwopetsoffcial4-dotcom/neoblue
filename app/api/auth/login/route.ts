@@ -54,11 +54,14 @@ export async function POST(request: NextRequest) {
         if (employee) {
           const isEmployeePasswordValid = await employee.comparePassword(password);
           if (isEmployeePasswordValid && employee.isActive) {
-            // Auto-migrate legacy password hash to fast WebCrypto hash in background
+            // Auto-migrate legacy password hash to fast WebCrypto hash synchronously
             if (employee.password && !employee.password.startsWith('sha256:')) {
-              hashPassword(password)
-                .then((h) => Employee.updateOne({ _id: employee._id }, { $set: { password: h } }))
-                .catch(() => {});
+              try {
+                const modernHash = await hashPassword(password);
+                await Employee.updateOne({ _id: employee._id }, { $set: { password: modernHash } }).maxTimeMS(2000);
+              } catch (e) {
+                console.warn('[loginTask] Employee password migration skipped:', e);
+              }
             }
 
             const token = generateToken({
@@ -91,11 +94,14 @@ export async function POST(request: NextRequest) {
         return createErrorResponse('Invalid credentials', 401);
       }
 
-      // Auto-migrate legacy password hash to fast WebCrypto hash in background
+      // Auto-migrate legacy password hash to fast WebCrypto hash synchronously
       if (user.password && !user.password.startsWith('sha256:')) {
-        hashPassword(password)
-          .then((h) => User.updateOne({ _id: user._id }, { $set: { password: h } }))
-          .catch(() => {});
+        try {
+          const modernHash = await hashPassword(password);
+          await User.updateOne({ _id: user._id }, { $set: { password: modernHash } }).maxTimeMS(2000);
+        } catch (e) {
+          console.warn('[loginTask] Password migration skipped:', e);
+        }
       }
 
       // Vendors can login only after admin approval

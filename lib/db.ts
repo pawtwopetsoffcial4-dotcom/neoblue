@@ -123,7 +123,7 @@ export async function connectDB() {
 
     // Cached socket was dead or frozen; clean up and reconnect cleanly
     try {
-      await mongoose.connection.close(false);
+      await mongoose.disconnect();
     } catch {}
     cached.conn = null;
     cached.promise = null;
