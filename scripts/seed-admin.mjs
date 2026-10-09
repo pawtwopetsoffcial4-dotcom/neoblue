@@ -36,11 +36,26 @@ const User = mongoose.models.User || mongoose.model('User', userSchema);
 const ADMIN_EMAIL = 'demoadmin@gmail.com';
 const ADMIN_PASSWORD = 'demoadminpass';
 
+function bytesToHex(bytes) {
+  return Array.from(bytes).map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function hashPassword(password) {
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const enc = new TextEncoder();
+  const passBytes = enc.encode(password);
+  const combined = new Uint8Array(salt.length + passBytes.length);
+  combined.set(salt, 0);
+  combined.set(passBytes, salt.length);
+  const digest = await crypto.subtle.digest('SHA-256', combined);
+  return `sha256:${bytesToHex(salt)}:${bytesToHex(new Uint8Array(digest))}`;
+}
+
 async function seedAdmin() {
   try {
     await mongoose.connect(MONGODB_URI);
 
-    const hashedPassword = await bcrypt.hash(ADMIN_PASSWORD, 10);
+    const hashedPassword = await hashPassword(ADMIN_PASSWORD);
 
     const updatedAdmin = await User.findOneAndUpdate(
       { email: ADMIN_EMAIL },

@@ -114,11 +114,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
 
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Signup failed');
+        let errMessage = 'Signup failed';
+        try {
+          const data: any = await response.json();
+          errMessage = data.error || data.message || errMessage;
+        } catch {
+          errMessage = response.status === 503
+            ? 'Server is temporarily unavailable. Please retry in a moment.'
+            : `Request failed with status ${response.status}. Please try again.`;
+        }
+        throw new Error(errMessage);
       }
 
-      const data = await response.json();
+      let data: any;
+      try {
+        data = await response.json();
+      } catch {
+        throw new Error('Invalid response from server. Please try again.');
+      }
       setToken(data.token);
       setUser(data.user);
       localStorage.setItem('authToken', data.token);
@@ -145,11 +158,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
 
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Login failed');
+        let errMessage = 'Login failed';
+        try {
+          const data: any = await response.json();
+          errMessage = data.error || data.message || errMessage;
+        } catch {
+          errMessage = response.status === 503
+            ? 'Server is temporarily busy or reconnecting. Please retry in a few seconds.'
+            : `Login failed with status ${response.status}. Please try again.`;
+        }
+        throw new Error(errMessage);
       }
 
-      const data = await response.json();
+      let data: any;
+      try {
+        data = await response.json();
+      } catch {
+        throw new Error('Invalid response from server. Please try again.');
+      }
       setToken(data.token);
       setUser(data.user);
       localStorage.setItem('authToken', data.token);
@@ -176,11 +202,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
 
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Social login failed');
+        let errMessage = 'Social login failed';
+        try {
+          const data: any = await response.json();
+          errMessage = data.error || data.message || errMessage;
+        } catch {
+          errMessage = response.status === 503
+            ? 'Server is temporarily unavailable. Please retry in a moment.'
+            : `Social login failed with status ${response.status}. Please try again.`;
+        }
+        throw new Error(errMessage);
       }
 
-      const data = await response.json();
+      let data: any;
+      try {
+        data = await response.json();
+      } catch {
+        throw new Error('Invalid response from server. Please try again.');
+      }
       setToken(data.token);
       setUser(data.user);
       localStorage.setItem('authToken', data.token);

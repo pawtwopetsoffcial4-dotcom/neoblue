@@ -10,6 +10,9 @@ import './models/BlogAnalytics';
 import './models/Review';
 import { dropLegacyEmployeeIndexes } from './models/Employee';
 
+mongoose.set('autoIndex', false);
+mongoose.set('autoCreate', false);
+
 let cached = global.mongoose;
 
 if (!cached) {

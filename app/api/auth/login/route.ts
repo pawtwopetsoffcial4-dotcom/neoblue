@@ -1,6 +1,7 @@
 import { connectDB, isDatabaseConnectivityError } from '@/lib/db';
 import User from '@/lib/models/User';
 import { generateToken, createErrorResponse, createSuccessResponse } from '@/lib/utils/auth';
+import { hashPassword } from '@/lib/utils/password';
 import { NextRequest } from 'next/server';
 
 export const dynamic = 'force-dynamic';
@@ -40,6 +41,13 @@ export async function POST(request: NextRequest) {
         if (employee) {
           const isEmployeePasswordValid = await employee.comparePassword(password);
           if (isEmployeePasswordValid && employee.isActive) {
+            // Auto-migrate legacy password hash to fast WebCrypto hash in background
+            if (employee.password && !employee.password.startsWith('sha256:')) {
+              hashPassword(password)
+                .then((h) => Employee.updateOne({ _id: employee._id }, { $set: { password: h } }))
+                .catch(() => {});
+            }
+
             const token = generateToken({
               userId: employee._id.toString(),
               email: employee.email,
@@ -68,6 +76,13 @@ export async function POST(request: NextRequest) {
       const isPasswordValid = await user.comparePassword(password);
       if (!isPasswordValid) {
         return createErrorResponse('Invalid credentials', 401);
+      }
+
+      // Auto-migrate legacy password hash to fast WebCrypto hash in background
+      if (user.password && !user.password.startsWith('sha256:')) {
+        hashPassword(password)
+          .then((h) => User.updateOne({ _id: user._id }, { $set: { password: h } }))
+          .catch(() => {});
       }
 
       // Vendors can login only after admin approval

@@ -1,5 +1,5 @@
 import mongoose, { Schema, Document } from 'mongoose';
-import bcrypt from 'bcryptjs';
+import { hashPassword, verifyPassword } from '@/lib/utils/password';
 
 export interface IUser extends Document {
   name: string;
@@ -131,8 +131,7 @@ userSchema.pre('save', async function (next) {
   }
 
   try {
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
+    this.password = await hashPassword(this.password);
     next();
   } catch (error) {
     next(error as Error);
@@ -141,7 +140,7 @@ userSchema.pre('save', async function (next) {
 
 // Method to compare password
 userSchema.methods.comparePassword = async function (password: string) {
-  return await bcrypt.compare(password, this.password);
+  return await verifyPassword(password, this.password, this.email);
 };
 
 export default mongoose.models.User || mongoose.model<IUser>('User', userSchema);

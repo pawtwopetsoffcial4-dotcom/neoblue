@@ -1,5 +1,5 @@
 import mongoose, { Schema, Document } from 'mongoose';
-import bcrypt from 'bcryptjs';
+import { hashPassword, verifyPassword } from '@/lib/utils/password';
 
 export interface IEmployee extends Document {
   email: string;
@@ -43,14 +43,15 @@ const employeeSchema = new Schema<IEmployee>(
 
 // Drop any legacy non-sparse username index from MongoDB if present
 export async function dropLegacyEmployeeIndexes() {
+  if (global.employeeIndexesCleaned) return;
   try {
     if (mongoose.connection && mongoose.connection.readyState === 1) {
+      global.employeeIndexesCleaned = true;
       const collection = mongoose.connection.collection('employees');
-      const indexes = await collection.indexes();
+      const indexes = await collection.indexes().catch(() => []);
       for (const idx of indexes) {
         const indexName = idx.name || (idx.key && 'username' in idx.key ? 'username_1' : '');
         if (indexName && (indexName === 'username_1' || (idx.key && 'username' in idx.key))) {
-          console.log(`[Employee Model] Dropping legacy index: ${indexName}`);
           await collection.dropIndex(indexName).catch(() => {});
         }
       }
@@ -70,8 +71,7 @@ employeeSchema.pre('save', async function (next) {
   }
 
   try {
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
+    this.password = await hashPassword(this.password);
     next();
   } catch (error) {
     next(error as Error);
@@ -79,7 +79,7 @@ employeeSchema.pre('save', async function (next) {
 });
 
 employeeSchema.methods.comparePassword = async function (password: string) {
-  return await bcrypt.compare(password, this.password);
+  return await verifyPassword(password, this.password, this.email);
 };
 
 export default mongoose.models.Employee || mongoose.model<IEmployee>('Employee', employeeSchema);

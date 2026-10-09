@@ -11,7 +11,8 @@ export async function GET() {
     const duration = Date.now() - start;
     const isReady = mongoose.connection.readyState === 1;
     const dbName = mongoose.connection.db?.databaseName;
-    const userCount = await mongoose.connection.db?.collection('users').countDocuments().catch(() => -1);
+    const usersCol = mongoose.connection.db?.collection('users');
+    const userCount = await usersCol?.countDocuments().catch(() => -1);
 
     return NextResponse.json({
       status: 'ok',
