@@ -20,7 +20,7 @@ export interface MediaTransformOptions {
 export const CDN_URL_ENDPOINT = (
   process.env.NEXT_PUBLIC_CDN_URL_ENDPOINT ||
   process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT ||
-  'https://ik.imagekit.io/dsh4kn2d6'
+  ''
 ).replace(/\/+$/, '');
 
 /**
@@ -49,10 +49,6 @@ export function isCloudinaryUrl(url?: string | null): boolean {
 
 /**
  * Extracts the canonical storage key from a full CDN URL or relative path.
- * Examples:
- *   "https://ik.imagekit.io/dsh4kn2d6/products/betta.jpg?tr=w-500" -> "products/betta.jpg"
- *   "https://res.cloudinary.com/djoklzpse/image/upload/v1782/products/betta.jpg" -> "products/betta.jpg"
- *   "products/betta.jpg" -> "products/betta.jpg"
  */
 export function extractStorageKey(urlOrKey?: string | null): string {
   if (!urlOrKey || typeof urlOrKey !== 'string') return '';
@@ -67,9 +63,8 @@ export function extractStorageKey(urlOrKey?: string | null): string {
   if (isImageKitUrl(trimmed)) {
     try {
       const parsed = new URL(trimmed);
-      // Pathname usually: /dsh4kn2d6/products/sample.jpg or /products/sample.jpg
       const segments = parsed.pathname.split('/').filter(Boolean);
-      if (segments.length > 1 && (segments[0] === 'dsh4kn2d6' || segments[0].length < 15)) {
+      if (segments.length > 1 && segments[0].length < 15) {
         return segments.slice(1).join('/');
       }
       return segments.join('/');

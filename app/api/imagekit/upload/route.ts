@@ -5,17 +5,13 @@ import { extractStorageKey, getMediaUrl } from '@/lib/media';
 
 export const dynamic = 'force-dynamic';
 
-function cleanKey(raw: string | undefined, defaultVal: string): string {
-  if (!raw || typeof raw !== 'string') return defaultVal;
+function cleanKey(raw: string | undefined): string {
+  if (!raw || typeof raw !== 'string') return '';
   let val = raw.trim();
   val = val.replace(/^["']|["']$/g, '').trim();
   val = val.replace(/^(public|private)\s*key\s*[:=]?\s*/i, '');
-  return val.trim() || defaultVal;
+  return val.trim();
 }
-
-const DEFAULT_PUBLIC_KEY = 'public_PpR/ru4+6djczlUeXQ+rpde5y70=';
-const DEFAULT_PRIVATE_KEY = 'private_K8VM3Nlmg88eG3RukH8AthQtmkw=';
-const DEFAULT_URL_ENDPOINT = 'https://ik.imagekit.io/dsh4kn2d6';
 
 export async function POST(request: NextRequest) {
   try {
@@ -48,13 +44,11 @@ export async function POST(request: NextRequest) {
 
     // 2. Upload to ImageKit for on-the-fly transformations & CDN edge delivery
     const publicKey = cleanKey(
-      process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY || process.env.IMAGEKIT_PUBLIC_KEY,
-      DEFAULT_PUBLIC_KEY
+      process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY || process.env.IMAGEKIT_PUBLIC_KEY
     );
-    const privateKey = cleanKey(process.env.IMAGEKIT_PRIVATE_KEY, DEFAULT_PRIVATE_KEY);
+    const privateKey = cleanKey(process.env.IMAGEKIT_PRIVATE_KEY);
     const urlEndpoint = cleanKey(
-      process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT || process.env.IMAGEKIT_URL_ENDPOINT,
-      DEFAULT_URL_ENDPOINT
+      process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT || process.env.IMAGEKIT_URL_ENDPOINT
     );
 
     const imagekit = new ImageKit({

@@ -21,19 +21,24 @@ export async function generateStaticParams() {
 type Props = { params: Promise<{ vendor: string }> };
 
 export async function generateMetadata({ params }: Props) {
-  await connectDB();
   const { vendor: identifier } = await params;
-  
-  let vendor: any = await User.findOne({ slug: identifier }).select('name logo').lean();
-  if (!vendor) {
-    try {
-      const { Types } = await import('mongoose');
-      if (Types.ObjectId.isValid(identifier)) {
-        vendor = await User.findById(identifier).select('name logo').lean();
+  let vendor: any = null;
+  try {
+    await connectDB();
+    
+    vendor = await User.findOne({ slug: identifier }).select('name logo').lean();
+    if (!vendor) {
+      try {
+        const { Types } = await import('mongoose');
+        if (Types.ObjectId.isValid(identifier)) {
+          vendor = await User.findById(identifier).select('name logo').lean();
+        }
+      } catch {
+        vendor = null;
       }
-    } catch {
-      vendor = null;
     }
+  } catch {
+    vendor = null;
   }
 
   const titleText = vendor ? `${vendor.name} Storefront — Live Fish & Plants` : 'Breeder Storefront';

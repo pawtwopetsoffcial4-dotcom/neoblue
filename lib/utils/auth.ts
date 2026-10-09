@@ -47,7 +47,10 @@ export async function verifyFirebaseIdToken(token: string): Promise<{ email: str
       return null;
     }
 
-    const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'neoblue-72119';
+    const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
+    if (!projectId) {
+      return null;
+    }
 
     const verified = jwt.verify(token, cert, {
       algorithms: ['RS256'],

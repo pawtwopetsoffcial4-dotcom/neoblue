@@ -21,7 +21,10 @@ export async function POST(request: NextRequest) {
       return createErrorResponse('Product title is required', 400);
     }
 
-    const apiKey = process.env.GEMINI_API_KEY || 'AQ.Ab8RN6LIYZ9ff4pf1yS5ZVy0rpD2ReikAiX-wtb96iBVyM0CAg';
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      return createErrorResponse('GEMINI_API_KEY is not configured', 500);
+    }
     const client = new GoogleGenAI({ apiKey });
 
     const isAccessory = category === 'Accessories' || (category && category.toLowerCase().includes('accessor'));

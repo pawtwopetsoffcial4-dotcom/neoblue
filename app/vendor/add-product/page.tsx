@@ -72,8 +72,6 @@ export default function VendorAddProductPage() {
     careHidingSpots: '',
   });
 
-  const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'neoblue_products';
-
   const getVarietiesForCategory = (cat: string) => {
     const configSubs = dbSubcategories[cat] || [];
     const staticSubs = getSubcategoriesForCategory(cat);

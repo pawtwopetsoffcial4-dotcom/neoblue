@@ -183,9 +183,8 @@ npm run build
 Create `.env.local`:
 ```
 MONGODB_URI=mongodb://localhost:27017/neoblue
-JWT_SECRET=your_secret_key
-RAZORPAY_KEY_ID=rzp_test_key
-RAZORPAY_KEY_SECRET=rzp_test_secret
+RAZORPAY_KEY_ID=your_razorpay_key_id
+RAZORPAY_KEY_SECRET=your_razorpay_key_secret
 ```
 
 ### Testing Auth

@@ -34,15 +34,16 @@ function getEnv(key: string): string | undefined {
   return process.env[key];
 }
 
-const DEFAULT_DIRECT_URI =
-  'mongodb://pariharsachin5002_db_user:8668369314@ac-fbnjtgg-shard-00-02.rjpvr9t.mongodb.net:27017,ac-fbnjtgg-shard-00-00.rjpvr9t.mongodb.net:27017,ac-fbnjtgg-shard-00-01.rjpvr9t.mongodb.net:27017/test?ssl=true&replicaSet=atlas-hivqj1-shard-0&authSource=admin&appName=Cluster0';
-
 function getMongoUris() {
-  const srv = getEnv('MONGODB_URI')?.trim();
   const direct = getEnv('MONGODB_URI_DIRECT')?.trim();
+  const srv = getEnv('MONGODB_URI')?.trim();
 
-  const primary = srv || direct || DEFAULT_DIRECT_URI;
-  const fallback = direct && direct !== primary ? direct : DEFAULT_DIRECT_URI;
+  const primary = direct || srv || '';
+  const fallback = srv && srv !== primary ? srv : direct || '';
+
+  if (!primary) {
+    throw new Error('FATAL CONFIGURATION ERROR: Neither MONGODB_URI nor MONGODB_URI_DIRECT is defined.');
+  }
 
   return { primary, fallback };
 }
@@ -102,13 +103,13 @@ export async function connectDB(forceFresh = false) {
 
     const opts: mongoose.ConnectOptions = {
       bufferCommands: false,
-      serverSelectionTimeoutMS: 6000,
-      connectTimeoutMS: 6000,
-      socketTimeoutMS: 6000,
-      waitQueueTimeoutMS: 2000,
-      maxPoolSize: 10,
+      serverSelectionTimeoutMS: 8000,
+      connectTimeoutMS: 8000,
+      socketTimeoutMS: 8000,
+      waitQueueTimeoutMS: 10000,
+      maxPoolSize: 20,
       minPoolSize: 0,
-      maxIdleTimeMS: 8000,
+      maxIdleTimeMS: 10000,
     };
 
     cached.promise = (async () => {
@@ -117,6 +118,9 @@ export async function connectDB(forceFresh = false) {
       } catch (primaryError: any) {
         if (fallback && fallback !== primary) {
           console.warn('Primary MongoDB URI failed, attempting fallback URI...', primaryError.message);
+          try {
+            await mongoose.disconnect();
+          } catch {}
           return await doConnect(fallback, opts, 6000);
         }
         throw primaryError;
