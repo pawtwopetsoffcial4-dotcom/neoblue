@@ -31,45 +31,18 @@ export const isDatabaseConnectivityError = (error: any) =>
   String(error?.message || '').includes('MongoDB SRV lookup failed');
 
 function getEnv(key: string): string | undefined {
-  if (process.env[key]) return process.env[key];
-  try {
-    const { getCloudflareContext } = require('@opennextjs/cloudflare');
-    const ctx = getCloudflareContext();
-    if (ctx?.env && ctx.env[key]) return String(ctx.env[key]);
-  } catch {}
-  return undefined;
+  return process.env[key];
 }
 
 const DEFAULT_DIRECT_URI =
   'mongodb://pariharsachin5002_db_user:8668369314@ac-fbnjtgg-shard-00-02.rjpvr9t.mongodb.net:27017,ac-fbnjtgg-shard-00-00.rjpvr9t.mongodb.net:27017,ac-fbnjtgg-shard-00-01.rjpvr9t.mongodb.net:27017/test?ssl=true&replicaSet=atlas-hivqj1-shard-0&authSource=admin&appName=Cluster0';
 
 function getMongoUris() {
-  let direct = getEnv('MONGODB_URI_DIRECT')?.trim();
   const srv = getEnv('MONGODB_URI')?.trim();
+  const direct = getEnv('MONGODB_URI_DIRECT')?.trim();
 
-  // If direct URI is not explicitly provided, convert known SRV cluster to direct replica set URI
-  if (!direct && srv) {
-    if (srv.includes('rjpvr9t.mongodb.net')) {
-      const match = srv.match(/mongodb\+srv:\/\/([^:]+):([^@]+)@/);
-      if (match) {
-        const user = match[1];
-        const pass = match[2];
-        direct = `mongodb://${user}:${pass}@ac-fbnjtgg-shard-00-02.rjpvr9t.mongodb.net:27017,ac-fbnjtgg-shard-00-00.rjpvr9t.mongodb.net:27017,ac-fbnjtgg-shard-00-01.rjpvr9t.mongodb.net:27017/test?ssl=true&replicaSet=atlas-hivqj1-shard-0&authSource=admin&appName=Cluster0`;
-      } else {
-        direct = DEFAULT_DIRECT_URI;
-      }
-    } else if (!srv.startsWith('mongodb+srv://')) {
-      direct = srv;
-    }
-  }
-
-  if (!direct && !srv) {
-    direct = DEFAULT_DIRECT_URI;
-  }
-
-  // Never use mongodb+srv:// on Cloudflare Workers because dns.resolveSrv hangs in Workers runtime
-  const primary = direct || DEFAULT_DIRECT_URI;
-  const fallback = srv && !srv.startsWith('mongodb+srv://') && srv !== primary ? srv : null;
+  const primary = srv || direct || DEFAULT_DIRECT_URI;
+  const fallback = direct && direct !== primary ? direct : DEFAULT_DIRECT_URI;
 
   return { primary, fallback };
 }
@@ -79,7 +52,7 @@ async function doConnect(uri: string, opts: mongoose.ConnectOptions, timeoutMs =
   const timeoutPromise = new Promise<never>((_, reject) => {
     timer = setTimeout(() => {
       const err = new Error(
-        `MongoDB connection timed out after ${timeoutMs}ms. In Cloudflare Workers, SRV lookup (mongodb+srv://) is not supported; set MONGODB_URI_DIRECT in Cloudflare Settings > Variables and Secrets, and verify MongoDB Atlas Network Access allows 0.0.0.0/0.`
+        `MongoDB connection timed out after ${timeoutMs}ms. Verify MONGODB_URI and MongoDB Atlas Network Access whitelist.`
       ) as Error & { code?: string };
       err.code = 'DB_CONNECTIVITY_TIMEOUT';
       reject(err);
@@ -87,7 +60,7 @@ async function doConnect(uri: string, opts: mongoose.ConnectOptions, timeoutMs =
   });
 
   const connectPromise = mongoose.connect(uri, opts);
-  // Prevent unhandled promise rejection in Cloudflare Workers isolate if timeout fires first
+  // Prevent unhandled promise rejection if timeout fires first
   connectPromise.catch((err) => {
     console.warn('[connectDB background]', err?.message || err);
   });

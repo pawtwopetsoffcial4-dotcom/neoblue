@@ -36,7 +36,7 @@ export async function hashWithSalt(password: string, salt: Uint8Array): Promise<
 
 /**
  * Fast, secure password hasher using native WebCrypto SHA-256 + 16-byte random salt.
- * Executes in < 0.1ms CPU time, perfectly compliant with Cloudflare Workers 10ms CPU limits.
+ * Executes in < 0.1ms CPU time for high performance.
  */
 export async function hashPassword(password: string): Promise<string> {
   const salt = crypto.getRandomValues(new Uint8Array(16));

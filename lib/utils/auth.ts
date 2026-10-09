@@ -2,14 +2,7 @@ import jwt from 'jsonwebtoken';
 import { NextRequest, NextResponse } from 'next/server';
 
 function getJwtSecret(): string {
-  let secret = process.env.JWT_SECRET;
-  if (!secret) {
-    try {
-      const { getCloudflareContext } = require('@opennextjs/cloudflare');
-      const ctx = getCloudflareContext();
-      if (ctx?.env?.JWT_SECRET) secret = String(ctx.env.JWT_SECRET);
-    } catch {}
-  }
+  const secret = process.env.JWT_SECRET;
   if (!secret) {
     throw new Error('FATAL CONFIGURATION ERROR: JWT_SECRET environment variable is missing.');
   }

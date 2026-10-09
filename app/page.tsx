@@ -59,7 +59,7 @@ async function getHomepageData() {
       return { productsRaw, combosRaw, configRaw };
     };
 
-    // Strict 2000ms timeout prevents Cloudflare Worker from hanging or exceeding 10ms CPU
+    // Strict 2000ms timeout ensures fast response times during ISR / SSR generation
     const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 2000));
     const result = await Promise.race([fetchDb(), timeoutPromise]);
 

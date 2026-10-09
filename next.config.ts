@@ -5,11 +5,6 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  outputFileTracingIncludes: {
-    '*': [
-      './node_modules/@opentelemetry/api/**/*',
-    ],
-  },
   images: {
     unoptimized: true,
     remotePatterns: [
