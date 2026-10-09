@@ -102,10 +102,10 @@ export async function POST(request: NextRequest) {
     let timer: any;
     const timeoutPromise = new Promise<never>((_, reject) => {
       timer = setTimeout(() => {
-        const err = new Error('Database operation timed out. Please try again.') as any;
+        const err = new Error('Database operation timed out after 9500ms. Please try again.') as any;
         err.code = 'DB_CONNECTIVITY_TIMEOUT';
         reject(err);
-      }, 7500);
+      }, 9500);
     });
 
     try {
@@ -120,9 +120,7 @@ export async function POST(request: NextRequest) {
       error?.code === 'DB_CONNECTIVITY_TIMEOUT' ||
       isDatabaseConnectivityError(error);
     const status = isConnErr ? 503 : 500;
-    const message = isConnErr
-      ? 'Database connectivity issue. Please try again in a few seconds.'
-      : (error.message || 'Login failed');
+    const message = error?.message || 'Login failed';
     return createErrorResponse(message, status);
   }
 }

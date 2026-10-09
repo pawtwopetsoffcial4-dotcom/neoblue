@@ -35,7 +35,7 @@ function getEnv(key: string): string | undefined {
 }
 
 const DEFAULT_DIRECT_URI =
-  'mongodb://pariharsachin5002_db_user:8668369314@ac-fbnjtgg-shard-00-00.rjpvr9t.mongodb.net:27017,ac-fbnjtgg-shard-00-01.rjpvr9t.mongodb.net:27017,ac-fbnjtgg-shard-00-02.rjpvr9t.mongodb.net:27017/?ssl=true&replicaSet=atlas-hivqj1-shard-0&authSource=admin&appName=Cluster0';
+  'mongodb://pariharsachin5002_db_user:8668369314@ac-fbnjtgg-shard-00-02.rjpvr9t.mongodb.net:27017,ac-fbnjtgg-shard-00-00.rjpvr9t.mongodb.net:27017,ac-fbnjtgg-shard-00-01.rjpvr9t.mongodb.net:27017/test?ssl=true&replicaSet=atlas-hivqj1-shard-0&authSource=admin&appName=Cluster0';
 
 function getMongoUris() {
   let direct = getEnv('MONGODB_URI_DIRECT')?.trim();
@@ -48,7 +48,7 @@ function getMongoUris() {
       if (match) {
         const user = match[1];
         const pass = match[2];
-        direct = `mongodb://${user}:${pass}@ac-fbnjtgg-shard-00-00.rjpvr9t.mongodb.net:27017,ac-fbnjtgg-shard-00-01.rjpvr9t.mongodb.net:27017,ac-fbnjtgg-shard-00-02.rjpvr9t.mongodb.net:27017/?ssl=true&replicaSet=atlas-hivqj1-shard-0&authSource=admin&appName=Cluster0`;
+        direct = `mongodb://${user}:${pass}@ac-fbnjtgg-shard-00-02.rjpvr9t.mongodb.net:27017,ac-fbnjtgg-shard-00-00.rjpvr9t.mongodb.net:27017,ac-fbnjtgg-shard-00-01.rjpvr9t.mongodb.net:27017/test?ssl=true&replicaSet=atlas-hivqj1-shard-0&authSource=admin&appName=Cluster0`;
       } else {
         direct = DEFAULT_DIRECT_URI;
       }
@@ -68,7 +68,7 @@ function getMongoUris() {
   return { primary, fallback };
 }
 
-async function doConnect(uri: string, opts: mongoose.ConnectOptions, timeoutMs = 3500) {
+async function doConnect(uri: string, opts: mongoose.ConnectOptions, timeoutMs = 8500) {
   let timer: any;
   const timeoutPromise = new Promise<never>((_, reject) => {
     timer = setTimeout(() => {
@@ -108,9 +108,9 @@ export async function connectDB() {
 
     const opts: mongoose.ConnectOptions = {
       bufferCommands: false,
-      serverSelectionTimeoutMS: 5000,
-      connectTimeoutMS: 5000,
-      socketTimeoutMS: 8000,
+      serverSelectionTimeoutMS: 8000,
+      connectTimeoutMS: 8000,
+      socketTimeoutMS: 15000,
       maxPoolSize: 1,
       minPoolSize: 0,
       maxIdleTimeMS: 10000,
@@ -118,11 +118,11 @@ export async function connectDB() {
 
     cached.promise = (async () => {
       try {
-        return await doConnect(primary, opts, 5500);
+        return await doConnect(primary, opts, 8500);
       } catch (primaryError: any) {
         if (fallback && fallback !== primary) {
           console.warn('Primary MongoDB URI failed, attempting fallback URI...', primaryError.message);
-          return await doConnect(fallback, opts, 4000);
+          return await doConnect(fallback, opts, 6000);
         }
         throw primaryError;
       }
