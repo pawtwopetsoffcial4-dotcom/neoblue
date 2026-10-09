@@ -34,22 +34,36 @@ function getEnv(key: string): string | undefined {
   return undefined;
 }
 
+const DEFAULT_DIRECT_URI =
+  'mongodb://pariharsachin5002_db_user:8668369314@ac-fbnjtgg-shard-00-00.rjpvr9t.mongodb.net:27017,ac-fbnjtgg-shard-00-01.rjpvr9t.mongodb.net:27017,ac-fbnjtgg-shard-00-02.rjpvr9t.mongodb.net:27017/?ssl=true&replicaSet=atlas-hivqj1-shard-0&authSource=admin&appName=Cluster0';
+
 function getMongoUris() {
-  const direct = getEnv('MONGODB_URI_DIRECT')?.trim();
+  let direct = getEnv('MONGODB_URI_DIRECT')?.trim();
   const srv = getEnv('MONGODB_URI')?.trim();
 
-  if (!direct && !srv) {
-    const error = new Error(
-      'MongoDB connection URI missing: Please define MONGODB_URI_DIRECT (recommended for Cloudflare) or MONGODB_URI in Cloudflare Dashboard (Settings > Variables and Secrets) or .env.local.'
-    ) as Error & { code?: string };
-    error.code = 'DB_CONNECTIVITY_UNAVAILABLE';
-    throw error;
+  // If direct URI is not explicitly provided, convert known SRV cluster to direct replica set URI
+  if (!direct && srv) {
+    if (srv.includes('rjpvr9t.mongodb.net')) {
+      const match = srv.match(/mongodb\+srv:\/\/([^:]+):([^@]+)@/);
+      if (match) {
+        const user = match[1];
+        const pass = match[2];
+        direct = `mongodb://${user}:${pass}@ac-fbnjtgg-shard-00-00.rjpvr9t.mongodb.net:27017,ac-fbnjtgg-shard-00-01.rjpvr9t.mongodb.net:27017,ac-fbnjtgg-shard-00-02.rjpvr9t.mongodb.net:27017/?ssl=true&replicaSet=atlas-hivqj1-shard-0&authSource=admin&appName=Cluster0`;
+      } else {
+        direct = DEFAULT_DIRECT_URI;
+      }
+    } else if (!srv.startsWith('mongodb+srv://')) {
+      direct = srv;
+    }
   }
 
-  // Prioritize direct URI (mongodb://) because SRV DNS lookups (mongodb+srv://)
-  // fail or hang in Cloudflare Workers / serverless isolates due to lack of UDP dns.resolveSrv.
-  const primary = direct || srv!;
-  const fallback = direct && srv && direct !== srv ? srv : null;
+  if (!direct && !srv) {
+    direct = DEFAULT_DIRECT_URI;
+  }
+
+  // Never use mongodb+srv:// on Cloudflare Workers because dns.resolveSrv hangs in Workers runtime
+  const primary = direct || DEFAULT_DIRECT_URI;
+  const fallback = srv && !srv.startsWith('mongodb+srv://') && srv !== primary ? srv : null;
 
   return { primary, fallback };
 }

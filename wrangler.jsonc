@@ -27,5 +27,7 @@
       "custom_domain": true
     }
   ],
-  "vars": {}
+  "vars": {
+    "MONGODB_URI_DIRECT": "mongodb://pariharsachin5002_db_user:8668369314@ac-fbnjtgg-shard-00-00.rjpvr9t.mongodb.net:27017,ac-fbnjtgg-shard-00-01.rjpvr9t.mongodb.net:27017,ac-fbnjtgg-shard-00-02.rjpvr9t.mongodb.net:27017/?ssl=true&replicaSet=atlas-hivqj1-shard-0&authSource=admin&appName=Cluster0"
+  }
 }
