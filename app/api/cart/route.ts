@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { connectDB } from '@/lib/db';
 import Cart from '@/lib/models/Cart';
-import { createErrorResponse, createSuccessResponse } from '@/lib/utils/auth';
+import { createErrorResponse, createSuccessResponse, getTokenFromRequest, verifyToken } from '@/lib/utils/auth';
 
 export const dynamic = 'force-dynamic';
 

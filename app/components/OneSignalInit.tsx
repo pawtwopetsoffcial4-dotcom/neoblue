@@ -11,15 +11,6 @@ export default function OneSignalInit() {
     if (!appId || hasInitialized) return;
     hasInitialized = true;
 
-    if (typeof window !== 'undefined') {
-      const hostname = window.location.hostname;
-      // OneSignal app is strictly registered for https://www.neoblue.in in OneSignal dashboard.
-      // Skip init on non-www apex domain to prevent domain mismatch error.
-      if (hostname === 'neoblue.in') {
-        return;
-      }
-    }
-
     OneSignal.init({
       appId,
       safariWebId: 'web.onesignal.auto.4924b4f0-134c-425c-876d-dc71d8371c02',

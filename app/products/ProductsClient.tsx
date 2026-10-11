@@ -1043,8 +1043,8 @@ function ProductsPageContent() {
         {!isLoading && loadError && (
           <div className="py-20 text-center">
             <p className="text-sm font-medium text-rose-500 mb-4">{loadError}</p>
-            <button 
-              onClick={fetchProducts} 
+            <button
+              onClick={() => fetchProducts()}
               className={`h-10 rounded-full px-6 text-sm font-bold text-white transition-colors ${
                 mode === 'fishes' ? 'bg-[#064ee5] hover:bg-blue-700' : 'bg-green-600 hover:bg-green-700'
               }`}
