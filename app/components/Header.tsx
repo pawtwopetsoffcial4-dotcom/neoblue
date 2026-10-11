@@ -77,9 +77,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
     setIsProfileOpen(false);
   };
 
-  const handleLogoClick = () => {
-    fetch('/api/notifications/test', { method: 'POST' }).catch(() => {});
-  };
+  const handleLogoClick = () => {};
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -132,7 +130,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
         
         {/* Brand Logo & Name */}
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-          <Link href="/" onClick={handleLogoClick} className="flex items-center gap-1.5 sm:gap-2 group">
+          <Link href="/" prefetch={false} onClick={handleLogoClick} className="flex items-center gap-1.5 sm:gap-2 group">
             <div className="p-0.5 rounded-lg bg-white/10 border border-white/10 group-hover:bg-white/15 transition-all">
               <Image
                 src="/logo.png"
@@ -156,7 +154,8 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
             return (
               <Link 
                 key={link.href} 
-                href={link.href} 
+                href={link.href}
+                prefetch={false}
                 className={`relative py-1 transition-all duration-300 ${
                   isActive 
                     ? 'text-white font-extrabold'
@@ -191,6 +190,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
           {/* Wishlist Button */}
           <Link
             href="/wishlist"
+            prefetch={false}
             className="relative h-8.5 w-8.5 sm:h-9 sm:w-9 rounded-xl border border-white/10 bg-white/5 hover:bg-white/15 text-white flex items-center justify-center transition-all duration-300 shadow-xs cursor-pointer"
             aria-label="View Wishlist"
           >
@@ -250,6 +250,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
             ) : (
               <Link
                 href="/auth/login"
+                prefetch={false}
                 className="h-9 px-4 rounded-xl border border-white/10 bg-white/5 text-white/90 text-xs font-black uppercase tracking-wider inline-flex items-center justify-center hover:bg-white/15 hover:text-white transition-all duration-300"
               >
                 Login
@@ -277,6 +278,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
 
                 <Link
                   href="/profile?tab=notifications"
+                  prefetch={false}
                   className="flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold text-slate-300 hover:bg-white/5 hover:text-white transition-colors text-left"
                 >
                   <div className="flex items-center gap-2.5">
@@ -292,6 +294,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
 
                 <Link
                   href="/profile"
+                  prefetch={false}
                   className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold text-slate-300 hover:bg-white/5 hover:text-white transition-colors text-left"
                 >
                   <User className="w-4 h-4 text-slate-400" />
@@ -300,6 +303,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
 
                 <Link
                   href="/orders"
+                  prefetch={false}
                   className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold text-slate-300 hover:bg-white/5 hover:text-white transition-colors text-left"
                 >
                   <ClipboardList className="w-4 h-4 text-slate-400" />
@@ -310,6 +314,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
                   <>
                     <Link
                       href="/admin/dashboard"
+                      prefetch={false}
                       className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold text-slate-300 hover:bg-white/5 hover:text-white transition-colors text-left"
                     >
                       <LayoutDashboard className="w-4 h-4 text-red-400" />
@@ -317,6 +322,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
                     </Link>
                     <Link
                       href="/admin/settings"
+                      prefetch={false}
                       className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold text-blue-400 hover:bg-white/5 hover:text-white transition-colors text-left"
                     >
                       <Settings className="w-4 h-4 text-blue-400" />
@@ -328,6 +334,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
                 {user.role === 'vendor' && (
                   <Link
                     href="/vendor/dashboard"
+                    prefetch={false}
                     className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold text-slate-300 hover:bg-white/5 hover:text-white transition-colors text-left"
                   >
                     <LayoutDashboard className="w-4 h-4 text-purple-400" />
@@ -432,6 +439,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
                 <Link
                   key={link.href}
                   href={link.href}
+                  prefetch={false}
                   onClick={() => setIsMenuOpen(false)}
                   className="flex items-center gap-3 p-3.5 rounded-2xl bg-white/10 border border-white/10 text-white hover:bg-white/15 transition-all duration-200"
                 >
@@ -466,6 +474,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
                 <div className="flex flex-col gap-2">
                   <Link
                     href="/profile?tab=notifications"
+                    prefetch={false}
                     onClick={() => setIsMenuOpen(false)}
                     className="flex h-11 items-center justify-center gap-2 rounded-xl bg-white/10 text-white text-xs font-black uppercase tracking-wider border border-white/10 hover:bg-white/15 relative"
                   >
@@ -480,6 +489,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
 
                   <Link
                     href="/profile"
+                    prefetch={false}
                     onClick={() => setIsMenuOpen(false)}
                     className="flex h-11 items-center justify-center gap-2 rounded-xl bg-white/10 text-white text-xs font-black uppercase tracking-wider border border-white/10 hover:bg-white/15"
                   >
@@ -491,6 +501,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
                     <>
                       <Link
                         href="/admin/dashboard"
+                        prefetch={false}
                         onClick={() => setIsMenuOpen(false)}
                         className="flex h-11 items-center justify-center gap-2 rounded-xl bg-red-950/20 text-red-300 text-xs font-black uppercase tracking-wider border border-red-500/20 hover:bg-red-500/30"
                       >
@@ -499,6 +510,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
                       </Link>
                       <Link
                         href="/admin/settings"
+                        prefetch={false}
                         onClick={() => setIsMenuOpen(false)}
                         className="flex h-11 items-center justify-center gap-2 rounded-xl bg-blue-950/20 text-blue-300 text-xs font-black uppercase tracking-wider border border-blue-500/20 hover:bg-blue-500/30"
                       >
@@ -511,6 +523,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
                   {user.role === 'vendor' && (
                     <Link
                       href="/vendor/dashboard"
+                      prefetch={false}
                       onClick={() => setIsMenuOpen(false)}
                       className="flex h-11 items-center justify-center gap-2 rounded-xl bg-purple-950/20 text-purple-300 text-xs font-black uppercase tracking-wider border border-purple-500/20 hover:bg-purple-500/30"
                     >
@@ -532,6 +545,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
             ) : (
               <Link
                 href="/auth/login"
+                prefetch={false}
                 onClick={() => setIsMenuOpen(false)}
                 className={`flex h-12 w-full items-center justify-center gap-2 rounded-2xl text-xs font-black uppercase tracking-wider shadow-md transition-colors ${
                   isFishes 

@@ -68,6 +68,7 @@ export default function MobileDock() {
             return (
               <li key={item.label}>
                 <Link
+                  prefetch={false}
                   href={item.href}
                   onClick={item.onClick}
                   className={`flex flex-col items-center justify-center rounded-xl py-2 text-[11px] font-semibold transition-all duration-300 relative ${

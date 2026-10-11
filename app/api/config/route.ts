@@ -7,7 +7,12 @@ import StoreConfig, {
   DEFAULT_PLANTS_HERO_SLIDES 
 } from '@/lib/models/StoreConfig';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 1800; // 30 minutes edge cache
+
+const CONFIG_CACHE_HEADERS = {
+  'Cache-Control': 'public, max-age=300, s-maxage=1800, stale-while-revalidate=86400',
+  'Netlify-CDN-Cache-Control': 'public, max-age=1800, stale-while-revalidate=86400',
+};
 
 const DEFAULT_CONFIG_RESPONSE = {
   heroSlides: DEFAULT_HERO_SLIDES,
@@ -81,10 +86,10 @@ export async function GET() {
       marqueeText: payload.marqueeText ?? 'Next shipping on Monday! Order fast for fastest delivery.',
       marqueeEnabled: payload.marqueeEnabled !== false,
       marqueeLink: payload.marqueeLink ?? '/products',
-    });
+    }, { headers: CONFIG_CACHE_HEADERS });
   } catch (error) {
     console.warn('Config GET fallback to defaults:', error);
-    return NextResponse.json(DEFAULT_CONFIG_RESPONSE);
+    return NextResponse.json(DEFAULT_CONFIG_RESPONSE, { headers: CONFIG_CACHE_HEADERS });
   }
 }
 

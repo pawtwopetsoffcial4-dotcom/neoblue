@@ -4,3 +4,54 @@
 [build.environment]
   SECRETS_SCAN_ENABLED = "false"
   SECRETS_SCAN_OMIT_KEYS = "CASHFREE_ENV,NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT,NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY,NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET,NEXT_PUBLIC_FIREBASE_PROJECT_ID,RAZORPAY_KEY_ID,RAZORPAY_KEY_SECRET,MONGODB_URI_DIRECT,IMAGEKIT_PRIVATE_KEY,GEMINI_API_KEY"
+
+# Cache static images, fonts, and assets at Netlify Edge for 1 year
+[[headers]]
+  for = "/_next/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+    Netlify-CDN-Cache-Control = "public, max-age=31536000, durable, immutable"
+
+[[headers]]
+  for = "/images/*"
+  [headers.values]
+    Cache-Control = "public, max-age=86400, stale-while-revalidate=604800"
+    Netlify-CDN-Cache-Control = "public, max-age=604800, durable"
+
+[[headers]]
+  for = "/favicon.ico"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"
+    Netlify-CDN-Cache-Control = "public, max-age=604800, durable"
+
+# Edge cache sitemap and robots
+[[headers]]
+  for = "/sitemap.xml"
+  [headers.values]
+    Cache-Control = "public, max-age=86400, stale-while-revalidate=86400"
+    Netlify-CDN-Cache-Control = "public, max-age=86400, durable"
+
+[[headers]]
+  for = "/robots.txt"
+  [headers.values]
+    Cache-Control = "public, max-age=86400, stale-while-revalidate=86400"
+    Netlify-CDN-Cache-Control = "public, max-age=86400, durable"
+
+# Edge cache high-volume read-only API routes at Netlify Edge
+[[headers]]
+  for = "/api/config"
+  [headers.values]
+    Cache-Control = "public, max-age=300, s-maxage=1800, stale-while-revalidate=86400"
+    Netlify-CDN-Cache-Control = "public, max-age=1800, durable, stale-while-revalidate=86400"
+
+[[headers]]
+  for = "/api/categories"
+  [headers.values]
+    Cache-Control = "public, max-age=600, s-maxage=3600, stale-while-revalidate=86400"
+    Netlify-CDN-Cache-Control = "public, max-age=3600, durable, stale-while-revalidate=86400"
+
+[[headers]]
+  for = "/api/combos"
+  [headers.values]
+    Cache-Control = "public, max-age=600, s-maxage=1800, stale-while-revalidate=86400"
+    Netlify-CDN-Cache-Control = "public, max-age=1800, durable, stale-while-revalidate=86400"

@@ -5,7 +5,12 @@ import StoreConfig from '@/lib/models/StoreConfig';
 import { createErrorResponse, createSuccessResponse, getTokenFromRequest, verifyToken } from '@/lib/utils/auth';
 import { getCategoryImage, PRODUCT_CATEGORIES, normalizeCategoryName } from '@/lib/catalog';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 3600; // 1 hour edge cache
+
+const CATEGORIES_CACHE_HEADERS = {
+  'Cache-Control': 'public, max-age=300, s-maxage=3600, stale-while-revalidate=86400',
+  'Netlify-CDN-Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400',
+};
 
 export async function GET(_request: NextRequest) {
   try {
@@ -59,7 +64,7 @@ export async function GET(_request: NextRequest) {
     return createSuccessResponse({
       categories,
       categoriesWithImages,
-    });
+    }, 200, CATEGORIES_CACHE_HEADERS);
   } catch (error: any) {
     console.warn('Get categories fallback to static catalog:', error?.message);
     const categories = [...PRODUCT_CATEGORIES].sort();
@@ -71,7 +76,7 @@ export async function GET(_request: NextRequest) {
     return createSuccessResponse({
       categories,
       categoriesWithImages,
-    });
+    }, 200, CATEGORIES_CACHE_HEADERS);
   }
 }
 

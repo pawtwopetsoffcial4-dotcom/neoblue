@@ -195,17 +195,17 @@ export default function Footer() {
                     Plants
                   </button>
                 </li>
-                <li><Link href="/products?category=accessories" className="hover:text-white transition-colors">Accessories</Link></li>
-                <li><Link href="/products?sort=newest" className="hover:text-white transition-colors">New Arrivals</Link></li>
-                <li><Link href="/combos" className="hover:text-white transition-colors">Aquarium Combos</Link></li>
+                <li><Link prefetch={false} href="/products?category=accessories" className="hover:text-white transition-colors">Accessories</Link></li>
+                <li><Link prefetch={false} href="/products?sort=newest" className="hover:text-white transition-colors">New Arrivals</Link></li>
+                <li><Link prefetch={false} href="/combos" className="hover:text-white transition-colors">Aquarium Combos</Link></li>
               </ul>
             </div>
             <div>
               <span className={`${headerColorClass} font-bold block mb-2 uppercase tracking-wider transition-colors duration-300`}>Company</span>
               <ul className={`${linkColorClass} space-y-1.5 font-semibold transition-colors duration-300`}>
-                <li><Link href="/about" className="hover:text-white transition-colors">About Us</Link></li>
-                <li><Link href="/blog" className="hover:text-white transition-colors">Aquatic Blog</Link></li>
-                <li><Link href="/contact" className="hover:text-white transition-colors">Contact Support</Link></li>
+                <li><Link prefetch={false} href="/about" className="hover:text-white transition-colors">About Us</Link></li>
+                <li><Link prefetch={false} href="/blog" className="hover:text-white transition-colors">Aquatic Blog</Link></li>
+                <li><Link prefetch={false} href="/contact" className="hover:text-white transition-colors">Contact Support</Link></li>
                 <li><a href="tel:+919535872394" className="hover:text-white transition-colors">+91 95358 72394</a></li>
                 <li><a href="mailto:support@neoblue.in" className="hover:text-white transition-colors">support@neoblue.in</a></li>
               </ul>
@@ -213,11 +213,11 @@ export default function Footer() {
             <div>
               <span className={`${headerColorClass} font-bold block mb-2 uppercase tracking-wider transition-colors duration-300`}>Support &amp; Trust</span>
               <ul className={`${linkColorClass} space-y-1.5 font-semibold transition-colors duration-300`}>
-                <li><Link href="/shipping" className="hover:text-white transition-colors">Shipping &amp; DOA</Link></li>
-                <li><Link href="/return-refund-policy" className="hover:text-white transition-colors">Returns &amp; Claims</Link></li>
-                <li><Link href="/faq" className="hover:text-white transition-colors">Aquarium FAQs</Link></li>
-                <li><Link href="/privacy-policy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
-                <li><Link href="/terms-and-conditions" className="hover:text-white transition-colors">Terms &amp; Conditions</Link></li>
+                <li><Link prefetch={false} href="/shipping" className="hover:text-white transition-colors">Shipping &amp; DOA</Link></li>
+                <li><Link prefetch={false} href="/return-refund-policy" className="hover:text-white transition-colors">Returns &amp; Claims</Link></li>
+                <li><Link prefetch={false} href="/faq" className="hover:text-white transition-colors">Aquarium FAQs</Link></li>
+                <li><Link prefetch={false} href="/privacy-policy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
+                <li><Link prefetch={false} href="/terms-and-conditions" className="hover:text-white transition-colors">Terms &amp; Conditions</Link></li>
               </ul>
             </div>
           </div>

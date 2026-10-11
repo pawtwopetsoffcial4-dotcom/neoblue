@@ -7,7 +7,12 @@ import { normalizeShippingRate } from '@/lib/utils/shipping';
 import { normalizeCategoryName } from '@/lib/catalog';
 import { NextRequest } from 'next/server';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 600; // 10 minutes edge cache
+
+const PRODUCTS_CACHE_HEADERS = {
+  'Cache-Control': 'public, max-age=120, s-maxage=600, stale-while-revalidate=1800',
+  'Netlify-CDN-Cache-Control': 'public, max-age=600, stale-while-revalidate=1800',
+};
 
 // GET all products
 export async function GET(request: NextRequest) {
@@ -64,6 +69,8 @@ export async function GET(request: NextRequest) {
 
     const total = await Product.countDocuments(query);
 
+    const cacheHeaders = userPayload?.role === 'admin' ? undefined : PRODUCTS_CACHE_HEADERS;
+
     return createSuccessResponse({
       products,
       pagination: {
@@ -72,7 +79,7 @@ export async function GET(request: NextRequest) {
         currentPage: page,
         limit,
       },
-    });
+    }, 200, cacheHeaders);
   } catch (error: any) {
     const isDbConnectivityIssue = isDatabaseConnectivityError(error);
 

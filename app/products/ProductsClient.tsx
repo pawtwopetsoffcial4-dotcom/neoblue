@@ -423,7 +423,7 @@ function ProductsPageContent() {
         setIsLoading(true);
         setLoadError(null);
       }
-      const response = await fetch('/api/products', { cache: 'no-store' });
+      const response = await fetch('/api/products');
       if (!response.ok) throw new Error('Failed to load products');
       const data = await response.json();
       const extracted = extractProducts(data);
@@ -453,7 +453,7 @@ function ProductsPageContent() {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch('/api/categories', { cache: 'no-store' });
+        const response = await fetch('/api/categories');
         if (!response.ok) return;
         const data = await response.json();
         setAvailableCategories(Array.isArray(data.categories) ? data.categories : []);

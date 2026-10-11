@@ -3,7 +3,12 @@ import Combo from '@/lib/models/Combo';
 import { createErrorResponse, createSuccessResponse, getTokenFromRequest, verifyToken } from '@/lib/utils/auth';
 import { NextRequest } from 'next/server';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 1800; // 30 minutes edge cache
+
+const COMBOS_CACHE_HEADERS = {
+  'Cache-Control': 'public, max-age=300, s-maxage=1800, stale-while-revalidate=3600',
+  'Netlify-CDN-Cache-Control': 'public, max-age=1800, stale-while-revalidate=3600',
+};
 
 // GET all active combos (public) — admin sees all
 export async function GET(request: NextRequest) {
@@ -35,7 +40,8 @@ export async function GET(request: NextRequest) {
       .populate('products.productId', 'title price images category waterType vendorId')
       .sort({ isFeatured: -1, createdAt: -1 });
 
-    return createSuccessResponse({ combos });
+    const cacheHeaders = isAdmin ? undefined : COMBOS_CACHE_HEADERS;
+    return createSuccessResponse({ combos }, 200, cacheHeaders);
   } catch (error: any) {
     console.error('Get combos error:', error);
     return createErrorResponse(error.message || 'Failed to fetch combos', 500);

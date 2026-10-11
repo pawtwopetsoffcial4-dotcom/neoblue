@@ -107,6 +107,6 @@ export function createErrorResponse(message: string, status: number) {
   return NextResponse.json({ error: message }, { status });
 }
 
-export function createSuccessResponse(data: any, status: number = 200) {
-  return NextResponse.json(data, { status });
+export function createSuccessResponse(data: any, status: number = 200, headers?: HeadersInit) {
+  return NextResponse.json(data, { status, headers });
 }

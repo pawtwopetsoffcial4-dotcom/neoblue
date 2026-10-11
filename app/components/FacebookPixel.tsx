@@ -21,13 +21,15 @@ export default function FacebookPixel({ initialPixelId }: { initialPixelId?: str
   const [pixelId, setPixelId] = useState<string>(initialPixelId || FB_PIXEL_ID);
 
   useEffect(() => {
-    // Dynamically fetch Pixel ID from database config if updated in Admin Settings
+    // Skip network request if pixel ID is already configured
+    if (pixelId) return;
+
     const fetchLivePixelId = async () => {
       try {
         const res = await fetch('/api/config');
         if (res.ok) {
           const data = await res.json();
-          if (data?.facebookPixelId && data.facebookPixelId !== pixelId) {
+          if (data?.facebookPixelId) {
             setPixelId(data.facebookPixelId);
             if (typeof window !== 'undefined' && window.fbq) {
               window.fbq('init', data.facebookPixelId);

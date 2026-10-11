@@ -32,12 +32,15 @@ export default function GoogleAnalytics({ initialGaId }: { initialGaId?: string 
   );
 
   useEffect(() => {
+    // Skip network request if GA ID is already configured
+    if (gaId) return;
+
     const fetchLiveGaId = async () => {
       try {
         const res = await fetch('/api/config');
         if (res.ok) {
           const data = await res.json();
-          if (data?.googleAnalyticsId && data.googleAnalyticsId !== gaId) {
+          if (data?.googleAnalyticsId) {
             setGaId(data.googleAnalyticsId.trim());
           }
         }

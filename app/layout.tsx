@@ -123,7 +123,7 @@ export default function RootLayout({
             `}
           </Script>
         )}
-        <FacebookPixel />
+        <FacebookPixel initialPixelId={process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID || '1689531238818724'} />
         <OneSignalInit />
         <RootProviders>
           <Header />

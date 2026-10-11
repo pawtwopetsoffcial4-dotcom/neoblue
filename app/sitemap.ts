@@ -8,6 +8,8 @@ import Combo from '@/lib/models/Combo';
 const toSlug = (value: string) => 
   value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 
+export const revalidate = 86400; // 24 hours edge cache
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://neoblue.in';
 

@@ -45,10 +45,6 @@ export default function OneSignalInit() {
         },
       },
     })
-      .then(() => {
-        // Best-effort welcome push for anyone who already granted permission on a past visit.
-        fetch('/api/notifications/test', { method: 'POST' }).catch(() => {});
-      })
       .catch((error) => {
         console.warn('OneSignal init notice (domain or configuration):', error?.message || error);
       });
