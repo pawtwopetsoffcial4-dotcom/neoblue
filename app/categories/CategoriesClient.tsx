@@ -27,6 +27,11 @@ export default function CategoriesClient({
   );
 
   React.useEffect(() => {
+    // If initial categories were provided by the server/page, skip client fetch to save edge requests
+    if ((propCategories && propCategories.length > 0) || (initialCategories && initialCategories.length > 0)) {
+      return;
+    }
+
     fetch('/api/categories')
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {

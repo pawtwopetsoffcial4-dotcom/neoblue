@@ -96,7 +96,7 @@ function MobileScrollSection({
       <div className="px-5 mb-4 flex justify-between items-end">
         <h2 className="text-xl font-bold tracking-tight text-slate-900">{title}</h2>
         {seeAllHref ? (
-          <Link href={seeAllHref} className="text-xs font-semibold uppercase tracking-widest text-slate-600 hover:text-slate-900 hover:underline transition-colors">
+          <Link prefetch={false} href={seeAllHref} className="text-xs font-semibold uppercase tracking-widest text-slate-600 hover:text-slate-900 hover:underline transition-colors">
             See All
           </Link>
         ) : (
@@ -746,7 +746,7 @@ export default function NeoBlueMobileOptimized({
               <p className="text-[10px] font-bold uppercase tracking-[0.2em] mb-0.5 text-slate-500">Exclusive</p>
               <h2 className="text-lg font-black text-slate-900">Combo Packages</h2>
             </div>
-            <Link href="/combos" className="text-xs font-semibold flex items-center gap-1 text-slate-600 hover:text-slate-900">
+            <Link prefetch={false} href="/combos" className="text-xs font-semibold flex items-center gap-1 text-slate-600 hover:text-slate-900">
               See all <ArrowRight className="h-3 w-3" />
             </Link>
           </div>

@@ -143,7 +143,7 @@ export default function ProductClientPage({
 
   const refetchProductStats = useCallback(async () => {
     try {
-      const response = await fetch(`/api/products/${productId}`, { cache: 'no-store' });
+      const response = await fetch(`/api/products/${productId}`);
       if (!response.ok) return;
       const data = await response.json();
       if (data.product) setProduct(data.product);
@@ -154,7 +154,7 @@ export default function ProductClientPage({
 
   const refetchReviews = useCallback(async () => {
     try {
-      const res = await fetch(`/api/reviews/${productId}`, { cache: 'no-store' });
+      const res = await fetch(`/api/reviews/${productId}`);
       if (!res.ok) return;
       const body = await res.json();
       setReviews(Array.isArray(body.reviews) ? body.reviews : []);

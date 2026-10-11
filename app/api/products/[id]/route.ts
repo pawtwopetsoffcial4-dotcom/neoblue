@@ -7,6 +7,13 @@ import { normalizeCategoryName } from '@/lib/catalog';
 import { NextRequest } from 'next/server';
 import mongoose from 'mongoose';
 
+export const revalidate = 600; // 10 minutes edge cache
+
+const PRODUCT_DETAIL_CACHE_HEADERS = {
+  'Cache-Control': 'public, max-age=120, s-maxage=600, stale-while-revalidate=1800',
+  'Netlify-CDN-Cache-Control': 'public, max-age=600, stale-while-revalidate=1800',
+};
+
 // GET single product
 export async function GET(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
@@ -26,7 +33,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
       return createErrorResponse('Product not found', 404);
     }
 
-    return createSuccessResponse({ product });
+    return createSuccessResponse({ product }, 200, PRODUCT_DETAIL_CACHE_HEADERS);
   } catch (error: any) {
     console.error('Get product error:', error);
     return createErrorResponse(error.message || 'Failed to fetch product', 500);

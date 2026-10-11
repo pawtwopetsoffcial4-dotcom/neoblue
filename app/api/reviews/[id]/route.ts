@@ -5,12 +5,19 @@ import Review from '@/lib/models/Review';
 import User from '@/lib/models/User';
 import { getTokenFromRequest, verifyToken } from '@/lib/utils/auth';
 
+export const revalidate = 600; // 10 minutes edge cache
+ 
+const REVIEWS_CACHE_HEADERS = {
+  'Cache-Control': 'public, max-age=120, s-maxage=600, stale-while-revalidate=1800',
+  'Netlify-CDN-Cache-Control': 'public, max-age=600, stale-while-revalidate=1800',
+};
+
 export async function GET(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
     await connectDB();
     const { id } = await context.params;
     const reviews = await Review.find({ productId: id }).sort({ createdAt: -1 });
-    return NextResponse.json({ reviews });
+    return NextResponse.json({ reviews }, { headers: REVIEWS_CACHE_HEADERS });
   } catch (err: any) {
     return NextResponse.json({ error: err.message || 'Server error' }, { status: 500 });
   }
