@@ -7,6 +7,7 @@ import MobileDock from "./components/MobileDock";
 import FacebookPixel from "./components/FacebookPixel";
 import GoogleAnalytics from "./components/GoogleAnalytics";
 import OneSignalInit from "./components/OneSignalInit";
+import NotificationTestButton from "./components/NotificationTestButton";
 import { RootProviders } from "./providers";
 import Script from "next/script";
 
@@ -125,6 +126,7 @@ export default function RootLayout({
         )}
         <FacebookPixel initialPixelId={process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID || '1689531238818724'} />
         <OneSignalInit />
+        <NotificationTestButton />
         <RootProviders>
           <Header />
           <div className="flex-1">{children}</div>
