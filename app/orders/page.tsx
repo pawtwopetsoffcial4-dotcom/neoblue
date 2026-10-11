@@ -49,15 +49,30 @@ function OrdersPageContent() {
   const [formError, setFormError] = useState('');
   const [isSubmittingClaim, setIsSubmittingClaim] = useState(false);
 
-  const loadData = async () => {
+  const loadData = async (isRetry = false) => {
     try {
       setIsLoading(true);
+
+      // Clean up any pending checkout key in localStorage if we're on orders page
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('pendingRazorpayCheckout');
+        localStorage.removeItem('pendingCashfreeCheckout');
+      }
+
       const [ordersRes, claimsRes] = await Promise.all([
         apiClient.getOrders(),
         apiClient.getClaims().catch(() => ({ claims: [] })),
       ]);
-      setOrders((ordersRes as { orders: UserOrder[] }).orders ?? []);
+      const fetchedOrders = (ordersRes as { orders: UserOrder[] }).orders ?? [];
+      setOrders(fetchedOrders);
       setClaims((claimsRes as { claims: any[] }).claims ?? []);
+
+      // If user came right after payment and list is empty or hasn't synced yet, poll once after 2 seconds
+      if (isConfirmed && fetchedOrders.length === 0 && !isRetry) {
+        setTimeout(() => {
+          loadData(true);
+        }, 2000);
+      }
     } catch (err) {
       console.error(err);
     } finally {

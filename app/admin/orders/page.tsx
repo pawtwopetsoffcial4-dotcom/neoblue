@@ -41,6 +41,9 @@ type AdminOrder = {
     phone: string;
   };
   notes?: string;
+  paymentId?: string;
+  razorpayOrderId?: string;
+  cashfreeOrderId?: string;
   carrier?: string;
   trackingNumber?: string;
   trackingLink?: string;
@@ -159,6 +162,9 @@ export default function AdminOrdersPage() {
         const phone = (order.address?.phone || '').toLowerCase();
         const city = (order.address?.city || '').toLowerCase();
         const vendorName = (order.vendorId?.name || '').toLowerCase();
+        const paymentId = (order.paymentId || '').toLowerCase();
+        const razorpayOrderId = (order.razorpayOrderId || '').toLowerCase();
+        const cashfreeOrderId = (order.cashfreeOrderId || '').toLowerCase();
 
         return (
           orderId.includes(query) ||
@@ -166,7 +172,10 @@ export default function AdminOrdersPage() {
           userEmail.includes(query) ||
           phone.includes(query) ||
           city.includes(query) ||
-          vendorName.includes(query)
+          vendorName.includes(query) ||
+          paymentId.includes(query) ||
+          razorpayOrderId.includes(query) ||
+          cashfreeOrderId.includes(query)
         );
       }
 
@@ -392,6 +401,21 @@ export default function AdminOrdersPage() {
                   <div className="flex flex-wrap items-center gap-3 sm:gap-4 mt-2">
                     <p className="text-xs font-medium text-slate-600"><span className="text-slate-400">User:</span> {order.userId?.name ?? order.userId?.email ?? 'N/A'}</p>
                     <p className="text-xs font-medium text-slate-600"><span className="text-slate-400">Vendor:</span> {order.vendorId?.name ?? order.vendorId?.email ?? 'N/A'}</p>
+                    {order.paymentId && (
+                      <p className="text-xs font-mono font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">
+                        <span className="text-slate-400 font-sans">Payment:</span> {order.paymentId}
+                      </p>
+                    )}
+                    {order.razorpayOrderId && (
+                      <p className="text-xs font-mono font-medium text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100">
+                        <span className="text-slate-400 font-sans">Razorpay:</span> {order.razorpayOrderId}
+                      </p>
+                    )}
+                    {order.cashfreeOrderId && (
+                      <p className="text-xs font-mono font-medium text-purple-700 bg-purple-50 px-2 py-0.5 rounded-md border border-purple-100">
+                        <span className="text-slate-400 font-sans">Cashfree:</span> {order.cashfreeOrderId}
+                      </p>
+                    )}
                   </div>
                 </div>
 

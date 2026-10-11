@@ -42,46 +42,102 @@ export async function GET(request: NextRequest) {
       }
 
       const pendingOrders = await Order.find(queryPending);
+
+      // Check Cashfree pending orders
       if (pendingOrders.length > 0 && appId && secretKey) {
         const uniqueCfIds = Array.from(new Set(pendingOrders.map(o => o.cashfreeOrderId).filter(Boolean)));
         for (const cfId of uniqueCfIds) {
-          const orderRes = await fetch(`${getCashfreeBaseUrl()}/pg/orders/${cfId}`, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              'x-client-id': appId,
-              'x-client-secret': secretKey,
-              'x-api-version': '2023-08-01',
-            },
-          });
-          if (orderRes.ok) {
-            const orderData = await orderRes.json();
-            if (orderData.order_status === 'PAID') {
-              let cfPaymentId = null;
-              const paymentsRes = await fetch(`${getCashfreeBaseUrl()}/pg/orders/${cfId}/payments`, {
-                method: 'GET',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'x-client-id': appId,
-                  'x-client-secret': secretKey,
-                  'x-api-version': '2023-08-01',
-                },
-              });
-              if (paymentsRes.ok) {
-                const payments = await paymentsRes.json();
-                const successPayment = Array.isArray(payments)
-                  ? payments.find((p: any) => p?.payment_status === 'SUCCESS')
-                  : null;
-                cfPaymentId = successPayment?.cf_payment_id || null;
-              }
-              const ordersToUpdate = await Order.find({ cashfreeOrderId: cfId });
-              for (const order of ordersToUpdate) {
-                if (order.status !== 'placed') {
-                  order.status = 'placed';
-                  order.paymentId = cfPaymentId || cfId;
-                  await decrementStockForOrder(order);
-                  await syncOrderToShiprocket(order);
+          try {
+            const orderRes = await fetch(`${getCashfreeBaseUrl()}/pg/orders/${cfId}`, {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json',
+                'x-client-id': appId,
+                'x-client-secret': secretKey,
+                'x-api-version': '2023-08-01',
+              },
+            });
+            if (orderRes.ok) {
+              const orderData = await orderRes.json();
+              if (orderData.order_status === 'PAID') {
+                let cfPaymentId = null;
+                const paymentsRes = await fetch(`${getCashfreeBaseUrl()}/pg/orders/${cfId}/payments`, {
+                  method: 'GET',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'x-client-id': appId,
+                    'x-client-secret': secretKey,
+                    'x-api-version': '2023-08-01',
+                  },
+                });
+                if (paymentsRes.ok) {
+                  const payments = await paymentsRes.json();
+                  const successPayment = Array.isArray(payments)
+                    ? payments.find((p: any) => p?.payment_status === 'SUCCESS')
+                    : null;
+                  cfPaymentId = successPayment?.cf_payment_id || null;
                 }
+                const ordersToUpdate = await Order.find({ cashfreeOrderId: cfId });
+                for (const order of ordersToUpdate) {
+                  if (order.status !== 'placed') {
+                    order.status = 'placed';
+                    order.paymentId = cfPaymentId || cfId;
+                    await order.save();
+                    await decrementStockForOrder(order);
+                    await syncOrderToShiprocket(order);
+                  }
+                }
+              }
+            }
+          } catch (cfErr) {
+            console.error(`Error verifying pending Cashfree order ${cfId}:`, cfErr);
+          }
+        }
+      }
+
+      // Check Razorpay pending orders
+      if (pendingOrders.length > 0) {
+        const uniqueRzpIds = Array.from(new Set(pendingOrders.map(o => o.razorpayOrderId).filter(Boolean)));
+        if (uniqueRzpIds.length > 0) {
+          const storeConfig = await StoreConfig.findOne({}).lean();
+          const rzpKeyId = (storeConfig as any)?.razorpayKeyId || process.env.RAZORPAY_KEY_ID;
+          const rzpKeySecret = (storeConfig as any)?.razorpayKeySecret || process.env.RAZORPAY_KEY_SECRET;
+
+          if (rzpKeyId && rzpKeySecret) {
+            const authHeader = `Basic ${Buffer.from(`${rzpKeyId}:${rzpKeySecret}`).toString('base64')}`;
+            for (const rzpId of uniqueRzpIds) {
+              try {
+                const rzpRes = await fetch(`https://api.razorpay.com/v1/orders/${rzpId}`, {
+                  headers: { Authorization: authHeader },
+                });
+                if (rzpRes.ok) {
+                  const rzpData = await rzpRes.json();
+                  if (rzpData.status === 'paid') {
+                    let rzpPaymentId = null;
+                    const paymentsRes = await fetch(`https://api.razorpay.com/v1/orders/${rzpId}/payments`, {
+                      headers: { Authorization: authHeader },
+                    });
+                    if (paymentsRes.ok) {
+                      const payData = await paymentsRes.json();
+                      const items = payData?.items || [];
+                      const captured = items.find((p: any) => p.status === 'captured') || items[0];
+                      rzpPaymentId = captured?.id || null;
+                    }
+
+                    const ordersToUpdate = await Order.find({ razorpayOrderId: rzpId });
+                    for (const order of ordersToUpdate) {
+                      if (order.status !== 'placed') {
+                        order.status = 'placed';
+                        order.paymentId = rzpPaymentId || rzpId;
+                        await order.save();
+                        await decrementStockForOrder(order);
+                        await syncOrderToShiprocket(order);
+                      }
+                    }
+                  }
+                }
+              } catch (rzpErr) {
+                console.error(`Error verifying pending Razorpay order ${rzpId}:`, rzpErr);
               }
             }
           }

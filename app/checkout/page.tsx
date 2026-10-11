@@ -16,6 +16,7 @@ import { decodeSharedCart, getShareableCartUrl, createShortShareCode, resolveSha
 import { trackInitiateCheckout, trackPurchase } from '@/lib/fpixel';
 
 const PENDING_CASHFREE_CHECKOUT_KEY = 'pendingCashfreeCheckout';
+const PENDING_RAZORPAY_CHECKOUT_KEY = 'pendingRazorpayCheckout';
 
 const cashfreeSdkSrc = 'https://sdk.cashfree.com/js/v3/cashfree.js';
 const razorpaySdkSrc = 'https://checkout.razorpay.com/v1/checkout.js';
@@ -520,6 +521,15 @@ function CheckoutPageContent() {
           throw new Error('Razorpay checkout library is unavailable. Please refresh and try again.');
         }
 
+        localStorage.setItem(
+          PENDING_RAZORPAY_CHECKOUT_KEY,
+          JSON.stringify({
+            orderId: orderData.orderId,
+            products,
+            address,
+          })
+        );
+
         const options = {
           key: orderData.keyId || '',
           amount: orderData.amount, // in paise
@@ -558,6 +568,7 @@ function CheckoutPageContent() {
               });
 
               if (verifyData?.isPaid) {
+                localStorage.removeItem(PENDING_RAZORPAY_CHECKOUT_KEY);
                 trackPurchase({
                   orderId: response.razorpay_order_id,
                   value: totalAmount,
@@ -572,7 +583,10 @@ function CheckoutPageContent() {
               }
             } catch (err: any) {
               console.error('Finalizing Razorpay payment error:', err);
-              setPaymentErrorMessage('Unable to verify Razorpay payment. If money was deducted, please check your My Orders page.');
+              // Clear pending key and redirect to orders page so user can check self-healed order
+              localStorage.removeItem(PENDING_RAZORPAY_CHECKOUT_KEY);
+              clearCart();
+              router.replace(`/orders?confirmed=true&order_id=${encodeURIComponent(response.razorpay_order_id)}`);
             } finally {
               setIsFinalizing(false);
               setIsPaying(false);
