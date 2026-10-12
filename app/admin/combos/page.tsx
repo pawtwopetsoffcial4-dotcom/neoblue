@@ -4,7 +4,7 @@ import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   Plus, Trash2, X, Search, Package, Star, Edit3, Check,
   ChevronRight, ImagePlus, Loader2, ArrowLeft, Minus,
-  AlertTriangle, Tag, TrendingUp, Eye, Sparkles,
+  AlertTriangle, Tag, TrendingUp, Eye, Sparkles, CheckSquare, ImageIcon
 } from 'lucide-react';
 import ImageKitUploadWidget from '@/app/components/ImageKitUploadWidget';
 import { apiClient } from '@/lib/api-client';
@@ -126,6 +126,7 @@ export default function AdminCombosPage() {
   const [stepErrors,    setStepErrors]    = useState<StepErrors>({});
   const [prodSearch,    setProdSearch]    = useState('');
   const [prodCategory,  setProdCategory]  = useState('All');
+  const [showImagePicker, setShowImagePicker] = useState<'cover' | 'gallery' | null>(null);
 
   // ── Data ────────────────────────────────────────────────────────────────
 
@@ -237,7 +238,44 @@ export default function AdminCombosPage() {
     if (step === 2 && validateStep2()) setStep(3);
   }
 
-  // ── Product browser helpers ─────────────────────────────────────────────
+  // ── Product browser & image helpers ─────────────────────────────────────────────
+
+  const availableProductImages = useMemo(() => {
+    const list: Array<{ url: string; title: string; category?: string; isSelectedProduct: boolean }> = [];
+    const seen = new Set<string>();
+
+    // Prioritize images from products already selected in this combo
+    form.selectedProducts.forEach(sp => {
+      (sp.product.images || []).forEach(img => {
+        if (img && !seen.has(img)) {
+          seen.add(img);
+          list.push({
+            url: img,
+            title: sp.product.title,
+            category: sp.product.category,
+            isSelectedProduct: true,
+          });
+        }
+      });
+    });
+
+    // Then other products in the catalog
+    allProducts.forEach(p => {
+      (p.images || []).forEach(img => {
+        if (img && !seen.has(img)) {
+          seen.add(img);
+          list.push({
+            url: img,
+            title: p.title,
+            category: p.category,
+            isSelectedProduct: false,
+          });
+        }
+      });
+    });
+
+    return list;
+  }, [form.selectedProducts, allProducts]);
 
   const productCategories = useMemo(() => {
     const cats = Array.from(new Set(allProducts.map(p => p.category))).sort();
@@ -1109,72 +1147,173 @@ export default function AdminCombosPage() {
                 {/* ── Left: Images ── */}
                 <div className="space-y-5">
                   {/* Cover image */}
+                  {/* Cover image */}
                   <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
-                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Cover Image *</p>
+                    <div className="flex items-center justify-between">
+                      <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Cover Image *</p>
+                      {availableProductImages.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => setShowImagePicker('cover')}
+                          className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-2.5 py-1 rounded-lg transition-colors"
+                        >
+                          <ImageIcon className="h-3.5 w-3.5" />
+                          <span>Choose from Products ({availableProductImages.length})</span>
+                        </button>
+                      )}
+                    </div>
+
                     {stepErrors.coverImage && (
                       <p className="text-xs text-red-500 flex items-center gap-1">
                         <AlertTriangle className="h-3 w-3" /> {stepErrors.coverImage}
                       </p>
                     )}
+
                     {form.coverImage ? (
-                      <div className="relative aspect-video rounded-xl overflow-hidden bg-slate-100 group">
+                      <div className="relative aspect-video rounded-xl overflow-hidden bg-slate-100 group border border-slate-200">
                         <img src={form.coverImage} alt="Cover" className="w-full h-full object-cover" />
-                        <button
-                          onClick={() => upd('coverImage', '')}
-                          className="absolute top-2 right-2 h-8 w-8 bg-black/60 hover:bg-black/80 rounded-full flex items-center justify-center transition-colors"
-                        ><X className="h-4 w-4 text-white" /></button>
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                          {availableProductImages.length > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => setShowImagePicker('cover')}
+                              className="px-3 py-1.5 bg-white/90 hover:bg-white text-slate-800 rounded-lg text-xs font-bold transition-all shadow"
+                            >
+                              Change from Products
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => upd('coverImage', '')}
+                            className="h-8 w-8 bg-red-600 hover:bg-red-700 rounded-lg flex items-center justify-center transition-colors text-white shadow"
+                            title="Remove Cover Image"
+                          >
+                            <X className="h-4 w-4 text-white" />
+                          </button>
+                        </div>
                       </div>
                     ) : (
-                      <ImageKitUploadWidget
-                        folder="/combos"
-                        options={{ multiple: false, resourceType: 'image' }}
-                        onSuccess={(r: any) => {
-                          const u = r?.info?.secure_url;
-                          if (u) { upd('coverImage', u); clearErr('coverImage'); }
-                        }}
-                      >
-                        {({ open, isUploading }) => (
-                          <button
-                            onClick={() => open()}
-                            disabled={isUploading}
-                            className={`w-full aspect-video rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-3 transition-all group ${
-                              stepErrors.coverImage
-                                ? 'border-red-300 bg-red-50/50 hover:border-red-400'
-                                : 'border-slate-200 hover:border-blue-400 hover:bg-blue-50/50'
-                            }`}
-                          >
-                            {isUploading ? (
-                              <Loader2 className="h-6 w-6 text-blue-500 animate-spin" />
-                            ) : (
-                              <>
-                                <div className={`h-12 w-12 rounded-full flex items-center justify-center transition-colors ${stepErrors.coverImage ? 'bg-red-100' : 'bg-slate-100 group-hover:bg-blue-100'}`}>
-                                  <ImagePlus className={`h-6 w-6 ${stepErrors.coverImage ? 'text-red-500' : 'text-slate-400 group-hover:text-blue-500'}`} />
-                                </div>
-                                <div className="text-center">
-                                  <p className={`text-sm font-semibold ${stepErrors.coverImage ? 'text-red-500' : 'text-slate-600 group-hover:text-blue-600'}`}>Click to upload cover image</p>
-                                  <p className="text-xs text-slate-400 mt-0.5">PNG, JPG up to 15 MB</p>
-                                </div>
-                              </>
-                            )}
-                          </button>
+                      <div className="space-y-3">
+                        {/* Quick pick from combo products if available */}
+                        {availableProductImages.filter(p => p.isSelectedProduct).length > 0 && (
+                          <div>
+                            <p className="text-[11px] font-bold text-slate-600 mb-1.5">Quick pick from bundle products:</p>
+                            <div className="flex flex-wrap gap-2">
+                              {availableProductImages
+                                .filter(p => p.isSelectedProduct)
+                                .slice(0, 6)
+                                .map((item, idx) => (
+                                  <button
+                                    key={idx}
+                                    type="button"
+                                    onClick={() => { upd('coverImage', item.url); clearErr('coverImage'); }}
+                                    className="group relative h-14 w-14 rounded-xl overflow-hidden border border-slate-200 hover:border-blue-500 hover:ring-2 hover:ring-blue-200 transition-all shrink-0 bg-slate-50"
+                                    title={item.title}
+                                  >
+                                    <img src={item.url} alt={item.title} className="h-full w-full object-cover" />
+                                    <div className="absolute inset-0 bg-blue-600/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-[10px] font-bold">
+                                      Use
+                                    </div>
+                                  </button>
+                                ))}
+                            </div>
+                          </div>
                         )}
-                      </ImageKitUploadWidget>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                          {availableProductImages.length > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => setShowImagePicker('cover')}
+                              className="h-28 rounded-xl border-2 border-dashed border-blue-200 bg-blue-50/50 hover:bg-blue-50 hover:border-blue-400 flex flex-col items-center justify-center gap-1.5 transition-all text-center p-3 cursor-pointer group"
+                            >
+                              <div className="h-8 w-8 rounded-full bg-blue-100 group-hover:bg-blue-600 flex items-center justify-center transition-colors text-blue-600 group-hover:text-white">
+                                <ImageIcon className="h-4 w-4" />
+                              </div>
+                              <span className="text-xs font-bold text-blue-700 group-hover:text-blue-800">Select from Products</span>
+                              <span className="text-[10px] text-blue-500">Pick any product image</span>
+                            </button>
+                          )}
+
+                          <ImageKitUploadWidget
+                            folder="/combos"
+                            options={{ multiple: false, resourceType: 'image' }}
+                            onSuccess={(r: any) => {
+                              const u = r?.info?.secure_url;
+                              if (u) { upd('coverImage', u); clearErr('coverImage'); }
+                            }}
+                          >
+                            {({ open, isUploading }) => (
+                              <button
+                                type="button"
+                                onClick={() => open()}
+                                disabled={isUploading}
+                                className={`h-28 rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-1.5 transition-all text-center p-3 cursor-pointer group ${
+                                  stepErrors.coverImage
+                                    ? 'border-red-300 bg-red-50/50 hover:border-red-400'
+                                    : 'border-slate-200 hover:border-blue-400 hover:bg-slate-50'
+                                }`}
+                              >
+                                {isUploading ? (
+                                  <Loader2 className="h-5 w-5 text-blue-500 animate-spin" />
+                                ) : (
+                                  <>
+                                    <div className={`h-8 w-8 rounded-full flex items-center justify-center transition-colors ${stepErrors.coverImage ? 'bg-red-100' : 'bg-slate-100 group-hover:bg-blue-100'}`}>
+                                      <ImagePlus className={`h-4 w-4 ${stepErrors.coverImage ? 'text-red-500' : 'text-slate-400 group-hover:text-blue-500'}`} />
+                                    </div>
+                                    <span className="text-xs font-bold text-slate-700 group-hover:text-blue-600">Upload New Photo</span>
+                                    <span className="text-[10px] text-slate-400">PNG, JPG up to 15 MB</span>
+                                  </>
+                                )}
+                              </button>
+                            )}
+                          </ImageKitUploadWidget>
+                        </div>
+                      </div>
                     )}
                   </div>
 
                   {/* Additional images */}
                   <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
-                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Additional Images</p>
+                    <div className="flex items-center justify-between">
+                      <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Additional Images</p>
+                      {availableProductImages.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => setShowImagePicker('gallery')}
+                          className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-2.5 py-1 rounded-lg transition-colors"
+                        >
+                          <ImageIcon className="h-3.5 w-3.5" />
+                          <span>Add from Products</span>
+                        </button>
+                      )}
+                    </div>
+
                     <div className="flex flex-wrap gap-2">
                       {form.images.map((img, i) => (
-                        <div key={i} className="relative h-16 w-16 rounded-xl overflow-hidden bg-slate-100 group shrink-0">
+                        <div key={i} className="relative h-16 w-16 rounded-xl overflow-hidden bg-slate-100 group shrink-0 border border-slate-200">
                           <img src={img} alt="" className="h-full w-full object-cover" />
                           <button
+                            type="button"
                             onClick={() => upd('images', form.images.filter((_, idx) => idx !== i))}
-                            className="absolute inset-0 bg-black/50 hidden group-hover:flex items-center justify-center"
-                          ><X className="h-4 w-4 text-white" /></button>
+                            className="absolute inset-0 bg-black/60 hidden group-hover:flex items-center justify-center text-white"
+                          ><X className="h-4 w-4" /></button>
                         </div>
                       ))}
+
+                      {/* Select from Products icon button */}
+                      {availableProductImages.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => setShowImagePicker('gallery')}
+                          className="h-16 w-16 rounded-xl border-2 border-dashed border-blue-200 bg-blue-50/50 hover:border-blue-400 hover:bg-blue-50 flex flex-col items-center justify-center transition-all shrink-0 text-blue-600"
+                          title="Add from Products"
+                        >
+                          <ImageIcon className="h-4 w-4" />
+                          <span className="text-[9px] font-bold mt-0.5">Product</span>
+                        </button>
+                      )}
+
                       <ImageKitUploadWidget
                         folder="/combos"
                         options={{ multiple: true, resourceType: 'image' }}
@@ -1185,13 +1324,18 @@ export default function AdminCombosPage() {
                       >
                         {({ open, isUploading }) => (
                           <button
+                            type="button"
                             onClick={() => open()}
                             disabled={isUploading}
-                            className="h-16 w-16 rounded-xl border-2 border-dashed border-slate-200 hover:border-blue-400 hover:bg-blue-50 flex items-center justify-center transition-all shrink-0"
+                            className="h-16 w-16 rounded-xl border-2 border-dashed border-slate-200 hover:border-blue-400 hover:bg-blue-50 flex flex-col items-center justify-center transition-all shrink-0 text-slate-500"
+                            title="Upload New Image"
                           >
                             {isUploading
                               ? <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />
-                              : <Plus className="h-5 w-5 text-slate-400" />}
+                              : <>
+                                  <Plus className="h-4 w-4" />
+                                  <span className="text-[9px] font-bold mt-0.5">Upload</span>
+                                </>}
                           </button>
                         )}
                       </ImageKitUploadWidget>
@@ -1315,6 +1459,195 @@ export default function AdminCombosPage() {
 
         </div>
       </main>
+
+      {/* ── Product Images Picker Modal ── */}
+      {showImagePicker && (
+        <div className="fixed inset-0 z-[250] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto animate-in fade-in duration-150">
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-3xl w-full max-h-[85vh] flex flex-col overflow-hidden my-auto">
+            {/* Modal Header */}
+            <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/70 shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-2xl bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
+                  <ImageIcon className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-black text-base text-slate-900">
+                    {showImagePicker === 'cover' ? 'Select Cover Image from Products' : 'Add Gallery Images from Products'}
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    {showImagePicker === 'cover'
+                      ? 'Pick an image from the bundled products or product catalog to use as the combo cover.'
+                      : 'Click any image to add or remove it from the combo gallery.'}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowImagePicker(null)}
+                className="h-8 w-8 rounded-xl bg-slate-200/60 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Modal Content / Image Grid */}
+            <div className="p-5 overflow-y-auto space-y-5 flex-1">
+              {/* Filter 1: Images from products in this combo */}
+              {availableProductImages.filter(p => p.isSelectedProduct).length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-2.5">
+                    <span className="text-[11px] font-black uppercase tracking-wider text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100">
+                      From Selected Combo Products
+                    </span>
+                    <span className="text-xs text-slate-400">
+                      ({availableProductImages.filter(p => p.isSelectedProduct).length} photos)
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    {availableProductImages
+                      .filter(p => p.isSelectedProduct)
+                      .map((item, idx) => {
+                        const isCover = form.coverImage === item.url;
+                        const inGallery = form.images.includes(item.url);
+
+                        return (
+                          <div
+                            key={`selected-${idx}`}
+                            onClick={() => {
+                              if (showImagePicker === 'cover') {
+                                upd('coverImage', item.url);
+                                clearErr('coverImage');
+                                setShowImagePicker(null);
+                              } else {
+                                if (inGallery) {
+                                  upd('images', form.images.filter(img => img !== item.url));
+                                } else {
+                                  upd('images', [...form.images, item.url]);
+                                }
+                              }
+                            }}
+                            className={`group relative aspect-square rounded-2xl overflow-hidden border-2 cursor-pointer transition-all bg-slate-50 ${
+                              showImagePicker === 'cover'
+                                ? isCover
+                                  ? 'border-blue-600 ring-4 ring-blue-500/20'
+                                  : 'border-slate-200 hover:border-blue-400 hover:shadow-md'
+                                : inGallery
+                                  ? 'border-emerald-600 ring-4 ring-emerald-500/20'
+                                  : 'border-slate-200 hover:border-emerald-400 hover:shadow-md'
+                            }`}
+                          >
+                            <img src={item.url} alt={item.title} className="w-full h-full object-cover" />
+                            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-2 pt-4">
+                              <p className="text-[11px] font-bold text-white truncate">{item.title}</p>
+                            </div>
+
+                            {/* Active badge */}
+                            {showImagePicker === 'cover' && isCover && (
+                              <div className="absolute top-2 right-2 bg-blue-600 text-white rounded-full p-1 shadow-md">
+                                <Check className="w-3.5 h-3.5" />
+                              </div>
+                            )}
+                            {showImagePicker === 'gallery' && inGallery && (
+                              <div className="absolute top-2 right-2 bg-emerald-600 text-white rounded-full p-1 shadow-md">
+                                <Check className="w-3.5 h-3.5" />
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                  </div>
+                </div>
+              )}
+
+              {/* Filter 2: Other Catalog Images */}
+              {availableProductImages.filter(p => !p.isSelectedProduct).length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-2.5">
+                    <span className="text-[11px] font-black uppercase tracking-wider text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
+                      Other Catalog Products
+                    </span>
+                    <span className="text-xs text-slate-400">
+                      ({availableProductImages.filter(p => !p.isSelectedProduct).length} photos)
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    {availableProductImages
+                      .filter(p => !p.isSelectedProduct)
+                      .slice(0, 40)
+                      .map((item, idx) => {
+                        const isCover = form.coverImage === item.url;
+                        const inGallery = form.images.includes(item.url);
+
+                        return (
+                          <div
+                            key={`catalog-${idx}`}
+                            onClick={() => {
+                              if (showImagePicker === 'cover') {
+                                upd('coverImage', item.url);
+                                clearErr('coverImage');
+                                setShowImagePicker(null);
+                              } else {
+                                if (inGallery) {
+                                  upd('images', form.images.filter(img => img !== item.url));
+                                } else {
+                                  upd('images', [...form.images, item.url]);
+                                }
+                              }
+                            }}
+                            className={`group relative aspect-square rounded-2xl overflow-hidden border-2 cursor-pointer transition-all bg-slate-50 ${
+                              showImagePicker === 'cover'
+                                ? isCover
+                                  ? 'border-blue-600 ring-4 ring-blue-500/20'
+                                  : 'border-slate-200 hover:border-blue-400 hover:shadow-md'
+                                : inGallery
+                                  ? 'border-emerald-600 ring-4 ring-emerald-500/20'
+                                  : 'border-slate-200 hover:border-emerald-400 hover:shadow-md'
+                            }`}
+                          >
+                            <img src={item.url} alt={item.title} className="w-full h-full object-cover" />
+                            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-2 pt-4">
+                              <p className="text-[11px] font-bold text-white truncate">{item.title}</p>
+                            </div>
+
+                            {/* Active badge */}
+                            {showImagePicker === 'cover' && isCover && (
+                              <div className="absolute top-2 right-2 bg-blue-600 text-white rounded-full p-1 shadow-md">
+                                <Check className="w-3.5 h-3.5" />
+                              </div>
+                            )}
+                            {showImagePicker === 'gallery' && inGallery && (
+                              <div className="absolute top-2 right-2 bg-emerald-600 text-white rounded-full p-1 shadow-md">
+                                <Check className="w-3.5 h-3.5" />
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 border-t border-slate-100 bg-slate-50/70 flex items-center justify-between shrink-0">
+              <p className="text-xs text-slate-500">
+                {showImagePicker === 'gallery'
+                  ? `${form.images.length} gallery image${form.images.length === 1 ? '' : 's'} selected`
+                  : form.coverImage ? 'Cover image selected' : 'No cover image selected'}
+              </p>
+              <button
+                type="button"
+                onClick={() => setShowImagePicker(null)}
+                className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition-colors cursor-pointer"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
