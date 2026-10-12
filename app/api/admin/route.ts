@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { connectDB, isDatabaseConnectivityError } from '@/lib/db';
 import User from '@/lib/models/User';
 import Order from '@/lib/models/Order';
+import Cart from '@/lib/models/Cart';
 import { createErrorResponse, createSuccessResponse, getTokenFromRequest, verifyToken } from '@/lib/utils/auth';
 
 import StoreConfig from '@/lib/models/StoreConfig';
@@ -76,6 +77,7 @@ export async function GET(request: NextRequest) {
                         await order.save();
                         await decrementStockForOrder(order);
                         await syncOrderToShiprocket(order);
+                        await Cart.findOneAndUpdate({ userId: order.userId }, { items: [] }).catch(() => {});
                       }
                     }
                   }
@@ -126,6 +128,7 @@ export async function GET(request: NextRequest) {
                         await order.save();
                         await decrementStockForOrder(order);
                         await syncOrderToShiprocket(order);
+                        await Cart.findOneAndUpdate({ userId: order.userId }, { items: [] }).catch(() => {});
                       }
                     }
                   }

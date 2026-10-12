@@ -1,5 +1,6 @@
 import { connectDB } from '@/lib/db';
 import Order from '@/lib/models/Order';
+import Cart from '@/lib/models/Cart';
 import Product from '@/lib/models/Product';
 import StoreConfig from '@/lib/models/StoreConfig';
 import { createErrorResponse, createSuccessResponse, getTokenFromRequest, verifyToken } from '@/lib/utils/auth';
@@ -85,6 +86,7 @@ export async function GET(request: NextRequest) {
                     await order.save();
                     await decrementStockForOrder(order);
                     await syncOrderToShiprocket(order);
+                    await Cart.findOneAndUpdate({ userId: order.userId }, { items: [] }).catch(() => {});
                   }
                 }
               }
@@ -132,6 +134,7 @@ export async function GET(request: NextRequest) {
                         await order.save();
                         await decrementStockForOrder(order);
                         await syncOrderToShiprocket(order);
+                        await Cart.findOneAndUpdate({ userId: order.userId }, { items: [] }).catch(() => {});
                       }
                     }
                   }

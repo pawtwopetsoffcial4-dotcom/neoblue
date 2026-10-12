@@ -53,6 +53,12 @@ type CustomerCart = {
   totalItemsCount: number;
   updatedAt: string;
   createdAt: string;
+  latestOrder?: {
+    id: string;
+    status: string;
+    createdAt: string;
+    totalAmount: number;
+  } | null;
 };
 
 type RetentionTemplate = {
@@ -345,6 +351,11 @@ export default function AdminCartsPage() {
                         <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-100 shrink-0">
                           {cart.items.length} variety{cart.items.length > 1 ? 'ies' : ''} ({cart.totalItemsCount} items)
                         </span>
+                        {cart.latestOrder && (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100 shrink-0">
+                            Existing Customer (Order #{cart.latestOrder.id.slice(-6).toUpperCase()})
+                          </span>
+                        )}
                       </h3>
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-xs text-slate-500 font-medium">
                         {cart.user.phone && (

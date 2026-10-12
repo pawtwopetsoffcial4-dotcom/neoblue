@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import { createErrorResponse, getTokenFromRequest, verifyToken } from '@/lib/utils/auth';
 import { connectDB } from '@/lib/db';
 import Order from '@/lib/models/Order';
+import Cart from '@/lib/models/Cart';
 import StoreConfig from '@/lib/models/StoreConfig';
 import { decrementStockForOrder } from '@/lib/utils/stock';
 import { createNotification } from '@/lib/utils/notifications';
@@ -81,6 +82,11 @@ export async function POST(request: NextRequest) {
             'new_order',
             '/vendor/orders'
           ).catch((e) => console.error('Notification vendor error:', e));
+
+          // Clear customer's cart in DB since order is placed
+          await Cart.findOneAndUpdate({ userId: order.userId }, { items: [] }).catch((e) =>
+            console.error('Clear cart error in Razorpay verification:', e)
+          );
         }
       }
 
@@ -184,6 +190,11 @@ export async function GET(request: NextRequest) {
             'new_order',
             '/vendor/orders'
           ).catch((e) => console.error('Notification vendor error:', e));
+
+          // Clear customer's cart in DB since order is placed
+          await Cart.findOneAndUpdate({ userId: order.userId }, { items: [] }).catch((e) =>
+            console.error('Clear cart error in Cashfree verification:', e)
+          );
         }
       }
     }

@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { apiClient } from '@/lib/api-client';
 import { useAuth } from '@/lib/hooks/useAuth';
+import { useCart } from '@/lib/hooks/useCart';
 import ImageKitUploadWidget from '@/app/components/ImageKitUploadWidget';
 import { Shield, ShieldCheck, ShieldAlert, FileVideo, UploadCloud, CheckCircle2, AlertCircle, Loader2, X, ShoppingBag, ArrowRight } from 'lucide-react';
 
@@ -34,6 +35,7 @@ function OrdersPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
+  const { clearCart } = useCart();
   const [orders, setOrders] = useState<UserOrder[]>([]);
   const [claims, setClaims] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -57,6 +59,11 @@ function OrdersPageContent() {
       if (typeof window !== 'undefined') {
         localStorage.removeItem('pendingRazorpayCheckout');
         localStorage.removeItem('pendingCashfreeCheckout');
+      }
+
+      // If user came here right after a successful payment, clear customer's cart
+      if (isConfirmed) {
+        clearCart();
       }
 
       const [ordersRes, claimsRes] = await Promise.all([
