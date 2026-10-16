@@ -1,5 +1,6 @@
 import { connectDB } from '@/lib/db';
 import Secret from '@/lib/models/Secret';
+import { seedDefaultSecrets } from '@/lib/utils/seedSecrets';
 
 /**
  * Reads a secret from the database first, falling back to the environment
@@ -9,6 +10,7 @@ import Secret from '@/lib/models/Secret';
 export async function getSecret(key: string): Promise<string | undefined> {
   try {
     await connectDB();
+    await seedDefaultSecrets();
     const record = await Secret.findOne({ key }).lean<{ value?: string } | null>();
     if (record?.value) {
       return record.value;
