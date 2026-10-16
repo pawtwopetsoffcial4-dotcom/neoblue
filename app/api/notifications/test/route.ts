@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
+import { getSecret } from '@/lib/utils/secrets';
 
 export async function POST() {
-  const appId = process.env.ONESIGNAL_APP_ID;
-  const restApiKey = process.env.ONESIGNAL_REST_API_KEY;
+  const appId = await getSecret('ONESIGNAL_APP_ID');
+  const restApiKey = await getSecret('ONESIGNAL_REST_API_KEY');
 
   if (!appId || !restApiKey) {
     return NextResponse.json({ error: 'OneSignal is not configured' }, { status: 500 });

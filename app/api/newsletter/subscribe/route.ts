@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getSecret } from '@/lib/utils/secrets';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -11,9 +12,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Please provide a valid email address' }, { status: 400 });
     }
 
-    const apiToken = process.env.SENDER_API_TOKEN;
-    const fromEmail = process.env.SENDER_FROM_EMAIL;
-    const groupId = process.env.SENDER_GROUP_ID;
+    const apiToken = await getSecret('SENDER_API_TOKEN');
+    const fromEmail = await getSecret('SENDER_FROM_EMAIL');
+    const groupId = await getSecret('SENDER_GROUP_ID');
 
     if (!apiToken || !fromEmail) {
       return NextResponse.json({ error: 'Newsletter service is not configured' }, { status: 500 });

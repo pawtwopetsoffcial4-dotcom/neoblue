@@ -1,9 +1,10 @@
 import mongoose from 'mongoose';
 import Notification from '@/lib/models/Notification';
+import { getSecret } from '@/lib/utils/secrets';
 
 async function sendPushNotification(userId: string, title: string, message: string, link?: string, imageUrl?: string) {
-  const appId = process.env.ONESIGNAL_APP_ID;
-  const restApiKey = process.env.ONESIGNAL_REST_API_KEY;
+  const appId = await getSecret('ONESIGNAL_APP_ID');
+  const restApiKey = await getSecret('ONESIGNAL_REST_API_KEY');
   if (!appId || !restApiKey) return;
 
   try {
