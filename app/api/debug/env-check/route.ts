@@ -15,5 +15,9 @@ const WATCHED_KEYS = [
 
 export async function GET() {
   const presence = Object.fromEntries(WATCHED_KEYS.map((key) => [key, Boolean(process.env[key])]));
-  return NextResponse.json({ presence });
+  return NextResponse.json({
+    presence,
+    gitCommit: process.env.APP_GIT_COMMIT || 'unknown',
+    buildTime: process.env.APP_BUILD_TIME || 'unknown',
+  });
 }
