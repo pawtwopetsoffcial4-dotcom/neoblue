@@ -33,8 +33,9 @@ async function sendPushNotification(userId: string, title: string, message: stri
       body: JSON.stringify(payload),
     });
 
-    if (!res.ok) {
-      console.error('OneSignal push failed:', await res.text());
+    const data = await res.json().catch(() => null);
+    if (!res.ok || (Array.isArray(data?.errors) && data.errors.length > 0)) {
+      console.error('OneSignal push failed:', data);
     }
   } catch (error) {
     console.error('Failed to send push notification:', error);

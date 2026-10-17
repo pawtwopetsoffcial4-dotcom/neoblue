@@ -18,7 +18,7 @@ export async function POST() {
       },
       body: JSON.stringify({
         app_id: appId,
-        included_segments: ['Subscribed Users'],
+        included_segments: ['Total Subscriptions'],
         target_channel: 'push',
         headings: { en: 'NeoBlue Test Notification' },
         contents: { en: 'This is a test push notification from clicking the logo — it works!' },
@@ -27,8 +27,10 @@ export async function POST() {
     });
 
     const data = await res.json();
-    if (!res.ok) {
-      return NextResponse.json({ error: data }, { status: res.status });
+    // OneSignal can return HTTP 200 with an `errors` array for logical failures
+    // (e.g. an empty/misnamed segment) — treat that the same as a hard failure.
+    if (!res.ok || (Array.isArray(data?.errors) && data.errors.length > 0)) {
+      return NextResponse.json({ error: data }, { status: res.ok ? 422 : res.status });
     }
 
     return NextResponse.json({ success: true, recipients: data.recipients ?? 0, id: data.id });
