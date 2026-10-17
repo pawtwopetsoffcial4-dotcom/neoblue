@@ -11,7 +11,18 @@ function requireAdmin(request: NextRequest) {
   return payload;
 }
 
-// GET: list stored secret keys with a masked preview (never returns full values)
+const WATCHED_ENV_KEYS = [
+  'ONESIGNAL_APP_ID',
+  'ONESIGNAL_REST_API_KEY',
+  'SENDER_API_TOKEN',
+  'SENDER_FROM_EMAIL',
+  'SENDER_GROUP_ID',
+  'MONGODB_URI',
+];
+
+// GET: list stored secret keys with a masked preview (never returns full values),
+// plus a diagnostic showing whether each watched key is present as an env var —
+// booleans only, never the value — to debug "configured on one host but not another".
 export async function GET(request: NextRequest) {
   try {
     if (!requireAdmin(request)) {
@@ -27,7 +38,12 @@ export async function GET(request: NextRequest) {
       updatedAt: s.updatedAt,
     }));
 
-    return createSuccessResponse({ secrets: masked });
+    const envPresence = WATCHED_ENV_KEYS.map((key) => ({
+      key,
+      presentInEnv: Boolean(process.env[key]),
+    }));
+
+    return createSuccessResponse({ secrets: masked, envPresence });
   } catch (error) {
     console.error('Get secrets error:', error);
     return createErrorResponse(error instanceof Error ? error.message : 'Failed to fetch secrets', 500);
