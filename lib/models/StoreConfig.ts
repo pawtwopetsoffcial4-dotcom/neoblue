@@ -91,7 +91,7 @@ const StoreConfigSchema = new mongoose.Schema<IStoreConfig>(
     stat3Value: { type: String, default: '100%' },
     stat3Label: { type: String, default: 'Live Arrival Cover' },
     freeShippingEnabled: { type: Boolean, default: true },
-    freeShippingMinAmount: { type: Number, default: 599 },
+    freeShippingMinAmount: { type: Number, default: 799 },
     minOrderAmount: { type: Number, default: 149 },
     paymentGateway: { type: String, enum: ['razorpay', 'cashfree'], default: 'razorpay' },
     razorpayKeyId: { type: String, default: () => process.env.RAZORPAY_KEY_ID || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || '' },

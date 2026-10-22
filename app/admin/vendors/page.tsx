@@ -63,7 +63,7 @@ export default function AdminVendorsPage() {
 
   // Free Shipping Threshold Config State
   const [freeShippingEnabled, setFreeShippingEnabled] = useState(true);
-  const [freeShippingMinAmount, setFreeShippingMinAmount] = useState<number | string>(599);
+  const [freeShippingMinAmount, setFreeShippingMinAmount] = useState<number | string>(799);
   const [isSavingFreeShipping, setIsSavingFreeShipping] = useState(false);
 
   const SLABS = [
@@ -93,7 +93,7 @@ export default function AdminVendorsPage() {
       const configRes = (await apiClient.getStoreConfig()) as any;
       if (configRes) {
         setFreeShippingEnabled(configRes.freeShippingEnabled !== false);
-        setFreeShippingMinAmount(configRes.freeShippingMinAmount ?? 599);
+        setFreeShippingMinAmount(configRes.freeShippingMinAmount ?? 799);
       }
     } catch {
       setVendors([]);
@@ -318,7 +318,7 @@ export default function AdminVendorsPage() {
 
       await apiClient.updateStoreConfig({
         freeShippingEnabled,
-        freeShippingMinAmount: parseFloat(String(freeShippingMinAmount)) || 599,
+        freeShippingMinAmount: parseFloat(String(freeShippingMinAmount)) || 799,
       });
 
       setMessage(`Free Shipping rule saved: ${freeShippingEnabled ? `Enabled (Min ₹${freeShippingMinAmount} on all orders)` : 'Disabled'}`);

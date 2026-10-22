@@ -143,7 +143,7 @@ export default function CartDrawer() {
   const [isUpsellLoading, setIsUpsellLoading] = useState(false);
 
   useEffect(() => {
-    if (!isCartOpen || items.length === 0 || totalAmount >= 599) {
+    if (!isCartOpen || items.length === 0 || totalAmount >= 799) {
       return;
     }
 
@@ -397,7 +397,7 @@ export default function CartDrawer() {
 
 
                 {/* Vendor Upsell Recommendations (to bridge to ₹599 free shipping) */}
-                {totalAmount < 599 && upsellProducts.length > 0 && (
+                {totalAmount < 799 && upsellProducts.length > 0 && (
                   <div className="pt-3.5 pb-1 border-t border-slate-100 space-y-2.5">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1.5">
@@ -407,7 +407,7 @@ export default function CartDrawer() {
                         </h4>
                       </div>
                       <span className="text-[10px] font-bold text-amber-800 bg-amber-100/70 border border-amber-200 px-2 py-0.5 rounded-full">
-                        Add ₹{Math.max(0, 599 - totalAmount)} more
+                        Add ₹{Math.max(0, 799 - totalAmount)} more
                       </span>
                     </div>
 
@@ -490,7 +490,7 @@ export default function CartDrawer() {
                     Cart Subtotal
                   </span>
                   <p className="text-[9px] sm:text-[10px] text-slate-400 font-medium">
-                    {totalAmount >= 599 ? '🎉 Free Shipping on single-seller orders' : 'Standard Shipping ₹99 at checkout'}
+                    {totalAmount >= 799 ? '🎉 Free Shipping on single-seller orders' : 'Standard Shipping ₹99 at checkout'}
                   </p>
                 </div>
                 <div className="text-right">
@@ -503,7 +503,7 @@ export default function CartDrawer() {
               {/* Order & Free Shipping Threshold Progress Bar */}
               {(() => {
                 const MIN_ORDER_AMOUNT = 149;
-                const FREE_SHIPPING_AMOUNT = 599;
+                const FREE_SHIPPING_AMOUNT = 799;
 
                 const isMinOrderMet = totalAmount >= MIN_ORDER_AMOUNT;
                 const isFreeShippingMet = totalAmount >= FREE_SHIPPING_AMOUNT;

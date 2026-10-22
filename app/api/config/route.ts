@@ -42,7 +42,7 @@ const DEFAULT_CONFIG_RESPONSE = {
   stat3Value: '100%',
   stat3Label: 'Live Arrival Cover',
   freeShippingEnabled: true,
-  freeShippingMinAmount: 599,
+  freeShippingMinAmount: 799,
 };
 
 // Resilient GET implementation: always returns 200 with valid config data

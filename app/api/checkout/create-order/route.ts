@@ -204,7 +204,7 @@ export async function POST(request: NextRequest) {
     }
 
     const freeShippingEnabled = (storeConfig as any)?.freeShippingEnabled !== false;
-    const freeShippingMin = Number((storeConfig as any)?.freeShippingMinAmount) || 599;
+    const freeShippingMin = Number((storeConfig as any)?.freeShippingMinAmount) || 799;
     const isSingleVendor = Object.keys(vendorGroups).length <= 1;
 
     let shippingAmount = 0;
