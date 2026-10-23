@@ -172,7 +172,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       clearInterval(interval);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [user]);
+  }, [user?.id]);
 
   const unreadCount = notifications.filter(n => !n.read).length;
 

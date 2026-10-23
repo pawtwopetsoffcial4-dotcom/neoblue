@@ -141,15 +141,22 @@ export default function CartDrawer() {
 
   const [upsellProducts, setUpsellProducts] = useState<any[]>([]);
   const [isUpsellLoading, setIsUpsellLoading] = useState(false);
+  const lastFetchedVendorRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!isCartOpen || items.length === 0 || totalAmount >= 799) {
       return;
     }
 
+    const currentKey = topVendorId || 'all';
+    if (lastFetchedVendorRef.current === currentKey && upsellProducts.length > 0) {
+      return;
+    }
+
     const fetchUpsells = async () => {
       try {
         setIsUpsellLoading(true);
+        lastFetchedVendorRef.current = currentKey;
         const url = topVendorId 
           ? `/api/products?vendorId=${topVendorId}&limit=8` 
           : `/api/products?limit=8`;
@@ -169,7 +176,7 @@ export default function CartDrawer() {
     };
 
     fetchUpsells();
-  }, [isCartOpen, topVendorId, items.length, totalAmount]);
+  }, [isCartOpen, topVendorId, items.length, totalAmount, upsellProducts.length]);
 
   const theme = isPlants ? {
     accent: 'emerald',

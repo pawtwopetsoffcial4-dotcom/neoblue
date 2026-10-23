@@ -19,10 +19,12 @@ function FacebookPixelTracker() {
 
 export default function FacebookPixel({ initialPixelId }: { initialPixelId?: string }) {
   const [pixelId, setPixelId] = useState<string>(initialPixelId || FB_PIXEL_ID);
+  const hasFetchedRef = React.useRef(false);
 
   useEffect(() => {
-    // Skip network request if pixel ID is already configured
-    if (pixelId) return;
+    // Skip network request if pixel ID is already configured or already fetched
+    if (pixelId || hasFetchedRef.current) return;
+    hasFetchedRef.current = true;
 
     const fetchLivePixelId = async () => {
       try {

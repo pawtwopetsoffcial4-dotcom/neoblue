@@ -334,7 +334,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     };
 
     loadCart();
-  }, [user]);
+  }, [user?.id]);
 
   // Save items to localStorage whenever they change
   useEffect(() => {

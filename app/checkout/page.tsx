@@ -29,6 +29,9 @@ function CheckoutPageContent() {
   const [isPaying, setIsPaying] = useState(false);
   const [isFinalizing, setIsFinalizing] = useState(false);
   const [productDetails, setProductDetails] = useState<Record<string, MarketplaceProduct>>({});
+  const productDetailsRef = useRef<Record<string, MarketplaceProduct>>({});
+  productDetailsRef.current = productDetails;
+  const fetchedProductIdsRef = useRef<Set<string>>(new Set());
   const { mode } = useMode();
   const isPlants = mode === 'plants';
 
@@ -53,7 +56,7 @@ function CheckoutPageContent() {
 
         const resolved: SharedCartItem[] = await Promise.all(
           decoded.map(async (item) => {
-            let details = productDetails[item.productId];
+            let details = productDetailsRef.current[item.productId];
             if (!details) {
               try {
                 const res = (await apiClient.getProduct(item.productId)) as any;
@@ -88,7 +91,7 @@ function CheckoutPageContent() {
     return () => {
       isMounted = false;
     };
-  }, [searchParams, productDetails]);
+  }, [searchParams]);
 
   const generateShareLink = async () => {
     if (shortShareUrl) return shortShareUrl;
@@ -213,14 +216,24 @@ function CheckoutPageContent() {
     };
 
     loadSavedAddress();
+  }, []);
 
-    const missingIds = items
-      .map((item) => item.productId)
-      .filter((productId) => !productDetails[productId]);
+  const itemsKey = items.map((i) => i.productId).join(',');
 
-    if (missingIds.length === 0) {
-      return;
-    }
+  useEffect(() => {
+    if (items.length === 0) return;
+
+    const missingCleanIds: string[] = [];
+    items.forEach((item) => {
+      const rawId = String(item.productId || '');
+      const cleanId = rawId.includes('_pack_') ? rawId.split('_pack_')[0] : (rawId.includes('-pack-') ? rawId.split('-pack-')[0] : rawId);
+      if (cleanId && !fetchedProductIdsRef.current.has(cleanId)) {
+        missingCleanIds.push(cleanId);
+        fetchedProductIdsRef.current.add(cleanId);
+      }
+    });
+
+    if (missingCleanIds.length === 0) return;
 
     let cancelled = false;
 
@@ -228,26 +241,25 @@ function CheckoutPageContent() {
       try {
         const token = localStorage.getItem('authToken') ?? '';
         const responses = await Promise.all(
-          missingIds.map(async (productId) => {
-            const res = await fetch(`/api/products/${productId}`, {
-              cache: 'no-store',
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            });
+          missingCleanIds.map(async (cleanId) => {
+            try {
+              const res = await fetch(`/api/products/${cleanId}`, {
+                cache: 'no-store',
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              });
 
-            if (!res.ok) {
+              if (!res.ok) return null;
+              const data = await res.json();
+              return data?.product ?? null;
+            } catch {
               return null;
             }
-
-            const data = await res.json();
-            return data?.product ?? null;
           })
         );
 
-        if (cancelled) {
-          return;
-        }
+        if (cancelled) return;
 
         const nextDetails: Record<string, MarketplaceProduct> = {};
         responses.forEach((product) => {
@@ -259,7 +271,7 @@ function CheckoutPageContent() {
         items.forEach((item) => {
           const rawId = String(item.productId || '');
           const cleanId = rawId.includes('_pack_') ? rawId.split('_pack_')[0] : (rawId.includes('-pack-') ? rawId.split('-pack-')[0] : rawId);
-          const found = nextDetails[cleanId] || responses.find((p) => p?._id === cleanId);
+          const found = nextDetails[cleanId] || productDetailsRef.current[cleanId];
           if (found) {
             nextDetails[item.productId] = found;
             nextDetails[cleanId] = found;
@@ -279,7 +291,7 @@ function CheckoutPageContent() {
     return () => {
       cancelled = true;
     };
-  }, [items, productDetails]);
+  }, [itemsKey]);
 
 
 

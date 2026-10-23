@@ -57,7 +57,7 @@ export async function GET() {
     const config = await Promise.race([fetchDbConfig(), timeoutPromise]);
 
     if (!config) {
-      return NextResponse.json(DEFAULT_CONFIG_RESPONSE);
+      return NextResponse.json(DEFAULT_CONFIG_RESPONSE, { headers: CONFIG_CACHE_HEADERS });
     }
 
     const payload = config as Record<string, any>;

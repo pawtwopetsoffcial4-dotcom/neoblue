@@ -30,10 +30,12 @@ export default function GoogleAnalytics({ initialGaId }: { initialGaId?: string 
   const [gaId, setGaId] = useState<string>(
     initialGaId || process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || process.env.NEXT_PUBLIC_GA_ID || ''
   );
+  const hasFetchedRef = React.useRef(false);
 
   useEffect(() => {
-    // Skip network request if GA ID is already configured
-    if (gaId) return;
+    // Skip network request if GA ID is already configured or already fetched
+    if (gaId || hasFetchedRef.current) return;
+    hasFetchedRef.current = true;
 
     const fetchLiveGaId = async () => {
       try {
