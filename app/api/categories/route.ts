@@ -58,7 +58,7 @@ export async function GET(_request: NextRequest) {
 
     const categoriesWithImages = categories.map((name) => ({
       name,
-      image: config?.categoryImages?.[name] || getCategoryImage(name),
+      image: (config?.categoryImages?.[name] && !config.categoryImages[name].includes('res.cloudinary.com/djoklzpse')) ? config.categoryImages[name] : getCategoryImage(name),
     }));
 
     return createSuccessResponse({

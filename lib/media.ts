@@ -135,6 +135,10 @@ export function getMediaUrl(keyOrUrl?: string | null, options: MediaTransformOpt
   if (!trimmed) return '';
 
   // 1. Local static assets remain local
+  if (trimmed.includes('res.cloudinary.com/djoklzpse') || trimmed.includes('mqbrqnmlcjf7sj1qbld9')) {
+    return '/illustrations/placeholder.png';
+  }
+
   if (trimmed.startsWith('/') && !trimmed.startsWith('//') && !trimmed.startsWith('/products/')) {
     return trimmed;
   }

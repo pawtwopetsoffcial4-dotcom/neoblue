@@ -78,7 +78,7 @@ async function getHomepageData() {
 
     const initialCategories = configuredCategories.map((name: string) => ({
       name,
-      image: config?.categoryImages?.[name] || getCategoryImage(name),
+      image: (config?.categoryImages?.[name] && !config.categoryImages[name].includes('res.cloudinary.com/djoklzpse')) ? config.categoryImages[name] : getCategoryImage(name),
     }));
 
     const initialHeroSlides = Array.isArray(config?.heroSlides) && config.heroSlides.length > 0
