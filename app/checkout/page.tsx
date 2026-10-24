@@ -8,7 +8,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useCart } from '@/lib/hooks/useCart';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { apiClient } from '@/lib/api-client';
-import { Trash2, Plus, Minus, MapPin, ShoppingBag, ArrowRight, ShieldCheck, ArrowLeft, CheckSquare, AlertCircle, Share2, Copy, Check, MessageCircle, X } from 'lucide-react';
+import { Trash2, Plus, Minus, MapPin, ShoppingBag, ArrowRight, ShieldCheck, ArrowLeft, CheckSquare, AlertCircle, Share2, Copy, Check, MessageCircle, X, Truck, Clock } from 'lucide-react';
 import type { MarketplaceProduct } from '@/lib/types/marketplace';
 import { getRegionFromState, checkFreeShippingEligibility } from '@/lib/utils/shipping';
 import { useMode } from '@/lib/hooks/useMode';
@@ -1029,9 +1029,16 @@ function CheckoutPageContent() {
               
               {/* Address Form */}
               <div className="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden">
-                <div className="p-6 border-b border-gray-100 bg-gray-50/50 flex items-center gap-2">
-                  <MapPin className={`h-5 w-5 ${textTheme}`} />
-                  <h2 className="text-lg font-bold text-gray-900">Delivery Details</h2>
+                <div className="p-6 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between flex-wrap gap-2">
+
+                  <div className="flex items-center gap-2">
+                    <MapPin className={`h-5 w-5 ${textTheme}`} />
+                    <h2 className="text-lg font-bold text-gray-900">Delivery Details</h2>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-blue-800 bg-blue-50 border border-blue-200/80 px-3 py-1 rounded-full">
+                    <Truck className="h-3.5 w-3.5 text-blue-600" />
+                    <span>Expected Delivery: <strong>8–10 Days</strong></span>
+                  </div>
                 </div>
                 <div className="p-6 space-y-4">
                   {/* Saved Address Choice Selector if user has saved address */}
@@ -1221,11 +1228,21 @@ function CheckoutPageContent() {
                       <span>
                         {isFreeShippingEligible ? (
                           <strong className="text-emerald-600 font-extrabold uppercase">FREE (Single Seller)</strong>
-                        ) : totalAmount >= 599 && !isSingleVendor ? (
+                        ) : totalAmount >= (freeShippingInfo.minAmount || 799) && !isSingleVendor ? (
                           <span className="text-slate-900 font-bold">₹99.00 (Multi-Seller Flat Rate)</span>
                         ) : (
                           <span className="text-slate-900 font-bold">₹{shippingAmount.toFixed(2)}</span>
                         )}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between items-center text-gray-700 py-0.5">
+                      <span className="flex items-center gap-1.5 text-xs text-gray-600 font-semibold">
+                        <Truck className="h-4 w-4 text-blue-600" />
+                        <span>Expected Delivery</span>
+                      </span>
+                      <span className="text-blue-900 font-extrabold bg-blue-50 border border-blue-200/80 px-2.5 py-0.5 rounded-full text-xs">
+                        8–10 Days
                       </span>
                     </div>
 
@@ -1234,17 +1251,17 @@ function CheckoutPageContent() {
                         <span className="text-base">🎉</span>
                         <span>Free Shipping Applied! (Single-seller order over ₹{freeShippingInfo.minAmount})</span>
                       </div>
-                    ) : totalAmount >= 599 && !isSingleVendor ? (
+                    ) : totalAmount >= (freeShippingInfo.minAmount || 799) && !isSingleVendor ? (
                       <div className="p-3 bg-amber-50 border border-amber-200 rounded-2xl text-amber-900 text-xs font-semibold flex items-center gap-2">
                         <span className="text-base">📦</span>
-                        <span>Multi-seller order: Flat ₹99 shipping applied as items ship from different sellers. (Orders from a single seller over ₹599 get FREE delivery).</span>
+                        <span>Multi-seller order: Flat ₹99 shipping applied as items ship from different sellers. (Orders from a single seller over ₹{freeShippingInfo.minAmount || 799} get FREE delivery).</span>
                       </div>
                     ) : (
-                      totalAmount < 599 && (
+                      totalAmount < (freeShippingInfo.minAmount || 799) && (
                         <div className="p-3 bg-blue-50 border border-blue-200 rounded-2xl text-blue-900 text-xs font-semibold flex items-center justify-between gap-2">
                           <span className="flex items-center gap-1.5">
                             <span className="text-base">🚚</span>
-                            <span>Add <strong>₹{(599 - totalAmount).toFixed(0)}</strong> more from the same seller for <strong>FREE Shipping</strong>!</span>
+                            <span>Add <strong>₹{((freeShippingInfo.minAmount || 799) - totalAmount).toFixed(0)}</strong> more from the same seller for <strong>FREE Shipping</strong>!</span>
                           </span>
                         </div>
                       )
@@ -1338,7 +1355,11 @@ function CheckoutPageContent() {
                     )}
                   </button>
                   
-                  <div className="flex items-center justify-center gap-2 text-xs font-semibold text-gray-400 mt-4 uppercase tracking-widest">
+                  <div className="flex items-center justify-center gap-1.5 text-xs font-semibold text-slate-500 mt-3">
+                    <Clock className="h-3.5 w-3.5 text-slate-400" />
+                    <span>Expected Delivery: <strong>8–10 Days</strong></span>
+                  </div>
+                  <div className="flex items-center justify-center gap-2 text-xs font-semibold text-gray-400 mt-2 uppercase tracking-widest">
                     <ShieldCheck className="h-4 w-4" /> 100% SECURE {storeConfig?.paymentGateway === 'cashfree' ? 'CASHFREE' : 'RAZORPAY'}
                   </div>
                 </div>

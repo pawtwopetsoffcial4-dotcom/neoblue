@@ -230,7 +230,7 @@ export function checkFreeShippingEligibility(
   enabled: boolean;
 } {
   const enabled = storeConfig?.freeShippingEnabled !== false;
-  const minAmount = Number(storeConfig?.freeShippingMinAmount) || 599;
+  const minAmount = Number(storeConfig?.freeShippingMinAmount) || 799;
 
   const { isSingleVendor, vendorName } = isSingleVendorCart(items, productDetails);
   const remainingAmount = Math.max(0, minAmount - subtotal);
