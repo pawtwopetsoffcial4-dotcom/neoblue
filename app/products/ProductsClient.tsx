@@ -228,6 +228,34 @@ const extractProducts = (payload: unknown): MarketplaceProduct[] => {
   return [];
 };
 
+function CyclingSearchPlaceholder({ phrases, mode, onClick }: { phrases: string[]; mode: string; onClick: () => void }) {
+  const [phraseIndex, setPhraseIndex] = useState(0);
+
+  useEffect(() => {
+    if (!phrases.length) return;
+    const timer = setInterval(() => {
+      setPhraseIndex((prev) => (prev + 1) % phrases.length);
+    }, 2800);
+    return () => clearInterval(timer);
+  }, [phrases.length]);
+
+  return (
+    <div 
+      onClick={onClick}
+      className="absolute left-12 right-44 top-0 bottom-0 flex items-center pointer-events-none overflow-hidden select-none"
+    >
+      <div key={phraseIndex} className="animate-text-slide flex items-center gap-1.5 text-xs md:text-sm font-semibold text-slate-400 truncate">
+        <span>Search for</span>
+        <span className={`font-bold transition-colors ${
+          mode === 'fishes' ? 'text-blue-600' : 'text-emerald-600'
+        }`}>
+          &ldquo;{phrases[phraseIndex]}&rdquo;
+        </span>
+      </div>
+    </div>
+  );
+}
+
 function ProductsPageContent() {
   const router = useRouter();
   const { addToCart } = useCart();
@@ -240,9 +268,10 @@ function ProductsPageContent() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
-  const [phraseIndex, setPhraseIndex] = useState(0);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchContainerRef = useRef<HTMLDivElement>(null);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+  const [visibleCount, setVisibleCount] = useState(24);
 
   // Running live search suggestion phrases
   const runningPhrases = useMemo(() => {
@@ -266,13 +295,6 @@ function ProductsPageContent() {
           'Floating Plants & Red Root Floater',
         ];
   }, [mode]);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setPhraseIndex((prev) => (prev + 1) % runningPhrases.length);
-    }, 2800);
-    return () => clearInterval(timer);
-  }, [runningPhrases.length]);
 
   // Filter & Sorting state
   const [sortBy, setSortBy] = useState('featured');
@@ -626,6 +648,33 @@ function ProductsPageContent() {
     };
   }, [products, searchTerm, category, subcategory, waterType, tag, inStockOnly, sortBy, mode, lightingRequirement, co2Requirement, placement, careDifficulty, trendingChips]);
 
+  // Reset pagination when any filter changes
+  useEffect(() => {
+    setVisibleCount(24);
+  }, [searchTerm, category, subcategory, waterType, tag, inStockOnly, mode, sortBy, priceRange]);
+
+  const displayedProducts = useMemo(() => {
+    return filteredProducts.slice(0, visibleCount);
+  }, [filteredProducts, visibleCount]);
+
+  // Infinite scroll observer to smoothly load next 24 items
+  useEffect(() => {
+    if (visibleCount >= filteredProducts.length) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          setVisibleCount((prev) => Math.min(prev + 24, filteredProducts.length));
+        }
+      },
+      { rootMargin: '300px' }
+    );
+    const current = loadMoreRef.current;
+    if (current) observer.observe(current);
+    return () => {
+      if (current) observer.unobserve(current);
+    };
+  }, [visibleCount, filteredProducts.length]);
+
   // Recommended products for zero-state rescue
   const recommendedRescueProducts = useMemo(() => {
     const modeProducts = products.filter((product) => {
@@ -726,19 +775,11 @@ function ProductsPageContent() {
 
               {/* Running Animated Placeholder Overlay */}
               {!searchTerm && (
-                <div 
+                <CyclingSearchPlaceholder
+                  phrases={runningPhrases}
+                  mode={mode}
                   onClick={() => { searchInputRef.current?.focus(); setIsSearchFocused(true); }}
-                  className="absolute left-12 right-44 top-0 bottom-0 flex items-center pointer-events-none overflow-hidden select-none"
-                >
-                  <div key={phraseIndex} className="animate-text-slide flex items-center gap-1.5 text-xs md:text-sm font-semibold text-slate-400 truncate">
-                    <span>Search for</span>
-                    <span className={`font-bold transition-colors ${
-                      mode === 'fishes' ? 'text-blue-600' : 'text-emerald-600'
-                    }`}>
-                      &ldquo;{runningPhrases[phraseIndex]}&rdquo;
-                    </span>
-                  </div>
-                </div>
+                />
               )}
 
               {/* Action Group: Live Status Badge, Clear Button & Keyboard Shortcut Hint */}
@@ -1131,11 +1172,32 @@ function ProductsPageContent() {
         ) : (
           <>
             {/* Responsive Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6 lg:gap-8 mb-12">
-              {filteredProducts.map((product, idx) => {
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6 lg:gap-8 mb-8">
+              {displayedProducts.map((product, idx) => {
                 return <ProductCard key={product._id} product={product} idx={idx} />;
               })}
             </div>
+
+            {/* Infinite scroll sentinel */}
+            <div ref={loadMoreRef} className="h-4" />
+
+            {/* Load More CTA */}
+            {visibleCount < filteredProducts.length && (
+              <div className="flex flex-col items-center justify-center -mt-2 mb-16 gap-3">
+                <p className="text-xs font-bold text-slate-400">
+                  Showing {displayedProducts.length} of {filteredProducts.length} {mode === 'fishes' ? 'fishes' : 'plants'}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setVisibleCount((prev) => Math.min(prev + 24, filteredProducts.length))}
+                  className={`px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-wider text-white transition-all shadow-md hover:shadow-lg active:scale-95 cursor-pointer ${
+                    mode === 'fishes' ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-500/25' : 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-500/25'
+                  }`}
+                >
+                  Load More Products ({Math.min(24, filteredProducts.length - visibleCount)} more)
+                </button>
+              </div>
+            )}
           </>
         )}
       </main>

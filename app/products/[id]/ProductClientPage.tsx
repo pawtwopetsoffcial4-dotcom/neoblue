@@ -217,9 +217,12 @@ export default function ProductClientPage({
     return { rating: compatibilityRating, alerts, activeMates };
   }, [product, tankPh, tankTemp, selectedMates, allProducts]);
 
-  const productImages = product.images && product.images.length > 0
-    ? product.images
-    : ['https://images.stockcake.com/public/1/9/4/194f4315-a8d9-422b-b237-18b1e224b7a1_large/colorful-tropical-fish-stockcake.jpg'];
+  const fallbackCover = getCategoryImage(product.category) || 'https://images.stockcake.com/public/1/9/4/194f4315-a8d9-422b-b237-18b1e224b7a1_large/colorful-tropical-fish-stockcake.jpg';
+  const rawImages = (product.images && product.images.length > 0) ? product.images : [fallbackCover];
+  const productImages = rawImages.map((img: string) => {
+    const isDead = typeof img === 'string' && (img.includes('cloudinary.com') || img.includes('mqbrqnmlcjf7sj1qbld9'));
+    return isDead ? fallbackCover : img;
+  });
   const productVideos = Array.isArray(product.videos) ? product.videos : [];
 
   const mediaItems = [

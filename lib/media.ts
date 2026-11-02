@@ -40,11 +40,11 @@ export function isImageKitUrl(url?: string | null): boolean {
 }
 
 /**
- * Checks if a URL is hosted on Cloudinary
+ * Checks if a URL is hosted on Cloudinary or references dead legacy assets
  */
 export function isCloudinaryUrl(url?: string | null): boolean {
   if (!url || typeof url !== 'string') return false;
-  return url.includes('res.cloudinary.com') || url.includes('cloudinary.com');
+  return url.includes('cloudinary.com') || url.includes('mqbrqnmlcjf7sj1qbld9');
 }
 
 /**
@@ -59,6 +59,12 @@ export function extractStorageKey(urlOrKey?: string | null): string {
     return trimmed;
   }
 
+  // If Cloudinary URL or known dead asset, return local placeholder immediately
+  // (NEVER strip domain and send non-existent file to ImageKit)
+  if (isCloudinaryUrl(trimmed)) {
+    return '/illustrations/placeholder.png';
+  }
+
   // If ImageKit URL
   if (isImageKitUrl(trimmed)) {
     try {
@@ -70,24 +76,6 @@ export function extractStorageKey(urlOrKey?: string | null): string {
       return segments.join('/');
     } catch {
       return trimmed.replace(/^https?:\/\/[^\/]+\//, '').split('?')[0];
-    }
-  }
-
-  // If Cloudinary URL
-  if (isCloudinaryUrl(trimmed)) {
-    try {
-      const parsed = new URL(trimmed);
-      const segments = parsed.pathname.split('/').filter(Boolean);
-      // Typical path: /cloudname/image/upload/v12345/filename.jpg or /cloudname/image/upload/c_crop,.../v12345/filename.jpg
-      const uploadIdx = segments.indexOf('upload');
-      if (uploadIdx !== -1) {
-        const afterUpload = segments.slice(uploadIdx + 1);
-        // filter out transformation segment (e.g. c_crop,g_custom) and version segment (v178...)
-        const keySegments = afterUpload.filter(s => !s.startsWith('v') && !s.includes(',') && !s.startsWith('c_'));
-        return keySegments.length > 0 ? keySegments.join('/') : afterUpload[afterUpload.length - 1];
-      }
-    } catch {
-      // ignore
     }
   }
 
@@ -134,16 +122,17 @@ export function getMediaUrl(keyOrUrl?: string | null, options: MediaTransformOpt
   const trimmed = keyOrUrl.trim();
   if (!trimmed) return '';
 
-  // 1. Local static assets remain local
-  if (trimmed.includes('res.cloudinary.com/djoklzpse') || trimmed.includes('mqbrqnmlcjf7sj1qbld9')) {
+  // 1. Dead Cloudinary URLs or known dead assets immediately return local placeholder
+  if (isCloudinaryUrl(trimmed)) {
     return '/illustrations/placeholder.png';
   }
 
+  // 2. Local static assets remain local
   if (trimmed.startsWith('/') && !trimmed.startsWith('//') && !trimmed.startsWith('/products/')) {
     return trimmed;
   }
 
-  // 2. Unsplash / external third-party URLs
+  // 3. Unsplash / external third-party URLs
   if (trimmed.includes('images.unsplash.com')) {
     try {
       const parsed = new URL(trimmed);
@@ -156,9 +145,10 @@ export function getMediaUrl(keyOrUrl?: string | null, options: MediaTransformOpt
     }
   }
 
-  // 3. Extract canonical key from ImageKit, Cloudinary, or relative paths
+  // 4. Extract canonical key from ImageKit or relative paths
   const cleanKey = extractStorageKey(trimmed);
   if (!cleanKey) return trimmed;
+  if (cleanKey.startsWith('/')) return cleanKey;
 
   const trQuery = buildTransformQuery(options);
   const baseEndpoint = CDN_URL_ENDPOINT;

@@ -13,7 +13,7 @@ interface ProductCardProps {
   className?: string;
 }
 
-export default function ProductCard({ product, idx = 0, className = "" }: ProductCardProps) {
+const ProductCard = React.memo(function ProductCard({ product, idx = 0, className = "" }: ProductCardProps) {
   const { addToCart } = useCart();
   const { isInWishlist, toggleWishlist } = useWishlist();
   const productId = product._id || product.id;
@@ -21,12 +21,16 @@ export default function ProductCard({ product, idx = 0, className = "" }: Produc
 
   const fallbackImg = getCategoryImage(product.category) || '/illustrations/placeholder.png';
   const rawImg = product.images?.[0] ?? product.img ?? fallbackImg;
-  const initialImg = rawImg.startsWith('/') ? rawImg : optimizeImage(rawImg, 500, 500);
+  const isDead = typeof rawImg === 'string' && (rawImg.includes('cloudinary.com') || rawImg.includes('mqbrqnmlcjf7sj1qbld9'));
+  const safeImg = isDead ? fallbackImg : rawImg;
+  const initialImg = safeImg.startsWith('/') ? safeImg : optimizeImage(safeImg, 500, 500);
   const [imgSrc, setImgSrc] = useState<string>(initialImg);
 
   useEffect(() => {
     const raw = product.images?.[0] ?? product.img ?? fallbackImg;
-    setImgSrc(raw.startsWith('/') ? raw : optimizeImage(raw, 500, 500));
+    const dead = typeof raw === 'string' && (raw.includes('cloudinary.com') || raw.includes('mqbrqnmlcjf7sj1qbld9'));
+    const safe = dead ? fallbackImg : raw;
+    setImgSrc(safe.startsWith('/') ? safe : optimizeImage(safe, 500, 500));
   }, [product.images, product.img, fallbackImg]);
 
   const isPairPrice = product.perPairPrice != null && typeof product.perPairPrice === 'number';
@@ -197,4 +201,6 @@ export default function ProductCard({ product, idx = 0, className = "" }: Produc
       </div>
     </Link>
   );
-}
+});
+
+export default ProductCard;

@@ -17,19 +17,24 @@ export function resolveOgImageUrl(imageUrl: string | undefined | null): string |
 
 /**
  * Finds the best product image for OG tags.
- * Prefers absolute Cloudinary URLs over local category cover images.
+ * Prefers active CDN URLs, skips dead Cloudinary URLs, and falls back to local category cover images.
  */
 export function getBestProductOgImage(images: string[] | undefined): string | null {
   if (!images || images.length === 0) return null;
   
-  // Prefer the first absolute URL (Cloudinary/external)
+  // Prefer the first absolute URL that is not a dead Cloudinary asset
   const absoluteImage = images.find(
-    (img) => img.startsWith('http://') || img.startsWith('https://')
+    (img) => (img.startsWith('http://') || img.startsWith('https://')) &&
+      !img.includes('cloudinary.com') &&
+      !img.includes('mqbrqnmlcjf7sj1qbld9')
   );
   if (absoluteImage) return absoluteImage;
   
-  // Fallback: resolve relative path
-  return resolveOgImageUrl(images[0]);
+  // Fallback: resolve relative path or first image
+  const firstNonDead = images.find(
+    (img) => !img.includes('cloudinary.com') && !img.includes('mqbrqnmlcjf7sj1qbld9')
+  );
+  return resolveOgImageUrl(firstNonDead || '/fishes_cat_cover/Guppies.jpeg');
 }
 
 /**

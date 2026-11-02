@@ -76,10 +76,14 @@ async function getHomepageData() {
       ? config.categories
       : PRODUCT_CATEGORIES;
 
-    const initialCategories = configuredCategories.map((name: string) => ({
-      name,
-      image: (config?.categoryImages?.[name] && !config.categoryImages[name].includes('res.cloudinary.com/djoklzpse')) ? config.categoryImages[name] : getCategoryImage(name),
-    }));
+    const initialCategories = configuredCategories.map((name: string) => {
+      const dbImg = config?.categoryImages?.[name];
+      const isDead = typeof dbImg === 'string' && (dbImg.includes('cloudinary.com') || dbImg.includes('mqbrqnmlcjf7sj1qbld9'));
+      return {
+        name,
+        image: (!isDead && dbImg) ? dbImg : getCategoryImage(name),
+      };
+    });
 
     const initialHeroSlides = Array.isArray(config?.heroSlides) && config.heroSlides.length > 0
       ? config.heroSlides

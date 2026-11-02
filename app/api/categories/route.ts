@@ -56,10 +56,14 @@ export async function GET(_request: NextRequest) {
 
     const categories = Array.from(categoryMap.values()).sort();
 
-    const categoriesWithImages = categories.map((name) => ({
-      name,
-      image: (config?.categoryImages?.[name] && !config.categoryImages[name].includes('res.cloudinary.com/djoklzpse')) ? config.categoryImages[name] : getCategoryImage(name),
-    }));
+    const categoriesWithImages = categories.map((name) => {
+      const dbImg = config?.categoryImages?.[name];
+      const isDead = typeof dbImg === 'string' && (dbImg.includes('cloudinary.com') || dbImg.includes('mqbrqnmlcjf7sj1qbld9'));
+      return {
+        name,
+        image: (!isDead && dbImg) ? dbImg : getCategoryImage(name),
+      };
+    });
 
     return createSuccessResponse({
       categories,
