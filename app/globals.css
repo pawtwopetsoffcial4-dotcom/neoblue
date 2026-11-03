@@ -99,6 +99,16 @@ textarea::placeholder {
 }
 
 /* ===== CUSTOM KEYFRAME ANIMATIONS ===== */
+/* Shimmer sweep used for blur-up image placeholders */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
 @keyframes float-slow {
   0%, 100% {
     transform: translateY(0) scale(1);

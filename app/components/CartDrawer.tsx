@@ -176,7 +176,7 @@ export default function CartDrawer() {
     };
 
     fetchUpsells();
-  }, [isCartOpen, topVendorId, items.length, totalAmount, upsellProducts.length]);
+  }, [isCartOpen, topVendorId, items.length, totalAmount]);
 
   const theme = isPlants ? {
     accent: 'emerald',
@@ -428,7 +428,8 @@ export default function CartDrawer() {
                             <img 
                               src={up.images?.[0] || up.img || '/illustrations/placeholder.png'} 
                               alt={up.title} 
-                              className="w-full h-full object-cover" 
+                              className="w-full h-full object-cover"
+                              loading="lazy"
                             />
                           </div>
                           <p className="text-[10px] sm:text-[11px] font-bold text-slate-800 truncate leading-tight" title={up.title}>{up.title}</p>

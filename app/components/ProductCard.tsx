@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { ShoppingCart, Heart } from 'lucide-react';
 import { useCart } from '@/lib/hooks/useCart';
 import { useWishlist } from '@/lib/hooks/useWishlist';
@@ -20,18 +19,52 @@ const ProductCard = React.memo(function ProductCard({ product, idx = 0, classNam
   const isLiked = isInWishlist(productId);
 
   const fallbackImg = getCategoryImage(product.category) || '/illustrations/placeholder.png';
-  const rawImg = product.images?.[0] ?? product.img ?? fallbackImg;
-  const isDead = typeof rawImg === 'string' && (rawImg.includes('cloudinary.com') || rawImg.includes('mqbrqnmlcjf7sj1qbld9'));
-  const safeImg = isDead ? fallbackImg : rawImg;
-  const initialImg = safeImg.startsWith('/') ? safeImg : optimizeImage(safeImg, 500, 500);
-  const [imgSrc, setImgSrc] = useState<string>(initialImg);
 
-  useEffect(() => {
+  // Stable memoized URL — keyed on [0] (a primitive string), NOT the whole array ref.
+  // This eliminates the re-render loop where a new array reference on every parent
+  // render caused useEffect → setImgSrc → re-render → repeat, each firing an
+  // ImageKit edge request.
+  const resolvedImg = useMemo(() => {
     const raw = product.images?.[0] ?? product.img ?? fallbackImg;
     const dead = typeof raw === 'string' && (raw.includes('cloudinary.com') || raw.includes('mqbrqnmlcjf7sj1qbld9'));
     const safe = dead ? fallbackImg : raw;
-    setImgSrc(safe.startsWith('/') ? safe : optimizeImage(safe, 500, 500));
-  }, [product.images, product.img, fallbackImg]);
+    return safe.startsWith('/') ? safe : optimizeImage(safe, 500, 500);
+  }, [product.images?.[0], product.img, fallbackImg]);
+
+  // ─── Scroll-triggered lazy load ────────────────────────────────────────
+  // The card's image only starts loading when the card enters the viewport.
+  // Until then we show a shimmer skeleton, eliminating all off-screen
+  // ImageKit requests at initial paint.
+  const cardRef = useRef<HTMLAnchorElement>(null);
+  const [inView, setInView] = useState(false);
+
+  useEffect(() => {
+    const el = cardRef.current;
+    if (!el) return;
+    // First 8 cards (above the fold) load immediately — no observer needed.
+    if (idx < 8) { setInView(true); return; }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setInView(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: '200px' } // start loading 200px before the card enters view
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [idx]);
+
+  // ─── Blur-up / loaded state ────────────────────────────────────────────
+  // When the real image finishes loading we fade it in and hide the shimmer.
+  const [imgLoaded, setImgLoaded] = useState(false);
+  const [errored, setErrored] = useState(false);
+  const imgSrc = errored ? fallbackImg : resolvedImg;
+
+  const handleLoad = useCallback(() => setImgLoaded(true), []);
+  const handleError = useCallback(() => { if (!errored) setErrored(true); }, [errored]);
 
   const isPairPrice = product.perPairPrice != null && typeof product.perPairPrice === 'number';
   const hasDiscount = product.discountPercentage != null && product.discountPercentage > 0;
@@ -59,6 +92,7 @@ const ProductCard = React.memo(function ProductCard({ product, idx = 0, classNam
 
   return (
     <Link
+      ref={cardRef}
       href={`/products/${product._id || product.id}`}
       prefetch={false}
       style={{ animationDelay: `${idx * 45}ms` }}
@@ -66,19 +100,30 @@ const ProductCard = React.memo(function ProductCard({ product, idx = 0, classNam
     >
       {/* Image Block */}
       <div className="relative aspect-square w-full overflow-hidden bg-slate-50">
-        <Image
-          src={imgSrc}
-          alt={product.title}
-          fill
-          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
-          className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-          onError={() => {
-            if (imgSrc !== fallbackImg) {
-              setImgSrc(fallbackImg);
-            }
-          }}
-        />
-        
+
+        {/* ── Shimmer placeholder — always present, hidden once image loads ── */}
+        <div
+          aria-hidden="true"
+          className={`absolute inset-0 transition-opacity duration-500 ${imgLoaded ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+        >
+          {/* Base grey bg */}
+          <div className="absolute inset-0 bg-slate-100" />
+          {/* Shimmer sweep */}
+          <div className="absolute inset-0 animate-[shimmer_1.6s_linear_infinite] bg-gradient-to-r from-transparent via-white/60 to-transparent -translate-x-full" />
+        </div>
+
+        {/* ── Real image — only injected into the DOM once card is in view ── */}
+        {inView && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={imgSrc}
+            alt={product.title}
+            onLoad={handleLoad}
+            onError={handleError}
+            className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 ease-out group-hover:scale-105 ${imgLoaded ? 'opacity-100 blur-0' : 'opacity-0 blur-sm'}`}
+          />
+        )}
+
         <div className="absolute inset-0 bg-gradient-to-t from-slate-900/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
         
         {(product.waterType || isPlants) && (

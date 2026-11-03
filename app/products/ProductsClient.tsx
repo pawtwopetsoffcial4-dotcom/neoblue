@@ -1076,8 +1076,28 @@ function ProductsPageContent() {
 
         {/* Loading / Error States */}
         {isLoading && (
-          <div className="py-24 flex justify-center">
-            <LoadingSpinner size={100} label={mode === 'fishes' ? "Loading Fishes..." : "Loading Plants..."} />
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6 lg:gap-8 mb-8">
+            {Array.from({ length: 20 }).map((_, i) => (
+              <div
+                key={i}
+                className="flex flex-col overflow-hidden rounded-[20px] sm:rounded-[24px] bg-white border border-slate-100 animate-pulse"
+              >
+                {/* Image shimmer */}
+                <div className="relative aspect-square w-full overflow-hidden bg-slate-100">
+                  <div className="absolute inset-0 animate-[shimmer_1.6s_linear_infinite] bg-gradient-to-r from-transparent via-white/60 to-transparent -translate-x-full" />
+                </div>
+                {/* Text lines */}
+                <div className="p-3 space-y-2.5">
+                  <div className="h-2 w-10 bg-slate-100 rounded-md" />
+                  <div className="h-3.5 w-28 bg-slate-200 rounded-md" />
+                  <div className="h-2.5 w-16 bg-slate-100 rounded-md" />
+                  <div className="pt-2 flex justify-between items-center">
+                    <div className="h-4 w-14 bg-slate-200 rounded-md" />
+                    <div className="h-7 w-full ml-2 bg-slate-100 rounded-lg" />
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         )}
 
@@ -1176,6 +1196,27 @@ function ProductsPageContent() {
               {displayedProducts.map((product, idx) => {
                 return <ProductCard key={product._id} product={product} idx={idx} />;
               })}
+
+              {/* Skeleton cards appended at the end when auto-scroll loads more */}
+              {visibleCount < filteredProducts.length && Array.from({ length: 4 }).map((_, i) => (
+                <div
+                  key={`skel-more-${i}`}
+                  className="flex flex-col overflow-hidden rounded-[20px] sm:rounded-[24px] bg-white border border-slate-100"
+                >
+                  <div className="relative aspect-square w-full overflow-hidden bg-slate-100">
+                    <div className="absolute inset-0 animate-[shimmer_1.6s_linear_infinite] bg-gradient-to-r from-transparent via-white/60 to-transparent -translate-x-full" />
+                  </div>
+                  <div className="p-3 space-y-2.5 animate-pulse">
+                    <div className="h-2 w-10 bg-slate-100 rounded-md" />
+                    <div className="h-3.5 w-28 bg-slate-200 rounded-md" />
+                    <div className="h-2.5 w-16 bg-slate-100 rounded-md" />
+                    <div className="pt-2 flex justify-between items-center">
+                      <div className="h-4 w-14 bg-slate-200 rounded-md" />
+                      <div className="h-7 w-full ml-2 bg-slate-100 rounded-lg" />
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
 
             {/* Infinite scroll sentinel */}
@@ -1194,9 +1235,16 @@ function ProductsPageContent() {
                     mode === 'fishes' ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-500/25' : 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-500/25'
                   }`}
                 >
-                  Load More Products ({Math.min(24, filteredProducts.length - visibleCount)} more)
+                  Load More ({Math.min(24, filteredProducts.length - visibleCount)} more)
                 </button>
               </div>
+            )}
+
+            {/* All loaded indicator */}
+            {visibleCount >= filteredProducts.length && filteredProducts.length > 24 && (
+              <p className="text-center text-xs font-bold text-slate-400 mb-16 -mt-4">
+                ✓ All {filteredProducts.length} {mode === 'fishes' ? 'fish' : 'plants'} loaded
+              </p>
             )}
           </>
         )}
