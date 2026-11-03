@@ -86,7 +86,7 @@ export async function GET(request: NextRequest) {
                     await order.save();
                     await decrementStockForOrder(order);
                     await syncOrderToShiprocket(order);
-                    await Cart.findOneAndUpdate({ userId: order.userId }, { items: [] }).catch(() => {});
+                    await Cart.deleteOne({ userId: order.userId }).catch(() => {});
                   }
                 }
               }
@@ -134,7 +134,7 @@ export async function GET(request: NextRequest) {
                         await order.save();
                         await decrementStockForOrder(order);
                         await syncOrderToShiprocket(order);
-                        await Cart.findOneAndUpdate({ userId: order.userId }, { items: [] }).catch(() => {});
+                        await Cart.deleteOne({ userId: order.userId }).catch(() => {});
                       }
                     }
                   }

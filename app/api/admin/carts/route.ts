@@ -22,20 +22,44 @@ export async function GET(request: NextRequest) {
       return createErrorResponse('Forbidden: Admin access required', 403);
     }
 
-    // Fetch all carts that have at least 1 item
-    const rawCarts = await Cart.find({ 'items.0': { $exists: true } })
+    const { searchParams } = new URL(request.url);
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
+    const limit = Math.max(1, Math.min(100, parseInt(searchParams.get('limit') || '25', 10)));
+    const skip = (page - 1) * limit;
+
+    // 15-day expiration cutoff
+    const fifteenDaysAgo = new Date(Date.now() - 15 * 24 * 60 * 60 * 1000);
+
+    // Asynchronously purge expired (>15d) or empty carts
+    Cart.deleteMany({
+      $or: [
+        { updatedAt: { $lt: fifteenDaysAgo } },
+        { items: { $size: 0 } },
+        { items: null },
+      ],
+    }).catch(() => {});
+
+    const baseFilter = {
+      'items.0': { $exists: true },
+      updatedAt: { $gte: fifteenDaysAgo },
+    };
+
+    const totalActiveCarts = await Cart.countDocuments(baseFilter);
+
+    // Fetch paginated active carts within 15-day retention
+    const rawCarts = await Cart.find(baseFilter)
       .populate('userId', 'name email phone createdAt')
       .populate('items.productId', 'title images price category perPairPrice weightPerPiece slug isTrending')
       .sort({ updatedAt: -1 })
+      .skip(skip)
+      .limit(limit)
       .lean();
 
-    // Get user IDs to cross-reference recent orders
+    // Cross-reference recent orders ONLY for the users on this page
     const userIds = rawCarts.map((c: any) => c.userId?._id).filter(Boolean);
-    const userOrders = await Order.find({
-      userId: { $in: userIds },
-    })
-      .sort({ createdAt: -1 })
-      .lean();
+    const userOrders = userIds.length > 0
+      ? await Order.find({ userId: { $in: userIds } }).sort({ createdAt: -1 }).lean()
+      : [];
 
     // Group orders by user ID
     const ordersByUser: Record<string, any[]> = {};
@@ -62,14 +86,13 @@ export async function GET(request: NextRequest) {
           const cartUpdatedTime = new Date(cart.updatedAt || cart.createdAt).getTime();
 
           // If the user already has a placed order and the cart wasn't updated significantly after the order,
-          // it means this cart was checked out and should be cleared / excluded from abandoned carts!
+          // it means this cart was checked out and should be deleted from DB!
           if (latestPlacedOrder) {
             const orderTime = new Date(latestPlacedOrder.createdAt).getTime();
-            // If order was created around or after cart (or cart hasn't been re-added to after order)
             if (orderTime >= cartUpdatedTime - 10 * 60 * 1000) {
-              // Auto-clean this cart in DB in background so it doesn't linger
-              Cart.updateOne({ _id: cart._id }, { $set: { items: [] } }).catch(() => {});
-              return null; // Don't show already purchased orders in abandoned leads!
+              // Delete checked out cart from DB
+              Cart.deleteOne({ _id: cart._id }).catch(() => {});
+              return null;
             }
           }
 
@@ -137,7 +160,10 @@ export async function GET(request: NextRequest) {
 
     return createSuccessResponse({
       carts: formattedCarts,
-      totalActiveCarts: formattedCarts.length,
+      totalActiveCarts,
+      page,
+      totalPages: Math.ceil(totalActiveCarts / limit),
+      hasMore: skip + rawCarts.length < totalActiveCarts,
       totalCartValue: formattedCarts.reduce((sum: number, c: any) => sum + c.totalCartValue, 0),
     });
   } catch (error: any) {

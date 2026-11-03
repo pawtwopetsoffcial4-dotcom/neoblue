@@ -118,16 +118,25 @@ export default function AdminCartsPage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
+  // Pagination State
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [totalActiveCarts, setTotalActiveCarts] = useState(0);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+
   // Retaining Modal State
   const [activeRetainingCart, setActiveRetainingCart] = useState<CustomerCart | null>(null);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('reminder_stock');
   const [customMessage, setCustomMessage] = useState<string>('');
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
-  const loadCarts = async () => {
+  const loadCarts = async (pageNum = 1, append = false) => {
     try {
+      if (pageNum === 1) setIsLoading(true);
+      else setIsLoadingMore(true);
+
       const storedToken = token || localStorage.getItem('authToken') || '';
-      const res = await fetch('/api/admin/carts', {
+      const res = await fetch(`/api/admin/carts?page=${pageNum}&limit=25`, {
         headers: {
           Authorization: `Bearer ${storedToken}`,
         },
@@ -139,23 +148,38 @@ export default function AdminCartsPage() {
       }
 
       const data = await res.json();
-      setCarts(data.carts || []);
+      const newCarts = data.carts || [];
+      if (append) {
+        setCarts((prev) => [...prev, ...newCarts]);
+      } else {
+        setCarts(newCarts);
+      }
+      setPage(data.page || pageNum);
+      setHasMore(Boolean(data.hasMore));
+      setTotalActiveCarts(data.totalActiveCarts || newCarts.length);
     } catch (err) {
       console.error('Error fetching admin carts:', err);
-      setCarts([]);
+      if (!append) setCarts([]);
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
+      setIsLoadingMore(false);
     }
   };
 
   useEffect(() => {
-    loadCarts();
+    loadCarts(1, false);
   }, [token]);
 
   const handleRefresh = () => {
     setIsRefreshing(true);
-    loadCarts();
+    setPage(1);
+    loadCarts(1, false);
+  };
+
+  const handleLoadMore = () => {
+    if (isLoadingMore || !hasMore) return;
+    loadCarts(page + 1, true);
   };
 
   const filteredCarts = useMemo(() => {
@@ -172,13 +196,13 @@ export default function AdminCartsPage() {
   }, [carts, searchTerm]);
 
   const stats = useMemo(() => {
-    const totalCarts = carts.length;
+    const totalCarts = totalActiveCarts || carts.length;
     const totalPotentialValue = carts.reduce((sum, c) => sum + c.totalCartValue, 0);
     const totalProducts = carts.reduce((sum, c) => sum + c.totalItemsCount, 0);
-    const avgValue = totalCarts > 0 ? Math.round(totalPotentialValue / totalCarts) : 0;
+    const avgValue = carts.length > 0 ? Math.round(totalPotentialValue / carts.length) : 0;
 
     return { totalCarts, totalPotentialValue, totalProducts, avgValue };
-  }, [carts]);
+  }, [carts, totalActiveCarts]);
 
   const formatRelativeTime = (dateStr: string) => {
     try {
@@ -474,6 +498,30 @@ export default function AdminCartsPage() {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* ── See More / Load More Button ── */}
+      {!isLoading && hasMore && (
+        <div className="flex flex-col items-center justify-center my-8 gap-2">
+          <p className="text-xs font-bold text-slate-400">
+            Showing {carts.length} of {totalActiveCarts} active abandoned carts (last 15 days)
+          </p>
+          <button
+            type="button"
+            onClick={handleLoadMore}
+            disabled={isLoadingMore}
+            className="px-6 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 disabled:bg-slate-300 text-white font-black text-xs transition-all shadow-sm hover:shadow active:scale-95 cursor-pointer flex items-center gap-2"
+          >
+            {isLoadingMore ? (
+              <>
+                <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                <span>Loading more carts...</span>
+              </>
+            ) : (
+              <span>See More Carts ({Math.min(25, totalActiveCarts - carts.length)} more)</span>
+            )}
+          </button>
         </div>
       )}
 

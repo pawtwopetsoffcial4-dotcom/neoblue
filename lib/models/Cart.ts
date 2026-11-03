@@ -52,4 +52,7 @@ const cartSchema = new Schema<ICart>(
   { timestamps: true }
 );
 
+// TTL Index: automatically delete abandoned carts inactive for more than 15 days
+cartSchema.index({ updatedAt: 1 }, { expireAfterSeconds: 15 * 24 * 60 * 60 });
+
 export default mongoose.models.Cart || mongoose.model<ICart>('Cart', cartSchema);

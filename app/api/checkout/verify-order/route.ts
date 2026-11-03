@@ -83,9 +83,9 @@ export async function POST(request: NextRequest) {
             '/vendor/orders'
           ).catch((e) => console.error('Notification vendor error:', e));
 
-          // Clear customer's cart in DB since order is placed
-          await Cart.findOneAndUpdate({ userId: order.userId }, { items: [] }).catch((e) =>
-            console.error('Clear cart error in Razorpay verification:', e)
+          // Delete customer's cart in DB completely since order is placed
+          await Cart.deleteOne({ userId: order.userId }).catch((e) =>
+            console.error('Delete cart error in Razorpay verification:', e)
           );
         }
       }
@@ -191,9 +191,9 @@ export async function GET(request: NextRequest) {
             '/vendor/orders'
           ).catch((e) => console.error('Notification vendor error:', e));
 
-          // Clear customer's cart in DB since order is placed
-          await Cart.findOneAndUpdate({ userId: order.userId }, { items: [] }).catch((e) =>
-            console.error('Clear cart error in Cashfree verification:', e)
+          // Delete customer's cart in DB completely since order is placed
+          await Cart.deleteOne({ userId: order.userId }).catch((e) =>
+            console.error('Delete cart error in Cashfree verification:', e)
           );
         }
       }
