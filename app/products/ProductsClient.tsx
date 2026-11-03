@@ -651,7 +651,7 @@ function ProductsPageContent() {
   // Reset pagination when any filter changes
   useEffect(() => {
     setVisibleCount(24);
-  }, [searchTerm, category, subcategory, waterType, tag, inStockOnly, mode, sortBy, priceRange]);
+  }, [searchTerm, category, subcategory, waterType, tag, inStockOnly, mode, sortBy, lightingRequirement, co2Requirement, placement, careDifficulty]);
 
   const displayedProducts = useMemo(() => {
     return filteredProducts.slice(0, visibleCount);
