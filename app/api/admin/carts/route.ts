@@ -44,16 +44,56 @@ export async function GET(request: NextRequest) {
       updatedAt: { $gte: fifteenDaysAgo },
     };
 
-    const totalActiveCarts = await Cart.countDocuments(baseFilter);
+    // Concurrently fetch page items AND overall aggregation statistics across ALL active carts
+    const [rawCarts, statsAgg] = await Promise.all([
+      Cart.find(baseFilter)
+        .populate('userId', 'name email phone createdAt')
+        .populate('items.productId', 'title images price category perPairPrice weightPerPiece slug isTrending')
+        .sort({ updatedAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      Cart.aggregate([
+        {
+          $match: baseFilter,
+        },
+        {
+          $project: {
+            itemsCount: { $sum: '$items.quantity' },
+            cartValue: {
+              $sum: {
+                $map: {
+                  input: '$items',
+                  as: 'item',
+                  in: {
+                    $multiply: [
+                      { $ifNull: ['$$item.price', 0] },
+                      { $ifNull: ['$$item.quantity', 1] },
+                    ],
+                  },
+                },
+              },
+            },
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            totalCarts: { $sum: 1 },
+            totalPotentialValue: { $sum: '$cartValue' },
+            totalProducts: { $sum: '$itemsCount' },
+          },
+        },
+      ]),
+    ]);
 
-    // Fetch paginated active carts within 15-day retention
-    const rawCarts = await Cart.find(baseFilter)
-      .populate('userId', 'name email phone createdAt')
-      .populate('items.productId', 'title images price category perPairPrice weightPerPiece slug isTrending')
-      .sort({ updatedAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .lean();
+    const globalStats = statsAgg[0] || {
+      totalCarts: 0,
+      totalPotentialValue: 0,
+      totalProducts: 0,
+    };
+    const totalActiveCarts = globalStats.totalCarts;
+    const avgValue = totalActiveCarts > 0 ? Math.round(globalStats.totalPotentialValue / totalActiveCarts) : 0;
 
     // Cross-reference recent orders ONLY for the users on this page
     const userIds = rawCarts.map((c: any) => c.userId?._id).filter(Boolean);
@@ -164,7 +204,15 @@ export async function GET(request: NextRequest) {
       page,
       totalPages: Math.ceil(totalActiveCarts / limit),
       hasMore: skip + rawCarts.length < totalActiveCarts,
-      totalCartValue: formattedCarts.reduce((sum: number, c: any) => sum + c.totalCartValue, 0),
+      totalCartValue: globalStats.totalPotentialValue,
+      totalProducts: globalStats.totalProducts,
+      avgValue,
+      stats: {
+        totalCarts: totalActiveCarts,
+        totalPotentialValue: globalStats.totalPotentialValue,
+        totalProducts: globalStats.totalProducts,
+        avgValue,
+      },
     });
   } catch (error: any) {
     console.error('Fetch admin carts error:', error);

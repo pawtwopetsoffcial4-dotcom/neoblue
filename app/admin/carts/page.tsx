@@ -123,6 +123,12 @@ export default function AdminCartsPage() {
   const [hasMore, setHasMore] = useState(false);
   const [totalActiveCarts, setTotalActiveCarts] = useState(0);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [globalStats, setGlobalStats] = useState<{
+    totalCarts: number;
+    totalPotentialValue: number;
+    totalProducts: number;
+    avgValue: number;
+  } | null>(null);
 
   // Retaining Modal State
   const [activeRetainingCart, setActiveRetainingCart] = useState<CustomerCart | null>(null);
@@ -157,6 +163,16 @@ export default function AdminCartsPage() {
       setPage(data.page || pageNum);
       setHasMore(Boolean(data.hasMore));
       setTotalActiveCarts(data.totalActiveCarts || newCarts.length);
+      if (data.stats) {
+        setGlobalStats(data.stats);
+      } else if (data.totalCartValue !== undefined) {
+        setGlobalStats({
+          totalCarts: data.totalActiveCarts || newCarts.length,
+          totalPotentialValue: data.totalCartValue,
+          totalProducts: data.totalProducts || 0,
+          avgValue: data.avgValue || 0,
+        });
+      }
     } catch (err) {
       console.error('Error fetching admin carts:', err);
       if (!append) setCarts([]);
@@ -196,13 +212,16 @@ export default function AdminCartsPage() {
   }, [carts, searchTerm]);
 
   const stats = useMemo(() => {
+    if (globalStats) {
+      return globalStats;
+    }
     const totalCarts = totalActiveCarts || carts.length;
     const totalPotentialValue = carts.reduce((sum, c) => sum + c.totalCartValue, 0);
     const totalProducts = carts.reduce((sum, c) => sum + c.totalItemsCount, 0);
-    const avgValue = carts.length > 0 ? Math.round(totalPotentialValue / carts.length) : 0;
+    const avgValue = totalCarts > 0 ? Math.round(totalPotentialValue / totalCarts) : 0;
 
     return { totalCarts, totalPotentialValue, totalProducts, avgValue };
-  }, [carts, totalActiveCarts]);
+  }, [globalStats, carts, totalActiveCarts]);
 
   const formatRelativeTime = (dateStr: string) => {
     try {
