@@ -77,7 +77,7 @@ export async function GET(request: NextRequest) {
                         await order.save();
                         await decrementStockForOrder(order);
                         await syncOrderToShiprocket(order);
-                        await Cart.deleteOne({ userId: order.userId }).catch(() => {});
+                        await Cart.findOneAndUpdate({ userId: order.userId }, { items: [] }).catch(() => {});
                       }
                     }
                   }
@@ -128,7 +128,7 @@ export async function GET(request: NextRequest) {
                         await order.save();
                         await decrementStockForOrder(order);
                         await syncOrderToShiprocket(order);
-                        await Cart.deleteOne({ userId: order.userId }).catch(() => {});
+                        await Cart.findOneAndUpdate({ userId: order.userId }, { items: [] }).catch(() => {});
                       }
                     }
                   }
@@ -145,92 +145,15 @@ export async function GET(request: NextRequest) {
     }
 
     if (type === 'orders') {
-      const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
-      const limit = Math.max(1, Math.min(100, parseInt(searchParams.get('limit') || '30', 10)));
-      const skip = (page - 1) * limit;
-
-      const status = searchParams.get('status') || 'all';
-      const search = searchParams.get('search')?.trim() || '';
-
-      const query: any = {};
-      if (status && status !== 'all') {
-        if (status === 'today') {
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
-          query.createdAt = { $gte: today };
-          query.status = { $ne: 'cancelled' };
-        } else if (status === 'pending') {
-          query.status = { $in: ['placed', 'pending', 'accepted'] };
-        } else {
-          query.status = status;
-        }
-      } else {
-        query.status = { $ne: 'pending' };
-      }
-
-      if (search) {
-        const isObjectId = /^[0-9a-fA-F]{24}$/.test(search);
-        const searchRegex = new RegExp(search, 'i');
-        query.$or = [
-          ...(isObjectId ? [{ _id: search }] : []),
-          { paymentId: searchRegex },
-          { razorpayOrderId: searchRegex },
-          { cashfreeOrderId: searchRegex },
-          { 'address.phone': searchRegex },
-          { 'address.city': searchRegex },
-        ];
-      }
-
-      // Fast summary stats across entire collection via MongoDB aggregation & count
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-
-      const [todayOrdersCount, todayRevenueAgg, totalRevenueAgg, pendingCount, fulfilledCount, cancelledCount, totalOrdersCount] = await Promise.all([
-        Order.countDocuments({ createdAt: { $gte: today }, status: { $ne: 'cancelled' } }),
-        Order.aggregate([
-          { $match: { createdAt: { $gte: today }, status: { $ne: 'cancelled' } } },
-          { $group: { _id: null, total: { $sum: '$totalAmount' } } }
-        ]),
-        Order.aggregate([
-          { $match: { status: { $ne: 'cancelled' } } },
-          { $group: { _id: null, total: { $sum: '$totalAmount' } } }
-        ]),
-        Order.countDocuments({ status: { $in: ['placed', 'pending', 'accepted'] } }),
-        Order.countDocuments({ status: { $in: ['shipped', 'completed'] } }),
-        Order.countDocuments({ status: 'cancelled' }),
-        Order.countDocuments(query),
-      ]);
-
-      const activeTotal = totalOrdersCount - cancelledCount;
-      const fulfillmentRate = activeTotal > 0 ? Math.round((fulfilledCount / activeTotal) * 100) : 100;
-
-      const orders = await Order.find(query)
+      const orders = await Order.find({ status: { $ne: 'pending' } })
         .populate('userId', 'name email role')
         .populate('vendorId', 'name email')
         .populate('products.productId', 'title price images')
         .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
         .lean()
         .maxTimeMS(4000);
 
-      return createSuccessResponse({
-        orders,
-        totalOrders: totalOrdersCount,
-        page,
-        totalPages: Math.ceil(totalOrdersCount / limit),
-        hasMore: skip + orders.length < totalOrdersCount,
-        stats: {
-          todayOrdersCount,
-          todayRevenue: todayRevenueAgg[0]?.total || 0,
-          totalRevenue: totalRevenueAgg[0]?.total || 0,
-          totalOrdersCount,
-          pendingCount,
-          fulfilledCount,
-          fulfillmentRate,
-          cancelledCount,
-        },
-      });
+      return createSuccessResponse({ orders });
     }
 
     if (type === 'users') {

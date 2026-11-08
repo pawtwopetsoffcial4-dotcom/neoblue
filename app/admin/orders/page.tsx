@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { apiClient } from '@/lib/api-client';
 import { 
   MapPin, 
@@ -17,8 +17,7 @@ import {
   TrendingUp,
   AlertCircle,
   XCircle,
-  Filter,
-  RefreshCw
+  Filter
 } from 'lucide-react';
 
 type AdminOrder = {
@@ -50,94 +49,24 @@ type AdminOrder = {
   trackingLink?: string;
 };
 
-type ServerStats = {
-  todayOrdersCount: number;
-  todayRevenue: number;
-  totalRevenue: number;
-  totalOrdersCount: number;
-  pendingCount: number;
-  fulfilledCount: number;
-  fulfillmentRate: number;
-  cancelledCount: number;
-};
-
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<AdminOrder[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<'all' | 'today' | 'pending' | 'shipped' | 'completed' | 'cancelled'>('all');
   const [isUpdating, setIsUpdating] = useState<string | null>(null);
-  
-  // Pagination & Loading State
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(false);
-  const [totalOrders, setTotalOrders] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [serverStats, setServerStats] = useState<ServerStats | null>(null);
 
-  const loadOrders = useCallback(async (pageNum = 1, append = false, filter = activeFilter, query = searchQuery) => {
+  const loadOrders = async () => {
     try {
-      if (pageNum === 1) setIsLoading(true);
-      else setIsLoadingMore(true);
-
-      const params: Record<string, any> = {
-        page: pageNum,
-        limit: 30,
-        status: filter,
-      };
-
-      if (query.trim()) {
-        params.search = query.trim();
-      }
-
-      const response = (await apiClient.getAdminOrders(params)) as {
-        orders: AdminOrder[];
-        totalOrders?: number;
-        page?: number;
-        hasMore?: boolean;
-        stats?: ServerStats;
-      };
-
-      const fetched = response.orders ?? [];
-      if (append) {
-        setOrders((prev) => [...prev, ...fetched]);
-      } else {
-        setOrders(fetched);
-      }
-
-      setPage(response.page ?? pageNum);
-      setHasMore(Boolean(response.hasMore));
-      setTotalOrders(response.totalOrders ?? fetched.length);
-      if (response.stats) {
-        setServerStats(response.stats);
-      }
-    } catch (err) {
-      console.error('Failed to load admin orders:', err);
-      if (!append) setOrders([]);
-    } finally {
-      setIsLoading(false);
-      setIsLoadingMore(false);
+      const response = (await apiClient.getAdminOrders()) as { orders: AdminOrder[] };
+      setOrders(response.orders ?? []);
+    } catch {
+      setOrders([]);
     }
-  }, [activeFilter, searchQuery]);
+  };
 
-  // Initial load
   useEffect(() => {
-    loadOrders(1, false, activeFilter, searchQuery);
-  }, [activeFilter, loadOrders]);
-
-  const handleRefresh = () => {
-    loadOrders(1, false, activeFilter, searchQuery);
-  };
-
-  const handleLoadMore = () => {
-    if (isLoadingMore || !hasMore) return;
-    loadOrders(page + 1, true, activeFilter, searchQuery);
-  };
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    loadOrders(1, false, activeFilter, searchQuery);
-  };
+    loadOrders();
+  }, []);
 
   const updateOrderStatus = async (orderId: string, status: string) => {
     if (status === 'cancelled' && !confirm('Are you sure you want to cancel this order and initiate a refund?')) {
@@ -147,10 +76,7 @@ export default function AdminOrdersPage() {
     try {
       setIsUpdating(orderId);
       await apiClient.updateOrderStatus(orderId, status);
-      // Update local state instantly
-      setOrders((prev) =>
-        prev.map((o) => (o._id === orderId ? { ...o, status } : o))
-      );
+      await loadOrders();
     } catch (error: any) {
       alert(`Failed to update order status: ${error.message}`);
     } finally {
@@ -160,8 +86,6 @@ export default function AdminOrdersPage() {
 
   // ── Stat Capsules Calculations ──
   const stats = useMemo(() => {
-    if (serverStats) return serverStats;
-
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -202,13 +126,62 @@ export default function AdminOrdersPage() {
       todayOrdersCount,
       todayRevenue,
       totalRevenue,
-      totalOrdersCount: totalOrders || orders.length,
+      totalOrdersCount: orders.length,
       pendingCount,
       fulfilledCount,
       fulfillmentRate,
       cancelledCount,
     };
-  }, [serverStats, orders, totalOrders]);
+  }, [orders]);
+
+  // ── Filtered Orders ──
+  const filteredOrders = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    return orders.filter((order) => {
+      // Status filter
+      if (activeFilter === 'today') {
+        if (new Date(order.createdAt) < today) return false;
+      } else if (activeFilter === 'pending') {
+        if (order.status !== 'placed' && order.status !== 'pending' && order.status !== 'accepted') return false;
+      } else if (activeFilter === 'shipped') {
+        if (order.status !== 'shipped') return false;
+      } else if (activeFilter === 'completed') {
+        if (order.status !== 'completed') return false;
+      } else if (activeFilter === 'cancelled') {
+        if (order.status !== 'cancelled') return false;
+      }
+
+      // Search query filter
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase().trim();
+        const orderId = order._id.toLowerCase();
+        const userName = (order.userId?.name || '').toLowerCase();
+        const userEmail = (order.userId?.email || '').toLowerCase();
+        const phone = (order.address?.phone || '').toLowerCase();
+        const city = (order.address?.city || '').toLowerCase();
+        const vendorName = (order.vendorId?.name || '').toLowerCase();
+        const paymentId = (order.paymentId || '').toLowerCase();
+        const razorpayOrderId = (order.razorpayOrderId || '').toLowerCase();
+        const cashfreeOrderId = (order.cashfreeOrderId || '').toLowerCase();
+
+        return (
+          orderId.includes(query) ||
+          userName.includes(query) ||
+          userEmail.includes(query) ||
+          phone.includes(query) ||
+          city.includes(query) ||
+          vendorName.includes(query) ||
+          paymentId.includes(query) ||
+          razorpayOrderId.includes(query) ||
+          cashfreeOrderId.includes(query)
+        );
+      }
+
+      return true;
+    });
+  }, [orders, activeFilter, searchQuery]);
 
   return (
     <div className="space-y-6">
@@ -220,12 +193,10 @@ export default function AdminOrdersPage() {
         </div>
         <div className="flex items-center gap-2">
           <button
-            onClick={handleRefresh}
-            disabled={isLoading}
-            className="h-10 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 transition-colors shadow-2xs cursor-pointer flex items-center gap-2"
+            onClick={loadOrders}
+            className="h-10 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 transition-colors shadow-2xs cursor-pointer"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
-            <span>Refresh Feed</span>
+            Refresh Feed
           </button>
         </div>
       </div>
@@ -340,7 +311,7 @@ export default function AdminOrdersPage() {
         >
           <div className="flex items-center justify-between mb-2 sm:mb-3">
             <span className={`text-[10px] sm:text-[11px] font-black uppercase tracking-wider ${activeFilter === 'completed' ? 'text-indigo-100' : 'text-slate-500'}`}>
-              Fulfillment Rate
+              Fulfilled Orders
             </span>
             <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center transition-colors ${
               activeFilter === 'completed' ? 'bg-white/20 text-white' : 'bg-indigo-50 text-indigo-600 group-hover:bg-indigo-100'
@@ -353,8 +324,8 @@ export default function AdminOrdersPage() {
               <span className={`text-xl sm:text-3xl font-black tracking-tight ${activeFilter === 'completed' ? 'text-white' : 'text-slate-900'}`}>
                 {stats.fulfilledCount}
               </span>
-              <span className={`text-xs font-bold ${activeFilter === 'completed' ? 'text-indigo-100' : 'text-indigo-600'}`}>
-                orders fulfilled
+              <span className={`text-xs font-bold ${activeFilter === 'completed' ? 'text-indigo-100' : 'text-slate-400'}`}>
+                shipped / completed
               </span>
             </div>
             <p className={`text-xs font-bold truncate ${activeFilter === 'completed' ? 'text-indigo-100' : 'text-indigo-600'}`}>
@@ -367,7 +338,7 @@ export default function AdminOrdersPage() {
       {/* ── Search & Filter Bar ── */}
       <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2.5 sm:gap-3 bg-white p-2.5 sm:p-3 rounded-2xl border border-slate-200/80 shadow-2xs">
         {/* Search */}
-        <form onSubmit={handleSearchSubmit} className="relative flex-1">
+        <div className="relative flex-1">
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
@@ -376,23 +347,21 @@ export default function AdminOrdersPage() {
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full h-10 pl-9 pr-4 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-800 placeholder-slate-400 outline-none focus:bg-white focus:border-blue-500 transition-all"
           />
-        </form>
+        </div>
 
         {/* Filter Pills */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-none -mx-1 px-1">
           {[
-            { id: 'all', label: 'All', count: stats.totalOrdersCount },
+            { id: 'all', label: 'All', count: orders.length },
             { id: 'today', label: 'Today', count: stats.todayOrdersCount },
             { id: 'pending', label: 'Pending', count: stats.pendingCount },
             { id: 'shipped', label: 'Shipped', count: orders.filter(o => o.status === 'shipped').length },
-            { id: 'completed', label: 'Completed', count: stats.fulfilledCount },
+            { id: 'completed', label: 'Completed', count: orders.filter(o => o.status === 'completed').length },
             { id: 'cancelled', label: 'Cancelled', count: stats.cancelledCount },
           ].map((tab) => (
             <button
               key={tab.id}
-              onClick={() => {
-                setActiveFilter(tab.id as any);
-              }}
+              onClick={() => setActiveFilter(tab.id as any)}
               className={`h-9 px-3 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer ${
                 activeFilter === tab.id
                   ? 'bg-slate-900 text-white shadow-xs'
@@ -410,9 +379,8 @@ export default function AdminOrdersPage() {
         </div>
       </div>
 
-      {/* Orders List */}
       <div className="space-y-3">
-        {orders.map((order) => (
+        {filteredOrders.map((order) => (
           <article key={order._id} className="rounded-2xl sm:rounded-3xl border border-slate-200/80 bg-white p-4 sm:p-6 shadow-xs hover:shadow-md transition-shadow">
               
               {/* Header Info */}
@@ -462,14 +430,14 @@ export default function AdminOrdersPage() {
                       <button
                         onClick={() => updateOrderStatus(order._id, 'accepted')}
                         disabled={isUpdating === order._id}
-                        className="flex-1 sm:flex-initial h-10 px-4 rounded-xl bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 transition-colors disabled:opacity-60 cursor-pointer"
+                        className="flex-1 sm:flex-initial h-10 px-4 rounded-xl bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 transition-colors disabled:opacity-60"
                       >
                         {isUpdating === order._id ? 'Updating...' : 'Accept Order'}
                       </button>
                       <button
                         onClick={() => updateOrderStatus(order._id, 'cancelled')}
                         disabled={isUpdating === order._id}
-                        className="flex-1 sm:flex-initial h-10 px-4 rounded-xl bg-rose-50 text-rose-600 border border-rose-100 text-xs font-bold hover:bg-rose-100 transition-colors disabled:opacity-60 cursor-pointer"
+                        className="flex-1 sm:flex-initial h-10 px-4 rounded-xl bg-rose-50 text-rose-600 border border-rose-100 text-xs font-bold hover:bg-rose-100 transition-colors disabled:opacity-60"
                       >
                         Cancel & Refund
                       </button>
@@ -552,16 +520,7 @@ export default function AdminOrdersPage() {
             </article>
         ))}
 
-        {/* Loading Spinner Skeleton */}
-        {isLoading && (
-          <div className="p-12 text-center text-slate-500 font-bold text-xs flex flex-col items-center justify-center gap-2">
-            <RefreshCw className="w-6 h-6 animate-spin text-blue-600" />
-            <span>Loading orders...</span>
-          </div>
-        )}
-
-        {/* Empty State */}
-        {!isLoading && orders.length === 0 && (
+        {filteredOrders.length === 0 && (
           <div className="rounded-[2rem] bg-white border border-slate-200/80 p-12 text-center text-slate-600 space-y-3 shadow-sm">
             <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
               <Package className="w-6 h-6" />
@@ -578,30 +537,6 @@ export default function AdminOrdersPage() {
                 Reset Filters
               </button>
             )}
-          </div>
-        )}
-
-        {/* ── See More / Load More Button ── */}
-        {!isLoading && hasMore && (
-          <div className="flex flex-col items-center justify-center pt-6 pb-8 gap-2">
-            <p className="text-xs font-bold text-slate-400">
-              Showing {orders.length} of {totalOrders} orders
-            </p>
-            <button
-              type="button"
-              onClick={handleLoadMore}
-              disabled={isLoadingMore}
-              className="px-6 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 disabled:bg-slate-300 text-white font-black text-xs transition-all shadow-sm hover:shadow active:scale-95 cursor-pointer flex items-center gap-2"
-            >
-              {isLoadingMore ? (
-                <>
-                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                  <span>Loading more orders...</span>
-                </>
-              ) : (
-                <span>See More Orders ({Math.min(30, totalOrders - orders.length)} more)</span>
-              )}
-            </button>
           </div>
         )}
       </div>

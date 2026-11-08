@@ -201,8 +201,8 @@ export class APIClient {
   }
 
   // Admin methods
-  async getAdminOrders(params: Record<string, any> = {}) {
-    return this.request('/admin', { params: { type: 'orders', ...params } });
+  async getAdminOrders() {
+    return this.request('/admin', { params: { type: 'orders' } });
   }
 
   async getAdminUsers() {
