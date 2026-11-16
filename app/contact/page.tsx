@@ -31,7 +31,7 @@ export default function ContactPage() {
       "@type": "LocalBusiness",
       "name": "NeoBlue",
       "image": "https://neoblue.in/logo.png",
-      "telephone": "+91-9535872394",
+      "telephone": "+91-7307968941",
       "email": "support@neoblue.in",
       "url": "https://neoblue.in",
       "priceRange": "₹₹",
@@ -86,20 +86,20 @@ export default function ContactPage() {
               </p>
               <div className="mt-4 flex flex-col gap-2.5">
                 <a
-                  href="https://wa.me/919535872394?text=Hi%20NeoBlue%20Team%2C%20I%20have%20an%20inquiry"
+                  href="https://wa.me/917307968941?text=Hi%20NeoBlue%20Team%2C%20I%20have%20an%20inquiry"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors"
                 >
-                  <span>Chat on WhatsApp (+91 95358 72394)</span>
+                  <span>Chat on WhatsApp (+91 73079 68941)</span>
                   <ArrowRight className="h-3.5 w-3.5" />
                 </a>
                 <a
-                  href="tel:+919535872394"
+                  href="tel:+917307968941"
                   className="inline-flex items-center gap-2 text-xs font-bold text-blue-600 hover:text-blue-700 transition-colors"
                 >
                   <Phone className="h-3.5 w-3.5" />
-                  <span>Call: +91 95358 72394</span>
+                  <span>Call: +91 73079 68941</span>
                 </a>
               </div>
             </div>

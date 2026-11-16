@@ -166,7 +166,7 @@ export default function Footer() {
                 </svg>
               </a>
               {/* WhatsApp */}
-              <a href="https://wa.me/919535872394" target="_blank" rel="noopener noreferrer" className="w-7 h-7 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full flex items-center justify-center text-white transition-colors" aria-label="WhatsApp">
+              <a href="https://wa.me/917307968941" target="_blank" rel="noopener noreferrer" className="w-7 h-7 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full flex items-center justify-center text-white transition-colors" aria-label="WhatsApp">
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                   <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" />
                 </svg>
@@ -206,7 +206,7 @@ export default function Footer() {
                 <li><Link prefetch={false} href="/about" className="hover:text-white transition-colors">About Us</Link></li>
                 <li><Link prefetch={false} href="/blog" className="hover:text-white transition-colors">Aquatic Blog</Link></li>
                 <li><Link prefetch={false} href="/contact" className="hover:text-white transition-colors">Contact Support</Link></li>
-                <li><a href="tel:+919535872394" className="hover:text-white transition-colors">+91 95358 72394</a></li>
+                <li><a href="tel:+917307968941" className="hover:text-white transition-colors">+91 73079 68941</a></li>
                 <li><a href="mailto:support@neoblue.in" className="hover:text-white transition-colors">support@neoblue.in</a></li>
               </ul>
             </div>
