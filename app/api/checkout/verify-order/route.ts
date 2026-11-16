@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
           await createNotification(
             order.userId,
             'Order Confirmed! 🎉',
-            `Your order #${order._id.toString().toUpperCase().slice(-6)} of ₹${order.totalAmount.toFixed(2)} has been placed successfully.`,
+            `Your order #${order._id.toString().toUpperCase().slice(-6)} of ₹${order.totalAmount.toFixed(2)} has been placed successfully. Expected delivery is within 8–10 days.`,
             'order_status',
             '/orders'
           ).catch((e) => console.error('Notification buyer error:', e));
@@ -177,7 +177,7 @@ export async function GET(request: NextRequest) {
           await createNotification(
             order.userId,
             'Order Confirmed! 🎉',
-            `Your order #${order._id.toString().toUpperCase().slice(-6)} of ₹${order.totalAmount.toFixed(2)} has been placed successfully.`,
+            `Your order #${order._id.toString().toUpperCase().slice(-6)} of ₹${order.totalAmount.toFixed(2)} has been placed successfully. Expected delivery is within 8–10 days.`,
             'order_status',
             '/orders'
           ).catch((e) => console.error('Notification buyer error:', e));

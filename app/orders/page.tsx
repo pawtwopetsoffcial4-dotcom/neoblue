@@ -7,7 +7,7 @@ import { apiClient } from '@/lib/api-client';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useCart } from '@/lib/hooks/useCart';
 import ImageKitUploadWidget from '@/app/components/ImageKitUploadWidget';
-import { Shield, ShieldCheck, ShieldAlert, FileVideo, UploadCloud, CheckCircle2, AlertCircle, Loader2, X, ShoppingBag, ArrowRight } from 'lucide-react';
+import { Shield, ShieldCheck, ShieldAlert, FileVideo, UploadCloud, CheckCircle2, AlertCircle, Loader2, X, ShoppingBag, ArrowRight, Truck } from 'lucide-react';
 
 type UserOrder = {
   _id: string;
@@ -30,6 +30,18 @@ type UserOrder = {
     price: number;
   }>;
 };
+
+function getExpectedDeliveryDate(createdAt: string | Date): string {
+  const date = new Date(createdAt);
+  if (isNaN(date.getTime())) return '8–10 Days';
+  const min = new Date(date);
+  min.setDate(min.getDate() + 8);
+  const max = new Date(date);
+  max.setDate(max.getDate() + 10);
+  const minStr = min.toLocaleDateString('en-IN', { month: 'short', day: 'numeric' });
+  const maxStr = max.toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' });
+  return `${minStr} – ${maxStr}`;
+}
 
 function OrdersPageContent() {
   const router = useRouter();
@@ -220,6 +232,10 @@ function OrdersPageContent() {
                 <p className="text-xs sm:text-sm text-slate-300 mt-0.5 font-medium">
                   Thank you! Your payment was verified and your order is being prepared for live express dispatch.
                 </p>
+                <div className="mt-3 inline-flex items-center gap-2 text-xs font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-500/30 px-3 py-1.5 rounded-xl">
+                  <Truck className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span>Expected Delivery: <strong className="text-white">{orders[0] ? getExpectedDeliveryDate(orders[0].createdAt) : '8–10 Days'}</strong> (8–10 Days)</span>
+                </div>
               </div>
             </div>
             <Link
@@ -271,7 +287,21 @@ function OrdersPageContent() {
                       {order.status}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-400 mt-1.5">Placed on {new Date(order.createdAt).toLocaleString()}</p>
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1.5">
+                    <p className="text-xs text-slate-400">Placed on {new Date(order.createdAt).toLocaleString()}</p>
+                    {order.status !== 'completed' && order.status !== 'cancelled' && (
+                      <span className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-800 bg-blue-50 border border-blue-200/80 px-2.5 py-0.5 rounded-full">
+                        <Truck className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                        Expected Delivery: <strong>{getExpectedDeliveryDate(order.createdAt)}</strong> (8–10 Days)
+                      </span>
+                    )}
+                    {order.status === 'completed' && (
+                      <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/70 px-2.5 py-0.5 rounded-full">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                        Delivered
+                      </span>
+                    )}
+                  </div>
                 </div>
                 
                 <div className="flex flex-wrap lg:text-right items-center gap-4 lg:gap-6 justify-between lg:justify-end">
